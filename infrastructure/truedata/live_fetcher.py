@@ -299,3 +299,43 @@ def start():
     scheduler.start()
     while True:
         pass
+
+
+""" These can be removed"""
+from db.market_data import get_daily_tick_data
+import helper.utils as helper_utils
+
+price_lst2 = []
+counter = 0
+def get_data_2(sym, trade_day):
+    tick_df = get_daily_tick_data(sym, trade_day)
+    tick_df['symbol'] = sym
+    converted = tick_df.to_dict("records")
+    print(len(converted))
+    return (x for x in converted)
+
+def get_price():
+    global price_lst2
+    yield [next(pl) for pl in price_lst2 ]
+
+def price_received_local(feed):
+    print('priceReceived+++++++++++++++')
+    print(feed)
+
+    try:
+        sio.emit('input_feed', feed)
+    except Exception as e:
+        print(e)
+        print('Error sending data to server')
+
+def test_run_hist_data():
+    if not live_feed:
+        global price_lst2
+        price_lst2 = []
+        for sym in default_symbols:
+            price_lst2.append(get_data_2(sym, back_test_day))
+        #gen = get_price()
+        obs = rx.interval(1).pipe(ops.map(lambda i: next(get_price())))
+        obs.subscribe(on_next=lambda s: price_received_local(s))
+        while True:
+            pass

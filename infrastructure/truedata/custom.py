@@ -1,7 +1,7 @@
 from truedata_ws.websocket.TD import TD
 from truedata_ws.websocket.TD_chain import OptionChain
 import pandas as pd
-import truedata.settings as td_settings
+import infrastructure.truedata.settings as td_settings
 from threading import Thread
 import requests
 from io import StringIO

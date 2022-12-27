@@ -6,7 +6,7 @@ from fyers_api.Websocket import ws
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from fyers.settings import (
+from infrastructure.fyers.settings import (
     app_id,
     secret_key,
     redirect_uri,

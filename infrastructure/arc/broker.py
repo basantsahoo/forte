@@ -1,4 +1,4 @@
-from fyers.historical_data import FyersFeed
+from infrastructure.fyers.historical_data import FyersFeed
 #from portfolio.serializers import TradeSerializer, TradeDetailsSerializer
 import requests
 from config import order_api

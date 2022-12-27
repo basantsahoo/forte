@@ -14,8 +14,8 @@ from collections import OrderedDict
 import time
 import pytz
 import sys
-from website.market_profile_enabler import MarketProfileEnablerService, TickMarketProfileEnablerService
-from arc.oms_portfolio import OMSPortfolioManager
+from infrastructure.market_profile_enabler import MarketProfileEnablerService, TickMarketProfileEnablerService
+from infrastructure.arc.oms_portfolio import OMSPortfolioManager
 from profile.options_profile import OptionProfileService
 from profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data

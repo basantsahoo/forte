@@ -5,7 +5,6 @@ import copy
 from profile import utils
 from itertools import compress
 from config import va_pct, include_pre_market
-from truedata.custom import TDCustom
 import pandas as pd
 import asyncio
 import math

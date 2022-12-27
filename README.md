@@ -240,7 +240,11 @@ pip install truedata_ws
 
 ```
 
+## TOTP
+```
+pip install pyotp
 
+```
 
 ### Simulate live environment 
 

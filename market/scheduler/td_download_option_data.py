@@ -9,10 +9,10 @@ from dateutil.relativedelta import relativedelta
 from truedata_ws.websocket.TD_hist import HistoricalREST , cache_symbol_id
 from truedata_ws.websocket.TD import TD
 from config import get_expiry_date, default_symbols
-import truedata.settings as td_settings
+import infrastructure.truedata.settings as td_settings
 import helper.utils as helper_utils
 
-from truedata.custom import OptionChainCustom
+from infrastructure.truedata.custom import OptionChainCustom
 from db.db_engine import get_db_engine
 
 log_format = "(%(asctime)s) %(levelname)s :: %(message)s (PID:%(process)d Thread:%(thread)d)"

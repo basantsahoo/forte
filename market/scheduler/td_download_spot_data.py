@@ -1,3 +1,4 @@
+
 import time
 import numpy as np
 from itertools import compress
@@ -11,7 +12,7 @@ from truedata_ws.websocket.TD_hist import HistoricalREST , cache_symbol_id
 #from truedata_ws.websocket.TD import TD
 
 
-import truedata.settings as td_settings
+import infrastructure.truedata.settings as td_settings
 from config import default_symbols
 import helper.utils as helper_utils
 import logging
