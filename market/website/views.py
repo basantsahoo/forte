@@ -26,8 +26,6 @@ from dateutil import parser
 from datetime import datetime,date, timedelta
 from dateutil.relativedelta import relativedelta
 from sqlalchemy.types import  DATE
-from options.models import Chain
-from options.serializers import ChainDetailsSerializer
 from helper.utils import get_nse_index_symbol
 from db.db_engine import get_db_engine
 from rest_framework.permissions import IsAuthenticated

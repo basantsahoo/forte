@@ -1,5 +1,5 @@
 from copy import deepcopy
-from truedata.custom import TDCustom
+from infrastructure.truedata.custom import TDCustom
 from datetime import datetime as dt
 from datetime import  timedelta
 import time

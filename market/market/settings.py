@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     #'admin_honeypot',
-    'options.apps.OptionsConfig',
     'website'
 ]
 
