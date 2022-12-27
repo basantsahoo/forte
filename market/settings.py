@@ -27,7 +27,7 @@ CROS_DEFAULTS={
         )
 }
 
-chromedriver = '/home/ubuntu/chromedriver'
+chromedriver = '../executables/chromedriver'
 market_profile_db = '../data/market_profile.db'
 reports_dir = str(Path(__file__).parent.parent) + '/reports/'
 models_dir = str(Path(__file__).parent.parent) + '/models/'
