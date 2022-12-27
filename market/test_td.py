@@ -1,0 +1,2 @@
+from scheduler import td_download_spot_data
+td_download_historical_data.run()

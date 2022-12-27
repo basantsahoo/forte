@@ -1,0 +1,55 @@
+import sys
+import os
+import psutil
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+#from scheduler import option_chain
+#from scheduler import download_historical_data
+from scheduler import td_download_spot_data
+from scheduler import td_download_option_data
+from scheduler import calculate_historical_measures
+from scheduler import historical_profile
+from scheduler import running_weekly_stats
+from scheduler import download_economic_calendar
+from scheduler import download_earnings_calendar
+from scheduler import calculate_support_resistance
+#from fyers import live_fetcher as fyer_live_fetcher
+from truedata import live_fetcher as td_live_fetcher
+import time
+
+
+def restart_process():
+    print("argv was", sys.argv)
+    print("sys.executable was", sys.executable)
+    print("restart now")
+    try:
+        p = psutil.Process(os.getpid())
+        for handler in p.open_files() + p.connections():
+            os.close(handler.fd)
+    except Exception as e:
+        print(e)
+    time.sleep(10)
+    os.execv(sys.executable, ['python3'] + sys.argv)
+
+
+def start():
+
+    scheduler = BackgroundScheduler()
+    #scheduler.add_job(td_live_fetcher.start, 'cron', day_of_week='mon-fri', hour='9', minute='15')
+    scheduler.add_job(td_download_option_data.run, 'cron', day_of_week='mon-sun', hour='18', minute='45')
+    scheduler.add_job(td_download_spot_data.run, 'cron', day_of_week='mon-fri', hour='19', minute='1')
+    scheduler.add_job(calculate_historical_measures.run, 'cron', day_of_week='mon-fri', hour='19', minute='10')
+    scheduler.add_job(historical_profile.run, 'cron', day_of_week='mon-fri', hour='19', minute='20')
+    scheduler.add_job(running_weekly_stats.run, 'cron', day_of_week='mon-fri', hour='19', minute='25')
+    scheduler.add_job(calculate_support_resistance.run, 'cron', day_of_week='mon-fri', hour='19', minute='15')
+    #scheduler.add_job(restart_process, 'cron', day_of_week='*', hour='15', minute='45')
+    scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='7', minute='45')
+    scheduler.add_job(download_economic_calendar.run, 'cron', day_of_week='*', hour='19', minute='30')
+    scheduler.add_job(download_earnings_calendar.run, 'cron', day_of_week='*', hour='19', minute='40')
+
+
+    scheduler.start()
+
+
+
+
