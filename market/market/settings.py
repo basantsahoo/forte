@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     #'admin_honeypot',
-    'website'
+    'website.apps.WebsiteConfig',
 ]
 
 MIDDLEWARE = [
