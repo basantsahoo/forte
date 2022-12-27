@@ -5,6 +5,8 @@ from fyers_api import accessToken
 from fyers_api.Websocket import ws
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+
 from fyers.settings import (
     app_id,
     secret_key,
@@ -23,19 +25,25 @@ def genereate_token():
     try:
         session=accessToken.SessionModel(client_id=app_id, secret_key=secret_key, redirect_uri=redirect_uri, response_type="code", state='aaaaaa', grant_type = "authorization_code")
         auth_code_url = session.generate_authcode()
-        print(auth_code_url)
-        browser = webdriver.Chrome(chromedriver)
+        # print(auth_code_url)
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        browser = webdriver.Chrome(chromedriver, chrome_options=chrome_options)
         browser.get(auth_code_url)
-        time.sleep(2)
+
         username = browser.find_element_by_id("fy_client_id")
         username.send_keys(user_name)
         browser.find_element_by_id("clientIdSubmit").click()
-        time.sleep(10)
+        time.sleep(2)
+
         # browser.find_element(By.cssSelector("[type='submit']")).click()
         password = browser.find_element_by_id("fy_client_pwd")
         password.send_keys(pass_word)
         browser.find_element_by_id("loginSubmit").click()
-        time.sleep(10)
+
+        time.sleep(4)
         digit1 = browser.find_element_by_xpath('/html/body/section[8]/div[3]/div[3]/form/div[2]/input[1]')
         digit1.click()
         digit1.send_keys(int(pin[0]))
