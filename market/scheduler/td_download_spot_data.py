@@ -7,8 +7,7 @@ import os
 import datetime
 from dateutil.relativedelta import relativedelta
 from db.db_engine import get_db_engine
-from profile.market_profile import HistMarketProfileService
-from truedata_ws.websocket.TD_hist import HistoricalREST , cache_symbol_id
+from truedata_ws.websocket.TD_hist import HistoricalREST, cache_symbol_id
 #from truedata_ws.websocket.TD import TD
 
 

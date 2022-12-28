@@ -3,8 +3,6 @@ import os
 import psutil
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
-#from scheduler import option_chain
-#from scheduler import download_historical_data
 from scheduler import td_download_spot_data
 from scheduler import td_download_option_data
 from scheduler import calculate_historical_measures
