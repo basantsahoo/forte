@@ -18,7 +18,7 @@ import helper.utils as helper_utils
 
 
 """
-Fyers socket for processes tick
+Fyers socket for platform tick
 """
 default_symbols = ['NSE:NIFTY50-INDEX', 'NSE:NIFTYBANK-INDEX']
 

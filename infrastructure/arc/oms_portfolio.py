@@ -43,7 +43,7 @@ class OMSPortfolioManager:
                 self.market_cache.set('manual_positions', self.position_book)
                 """
 
-    """required for processes market trades"""
+    """required for platform market trades"""
     def set_live_broker(self):
         self.brokers.append(BrokerLive(self))
         #self.prepare_positions()
