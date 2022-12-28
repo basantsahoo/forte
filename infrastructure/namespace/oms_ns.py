@@ -34,7 +34,7 @@ class OMSNamespace(socketio.AsyncNamespace):
     def __init__(self,namespace=None):
         socketio.AsyncNamespace.__init__(self, namespace)
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = MarketClient('/livefeed')
+        ns = MarketClient('/histfeed', ['NIFTY'])
         self.c_sio.register_namespace(ns)
         self.market_cache = Cache(reports_dir + 'oms_cache')
         self.portfolio_manager = OMSPortfolioManager(place_live_orders=True, market_cache=self.market_cache)

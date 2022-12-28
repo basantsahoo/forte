@@ -16,10 +16,13 @@ from datetime import datetime
 enabled_symbols = list(algorithm_setup.keys())
 
 class MarketClient(socketio.ClientNamespace):
-    def __init__(self,namespace=None):
-        socketio.ClientNamespace.__init__(self,namespace)
+    def __init__(self,namespace=None, subscribed_symbols=[]):
+        socketio.ClientNamespace.__init__(self, namespace)
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
+        self.subscribed_symbols = subscribed_symbols
+        if not subscribed_symbols:
+            self.subscribed_symbols = enabled_symbols
         """
         self.sio = socketio.Client(reconnection_delay=5)
         ns = socketio.ClientNamespace(feed)
@@ -30,7 +33,7 @@ class MarketClient(socketio.ClientNamespace):
 
     def on_connect(self):
         print('Market client  connected')
-        for symbol in enabled_symbols:
+        for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
 
     def on_disconnect(self):

@@ -1,11 +1,20 @@
 import socketio
+import asyncio
 import json
+import rx
+import rx.operators as ops
+from rx.scheduler.eventloop import AsyncIOScheduler
+
 from infrastructure.market_profile_enabler import MarketProfileEnablerService
+from infrastructure.namespace.auth_mixin import AuthMixin
+from infrastructure.arc.oms_portfolio import OMSPortfolioManager
 from profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data
+from config import socket_auth_enabled
+from config import back_test_day as default_back_test_day
 
 
-class BacktestFeedNamespace(socketio.AsyncNamespace):
+class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
     def __init__(self, namespace=None):
         socketio.AsyncNamespace.__init__(self, namespace)
 
@@ -19,9 +28,12 @@ class BacktestFeedNamespace(socketio.AsyncNamespace):
         #print('getting price')
         yield [next(pl) for pl in self.price_lst ]
 
-    async def on_connect(self, sid, environ):
-        print('connect to backtest', sid)
-        await self.emit('other_message', 'connection backtest successful')
+    async def on_connect(self, sid,environ, auth={}):
+        print('AUTH++++++++++++', auth)
+        if not socket_auth_enabled or (socket_auth_enabled and self.is_authenticated(auth)):
+            await self.emit('other_message', 'connection successful')
+        else:
+            raise socketio.exceptions.ConnectionRefusedError('authentication failed')
 
     def on_disconnect(self, sid):
         try:
@@ -30,12 +42,15 @@ class BacktestFeedNamespace(socketio.AsyncNamespace):
             pass
         print('disconnect ', sid)
 
-    async def on_join_feed(self, sid, ticker):
+    async def on_join_tick_feed(self, sid, ticker):
         print("JOIN BY USER", ticker)
         self.enter_room(sid, ticker)
+        await self.on_request_data(sid,ticker)
 
 
-    async def on_request_data(self, sid,ticker,  back_test_date):
+    async def on_request_data(self, sid,ticker, back_test_date=None):
+        if back_test_date is None:
+            back_test_date = default_back_test_day
         print("DATA REQUEST BY USER", back_test_date)
         self.processor = MarketProfileEnablerService()
         self.processor.socket = self
@@ -51,7 +66,7 @@ class BacktestFeedNamespace(socketio.AsyncNamespace):
         pivots['y_va_l_p'] = yday_data['va_l_p']
         pivots['y_poc'] = yday_data['poc_price']
         await self.emit('pivots', pivots, room=sid)
-        self.pm.set_pivots(pivots)
+        #self.pm.set_pivots(pivots)
         self.price_lst = []
         self.price_lst.append(self.get_data(ticker, back_test_date))
         obs = rx.interval(1).pipe(ops.map(lambda i: next(self.get_price())))
@@ -73,8 +88,10 @@ class BacktestFeedNamespace(socketio.AsyncNamespace):
         print('input received')
         print(lst)
         for item in lst:
+            """
             self.processor.process_input_data(item)
             self.pm.price_input(item)
+            """
             """
             self.processor.process_input_data(item)
             price_bins = self.processor.calculateMeasures(item['symbol'])
@@ -83,5 +100,5 @@ class BacktestFeedNamespace(socketio.AsyncNamespace):
                 await self.emit('price_bins', json.dumps(price_bins, cls=NpEncoder), room=item['symbol'])
             """
             #print('emmit')
-            await self.emit('price', {item['timestamp']:item}, room= item['symbol'])
+            await self.emit('tick_data', {item['timestamp']:item}, room= item['symbol'])
 
