@@ -1,5 +1,5 @@
 from db.market_data import get_prev_week_minute_data_by_start_day
-from profile.weekly_profile import WeeklyMarketProfileService
+from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 from datetime import datetime, date
 import time
 import numpy as np
@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 import plotly
 from reporting.charts import plot_profile_chart
 import traceback
-from profile.utils import get_next_highest_index, get_next_lowest_index
+from dynamics.profile.utils import get_next_highest_index, get_next_lowest_index
 import os
 import glob
 from PyPDF2 import PdfFileMerger, PdfFileReader

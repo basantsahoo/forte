@@ -1,5 +1,5 @@
 import time
-from profile.market_profile import HistMarketProfileService
+from dynamics.profile.market_profile import HistMarketProfileService
 import numpy as np
 from itertools import compress
 from settings import market_profile_db

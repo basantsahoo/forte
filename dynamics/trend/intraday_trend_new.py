@@ -7,6 +7,7 @@ from sklearn.metrics import auc
 from statistics import mean
 from scipy import stats
 from scipy.optimize import curve_fit
+
 class IntradayTrendCalculator:
     def __init__(self, story_book):
         self.story_book = story_book

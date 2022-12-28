@@ -1,11 +1,11 @@
 from db.market_data import (get_nth_day_profile_data, get_hist_ndays_profile_data)
-import profile.utils as profile_utils
+from dynamics import profile as profile_utils
 from itertools import chain, product
 import calendar
 import talib
 import numpy as np
 from collections import OrderedDict
-from transition.intra_day_transition import DayFullStateGenerator
+from dynamics.transition.intra_day_transition import DayFullStateGenerator
 
 class MCPreprocessor:
     def get_processed_data(self, data, symbol="NIFTY",feature_generator=None, start_tpo=None, end_tpo=None, use_range=[]):

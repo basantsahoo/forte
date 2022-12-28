@@ -1,9 +1,9 @@
 from settings import market_profile_db,reports_dir
 from db.db_engine import get_db_engine
-from profile.market_profile import HistMarketProfileService
+from dynamics.profile.market_profile import HistMarketProfileService
 from portfolio.backtest_portfolio_manager import PortfolioManager
 import json
-from profile.utils import NpEncoder
+from dynamics.profile.utils import NpEncoder
 import pandas as pd
 import numpy as np
 from datetime import datetime

@@ -9,7 +9,7 @@ import pytz
 from datetime import datetime
 from infrastructure.arc.algo_settings import algorithm_setup
 import asyncio
-from profile.utils import NpEncoder
+from dynamics.profile.utils import NpEncoder
 import json
 import pytz
 from datetime import datetime

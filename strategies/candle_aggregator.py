@@ -4,7 +4,7 @@ from helper.utils import get_exit_order_type
 import talib
 import pandas as pd
 from itertools import compress
-from trend.candle_rank import candle_rankings
+from dynamics.trend.candle_rank import candle_rankings
 candle_names = talib.get_function_groups()['Pattern Recognition']
 
 class CandleAggregator:

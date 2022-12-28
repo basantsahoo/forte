@@ -4,7 +4,7 @@ from db.market_data import get_all_days, get_pending_key_level_days, get_prev_da
 import helper.utils as helper_utils
 import traceback
 from config import default_symbols
-from trend.support_resistance import SupportResistance
+from dynamics.trend.support_resistance import SupportResistance
 from db.db_engine import get_db_engine
 import json
 

@@ -2,7 +2,7 @@ from datetime import datetime
 import numpy as np
 import time
 from itertools import compress
-from profile import utils
+from dynamics.profile import utils
 from config import va_pct, include_pre_market
 
 

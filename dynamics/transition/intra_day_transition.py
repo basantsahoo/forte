@@ -1,5 +1,5 @@
 from db.market_data import (get_nth_day_profile_data, get_hist_ndays_profile_data)
-import profile.utils as profile_utils
+from dynamics import profile as profile_utils
 from itertools import chain, product
 import calendar
 import talib

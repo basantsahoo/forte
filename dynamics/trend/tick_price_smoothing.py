@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from trend.technical_patterns import pattern_engine
+from dynamics.trend.technical_patterns import pattern_engine
 from rx.subject import Subject
 from datetime import datetime
 #from numba import jit
@@ -10,7 +10,7 @@ from sklearn.metrics import auc,r2_score
 from scipy import stats
 import math
 from helper.utils import pattern_param_match
-from patterns.technical_patterns import inflex_config
+from dynamics.patterns.technical_patterns import inflex_config
 
 """
 1. A low is considered as low if it is proceeded by a high

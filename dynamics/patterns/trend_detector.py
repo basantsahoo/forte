@@ -1,10 +1,9 @@
-from patterns.price_action_pattern_detector import PriceActionPatternDetector
 import numpy as np
 from statistics import mean
-from helper.utils import get_overlap
 import math
-
-from patterns.technical_patterns import pattern_config, inflex_config
+from helper.utils import get_overlap
+from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
+from dynamics.patterns.technical_patterns import pattern_config, inflex_config
 
 class TrendDetector(PriceActionPatternDetector):
     def __init__(self, insight_book, period):

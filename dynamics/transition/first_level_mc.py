@@ -1,4 +1,4 @@
-from transition.markov_chain import MarkovChain
+from dynamics.transition.markov_chain import MarkovChain
 import numpy as np
 import scipy.stats as ss
 from collections import OrderedDict

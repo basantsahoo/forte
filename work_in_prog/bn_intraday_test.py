@@ -2,7 +2,7 @@ from db.market_data import (get_all_days, get_daily_tick_data, prev_day_data, ge
 import time
 from datetime import datetime
 import pandas as pd
-import profile.utils as profile_utils
+from dynamics import profile as profile_utils
 import helper.utils as helper_utils
 import itertools
 from itertools import chain, product

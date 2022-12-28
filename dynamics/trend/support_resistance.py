@@ -1,5 +1,5 @@
-from trend.technical_patterns import pattern_engine
-from trend.tick_price_smoothing import PriceInflexDetectorForTrend
+from dynamics.trend.technical_patterns import pattern_engine
+from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from db.market_data import get_daily_tick_data
 import helper.utils as helper_utils
 import time

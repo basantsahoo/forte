@@ -33,12 +33,12 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.inspection import DecisionBoundaryDisplay
 import matplotlib.pyplot as plt
 
-from analysis.build_features import (
+from research.analysis.build_features import (
     NumericProcessor,
     CategoricalProcessor,
     MultiColumnLabelEncoder
 )
-from analysis.utils import WeightedGBM
+from research.analysis.utils import WeightedGBM
 from settings import models_dir, reports_dir
 from sklearn.metrics import accuracy_score,classification_report,confusion_matrix, plot_roc_curve, PrecisionRecallDisplay
 from sklearn.model_selection import train_test_split

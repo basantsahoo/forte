@@ -1,11 +1,12 @@
 import numpy as np
 from statistics import mean
+from dynamics.patterns.technical_patterns import pattern_config
 
 dt_between_highs_diff = 0.0006
 dt_height_th = 0.3
 pat_conf = {'len': 4, 'end_infl' : 'SPH'}
 
-from patterns.technical_patterns import pattern_config
+
 
 class PriceActionPatternDetector:
     def __init__(self, insight_book, period):

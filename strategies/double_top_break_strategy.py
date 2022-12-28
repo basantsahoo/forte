@@ -3,7 +3,7 @@ from strategies.core_strategy import BaseStrategy
 from strategies.double_top_strategy import DoubleTopStrategy
 from helper.utils import  get_overlap
 from statistics import mean
-import patterns.utils as pattern_utils
+import dynamics.patterns.utils as pattern_utils
 
 
 class DoubleTopBreakStrategy(DoubleTopStrategy):

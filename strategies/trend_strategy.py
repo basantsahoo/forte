@@ -2,9 +2,9 @@ import numpy as np
 from strategies.core_strategy import BaseStrategy
 from helper.utils import get_exit_order_type, pattern_param_match
 from helper.utils import pattern_param_match, get_overlap
-from trend.technical_patterns import pattern_engine
+from dynamics.trend.technical_patterns import pattern_engine
 from statistics import mean
-import patterns.utils as pattern_utils
+import dynamics.patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
 class TrendStrategy(BaseStrategy):

@@ -9,7 +9,7 @@ from scipy.optimize import curve_fit
 import talib
 import pandas as pd
 from itertools import compress
-from trend.candle_rank import candle_rankings
+from dynamics.trend.candle_rank import candle_rankings
 
 candle_names = talib.get_function_groups()['Pattern Recognition']
 #print(len(candle_names))

@@ -1,8 +1,8 @@
-from transition.second_level_mc import MarkovChainSecondLevel
+from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 import numpy as np
 import scipy.stats as ss
 from collections import OrderedDict
-from transition.intra_day_transition import DayFullStateGenerator
+from dynamics.transition.intra_day_transition import DayFullStateGenerator
 open_type_codes = ['GAP_UP',  'ABOVE_VA', 'INSIDE_VA', 'BELOW_VA', 'GAP_DOWN']
 
 class MarkovChainPointToPoint(MarkovChainSecondLevel):

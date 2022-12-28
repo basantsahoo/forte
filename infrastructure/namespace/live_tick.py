@@ -11,8 +11,8 @@ import sys
 from infrastructure.market_profile_enabler import MarketProfileEnablerService, TickMarketProfileEnablerService
 from infrastructure.arc.oms_portfolio import OMSPortfolioManager
 from infrastructure.namespace.auth_mixin import AuthMixin
-from profile.options_profile import OptionProfileService
-from profile.utils import NpEncoder, get_tick_size
+from dynamics.profile.options_profile import OptionProfileService
+from dynamics.profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data
 import settings
 from config import live_feed, place_live_orders, socket_auth_enabled, allowed_apps

@@ -1,8 +1,8 @@
 import numpy as np
 import helper.utils as helper_utils
-from trend.technical_patterns import pattern_engine
+from dynamics.trend.technical_patterns import pattern_engine
 from statistics import mean
-import patterns.utils as pattern_utils
+import dynamics.patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
 class BaseStrategy:

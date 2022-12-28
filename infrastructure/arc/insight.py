@@ -8,20 +8,20 @@ from talib import stream
 
 from db.market_data import get_daily_tick_data, prev_day_data, get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
 from helper.utils import get_pivot_points, get_overlap
-import profile.utils as profile_utils
+from dynamics import profile as profile_utils
 
-from trend.tick_price_smoothing import PriceInflexDetectorForTrend
-from trend.intraday_trend import IntradayTrendCalculator
-from patterns.price_action_pattern_detector import PriceActionPatternDetector
-from patterns.trend_detector import TrendDetector
-from patterns.candle_pattern_detector import CandlePatternDetector
+from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
+from dynamics.trend.intraday_trend import IntradayTrendCalculator
+from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
+from dynamics.patterns.trend_detector import TrendDetector
+from dynamics.patterns.candle_pattern_detector import CandlePatternDetector
 from settings import reports_dir
 # Transitions
-from transition.intra_day_transition import DayFullStateGenerator
-from transition.mc_pre_process import MCPreprocessor
-from transition.second_level_mc import MarkovChainSecondLevel
-from transition.point_to_point_mc import MarkovChainPointToPoint
-from transition.empirical import EmpiricalDistribution
+from dynamics.transition.intra_day_transition import DayFullStateGenerator
+from dynamics.transition.mc_pre_process import MCPreprocessor
+from dynamics.transition.second_level_mc import MarkovChainSecondLevel
+from dynamics.transition.point_to_point_mc import MarkovChainPointToPoint
+from dynamics.transition.empirical import EmpiricalDistribution
 
 class InsightBook:
     def __init__(self, ticker, trade_day=None, record_metric=True):

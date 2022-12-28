@@ -1,10 +1,10 @@
 import pandas as pd
 from settings import reports_dir
-from trend.tick_price_smoothing import PriceInflexDetectorForTrend
+from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from db.market_data import get_daily_tick_data, get_all_days
-from trend.technical_patterns import pattern_engine
+from dynamics.trend.technical_patterns import pattern_engine
 from matplotlib.backends.backend_pdf import PdfPages
 import helper.utils as helper_utils
 import numpy as np

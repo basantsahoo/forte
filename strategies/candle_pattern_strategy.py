@@ -2,7 +2,7 @@ import numpy as np
 from strategies.core_strategy import BaseStrategy
 from helper.utils import  get_overlap
 from statistics import mean
-import patterns.utils as pattern_utils
+import dynamics.patterns.utils as pattern_utils
 from helper.utils import get_broker_order_type
 
 

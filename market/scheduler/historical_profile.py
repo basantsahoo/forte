@@ -28,9 +28,9 @@ from db.market_data import (
 	get_pending_profile_dates)
 from reporting.charts import day_open_statistics,plot_profile_chart
 from helper.utils import get_pivot_points, get_overlap
-from profile.utils import get_next_highest_index, get_next_lowest_index
+from dynamics.profile.utils import get_next_highest_index, get_next_lowest_index
 from PyPDF2 import PdfFileMerger, PdfFileReader
-from profile.market_profile import HistMarketProfileService
+from dynamics.profile.market_profile import HistMarketProfileService
 import matplotlib
 ### only required in unix
 matplotlib.use('Agg')

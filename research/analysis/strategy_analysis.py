@@ -1,7 +1,7 @@
-from backtest import strategy_back_tester
-from analysis import classifier_train
-from analysis import regression_train
-from analysis import descriptive_analysis
+from research.backtest import strategy_back_tester
+from research.analysis import classifier_train
+from research.analysis import regression_train
+from research.analysis import descriptive_analysis
 import pandas as pd
 from settings import reports_dir
 

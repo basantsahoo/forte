@@ -8,7 +8,7 @@ from rx.scheduler.eventloop import AsyncIOScheduler
 from infrastructure.market_profile_enabler import MarketProfileEnablerService
 from infrastructure.namespace.auth_mixin import AuthMixin
 from infrastructure.arc.oms_portfolio import OMSPortfolioManager
-from profile.utils import NpEncoder, get_tick_size
+from dynamics.profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data
 from config import socket_auth_enabled
 from config import back_test_day as default_back_test_day
