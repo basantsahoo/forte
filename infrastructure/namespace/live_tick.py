@@ -10,6 +10,7 @@ import pytz
 import sys
 from infrastructure.market_profile_enabler import MarketProfileEnablerService, TickMarketProfileEnablerService
 from infrastructure.arc.oms_portfolio import OMSPortfolioManager
+from infrastructure.namespace.auth_mixin import AuthMixin
 from profile.options_profile import OptionProfileService
 from profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data
@@ -24,7 +25,7 @@ from diskcache import Cache
 option_rooms = [helper_utils.get_options_feed_room('NIFTY'), helper_utils.get_options_feed_room('BANKNIFTY')]
 
 
-class LiveFeedNamespace(socketio.AsyncNamespace):
+class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
     def __init__(self,namespace=None):
         socketio.AsyncNamespace.__init__(self,namespace)
         self.market_cache = Cache(reports_dir + 'market_cache')
@@ -43,21 +44,6 @@ class LiveFeedNamespace(socketio.AsyncNamespace):
         self.market_cache.set('price_data', {})
         self.market_cache.set('option_data', {})
         self.market_cache.set('latest_option_data', {})
-
-    def is_authenticated(self, auth):
-        app_id = auth.get('internal_app_id', '')
-        if app_id in allowed_apps:
-            return True
-        token = auth.get('token', '')
-        token = token.replace('JWT ', '')
-        headers = {'Content-Type': 'application/json'}
-        data = json.dumps({"token": token})
-        response = requests.post(rest_api_url + 'auth/verify-token', data=data, headers = headers)
-        if response.status_code == 200:
-            return True
-        else:
-            return False
-
 
     async def on_connect(self, sid,environ, auth={}):
         print('AUTH++++++++++++', auth)

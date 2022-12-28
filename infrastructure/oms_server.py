@@ -55,14 +55,5 @@ async def socketmain():
     await site.start()
     ns.connect_feed()
     await refresh(ns)
-    if live_feed:
-        loop = asyncio.get_event_loop()
-
-        """
-        obs = rx.interval(31).pipe(ops.map(lambda i: i))
-        obs.subscribe(on_next=lambda s: loop.create_task(send_profile_data()), scheduler=AsyncIOScheduler(loop))
-        obs2 = rx.interval(30).pipe(ops.map(lambda i: i))
-        obs2.subscribe(on_next=lambda s: loop.create_task(calculate()), scheduler=AsyncIOScheduler(loop))
-        """
     await asyncio.Event().wait()
 
