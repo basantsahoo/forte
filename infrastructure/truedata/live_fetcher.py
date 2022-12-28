@@ -23,7 +23,7 @@ tz_ist = pytz.timezone('Asia/Kolkata')
 
 
 """
-Truedata socket for live tick
+Truedata socket for processes tick
 """
 sio = socketio.Client(reconnection_delay=5)
 expiry_dt = get_expiry_date()

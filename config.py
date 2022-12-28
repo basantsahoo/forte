@@ -17,7 +17,7 @@ regime_desc = ['All 1', 'bear & reversal', 'sharp bear', 'bull & correction 1', 
 
 back_test_day = '2022-07-28' #'2021-12-09'
 place_live_orders = True # determines placing of order
-live_feed = True #True  #determines live tickdata or historical 1 min data
+live_feed = True #True  #determines processes tickdata or historical 1 min data
 socket_auth_enabled = True
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 rest_api_url = 'http://localhost:8000/'

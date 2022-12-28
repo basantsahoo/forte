@@ -8,7 +8,7 @@ data/
 reports/
 models/
 logs/
-market/token/
+token/
 # Node artifact files
 node_modules/
 dist/

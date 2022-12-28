@@ -14,7 +14,7 @@ class BrokerLive:
         self.id = 1
         self.fyers_feed = FyersFeed.getInstance()
         self.pm = pm
-        #self.get_funds()
+        self.get_funds()
 
     def refresh(self):
         self.fyers_feed.authenicate()
@@ -56,7 +56,10 @@ class BrokerLive:
 
     def get_order_status(self,orderId):
         data = {"id": orderId}
-        _resp = self.fyers_feed.fyers.orderbook(data=data)['orderBook'][0]
+        try:
+            _resp = self.fyers_feed.fyers.orderbook(data=data)['orderBook'][0]
+        except:
+            _resp = {}
         return _resp
 
     def get_current_positions(self):
@@ -126,7 +129,7 @@ class BrokerLive:
         print(response)
         res = {'success': response['code'] == success_code, 'order_id': response['id'], "position_id": order_info["symbol"] + "-" + order_info["productType"], 'qty': order_info["qty"], 'side': order_info['side']}
         res = {'success': response['code'] == success_code, 'order_id': response['id'], "symbol": order_info["symbol"], 'qty': order_info["qty"], 'side': order_info['side']}
-        res['traded_price'] = self.get_order_status(response['id'])['tradedPrice']
+        res['traded_price'] = self.get_order_status(response['id']).get('tradedPrice', -9999)
         print(res)
         return res
 
