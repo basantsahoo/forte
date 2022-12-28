@@ -1,10 +1,15 @@
+import sys
+from pathlib import Path
+project_path = str(Path(__file__).resolve().parent.parent)
+sys.path.insert(1, project_path)
+
 #from strategies.sma_cross_over_buy import SMACrossBuy
 #from strategies_bkp.range_break_low_for_regression import RangeBreakDownStrategy
 from strategies.candle_aggregator import CandleAggregator
 from strategies.price_action_aggregator import PatternAggregator
 from strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from strategies.state_cap_strategy import StateCapStrategy
-from backtest import strategy_back_tester
+from research.backtest import strategy_back_tester
 import pandas as pd
 from settings import reports_dir
 from datetime import datetime

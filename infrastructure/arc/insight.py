@@ -8,7 +8,7 @@ from talib import stream
 
 from db.market_data import get_daily_tick_data, prev_day_data, get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
 from helper.utils import get_pivot_points, get_overlap
-from dynamics import profile as profile_utils
+from dynamics.profile import utils as profile_utils
 
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.trend.intraday_trend import IntradayTrendCalculator

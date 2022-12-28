@@ -17,7 +17,7 @@ class MarketProfileService:
         self.socket = None
         self.market_cache = market_cache
         self.waiting_for_data = True
-        self.load_from_cache()
+        #self.load_from_cache()
 
         if trade_day is None: #Default to today
             self.trade_day = time.strftime('%Y-%m-%d')
@@ -36,6 +36,7 @@ class MarketProfileService:
         ib_end_str = trade_day + " 10:15:00"
         end_str = trade_day + " 15:30:00"
         start_ts = int(time.mktime(time.strptime(start_str, "%Y-%m-%d %H:%M:%S")))
+        end_ts = int(time.mktime(time.strptime(end_str, "%Y-%m-%d %H:%M:%S")))
         ib_end_ts = int(time.mktime(time.strptime(ib_end_str, "%Y-%m-%d %H:%M:%S")))
         self.ib_periods = [start_ts, ib_end_ts]
         self.price_data[self.trade_day] = {}

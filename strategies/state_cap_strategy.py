@@ -1,9 +1,9 @@
 import numpy as np
 from strategies.core_strategy import BaseStrategy
 from helper.utils import  get_overlap
-from dynamics.dynamics.profile.utils import get_next_highest_index
+from dynamics.profile.utils import get_next_highest_index
 from statistics import mean
-import patterns.utils as pattern_utils
+import dynamics.patterns.utils as pattern_utils
 from helper.utils import get_broker_order_type
 
 
@@ -37,7 +37,7 @@ class StateCapStrategy(BaseStrategy):
         down_floor = self.insight_book.state_generator.price_bands_reverse[level_keys[down_zero_prob_idx+(idx-1)]]
         return {'seq': idx, 'target': down_floor, 'stop_loss':up_ceil,'duration': self.exit_time, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point, 'trigger_time':last_candle['timestamp']}
 
-    def add_tradable_signal(self,matched_pattern):
+    def add_tradable_signal(self, matched_pattern):
         sig_key = self.add_new_signal()
         self.tradable_signals[sig_key]['pattern'] = matched_pattern
         self.tradable_signals[sig_key]['pattern_height'] = 0
