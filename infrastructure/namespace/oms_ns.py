@@ -15,7 +15,7 @@ import pytz
 import sys
 from infrastructure.arc.oms_portfolio import OMSPortfolioManager
 from infrastructure.market_profile_enabler import TickMarketProfileEnablerService
-
+from infrastructure.namespace.auth_mixin import AuthMixin
 from dynamics.profile.options_profile import OptionProfileService
 from dynamics.profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data
@@ -30,30 +30,19 @@ from diskcache import Cache
 option_rooms = [helper_utils.get_options_feed_room('NIFTY'), helper_utils.get_options_feed_room('BANKNIFTY')]
 from infrastructure.namespace.market_client import MarketClient
 
-class OMSNamespace(socketio.AsyncNamespace):
+class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
     def __init__(self,namespace=None):
         socketio.AsyncNamespace.__init__(self, namespace)
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = MarketClient('/histfeed', ['NIFTY'])
+        ns = MarketClient('/livefeed', ['NIFTY'])
         self.c_sio.register_namespace(ns)
+        ns.on_tick_data = self.on_tick_data
+        ns.on_atm_option_feed = self.on_atm_option_feed
         self.market_cache = Cache(reports_dir + 'oms_cache')
         self.portfolio_manager = OMSPortfolioManager(place_live_orders=True, market_cache=self.market_cache)
         self.processor = TickMarketProfileEnablerService(market_cache=self.market_cache)
         self.processor.socket = self
 
-    def is_authenticated(self, auth):
-        app_id = auth.get('internal_app_id', '')
-        if app_id in allowed_apps:
-            return True
-        token = auth.get('token', '')
-        token = token.replace('JWT ', '')
-        headers = {'Content-Type': 'application/json'}
-        data = json.dumps({"token": token})
-        response = requests.post(rest_api_url + 'auth/verify-token', data=data, headers = headers)
-        if response.status_code == 200:
-            return True
-        else:
-            return False
 
     def connect_feed(self):
         try:
@@ -76,22 +65,16 @@ class OMSNamespace(socketio.AsyncNamespace):
     def on_disconnect(self, sid):
         print('disconnect ', sid)
 
-    async def on_tick_data(self, sid, feed):
-        print('td feed received')
-        feed['symbol'] = helper_utils.root_symbol(feed['symbol'])
-        epoch_tick_time = int(datetime.fromisoformat(feed['timestamp'] + '+05:30').timestamp())
-        feed['timestamp'] = epoch_tick_time
-        feed['min_volume'] = feed['volume'] if 'volume' in feed else 0
-        self.option_processor.process_spot_data(feed)
-        item = self.processor.process_input_data(feed)
-        print(item)
-        await self.emit('tick_data', {item['timestamp']: item}, room=item['symbol'])
-        ley_list = ['symbol', 'ltp', "day_high", "day_low", "volume"]
-        feed_small = {key: feed[key] for key in ley_list if key in feed}
-        print(feed_small)
-        for room in option_rooms:
-            await self.emit('spot_data', feed_small, room=room)
+    def on_tick_data(self, feed):
+        #self.option_processor.process_spot_data(feed)
+        t_feed = list(feed.values())[0]
+        t_feed['min_volume'] = t_feed['volume']
+        item = self.processor.process_input_data(t_feed)
         self.market_cache.set(item['symbol'], item) #3 Gets overwritten
+
+    def on_atm_option_feed(self, feed):
+        #print('oms atm_option_feed =========================', feed)
+        self.portfolio_manager.option_price_input(feed)
 
     async def on_join_oms(self, sid):
         print('join oms successful')

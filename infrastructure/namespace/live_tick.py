@@ -112,23 +112,6 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
     """
     Tick data and pivots start
     """
-    async def on_join_feed_2(self, sid, ticker):
-        print("JOIN FEED BY USER", ticker)
-        hist_data = self.processor.get_hist_data(ticker)
-        ltp = self.processor.get_ltp(ticker) #-----------------------------------------
-        tick_size = get_tick_size(ltp)
-        await self.emit('tick_size', tick_size, room=sid)
-        if hist_data is not None:
-            await self.emit('hist', json.dumps(hist_data, cls=NpEncoder), room=sid)
-        else:
-            await self.emit('ltp', ltp, room=sid)
-        self.enter_room(sid, ticker)
-        pivots = self.processor.get_pivots(ticker)
-        yday_data = self.processor.get_prev_day_profile(ticker)
-        pivots['y_va_h_p'] = yday_data['va_h_p']
-        pivots['y_va_l_p'] = yday_data['va_l_p']
-        pivots['y_poc'] = yday_data['poc_price']
-        await self.emit('pivots', pivots, room=sid)
 
     async def on_get_price_chart_data(self, sid, ticker):
         await self.send_pivot_values(sid, ticker)
@@ -240,7 +223,8 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         self.option_processor.process_input_data(feed)
 
     async def on_td_option_price_feed(self, sid, feed):
-        pass
+        #print('on_td_option_price_feed' , feed)
+        await self.emit('atm_option_feed', feed, room='atm_option_room')
         #self.portfolio_manager.option_price_input(feed)
 
     async def all_option_input(self, symbol, recent_changes):

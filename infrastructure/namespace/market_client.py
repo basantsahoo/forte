@@ -31,10 +31,16 @@ class MarketClient(socketio.ClientNamespace):
     def on_tick_data(self, feed):
         print('on_price' , feed)
 
+    def on_atm_option_feed(self, feed):
+        print('on_atm_option_feed', feed)
+
+
     def on_connect(self):
         print('Market client  connected')
         for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
+
+        self.emit('join_tick_feed', 'atm_option_room')
 
     def on_disconnect(self):
         pass
