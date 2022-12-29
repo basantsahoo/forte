@@ -227,7 +227,7 @@ class BaseStrategy:
         return False
 
     def process_signal(self, signal):
-        print('process_signal in core++++++++++++++++++++++++++')
+        print('process_signal in core++++++++++++++++++++++++++', self.id)
         signal_passed = self.evaluate_signal(signal) #len(self.tradable_signals.keys()) < self.max_signals+5  #
         if signal_passed:
             sig_key = self.add_tradable_signal(signal)

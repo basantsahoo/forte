@@ -15,12 +15,13 @@ from settings import reports_dir
 from datetime import datetime
 
 #strategy_list = ['PatternAggregator', 'CandleAggregator']
-strategy_list = ['StateCapStrategy']
+strategy_list = ['CandleAggregator']
 strategy_classes = [eval(strategy) for strategy in strategy_list]
 strategy_kwargs = [{'pattern':'STATE', 'order_type':'SELL', 'exit_time':360, 'period':1}]
+strategy_kwargs = [{}]
 symbols = ['NIFTY']
 days = []
-for_past_days = 150
+for_past_days = 10
 """
 import inspect
 print(inspect.getfullargspec(type(StateCapStrategy).__init__))
@@ -39,4 +40,5 @@ for symbol in symbols:
 file_name += search_days[0] if type(search_days[0]) == str else search_days[0].strftime('%Y-%m-%d') + "_"
 file_name += search_days[-1] if type(search_days[-1]) == str else search_days[-1].strftime('%Y-%m-%d')
 print('total P&L', part_results['realized_pnl'].sum())
+print('saving result to file', reports_dir + file_name + '.csv')
 part_results.to_csv(reports_dir + file_name + '.csv', index=False)

@@ -154,8 +154,8 @@ class InsightBook:
         #print('price_input_stream+++++ insight book')
         epoch_tick_time = price['timestamp']
         epoch_minute = int(epoch_tick_time // 60 * 60) + 1
-        ley_list = ['timestamp','open', 'high', "low", "close"]
-        feed_small = {key: price[key] for key in ley_list}
+        key_list = ['timestamp','open', 'high', "low", "close"]
+        feed_small = {key: price[key] for key in key_list}
         self.last_tick = feed_small
         #print(epoch_tick_time)
         if not self.day_setup_done:
@@ -260,6 +260,8 @@ class InsightBook:
     def get_inflex_pattern_df(self, period=None):
         return self.inflex_detector
 
+    def get_time_to_close(self):
+        return 375-len(self.market_data.items())
 
     def clean(self):
         self.inflex_detector = None

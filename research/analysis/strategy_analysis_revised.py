@@ -17,7 +17,7 @@ def save_back_test_results():
 
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
-    df = pd.read_csv(reports_dir + 'double_top_nifty.csv')
+    df = pd.read_csv(reports_dir + 'Cand_NIFTY_2022-01-27_2022-01-13.csv')
     return df
 
 
@@ -101,7 +101,11 @@ def get_cleaned_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     df = load_back_test_results()
     drop_cols = ['Unnamed: 0', 'exit_time', 'exit_price', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type','closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
-    df.drop(drop_cols, axis=1, inplace=True)
+    for col in drop_cols:
+        try:
+            df.drop(col, axis=1, inplace=True)
+        except:
+            pass
     df['realized_pnl'] = df['realized_pnl'] + df['un_realized_pnl']
     del df['un_realized_pnl']
     print('Basic analysis of P & L by trigger ====================================')

@@ -8,7 +8,7 @@ import dynamics.patterns.utils as pattern_utils
 
 class DoubleTopBreakStrategy(DoubleTopStrategy):
     def __init__(self, insight_book, pattern, order_type, exit_time, period, min_tpo=None, max_tpo=None, record_metric=True):
-        DoubleTopStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, min_tpo=None, max_tpo=None, record_metric=True)
+        DoubleTopStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, min_tpo=min_tpo, max_tpo=max_tpo, record_metric=record_metric)
         self.id = 'DTBRK' + "_" + order_type + "_" + str(period) + "_" + str(exit_time)
 
     def get_trades(self, pattern_match_prices, idx=1, curr_price=None,):
@@ -26,7 +26,7 @@ class DoubleTopBreakStrategy(DoubleTopStrategy):
         pass
 
 
-    def suitable_market_condition(self,matched_pattern):
+    def suitable_market_condition(self, matched_pattern):
         return True
 
     def process_incomplete_signals(self):
