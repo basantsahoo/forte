@@ -1,0 +1,14 @@
+1. Check static and dynamic using multi day data for option selling
+
+IntradayTrendCalculator calculates quadratic , linear, auc etc
+TrendDetector calcualates static ratio and dynamic ratio
+IntradayTrendCalculator calculates hurst exponent and candle trend
+
+
+When there is a upward spike previous day at the end,
+next day market falls in first half but doesn't go past value area, trend reversal to upward is likely in second half
+
+
+First four candles up down alternate do not trade
+
+open in T-2 value area and large upward candle in first five minutes  long

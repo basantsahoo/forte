@@ -9,6 +9,7 @@ from strategies.candle_aggregator import CandleAggregator
 from strategies.price_action_aggregator import PatternAggregator
 from strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from strategies.state_cap_strategy import StateCapStrategy
+from strategies.opening_trend_bearish import OpeningBearishTrendStrategy
 from research.backtest import strategy_back_tester
 import pandas as pd
 from settings import reports_dir
@@ -16,18 +17,20 @@ from datetime import datetime
 
 #strategy_list = ['PatternAggregator', 'CandleAggregator']
 strategy_list = ['CandleAggregator']
-strategy_classes = [eval(strategy) for strategy in strategy_list]
-strategy_kwargs = [{'pattern':'STATE', 'order_type':'SELL', 'exit_time':360, 'period':1}]
+strategy_kwargs = [{'pattern':'STATE', 'order_type':'SELL', 'exit_time':10, 'period':1}]
 strategy_kwargs = [{}]
+strategy_list = ['OpeningBearishTrendStrategy']
+strategy_kwargs = [{'pattern':'BEAR_TREND', 'order_type':'SELL', 'exit_time':15, 'period':5}]
+strategy_classes = [eval(strategy) for strategy in strategy_list]
 symbols = ['NIFTY']
 days = []
-for_past_days = 10
+for_past_days = 1
 """
 import inspect
 print(inspect.getfullargspec(type(StateCapStrategy).__init__))
 strategy = StateCapStrategy('x', **strategy_kwargs[0])
 """
-results = strategy_back_tester.test(strategy_classes, strategy_kwargs, symbols, days=days, for_past_days=for_past_days, to_date="2022-01-27")
+results = strategy_back_tester.test(strategy_classes, strategy_kwargs, symbols, days=days, for_past_days=for_past_days, to_date="2022-12-28")
 results = pd.DataFrame(results)
 part_results = results #[['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
 part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))

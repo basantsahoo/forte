@@ -26,6 +26,8 @@ class BaseStrategy:
         self.minimum_quantity = 1
         self.max_signals = 1
 
+    def set_up(self):
+        pass
 
     def trigger_force_exit_all(self):
         self.force_exit = True

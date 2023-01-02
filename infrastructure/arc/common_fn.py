@@ -22,17 +22,14 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.point_to_point_mc import MarkovChainPointToPoint
 from dynamics.transition.empirical import EmpiricalDistribution
+from infrastructure.arc.buy_sell_activity import BuySellActivity
 
-class InsightBook:
+class CommonFN:
     def __init__(self, ticker, trade_day=None, record_metric=True):
-        # self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.0005, spth=0.001, callback=None)
-        self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.001, spth = 0.001,  callback=None)
-        self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
-       # self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
-        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5)]
-        self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
+        self.activity_log = BuySellActivity(self)
         self.day_setup_done = False
+        self.strategy_setup_done = False
         self.range = {'low': 99999999, 'high': 0}
         self.trade_day = trade_day
         self.market_data = OrderedDict()
@@ -58,7 +55,6 @@ class InsightBook:
             self.set_transition_matrix()
             self.day_setup_done = True
 
-
     def set_trade_date_from_time(self, epoch_tick_time):
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
         trade_day = tick_date_time.strftime('%Y-%m-%d')
@@ -67,8 +63,6 @@ class InsightBook:
         self.set_key_levels()
         self.set_transition_matrix()
         self.day_setup_done = True
-
-
 
     def set_day_tpos(self, trade_day):
         start_str = trade_day + " 09:15:00"
@@ -79,13 +73,14 @@ class InsightBook:
         ib_end_ts = int(time.mktime(time.strptime(ib_end_str, "%Y-%m-%d %H:%M:%S")))
         self.ib_periods = [start_ts, ib_end_ts]
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
-        #self.set_key_levels()
 
     def set_key_levels(self):
         ticker = self.ticker
         self.weekly_pivots = get_pivot_points(get_prev_week_candle(ticker, self.trade_day))
         self.yday_profile = get_nth_day_profile_data(ticker, self.trade_day, 1).to_dict('records')[0]
-        self.yday_level_breaks = {'high': {'value': False, 'time':-1}, 'low': {'value': False, 'time':-1}, 'poc_price': {'value': False, 'time':-1}, 'va_h_p': {'value': False, 'time':-1}, 'va_l_p': {'value': False, 'time':-1}}
+        self.day_before_profile = get_nth_day_profile_data(ticker, self.trade_day, 2).to_dict('records')[0]
+        self.yday_level_breaks = {'high': {'value': False, 'time': -1}, 'low': {'value': False, 'time': -1}, 'poc_price': {'value': False, 'time': -1}, 'va_h_p': {'value': False, 'time': -1}, 'va_l_p': {'value': False, 'time': -1}}
+        self.day_before_level_breaks = {'high': {'value': False, 'time': -1}, 'low': {'value': False, 'time': -1}, 'poc_price': {'value': False, 'time': -1}, 'va_h_p': {'value': False, 'time': -1}, 'va_l_p': {'value': False, 'time': -1}}
         self.weekly_level_breaks = {'high': {'value': False, 'time':-1}, 'low': {'value': False, 'time':-1}, 'Pivot': {'value': False, 'time':-1}, 'S1': {'value': False, 'time':-1}, 'S2': {'value': False, 'time':-1}, 'S3': {'value': False, 'time':-1}, 'S4': {'value': False, 'time':-1}, 'R1': {'value': False, 'time':-1}, 'R2': {'value': False, 'time':-1},  'R3': {'value': False, 'time':-1}, 'R4': {'value': False, 'time':-1}}
         self.intraday_waves = {}
         prev_key_levels = get_prev_day_key_levels(ticker, self.trade_day)
@@ -146,11 +141,14 @@ class InsightBook:
                     self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
 
     def update_periodic(self):
-        print('update_periodic')
         self.intraday_trend.calculate_measures()
-        self.inflex_detector.update_trend()
+        #print(self.intraday_trend.trend_params)
         self.market_insights = {**self.market_insights, **self.intraday_trend.trend_params}
-        self.market_insights = {**self.market_insights, **self.inflex_detector.trend_params}
+
+    def set_up_strategies(self):
+        self.activity_log.set_up()
+        for strategy in self.strategies:
+            strategy.set_up()
 
     def price_input_stream(self, price, iv=None):
         #print('price_input_stream+++++ insight book')
@@ -162,29 +160,26 @@ class InsightBook:
         #print(epoch_tick_time)
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
+
         self.range['low'] = min(feed_small['low'], self.range['low'])
         self.range['high'] = max(feed_small['high'], self.range['high'])
         self.market_data[epoch_minute] = feed_small
         self.set_curr_tpo(epoch_minute)
         if len(self.market_data.items()) == 2 and self.open_type is None:
             self.determine_day_open()
+            self.set_up_strategies()
         self.determine_level_break(epoch_tick_time)
         if self.last_periodic_update is None:
             self.last_periodic_update = epoch_minute
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
-        self.inflex_detector.on_price_update([price['timestamp'], price['close']])
-        #print('input price', [price['timestamp'], price['close']])
         self.update_state_transition()
-        self.trend_detector.evaluate()
-        for pattern_detector in self.price_action_pattern_detectors:
-            pattern_detector.evaluate()
-        for candle_detector in self.candle_pattern_detectors:
-            candle_detector.evaluate()
+        self.activity_log.process()
+        """
         for strategy in self.strategies:
-                strategy.evaluate()
-
+            strategy.evaluate()
+        """
     def update_state_transition(self):
         last_state = self.state_generator.curr_state
         if last_state == '':
@@ -199,18 +194,11 @@ class InsightBook:
             self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}})
 
     def pattern_signal(self, pattern, pattern_match_idx):
-        """
-        if pattern != 'TREND':
-            print('pattern_signal+++++++', pattern, pattern_match_idx)
-        """
         if pattern == 'TREND':
             #print('TREND+++++', pattern, pattern_match_idx)
             self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}
-            print(self.market_insights)
-            #self.market_insights = {**self.market_insights, **pattern_match_idx['last_wave']}
             for wave in pattern_match_idx['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
-            #print(self.intraday_waves)
         for strategy in self.strategies:
             if strategy.is_aggregator:
                 strategy.process_signal(pattern, pattern_match_idx)
@@ -233,16 +221,6 @@ class InsightBook:
         ts_idx = profile_utils.get_next_lowest_index(self.tpo_brackets, epoch_minute)
         ts_idx = 13 if ts_idx < 0 else ts_idx + 1
         self.curr_tpo = ts_idx
-        """
-        market_profile =  self.profile_processor.get_profile_data_for_day_sym(self.ticker)
-        if market_profile is not None:
-            price_bin_counts = list(np.sum(market_profile['print_matrix'], axis=1).A1)
-            idx = None
-            try:
-                idx = price_bin_counts.index(0)
-            except:
-                idx = 13
-        """
 
     def get_sma(self, period=5):
         price_list = list(self.market_data.values())

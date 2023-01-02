@@ -21,6 +21,8 @@ class CandlePatternStrategy(BaseStrategy):
         self.trend = trend
         self.triggers_per_signal = triggers_per_signal
 
+    def set_up(self):
+        pass
 
     def get_trades(self, pattern_match_prices, idx=1, curr_price=None,):
         high_point = pattern_match_prices[1]
@@ -44,7 +46,8 @@ class CandlePatternStrategy(BaseStrategy):
     def suitable_market_condition(self,matched_pattern):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = (self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
-        return enough_time and suitable_tpo
+        print(self.insight_book.curr_tpo, len(self.insight_book.market_data.items()))
+        return enough_time and suitable_tpo and len(self.insight_book.market_data.items()) <= 15
 
 
     def initiate_signal_trades(self, sig_key):

@@ -21,6 +21,8 @@ class CandlePatternDetector:
         lo = df['low']
         cl = df['close']
         for pattern in pattern_names:
+            #print(pattern)
+            #print(getattr(talib, pattern)(op, hi, lo, cl))
             # below is same as;
             # df["CDL3LINESTRIKE"] = talib.CDL3LINESTRIKE(op, hi, lo, cl)
             df[pattern] = getattr(talib, pattern)(op, hi, lo, cl)
@@ -32,6 +34,8 @@ class CandlePatternDetector:
         chunks = [price_list[i:i + self.period] for i in range(0, len(price_list), self.period)]
         chunks = [x for x in chunks if len(x) == self.period]
         chunks_ohlc = [{'timestamp':x[0]['timestamp'], 'open':x[0]['open'], 'high': max([y['high'] for y in x]), 'low':min([y['low'] for y in x]), 'close':x[-1]['close']} for x in chunks]
+        #print(len(self.insight_book.market_data.values()))
+        #print(chunks_ohlc)
         if len(chunks_ohlc) > 0:
             pattern_df = self.check_candle_patterns(chunks_ohlc)
             for pattern in pattern_names:

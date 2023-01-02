@@ -99,7 +99,7 @@ class IntradayTrendCalculator:
 
     def calculate_measures(self):
         price_list = list(self.insight_book.market_data.values())
-        if len(price_list) < 15:
+        if len(price_list) < 1:
             return
 
         chunks_15 = [price_list[i:i + 15] for i in range(0, len(price_list), 15)]
@@ -132,6 +132,10 @@ class IntradayTrendCalculator:
             self.calculate_trend_my_exp(chunks_5_ohlc)  # 15 mins used for eod
             self.hurst_exp_15 = round(self.get_hurst_exponent(series_15_close), 2)
             self.hurst_exp_5 = round(self.get_hurst_exponent(series_5_close), 2)
+        self.trend_params['first_hour_trend'] = round(self.first_hour_trend, 2)
+        self.trend_params['whole_day_trend'] = round(self.whole_day_trend, 2)
+        self.trend_params['five_min_trend'] = round(self.five_min_trend, 2)
+        self.trend_params['fifteen_min_trend'] = round(self.fifteen_min_trend, 2)
         #self.check_candle_patterns(chunks_5_ohlc)
 
     def check_candle_patterns(self,chunks_ohlc):

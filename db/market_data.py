@@ -5,6 +5,7 @@ import pytz
 import json
 from datetime import datetime
 import calendar
+import numpy as np
 engine = get_db_engine()
 import helper.utils as helper_utils
 
@@ -377,3 +378,21 @@ def get_option_data_with_time_jump(symbol, dt):
     df = pd.read_sql_query(stmt_a.format(symbol, dt), conn)
     conn.close()
     return df
+
+def get_candle_body_size(symbol, trade_day, period='5Min'):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    df = get_nth_day_hist_data(symbol, trade_day, 1)
+    df['timestamp'] = df['timestamp'].apply(lambda x : datetime.fromtimestamp(x))
+    df = df.set_index('timestamp')
+    df = df.resample(period).agg(
+        OrderedDict([
+            ('open', 'first'),
+            ('high', 'max'),
+            ('low', 'min'),
+            ('close', 'last'),
+        ])
+    )
+    res = df.to_dict('records')
+    candle_bodies = [round(abs(cdl['high'] - cdl['low'])) for cdl in res]
+    pcts = [np.percentile(candle_bodies, 30), np.percentile(candle_bodies, 50), np.percentile(candle_bodies, 70)]
+    return pcts

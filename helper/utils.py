@@ -83,19 +83,29 @@ def get_overlap(overlap_of, compared_with):
     compared_with.sort()
     return max(0, min(overlap_of[1], compared_with[1]) - max(overlap_of[0], compared_with[0]))
 
+def compare_day_activity(compare_day, against_day):
+    compare_day_range = [compare_day['low'], compare_day['high']]
+    against_day_range = [against_day['low'], against_day['high']]
+    overlap = [max(compare_day_range[0], against_day_range[0]), min(compare_day_range[1], against_day_range[1])] if min(compare_day_range[1], against_day_range[1]) > max(compare_day_range[0], against_day_range[0]) else []
+    higher_price_region = [against_day_range[1], compare_day_range[1]] if compare_day_range[1] > against_day_range[1] else []
+    lower_price_region = [compare_day_range[0], against_day_range[0]] if compare_day_range[0] < against_day_range[0] else []
+    retest_pct = round((overlap[1] - overlap[0]) if len(overlap) else 0 / (against_day['high'] - against_day['low']), 2)
+    support_pressure = round((min(compare_day['open'], compare_day['close']) - compare_day['low']) / (compare_day['high'] - compare_day['low']), 2)
+    resistance_pressure = round((compare_day['high'] - max(compare_day['open'], compare_day['close'])) / (compare_day['high'] - compare_day['low']), 2)
+    new_business_pressure = 1 - support_pressure - resistance_pressure
 
 def get_pivot_points(data_ohlc):
 
     try:
-        data_ohlc['Pivot'] = round((data_ohlc['high'] + data_ohlc['low'] + data_ohlc['close'])/3,0)
-        data_ohlc['R1'] = round((2*data_ohlc['Pivot']) - data_ohlc['low'],0)
-        data_ohlc['S1'] = round((2*data_ohlc['Pivot']) - data_ohlc['high'],0)
-        data_ohlc['R2'] = round((data_ohlc['Pivot']) + (data_ohlc['high'] - data_ohlc['low']),0)
-        data_ohlc['S2'] = round((data_ohlc['Pivot']) - (data_ohlc['high'] - data_ohlc['low']),0)
-        data_ohlc['R3'] = round((data_ohlc['R1']) + (data_ohlc['high'] - data_ohlc['low']),0)
-        data_ohlc['S3'] = round((data_ohlc['S1']) - (data_ohlc['high'] - data_ohlc['low']),0)
-        data_ohlc['R4'] = round((data_ohlc['R3']) + (data_ohlc['R2'] - data_ohlc['R1']),0)
-        data_ohlc['S4'] = round((data_ohlc['S3']) - (data_ohlc['S1'] - data_ohlc['S2']),0)
+        data_ohlc['Pivot'] = round((data_ohlc['high'] + data_ohlc['low'] + data_ohlc['close'])/3, 0)
+        data_ohlc['R1'] = round((2*data_ohlc['Pivot']) - data_ohlc['low'], 0)
+        data_ohlc['S1'] = round((2*data_ohlc['Pivot']) - data_ohlc['high'], 0)
+        data_ohlc['R2'] = round((data_ohlc['Pivot']) + (data_ohlc['high'] - data_ohlc['low']), 0)
+        data_ohlc['S2'] = round((data_ohlc['Pivot']) - (data_ohlc['high'] - data_ohlc['low']), 0)
+        data_ohlc['R3'] = round((data_ohlc['R1']) + (data_ohlc['high'] - data_ohlc['low']), 0)
+        data_ohlc['S3'] = round((data_ohlc['S1']) - (data_ohlc['high'] - data_ohlc['low']), 0)
+        data_ohlc['R4'] = round((data_ohlc['R3']) + (data_ohlc['R2'] - data_ohlc['R1']), 0)
+        data_ohlc['S4'] = round((data_ohlc['S3']) - (data_ohlc['S1'] - data_ohlc['S2']), 0)
     except:
         pass
     #print('get_pivot_points++++++++++++++++++++++++++++++++++++++++++++++', data_ohlc)

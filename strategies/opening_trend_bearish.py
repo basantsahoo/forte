@@ -1,15 +1,12 @@
-import numpy as np
 from strategies.core_strategy import BaseStrategy
-from helper.utils import get_exit_order_type, pattern_param_match
-from helper.utils import pattern_param_match, get_overlap
-from dynamics.trend.technical_patterns import pattern_engine
+from helper.utils import pattern_param_match, get_broker_order_type, get_overlap
 from statistics import mean
-import dynamics.patterns.utils as pattern_utils
+import math
+from db.market_data import get_candle_body_size
 
-#Check 13 May last pattern again why it was not triggered
-class TrendStrategy(BaseStrategy):
-    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=None, max_tpo=None, record_metric=True):
-        BaseStrategy.__init__(self, insight_book, min_tpo, max_tpo)
+class OpeningBearishTrendStrategy(BaseStrategy):
+    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=1, record_metric=True):
+        BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo)
         self.id = pattern + "_" + str(period) + "_" + order_type + "_" + str(exit_time)
         #print(self.id)
         self.price_pattern = pattern
@@ -20,132 +17,175 @@ class TrendStrategy(BaseStrategy):
         self.period = period
         self.record_metric = record_metric
         self.trend = trend
-        self.pending_previous_trade = False
-        self.pending_signals = {}
-        self.tradable_signals ={}
-        self.minimum_quantity = 1
-        self.counter = 0
+        self.allowed_trades = 1
+        self.triggers_per_signal = 1
+        self.candle_stats = []
 
-    def locate_point(self, df, threshold):
-        above = len(np.array(df.index[df.Close > threshold]))
-        below = len(np.array(df.index[df.Close <= threshold]))
-        pct = (1 - above/(above + below)) * 100
-        return pct
-    # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
-
-    def get_dt_trades(self, pattern_match_prices, idx=1, curr_price=None,):
-        highest_high_point = max(pattern_match_prices[1], pattern_match_prices[3])
-        lowest_high_point = min(pattern_match_prices[1], pattern_match_prices[3])
-        neck_point = pattern_match_prices[2]
-        pattern_height = lowest_high_point - neck_point
-        curr_price = curr_price
+    def get_trades(self, idx=1, curr_price=None,):
+        side = get_broker_order_type(self.order_type)
         last_candle = self.insight_book.last_tick
+        close_point = last_candle['close']
         if idx == 1:
-            return {'seq': idx, 'target': 50, 'stop_loss': 20,'duration': 20, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point}
+            return {'seq': idx, 'target': close_point * (1 + side * 0.001), 'stop_loss': close_point * (1 - side * 0.001), 'duration': self.exit_time, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': 0, 'trigger_time':last_candle['timestamp']}
         elif idx == 2:
-            return {'seq': idx, 'target': 75, 'stop_loss': 40, 'duration': 45, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point}
+            return {'seq': idx, 'target': close_point * (1 + side * 0.003), 'stop_loss': close_point * (1 - side * 0.0015), 'duration': self.exit_time + 10, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': 0, 'trigger_time':last_candle['timestamp']}
 
-    def add_tradable_signal(self,matched_pattern):
-        existing_signals = len(self.tradable_signals.keys())
-        sig_key = 'SIG_' + str(existing_signals + 1)
-        self.tradable_signals[sig_key] = {}
+    def add_tradable_signal(self, matched_pattern):
+        sig_key = self.add_new_signal()
         self.tradable_signals[sig_key]['pattern'] = matched_pattern
-        self.tradable_signals[sig_key]['pattern_height'] = 0
-        self.tradable_signals[sig_key]['triggers'] = {}
-        self.tradable_signals[sig_key]['targets'] = []
-        self.tradable_signals[sig_key]['stop_losses'] = []
-        self.tradable_signals[sig_key]['time_based_exists'] = []
-        self.tradable_signals[sig_key]['max_triggers'] = 4
-        self.tradable_signals[sig_key]['trade_completed'] = False
+        self.tradable_signals[sig_key]['max_triggers'] = 1
         return sig_key
 
-    def confirm_trade_from_trigger(self, sig_key, triggers):
-        curr_signal = self.tradable_signals[sig_key]
-        for trigger in triggers:
-            curr_signal['targets'].append(trigger['target'])
-            curr_signal['stop_losses'].append(trigger['stop_loss'])
-            curr_signal['time_based_exists'].append(trigger['duration'])
-            curr_signal['triggers'][trigger['seq']] = trigger
-
+    def suitable_market_condition(self,matched_pattern):
+        enough_time = self.insight_book.get_time_to_close() > self.exit_time
+        suitable_tpo = (self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
+        return enough_time and suitable_tpo #and len(self.insight_book.market_data.items()) <= 15
 
     def initiate_signal_trades(self, sig_key):
         #print('initiate_signal_trades+++++', sig_key)
         curr_signal = self.tradable_signals[sig_key]
         next_trigger = len(curr_signal['triggers']) + 1
-        triggers = [self.get_dt_trades(curr_signal['pattern']['price_list'], trd_idx) for trd_idx in range(next_trigger, next_trigger+1+1)]
+        triggers = [self.get_trades(trd_idx) for trd_idx in range(next_trigger, next_trigger + self.triggers_per_signal)]
         # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
-        total_quantity = sum([trig['quantity'] for trig in triggers])
-        self.trigger_entry(self.order_type,sig_key,triggers, qty=total_quantity)
+        #total_quantity = sum([trig['quantity'] for trig in triggers])
+        self.trigger_entry(self.order_type, sig_key, triggers)
 
+    def set_up(self):
+        self.candle_stats = get_candle_body_size(self.insight_book.ticker, self.insight_book.trade_day)
 
-    def trigger_entry(self, order_type, sig_key, triggers, qty):
-        response = self.insight_book.pm.place_oms_entry_order(self.insight_book.ticker, order_type, qty)
-        if response:
-            for trigger in triggers:
-                if self.record_metric:
-                    self.params_repo[(sig_key, trigger['seq'])] = self.get_market_params()  # We are interested in signal features, trade features being stored separately
-                self.insight_book.pm.strategy_entry_signal(self.insight_book.ticker, self.id, sig_key, trigger['seq'], order_type, trigger['quantity'])
-                self.confirm_trade_from_trigger(sig_key, triggers)
+    def get_candle_trend(self,chunks_ohlc):
+        candle_size_trends = []
+        candle_direction_trends = []
+        overlap_trends = []
+        return_trends = []
+        for i in range(len(chunks_ohlc)):
+            candle = chunks_ohlc[i]
+            # print(candle)
+            open = candle[0]
+            high = candle[1]
+            low = candle[2]
+            close = candle[3]
+            body = abs(close - open)
+            length = high - low
+            tail = length - body
+            mid = 0.5 * (high + low)
+            ut = high - max(close, open)
+            lt = min(close, open) - low
+            print(self.candle_stats)
+            print(length)
+            # exclude candles below 30th percentile
+            if length < self.candle_stats[0]:
+                pass
+            # less than 50th percentile keep only large candle bodies
+            elif length < self.candle_stats[1]:
+                if body >= 0.8 * length:
+                    if close > open:
+                        candle_size_trends.append(0.5)
+                    else:
+                        candle_size_trends.append(-0.5)
+            # less than 70th percentile apply weights
+            elif length < self.candle_stats[2]:
+                if body >= 0.8 * length:
+                    if close > open:
+                        candle_size_trends.append(0.7)
+                    else:
+                        candle_size_trends.append(-0.7)
+                elif body >= 0.3 * length:
+                    if ut > 2 * lt:
+                        if close < open:
+                            candle_size_trends.append(-0.7/2)
+                    elif lt > 2 * ut:
+                        if open < close:
+                            candle_size_trends.append(0.7/2)
+                elif ut > 2.5 * lt:
+                    candle_size_trends.append(-0.7)
+                elif lt > 2.5 * ut:
+                    candle_size_trends.append(0.7)
+            # > 70th percentile
+            else:
+                print('above 70th percentile')
+                print(candle)
+                print(length, body, ut, lt)
+                if body >= 0.8 * length:
+                    if close > open:
+                        candle_size_trends.append(1)
+                    else:
+                        candle_size_trends.append(-1)
+                elif body >= 0.3 * length:
+                    if ut > 2 * lt:
+                        if close < open:
+                            candle_size_trends.append(-1/2)
+                    elif lt > 2 * ut:
+                        if open < close:
+                            candle_size_trends.append(1/2)
+                elif ut > 2.5 * lt:
+                    candle_size_trends.append(-1)
+                elif lt > 2.5 * ut:
+                    candle_size_trends.append(1)
+            if i > 0:
+                prev_candle = chunks_ohlc[i - 1]
+                prev_mid = 0.5 * (prev_candle[1] + prev_candle[2])
+                dir = 0
+                if mid > (1 + 0.0009) * prev_mid:
+                    dir = 0.3
+                elif mid < (1 - 0.0009) * prev_mid:
+                    dir = -0.3
+                candle_direction_trends.append(dir)
+                curr_range = list(range(int(math.floor(low)), int(math.ceil(high)) + 1, 1))
+                prev_range = list(range(int(math.floor(prev_candle[2])), int(math.ceil(prev_candle[1])) + 1, 1))
+                overlap = list(set(curr_range) & set(prev_range))
+                overlap_pct = len(overlap) / len(prev_range)
+                if overlap_pct < 0.5:
+                    overlap_trends.append(dir)
+                else:
+                    overlap_trends.append(0)
+        avg_candle_size_trend = mean(candle_size_trends) if len(candle_size_trends) > 0 else 0
+        avg_candle_direction_trend = mean(candle_direction_trends) if len(candle_direction_trends) > 0 else 0
+        avg_overlap_trend = mean(overlap_trends) if len(overlap_trends) > 0 else 0
+        return [avg_candle_size_trend, avg_candle_direction_trend, avg_overlap_trend]
 
-    def trigger_exit(self, signal_id, trigger_id, exit_type=None):
-        quantity = self.tradable_signals[signal_id]['triggers'][trigger_id]['quantity']
-        response = self.insight_book.pm.place_oms_exit_order(self.insight_book.ticker, self.id, signal_id, trigger_id, quantity)
-        if response:
-            last_candle = self.insight_book.last_tick
-            self.insight_book.pm.strategy_exit_signal(self.insight_book.ticker, self.id, signal_id, trigger_id, quantity)
-            self.tradable_signals[signal_id]['triggers'][trigger_id]['closed'] = True
-            self.tradable_signals[signal_id]['triggers'][trigger_id]['exit_type'] = exit_type
-            self.tradable_signals[signal_id]['triggers'][trigger_id]['exit_price'] = last_candle['close']
-
-    def trigger_exit_at_low(self, signal_id, trigger_id):
-        lowest_candle = self.get_lowest_candle()
-        self.insight_book.pm.strategy_exit_signal(self.insight_book.ticker, self.id, signal_id, trigger_id, lowest_candle)
+    def calculate_measures(self):
+        price_list = list(self.insight_book.market_data.values())
+        if len(price_list) < 2:
+            return
+        chunks_5 = [price_list[i:i + 5] for i in range(0, len(price_list), 5)]
+        chunks_5_ohlc = [[x[0]['open'], max(y['high'] for y in x), min(y['low'] for y in x), x[-1]['close']] for x in chunks_5]
+        self.five_min_trend = self.get_candle_trend(chunks_5_ohlc)[0]
 
     def process_pattern_signal(self, matched_pattern):
+        self.calculate_measures()
+        #print('process patter signal in strategy')
+        print('minutes past 22222===', len(list(self.insight_book.market_data.keys())))
+        #print('trend calculated =====', 'five_min_trend' in self.insight_book.market_insights)
+        if 'five_min_trend' not in self.insight_book.market_insights or not self.allowed_trades:
+            return
+        five_min_trend = self.five_min_trend
+        print('five_min_trend', five_min_trend)
+        if five_min_trend >= 0:
+            return
         #print('process_pattern_signal+++++++++++')
         # looking for overlap in time
-        last_match_ol = 0 if self.last_match is None else get_overlap([matched_pattern['time_list'][1], matched_pattern['time_list'][2]], [self.last_match['time_list'][1], self.last_match['time_list'][2]])
+        last_match_ol = 0 if self.last_match is None else int(five_min_trend >= self.last_match)
         #print(last_match_ol)
         """
         determine whether a new signal
         """
-        if last_match_ol == 0:  # matched_pattern['time_list][2] != self.last_match['time_list][2]:
-            self.last_match = matched_pattern
+        if not last_match_ol and self.suitable_market_condition(None):
+            self.last_match = five_min_trend
             # print('received new pattern++++', matched_pattern)
             """
             Control when a signal is considered for trade
             """
-            pattern_df = self.insight_book.get_inflex_pattern_df(self.period).dfstock_3
-            pattern_location = self.locate_point(pattern_df, max(matched_pattern['price_list']))
-            # test 3 double tops in upper side of market result in sharp fall? 3rd after 250?
+            last_tick = self.insight_book.last_tick
             if self.record_metric:
-                self.strategy_params['pattern_time'] = matched_pattern['time_list']
-                self.strategy_params['pattern_price'] = matched_pattern['price_list']
-                self.strategy_params['pattern_location'] = pattern_location
-
-            if pattern_location > -1:
-                sig_key = self.add_tradable_signal(matched_pattern)
-                self.initiate_signal_trades(sig_key)
-
+                self.strategy_params['pattern_time'] = last_tick['timestamp']
+                self.strategy_params['pattern_price'] = [last_tick['close']]
+                self.strategy_params['pattern_location'] = self.five_min_trend
+            sig_key = self.add_tradable_signal(five_min_trend)
+            self.initiate_signal_trades(sig_key)
 
     def evaluate(self):
-        #self.process_incomplete_signals()
-        self.close_existing_positions()
-
-    def close_existing_positions(self):
-        last_candle = self.insight_book.last_tick
-        #print(self.tradable_signals)
-        for signal_id, signal in self.tradable_signals.items():
-            #print(signal)
-            for trigger_seq, trigger_details in signal['triggers'].items():
-                if trigger_details['exit_type'] is None:  #Still active
-                    exit_type = None
-                    #print(trigger_details)
-                    if last_candle['close'] < trigger_details['target']:
-                        self.trigger_exit(signal_id, trigger_seq, exit_type=1)
-                        #print(last_candle, trigger_details['target'])
-                    elif last_candle['close'] >= trigger_details['stop_loss']:
-                        self.trigger_exit(signal_id, trigger_seq, exit_type=-1)
-                    elif last_candle['timestamp'] - signal['pattern']['time_list'][-1] >= trigger_details['duration']*60:
-                        self.trigger_exit(signal_id, trigger_seq, exit_type=0)
+        self.process_pattern_signal(None)
+        self.process_incomplete_signals()
+        self.monitor_existing_positions()
 

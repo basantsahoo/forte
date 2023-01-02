@@ -4,7 +4,7 @@ import time
 from settings import reports_dir
 from dynamics.profile.market_profile import HistMarketProfileService
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
-from infrastructure.arc.insight import InsightBook
+from infrastructure.arc.insight_mini import InsightBook
 from db.market_data import (get_all_days, get_daily_tick_data, prev_day_data, get_prev_week_candle, get_nth_day_profile_data)
 import helper.utils as helper_utils
 #from strategies_bkp.range_break import RangeBreakDownStrategy
