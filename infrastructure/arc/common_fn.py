@@ -27,6 +27,7 @@ from infrastructure.arc.buy_sell_activity import BuySellActivity
 class CommonFN:
     def __init__(self, ticker, trade_day=None, record_metric=True):
         self.intraday_trend = IntradayTrendCalculator(self)
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5)]
         self.activity_log = BuySellActivity(self)
         self.day_setup_done = False
         self.strategy_setup_done = False
@@ -139,6 +140,13 @@ class CommonFN:
                 if ol > 0:
                     self.yday_level_breaks[k]['value'] = True
                     self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
+        for k in self.day_before_level_breaks:
+            if not self.yday_level_breaks[k]['value']:
+                level_range = [self.yday_profile[k] * (1 - 0.0015), self.yday_profile[k] * (1 + 0.0015)]
+                ol = get_overlap(level_range, [self.range['low'], self.range['high']])
+                if ol > 0:
+                    self.yday_level_breaks[k]['value'] = True
+                    self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
 
     def update_periodic(self):
         self.intraday_trend.calculate_measures()
@@ -175,11 +183,14 @@ class CommonFN:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
         self.update_state_transition()
-        self.activity_log.process()
-        """
+        for candle_detector in self.candle_pattern_detectors:
+            candle_detector.evaluate()
+
+        #self.activity_log.process()
+
         for strategy in self.strategies:
             strategy.evaluate()
-        """
+
     def update_state_transition(self):
         last_state = self.state_generator.curr_state
         if last_state == '':

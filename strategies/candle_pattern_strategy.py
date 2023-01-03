@@ -4,9 +4,9 @@ from helper.utils import  get_overlap
 from statistics import mean
 import dynamics.patterns.utils as pattern_utils
 from helper.utils import get_broker_order_type
+from strategies.strat_mixin import PatternMetricRecordMixin
 
-
-class CandlePatternStrategy(BaseStrategy):
+class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
     def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=2):
         BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo)
         self.id = pattern + "_" + order_type + "_" + str(period) + "_" + str(exit_time)
@@ -46,7 +46,7 @@ class CandlePatternStrategy(BaseStrategy):
     def suitable_market_condition(self,matched_pattern):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = (self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
-        print(self.insight_book.curr_tpo, len(self.insight_book.market_data.items()))
+
         return enough_time and suitable_tpo and len(self.insight_book.market_data.items()) <= 15
 
 
@@ -73,16 +73,7 @@ class CandlePatternStrategy(BaseStrategy):
         """
         if not last_match_ol and self.suitable_market_condition(matched_pattern):
             self.last_match = matched_pattern
-            pattern_df = self.insight_book.get_inflex_pattern_df(self.period).dfstock_3
-            pattern_location = self.locate_point(pattern_df, matched_pattern['candle'][3])
-            if self.record_metric:
-                last_wave = self.insight_book.get_prior_wave(matched_pattern['time'])
-                self.strategy_params['pattern_time'] = [matched_pattern['time']]
-                self.strategy_params['pattern_price'] = [matched_pattern['candle']]
-                self.strategy_params['pattern_location'] = pattern_location
-                keys = ['total_energy_pyr', 'total_energy_ht', 'static_ratio', 'dynamic_ratio', 'd_en_ht', 's_en_ht', 'd_en_pyr', 's_en_pyr']
-                for key in keys:
-                    self.strategy_params['lw_'+ key] = last_wave[key]
+            self.record_params()
             signal_passed = True
         return signal_passed
 

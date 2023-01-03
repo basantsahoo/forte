@@ -16,11 +16,12 @@ from settings import reports_dir
 from datetime import datetime
 
 #strategy_list = ['PatternAggregator', 'CandleAggregator']
-strategy_list = ['CandleAggregator']
+strategy_list = ['StateCapStrategy']
 strategy_kwargs = [{'pattern':'STATE', 'order_type':'SELL', 'exit_time':10, 'period':1}]
-strategy_kwargs = [{}]
 strategy_list = ['OpeningBearishTrendStrategy']
 strategy_kwargs = [{'pattern':'BEAR_TREND', 'order_type':'SELL', 'exit_time':15, 'period':5}]
+strategy_list = ['CandleAggregator']
+strategy_kwargs = [{}]
 strategy_classes = [eval(strategy) for strategy in strategy_list]
 symbols = ['NIFTY']
 days = []

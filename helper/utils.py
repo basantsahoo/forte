@@ -84,15 +84,33 @@ def get_overlap(overlap_of, compared_with):
     return max(0, min(overlap_of[1], compared_with[1]) - max(overlap_of[0], compared_with[0]))
 
 def compare_day_activity(compare_day, against_day):
+    resp = {}
     compare_day_range = [compare_day['low'], compare_day['high']]
     against_day_range = [against_day['low'], against_day['high']]
     overlap = [max(compare_day_range[0], against_day_range[0]), min(compare_day_range[1], against_day_range[1])] if min(compare_day_range[1], against_day_range[1]) > max(compare_day_range[0], against_day_range[0]) else []
+    # compare day calculations
     higher_price_region = [against_day_range[1], compare_day_range[1]] if compare_day_range[1] > against_day_range[1] else []
     lower_price_region = [compare_day_range[0], against_day_range[0]] if compare_day_range[0] < against_day_range[0] else []
-    retest_pct = round((overlap[1] - overlap[0]) if len(overlap) else 0 / (against_day['high'] - against_day['low']), 2)
-    support_pressure = round((min(compare_day['open'], compare_day['close']) - compare_day['low']) / (compare_day['high'] - compare_day['low']), 2)
-    resistance_pressure = round((compare_day['high'] - max(compare_day['open'], compare_day['close'])) / (compare_day['high'] - compare_day['low']), 2)
-    new_business_pressure = 1 - support_pressure - resistance_pressure
+    resp['cd_support_pressure'] = round((min(compare_day['open'], compare_day['close']) - compare_day['low']) / (compare_day['high'] - compare_day['low']), 2)
+    resp['cd_resistance_pressure'] = round((compare_day['high'] - max(compare_day['open'], compare_day['close'])) / (compare_day['high'] - compare_day['low']), 2)
+    resp['cd_new_business_pressure'] = round(1 - resp['cd_support_pressure'] - resp['cd_resistance_pressure'], 2)
+    resp['cd_type'] = 1 if (compare_day['close'] - compare_day['open']) > 0 else -1
+    resp['cd_retest_fract'] = round(((overlap[1] - overlap[0]) if len(overlap) else 0) / (compare_day['high'] - compare_day['low']), 2)
+    # against day calculations
+    resp['ad_support_pressure'] = round((min(compare_day['open'], compare_day['close']) - compare_day['low']) / (compare_day['high'] - compare_day['low']), 2)
+    resp['ad_resistance_pressure'] = round((compare_day['high'] - max(compare_day['open'], compare_day['close'])) / (compare_day['high'] - compare_day['low']), 2)
+    resp['ad_new_business_pressure'] = round(1 - resp['ad_support_pressure'] - resp['ad_resistance_pressure'], 2)
+    resp['ad_retest_fract'] = round(((overlap[1] - overlap[0]) if len(overlap) else 0) / (against_day['high'] - against_day['low']), 2)
+    resp['ad_type'] = 1 if (against_day['close'] - against_day['open']) > 0 else -1
+    resp['gap'] = round(((compare_day['open'] - against_day['high']) if compare_day['open'] > against_day['high'] else (compare_day['open'] - against_day['low']) if compare_day['open'] < against_day['low'] else 0) / against_day['poc_price'], 4)
+    resp['cd_close_rat'] = round((compare_day['close'] / against_day['poc_price'] - 1) * 100, 2)
+    level_keys = ['high', 'low', 'poc_price', 'va_h_p', 'va_l_p']
+    for k in level_keys:
+        level_range = [against_day[k] * (1 - 0.0015), against_day[k] * (1 + 0.0015)]
+        ol = get_overlap(level_range, [compare_day['low'], compare_day['high']])
+        resp[k] = int(ol > 0)
+    return resp
+
 
 def get_pivot_points(data_ohlc):
 

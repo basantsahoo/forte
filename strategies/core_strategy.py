@@ -121,6 +121,7 @@ class BaseStrategy:
         mkt_parms = self.insight_book.market_insights
         mkt_parms['open_type'] = self.insight_book.open_type
         mkt_parms['tpo'] = self.insight_book.curr_tpo
+        """
         mkt_parms['first_hour_trend'] = round(self.insight_book.intraday_trend.first_hour_trend,2)
         mkt_parms['whole_day_trend'] = round(self.insight_book.intraday_trend.whole_day_trend,2)
         mkt_parms['five_min_trend'] = round(self.insight_book.intraday_trend.five_min_trend,2)
@@ -130,6 +131,7 @@ class BaseStrategy:
         mkt_parms['hurst_exp_15'] = round(self.insight_book.intraday_trend.hurst_exp_15,2)
         mkt_parms['hurst_exp_5'] = round(self.insight_book.intraday_trend.hurst_exp_5,2)
         mkt_parms['ret_trend'] = round(self.insight_book.intraday_trend.ret_trend,2)
+        """
         mkt_parms['candles_in_range'] = round(self.insight_book.intraday_trend.candles_in_range,2)
 
         last_candle = self.insight_book.last_tick
@@ -141,9 +143,16 @@ class BaseStrategy:
         #print(self.insight_book.weekly_pivots)
         for (lvl, price) in yday_profile.items():
             mkt_parms['y_' + lvl] = self.check_level(last_candle, price)
+        t_2_profile = {k: v for k, v in self.insight_book.day_before_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p','poc_price')}
+        #print(self.insight_book.weekly_pivots)
+        for (lvl, price) in t_2_profile.items():
+            mkt_parms['t_2_' + lvl] = self.check_level(last_candle, price)
+
         weekly_profile = {k: v for k, v in self.insight_book.weekly_pivots.items() if k not in ('open', 'close')}
         for (lvl, price) in weekly_profile.items():
             mkt_parms['w_' + lvl] = self.check_level(last_candle, price)
+        if self.insight_book.activity_log.activity:
+            mkt_parms = {**mkt_parms, **self.insight_book.activity_log.activity}
         if self.strategy_params:
             mkt_parms = {**mkt_parms, **self.strategy_params}
             #self.strategy_params = {} #we may need to reset it please check?
@@ -229,7 +238,7 @@ class BaseStrategy:
         return False
 
     def process_signal(self, signal):
-        print('process_signal in core++++++++++++++++++++++++++', self.id)
+        print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()))
         signal_passed = self.evaluate_signal(signal) #len(self.tradable_signals.keys()) < self.max_signals+5  #
         if signal_passed:
             sig_key = self.add_tradable_signal(signal)

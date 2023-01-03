@@ -38,8 +38,12 @@ class CandleAggregator:
             self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 30, 15))
             self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 30, 15))
             """
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 20, 5, min_tpo=1, max_tpo=1, triggers_per_signal=1))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 20, 5, min_tpo=1, max_tpo=1, triggers_per_signal=1))
+            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 10, 5, min_tpo=1, max_tpo=1, triggers_per_signal=1))
+            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 10, 5, min_tpo=1, max_tpo=1, triggers_per_signal=1))
+
+    def set_up(self):
+        for strategy in self.individual_strategies:
+            strategy.set_up()
 
     def process_signal(self, pattern, pattern_match_idx):
         for strategy in self.individual_strategies:

@@ -256,3 +256,14 @@ This will send live data to socket server for forwarding
 2. python algo_client.py 
 This will send strategy signals to socket server for forwarding to client
 ```
+
+### Tensor flow
+```
+conda install -c apple tensorflow-deps
+
+
+
+
+pymc3 3.11.5
+path modelling 
+```
