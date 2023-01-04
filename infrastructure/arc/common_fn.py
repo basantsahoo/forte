@@ -156,6 +156,7 @@ class CommonFN:
     def set_up_strategies(self):
         self.activity_log.set_up()
         for strategy in self.strategies:
+            print('strategy setup+++++')
             strategy.set_up()
 
     def price_input_stream(self, price, iv=None):

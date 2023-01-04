@@ -1,4 +1,5 @@
 import numpy as np
+from datetime import datetime
 import helper.utils as helper_utils
 from dynamics.trend.technical_patterns import pattern_engine
 from statistics import mean
@@ -27,9 +28,13 @@ class BaseStrategy:
         self.max_signals = 1
         self.target_pct = target_pct
         self.stop_loss_pct = stop_loss_pct
+        self.weekdays_allowed = []
 
     def set_up(self):
-        pass
+        week_day_criterion = (not self.weekdays_allowed) or datetime.strptime(self.insight_book.trade_day, '%Y-%m-%d').strftime('%A') in self.weekdays_allowed
+        activation_criterion = week_day_criterion
+        if not activation_criterion:
+            self.deactivate()
 
     def relevant_signal(self, pattern, pattern_match_idx):
         return self.price_pattern == pattern

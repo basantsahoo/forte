@@ -21,9 +21,6 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         self.trend = trend
         self.triggers_per_signal = triggers_per_signal
 
-    def set_up(self):
-        pass
-
     def relevant_signal(self, pattern, pattern_match_idx):
         return self.price_pattern == pattern and self.order_type == pattern_match_idx['direction'] and self.period == pattern_match_idx['period']
 

@@ -10,9 +10,7 @@ from research.strategies.candle_pattern_strategy import CandlePatternStrategy
 class FridayCandleFirst30Buy(CandlePatternStrategy):
     def __init__(self, insight_book, pattern='CDLHIKKAKE', order_type="BUY", exit_time=10, period=5, trend=None, min_tpo=1, max_tpo=1, record_metric=True, triggers_per_signal=1, target_pct=0.002, stop_loss_pct=0.002):
         CandlePatternStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, trend, min_tpo, max_tpo, record_metric, triggers_per_signal)
-
-    def set_up(self):
-        pass
+        self.weekdays_allowed = ['Friday', 'Thursday']
 
     def suitable_market_condition(self,matched_pattern):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
