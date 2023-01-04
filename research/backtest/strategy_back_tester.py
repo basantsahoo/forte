@@ -9,7 +9,7 @@ from db.market_data import (get_all_days, get_daily_tick_data, prev_day_data, ge
 import helper.utils as helper_utils
 #from strategies_bkp.range_break import RangeBreakDownStrategy
 #from strategies_bkp.sma_cross_over_buy import SMACrossBuy
-from strategies.double_top_break_strategy import DoubleTopBreakStrategy
+from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 import traceback
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']

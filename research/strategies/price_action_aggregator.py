@@ -1,6 +1,6 @@
-from strategies.double_top_strategy import DoubleTopStrategy
-from strategies.double_top_break_strategy import DoubleTopBreakStrategy
-from strategies.trend_strategy import TrendStrategy
+from research.strategies.double_top_strategy import DoubleTopStrategy
+from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
+from research.strategies.trend_strategy import TrendStrategy
 
 class PatternAggregator:
     def __init__(self, insight_book=None):

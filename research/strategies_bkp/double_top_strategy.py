@@ -1,5 +1,5 @@
 import numpy as np
-from strategies.bs_strat import BaseStrategy
+from research.strategies import BaseStrategy
 from helper.utils import get_exit_order_type, pattern_param_match
 from helper.utils import pattern_param_match, get_overlap
 from trend.technical_patterns import pattern_engine
@@ -7,7 +7,7 @@ from statistics import mean
 import patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
-class TrendStrategy(BaseStrategy):
+class PriceActionPatternStrategy(BaseStrategy):
     def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=None, max_tpo=None, record_metric=True):
         BaseStrategy.__init__(self, insight_book, min_tpo, max_tpo)
         self.id = pattern + "_" + str(period) + "_" + order_type + "_" + str(exit_time)
@@ -41,16 +41,20 @@ class TrendStrategy(BaseStrategy):
         curr_price = curr_price
         last_candle = self.insight_book.last_tick
         if idx == 1:
-            return {'seq': idx, 'target': 50, 'stop_loss': 20,'duration': 20, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point}
+            return {'seq': idx, 'target': neck_point - pattern_height, 'stop_loss':lowest_high_point + 2,'duration': 20, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point}
         elif idx == 2:
-            return {'seq': idx, 'target': 75, 'stop_loss': 40, 'duration': 45, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point}
+            return {'seq': idx, 'target': max(neck_point - 2 * pattern_height, pattern_match_prices[0]), 'stop_loss': highest_high_point+ 2, 'duration': 45, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point}
 
     def add_tradable_signal(self,matched_pattern):
         existing_signals = len(self.tradable_signals.keys())
         sig_key = 'SIG_' + str(existing_signals + 1)
+        pattern_match_prices = matched_pattern['price_list']
+        lowest_high_point = min(pattern_match_prices[1], pattern_match_prices[3])
+        pattern_height = lowest_high_point - pattern_match_prices[2]
+
         self.tradable_signals[sig_key] = {}
         self.tradable_signals[sig_key]['pattern'] = matched_pattern
-        self.tradable_signals[sig_key]['pattern_height'] = 0
+        self.tradable_signals[sig_key]['pattern_height'] = pattern_height
         self.tradable_signals[sig_key]['triggers'] = {}
         self.tradable_signals[sig_key]['targets'] = []
         self.tradable_signals[sig_key]['stop_losses'] = []
@@ -128,6 +132,41 @@ class TrendStrategy(BaseStrategy):
                 self.initiate_signal_trades(sig_key)
 
 
+
+    def process_incomplete_signals(self):
+        #print('process_incomplete_signals+++++++++')
+
+        if not self.insight_book.pm.reached_risk_limit(self.id) and self.tradable_signals: #risk limit not reached and there are some signals
+            pattern_df = self.insight_book.get_inflex_pattern_df(self.period).dfstock_3
+            for key, signal in self.tradable_signals.items():
+                pattern_end_time = signal['pattern']['time_list'][-1]
+                if not signal['trade_completed'] and np.array(pattern_df.Time)[-1] > pattern_end_time:
+                    next_trigger = len(signal['triggers']) + 1
+                    #print('Inside', next_trigger)
+                    if next_trigger == 3:
+                        pattern_match_prices = signal['pattern']['price_list']
+                        highest_high_point = max(pattern_match_prices[1], pattern_match_prices[3])
+                        lowest_high_point = min(pattern_match_prices[1], pattern_match_prices[3])
+                        pattern_height = lowest_high_point - pattern_match_prices[2]
+                        print(pattern_end_time)
+                        sub_df = pattern_df[pattern_df['Time'] > pattern_end_time]
+                        trigger_1_closed = True #Additional risk management check
+                        target_1_met = min(sub_df['Close']) < min(signal['targets'])
+                        if target_1_met:
+                            local_minima_index = sub_df.index[sub_df.Close == min(sub_df['Close'])][0]
+                            #print('local_minima_index++++++++++', local_minima_index)
+                            # and there is a SPH between target 1 and DT lowest high and min price after SPH breached 50% of it's retracement'
+                            reversal_point = sub_df[(sub_df.index > local_minima_index) & (sub_df.SPExt == 'SPH') & (sub_df.Close < min(pattern_match_prices[1], pattern_match_prices[3]))]
+                            if reversal_point.shape[0] > 0:
+                                print('3rd order triggered')
+                                #print(reversal_point.Close)
+                                target = min(signal['targets'])-pattern_height
+                                signal['targets'].append(target)
+                                signal['stop_losses'].append(reversal_point.Close.tolist()[0])
+                                signal['time_based_exists'].append(30)
+                                self.trigger_entry(self.order_type, stop_loss=pattern_match_prices[1] + 5, targets=[],qty=4)
+                    elif next_trigger == 4:
+                        pass
     def evaluate(self):
         #self.process_incomplete_signals()
         self.close_existing_positions()
@@ -149,3 +188,30 @@ class TrendStrategy(BaseStrategy):
                     elif last_candle['timestamp'] - signal['pattern']['time_list'][-1] >= trigger_details['duration']*60:
                         self.trigger_exit(signal_id, trigger_seq, exit_type=0)
 
+
+
+    def process_pattern_signal_old(self, pattern_match_idx):
+        print('process_pattern_signal+++++++++++')
+        last_match_ol = 0 if self.last_match is None else get_overlap([pattern_match_idx[0][1], pattern_match_idx[0][2]], [self.last_match[0][1], self.last_match[0][2]])
+        if last_match_ol == 0:  # pattern_match_idx[0][2] != self.last_match[0][2]:
+            # print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+            # print(pattern_match_idx)
+            # print(self.last_match)
+            self.last_match = pattern_match_idx
+            # print('going to trigger')
+            self.strategy_params['pattern_time'] = pattern_match_idx[0]
+            """
+            Control when a trade is triggered
+            """
+            pattern_df = self.insight_book.get_inflex_pattern_df(self.period).dfstock_3
+            pattern_location = self.locate_point(pattern_df, max(pattern_match_idx[1]))
+            # test 3 double tops in upper side of market result in sharp fall? 3rd after 250?
+            self.strategy_params['pattern_location'] = pattern_location
+            highest_high_point = max(pattern_match_idx[1][1], pattern_match_idx[1][3])
+            lowest_high_point = min(pattern_match_idx[1][1], pattern_match_idx[1][3])
+            pattern_height = lowest_high_point - pattern_match_idx[1][2]
+            target_1 = lowest_high_point - pattern_height
+            target_2 = max(highest_high_point - 2 * highest_high_point, pattern_match_idx[1][0])
+            target_3 = max(highest_high_point - 2 * highest_high_point, pattern_match_idx[1][0])
+            self.trigger_entry(self.order_type, stop_loss=max(pattern_match_idx[1]) + 5, targets=[], qty=4)
+            # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above

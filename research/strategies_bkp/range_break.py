@@ -2,7 +2,7 @@ import numpy as np
 from db.db_engine import get_db_engine
 from datetime import datetime
 from scipy import stats
-from strategies_bkp.bs_strat import BaseStrategy
+from research.strategies_bkp.bs_strat import BaseStrategy
 
 class RangeBreakDownStrategy(BaseStrategy):
     def __init__(self, insight_book=None, min_tpo=None, max_tpo=None, record_metric=True, short_sma=5, long_sma=10):

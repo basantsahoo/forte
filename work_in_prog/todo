@@ -12,3 +12,29 @@ next day market falls in first half but doesn't go past value area, trend revers
 First four candles up down alternate do not trade
 
 open in T-2 value area and large upward candle in first five minutes  long
+
+
+
+Analysis
+==========
+Objective : to backtest candle stick patterns during first tpo
+
+strategy_list = ['CandleAggregator']
+strategy_kwargs = [{}]
+
+
+period 100 trading days ending with 2022-12-28
+holding period : 10 minutes, target = 0.2% stoploss = 0.1%
+candle: 5 mins
+
+run strategy_test.py
+candle_strategy_analyis.py
+
+run ml.py
+
+Conclusion
+CDLHIKKAKE : on friday and thursday shows good result
+friday and thursday show good result and other days are negative results 
+
+
+

@@ -1,6 +1,6 @@
 
 import numpy as np
-from strategies.bs_strat import BaseStrategy
+from research.strategies import BaseStrategy
 from helper.utils import get_exit_order_type
 
 class SMACrossSell(BaseStrategy):

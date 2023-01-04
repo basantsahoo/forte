@@ -1,10 +1,10 @@
 import numpy as np
-from strategies.core_strategy import BaseStrategy
+from research.strategies.core_strategy import BaseStrategy
 from helper.utils import  get_overlap
 from statistics import mean
 import dynamics.patterns.utils as pattern_utils
 from helper.utils import get_broker_order_type
-from strategies.strat_mixin import PatternMetricRecordMixin
+from research.strategies.strat_mixin import PatternMetricRecordMixin
 
 class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
     def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=2):

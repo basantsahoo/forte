@@ -56,7 +56,7 @@ def group_wise_summary(report, df_i, grp):
 
     aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
     aggregate_df = aggregate_df.reset_index().round(2)
-    print('aggregate_df+++++++++++++++++')
+    #print('aggregate_df+++++++++++++++++')
     aggr_values = list(aggregate_df.iloc[0])
     aggr_values[0] = 'Total'
     day_wise_df.loc[len(day_wise_df.index)] = aggr_values
@@ -198,6 +198,8 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
             strategies.sort()
             for strategy in strategies:
                 print('analysing strategy++++++++++++++++++++++++++++++++++++++++++++', strategy)
+                txt = 'Analysis of  strategy ' + strategy
+                add_text_page(report, txt)
                 df_i = data_set[data_set['strategy'] == strategy]
                 group_wise_summary(report, df_i, 'week_day')
                 group_wise_summary(report, df_i, 'open_type')

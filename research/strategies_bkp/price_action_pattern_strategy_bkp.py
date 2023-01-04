@@ -1,5 +1,5 @@
 import numpy as np
-from strategies.bs_strat import BaseStrategy
+from research.strategies import BaseStrategy
 from helper.utils import get_exit_order_type, pattern_param_match
 from helper.utils import pattern_param_match
 from trend.technical_patterns import pattern_engine

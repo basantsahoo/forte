@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from strategies.base_strategy import BaseStrategy
+from research.strategies import BaseStrategy
 from helper.utils import get_pivot_points, get_overlap
 import matplotlib.pyplot as plt
 from sklearn.metrics import auc

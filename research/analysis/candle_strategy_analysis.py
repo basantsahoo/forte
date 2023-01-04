@@ -1,5 +1,4 @@
-from research.strategies_bkp.sma_cross_over_buy import SMACrossBuy
-from research.strategies_bkp.range_break import RangeBreakDownStrategy
+from research.strategies.candle_aggregator import CandleAggregator
 from research.backtest import strategy_back_tester
 from research.analysis import classifier_train
 from research.analysis import regression_train
@@ -12,7 +11,7 @@ import matplotlib.pyplot as plt
 
 def save_back_test_results():
     # results = strategy_back_tester.test(strategy_class=SMACrossBuy, symbols=['NIFTY'],days=['2022-05-25'])
-    results = strategy_back_tester.test(SMACrossBuy, ['NIFTY'], days=['2022-06-03'], for_past_days=300)
+    results = strategy_back_tester.test(CandleAggregator, ['NIFTY'], days=['2022-06-03'], for_past_days=300)
     #pd.DataFrame(results).to_csv(reports_dir + 'SMACrossBuy_nifty_results.csv')
 
 def load_back_test_results():
@@ -100,7 +99,7 @@ def basic_statistics(df):
 def get_cleaned_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     df = load_back_test_results()
-    drop_cols = ['Unnamed: 0', 'exit_time', 'exit_price', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type','closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
+    drop_cols = ['exit_time', 'exit_price', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type', 'closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
     for col in drop_cols:
         try:
             df.drop(col, axis=1, inplace=True)
@@ -123,10 +122,10 @@ def get_cleaned_results():
 
     df_2.drop_duplicates(inplace=True)
 
-    print(df_2.shape)
-    print(df_1.shape)
+    #print(df_2.shape)
+    #print(df_1.shape)
     final_df = pd.merge(df_1, df_2, how='left', left_on=common_cols, right_on=common_cols)
-    print(final_df.shape)
+    #print(final_df.shape)
     #print(final_df.tail().T.to_string())
 
     #final_df = final_df[(final_df['static_ratio'] > 0.165) & (final_df['mu_n'] > 0.295)]
@@ -134,8 +133,8 @@ def get_cleaned_results():
     return final_df
 
 def analysis(df):
-    df['infl_dir'] = df['infl_n'] - df['infl_0']
-    df['infl_dir'] = df['infl_dir'].apply(lambda x: int(x > 0))
+    #df['infl_dir'] = df['infl_n'] - df['infl_0']
+    #df['infl_dir'] = df['infl_dir'].apply(lambda x: int(x > 0))
     # 'resistance_ind',	'support_ind'
 
     exclude_vars = ['day', 'symbol', 'signal_id', 'trigger', 'entry_time', 'infl_0', 'infl_n', 'entry_price', ]

@@ -1,6 +1,6 @@
 
 import numpy as np
-from strategies_bkp.bs_strat import BaseStrategy
+from research.strategies_bkp.bs_strat import BaseStrategy
 from helper.utils import get_exit_order_type
 
 class SMACrossBuy(BaseStrategy):

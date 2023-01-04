@@ -1,4 +1,4 @@
-from strategies.core_strategy import BaseStrategy
+from research.strategies.core_strategy import BaseStrategy
 from helper.utils import pattern_param_match, get_broker_order_type, get_overlap
 from statistics import mean
 import math

@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from strategies.base_strategy import BaseStrategy
+from research.strategies import BaseStrategy
 
 
 class OpeningDirection(BaseStrategy):

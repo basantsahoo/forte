@@ -9,7 +9,7 @@ import helper.utils as helper_utils
 #from strategies_bkp.range_break import RangeBreakDownStrategy
 #from strategies_bkp.sma_cross_over_buy import SMACrossBuy
 import traceback
-from strategies.price_action_aggregator import PatternAggregator
+from research.strategies.price_action_aggregator import PatternAggregator
 
 class AlgorithmIterface:
     def __init__(self, socket=None):

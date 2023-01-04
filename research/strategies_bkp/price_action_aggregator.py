@@ -1,6 +1,6 @@
-from strategies.bs_strat import BaseStrategy
-from strategies.double_top_strategy import PriceActionPatternStrategy
-from strategies.trend_strategy import TrendStrategy
+from research.strategies import BaseStrategy
+from research.strategies.double_top_strategy import PriceActionPatternStrategy
+from research.strategies.trend_strategy import TrendStrategy
 
 class PatternAggregator(BaseStrategy):
     def __init__(self, insight_book=None, min_tpo=None, max_tpo=None, record_metric=False):

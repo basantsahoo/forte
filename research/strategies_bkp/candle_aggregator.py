@@ -1,6 +1,6 @@
 import numpy as np
-from strategies.bs_strat import BaseStrategy
-from strategies.candle_pattern_strategy import CandlePatternStrategy
+from research.strategies import BaseStrategy
+from research.strategies.candle_pattern_strategy import CandlePatternStrategy
 from helper.utils import get_exit_order_type
 import talib
 import pandas as pd

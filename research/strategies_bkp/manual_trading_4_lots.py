@@ -1,5 +1,5 @@
 import numpy as np
-from strategies.base_strategy import BaseStrategy
+from research.strategies import BaseStrategy
 from datetime import datetime
 
 class ManualTrading4Lots(BaseStrategy):
