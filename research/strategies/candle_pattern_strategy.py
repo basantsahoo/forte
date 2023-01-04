@@ -7,8 +7,8 @@ from helper.utils import get_broker_order_type
 from research.strategies.strat_mixin import PatternMetricRecordMixin
 
 class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
-    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=2):
-        BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo)
+    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=2, target=0.002, stop_loss=0.001):
+        BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo, target, stop_loss)
         self.id = pattern + "_" + order_type + "_" + str(period) + "_" + str(exit_time)
         #print(self.id)
         self.price_pattern = pattern
@@ -24,6 +24,9 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
     def set_up(self):
         pass
 
+    def relevant_signal(self, pattern, pattern_match_idx):
+        return self.price_pattern == pattern and self.order_type == pattern_match_idx['direction'] and self.period == pattern_match_idx['period']
+
     def get_trades(self, pattern_match_prices, idx=1, curr_price=None,):
         high_point = pattern_match_prices[1]
         low_point = pattern_match_prices[2]
@@ -32,9 +35,9 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         neck_point = 0
         side = get_broker_order_type(self.order_type)
         if idx == 1:
-            return {'seq': idx, 'target': close_point * (1 + side * 0.002), 'stop_loss':close_point * (1 - side * 0.001),'duration': self.exit_time, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point, 'trigger_time':last_candle['timestamp']}
+            return {'seq': idx, 'target': close_point * (1 + side * self.target_pct), 'stop_loss':close_point * (1 - side * self.stop_loss_pct),'duration': self.exit_time, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point, 'trigger_time':last_candle['timestamp']}
         elif idx == 2:
-            return {'seq': idx, 'target': close_point * (1 + side * 0.003), 'stop_loss': close_point * (1 - side * 0.0015), 'duration': self.exit_time + 10, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point, 'trigger_time':last_candle['timestamp']}
+            return {'seq': idx, 'target': close_point * (1 + side * self.target_pct+0.001), 'stop_loss': close_point * (1 - side * (self.stop_loss_pct+0.0005)), 'duration': self.exit_time + 10, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point, 'trigger_time':last_candle['timestamp']}
 
     def add_tradable_signal(self, matched_pattern):
         sig_key = self.add_new_signal()
@@ -45,7 +48,7 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
 
     def suitable_market_condition(self,matched_pattern):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
-        suitable_tpo = (self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
+        suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
 
         return enough_time and suitable_tpo and len(self.insight_book.market_data.items()) <= 30
 

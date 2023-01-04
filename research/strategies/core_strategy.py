@@ -6,7 +6,7 @@ import dynamics.patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
 class BaseStrategy:
-    def __init__(self, insight_book=None, order_type="BUY", min_tpo=None, max_tpo=None):
+    def __init__(self, insight_book=None, order_type="BUY", min_tpo=None, max_tpo=None, target_pct=0.002, stop_loss_pct=0.001):
         self.id = None
         self.insight_book = insight_book
         self.order_type = order_type
@@ -25,16 +25,14 @@ class BaseStrategy:
         self.tradable_signals ={}
         self.minimum_quantity = 1
         self.max_signals = 1
+        self.target_pct = target_pct
+        self.stop_loss_pct = stop_loss_pct
 
     def set_up(self):
         pass
 
-    def trigger_force_exit_all(self):
-        self.force_exit = True
-        self.trigger_exit()
-
-    def trigger_exit(self):
-        pass
+    def relevant_signal(self, pattern, pattern_match_idx):
+        return self.price_pattern == pattern
 
     """Deactivate when not required to run in a particular day"""
     def deactivate(self):
@@ -50,13 +48,10 @@ class BaseStrategy:
         time_lapsed = self.last_time - trade_open_time
         return time_lapsed > min * 60
 
-    def candle_type_5min(self, type):
-        return True
-
     def target_achieved(self, trade_open_price, th):
         return (1 - self.ltp/trade_open_price) >= th
 
-    def stoploss(self, trade_open_price, th):
+    def stoploss_reached(self, trade_open_price, th):
         return (1 - self.ltp/self.trade_open_price) <= -1 *abs(th)
 
     def pivot_target(self, trade_open_price, th):
@@ -237,12 +232,13 @@ class BaseStrategy:
     def evaluate_signal(self, signal):
         return False
 
-    def process_signal(self, signal):
-        print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()))
-        signal_passed = self.evaluate_signal(signal) #len(self.tradable_signals.keys()) < self.max_signals+5  #
-        if signal_passed:
-            sig_key = self.add_tradable_signal(signal)
-            self.initiate_signal_trades(sig_key)
+    def process_signal(self, pattern, pattern_match_idx):
+        if self.relevant_signal(pattern, pattern_match_idx):
+            print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()))
+            signal_passed = self.evaluate_signal(pattern_match_idx) #len(self.tradable_signals.keys()) < self.max_signals+5  #
+            if signal_passed:
+                sig_key = self.add_tradable_signal(pattern_match_idx)
+                self.initiate_signal_trades(sig_key)
 
     def process_incomplete_signals(self):
         pass

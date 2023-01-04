@@ -57,10 +57,12 @@ class PatternAggregator:
         self.individual_strategies.append(DoubleTopStrategy(insight_book, 'DB', "SELL", 60, 1, 'DOWN'))
         """
     def process_signal(self, pattern, pattern_match_idx):
-        for strategy in self.individual_strategies:
-            if strategy.price_pattern == pattern:
-                strategy.process_signal(pattern_match_idx)
+        if self.relevant_signal():
+            for strategy in self.individual_strategies:
+                strategy.process_signal(pattern, pattern_match_idx)
 
+    def relevant_signal(self):
+        return True
 
     def evaluate(self):
         for strategy in self.individual_strategies:
