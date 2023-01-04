@@ -52,7 +52,7 @@ def back_test(strategy_classes,strategy_kwargs, symbol, days):
                 for trigger_id, trade in position.items():
                     #print(trigger_id)
                     #print(trade)
-                    _tmp = {'day': day, 'symbol': strategy[0], 'strategy': strategy[1], 'signal_id':  strategy[2], 'trigger': trigger_id, 'entry_time': trade['entry_time'], 'exit_time': trade['exit_time'], 'entry_price': trade['entry_price'], 'exit_price': trade['exit_price'] , 'realized_pnl': round(trade['realized_pnl'], 2), 'un_realized_pnl': round(trade['un_realized_pnl'], 2)}
+                    _tmp = {'day': day, 'symbol': strategy[0], 'strategy': strategy[1], 'signal_id':  strategy[2], 'trigger': trigger_id, 'side': trade['side'], 'entry_time': trade['entry_time'], 'exit_time': trade['exit_time'], 'entry_price': trade['entry_price'], 'exit_price': trade['exit_price'] , 'realized_pnl': round(trade['realized_pnl'], 2), 'un_realized_pnl': round(trade['un_realized_pnl'], 2)}
                     _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
                     trigger_details = strategy_signal_generator.tradable_signals[strategy[2]]['triggers'][trigger_id]
                     _tmp = {**_tmp, **trigger_details}

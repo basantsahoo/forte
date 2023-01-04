@@ -47,7 +47,7 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = (self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
 
-        return enough_time and suitable_tpo and len(self.insight_book.market_data.items()) <= 15
+        return enough_time and suitable_tpo and len(self.insight_book.market_data.items()) <= 30
 
 
     def initiate_signal_trades(self, sig_key):

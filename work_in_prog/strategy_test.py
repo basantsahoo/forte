@@ -25,7 +25,7 @@ strategy_kwargs = [{}]
 strategy_classes = [eval(strategy) for strategy in strategy_list]
 symbols = ['NIFTY']
 days = []
-for_past_days = 1
+for_past_days = 100
 """
 import inspect
 print(inspect.getfullargspec(type(StateCapStrategy).__init__))

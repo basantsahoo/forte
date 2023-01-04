@@ -97,8 +97,8 @@ def compare_day_activity(compare_day, against_day):
     resp['cd_type'] = 1 if (compare_day['close'] - compare_day['open']) > 0 else -1
     resp['cd_retest_fract'] = round(((overlap[1] - overlap[0]) if len(overlap) else 0) / (compare_day['high'] - compare_day['low']), 2)
     # against day calculations
-    resp['ad_support_pressure'] = round((min(compare_day['open'], compare_day['close']) - compare_day['low']) / (compare_day['high'] - compare_day['low']), 2)
-    resp['ad_resistance_pressure'] = round((compare_day['high'] - max(compare_day['open'], compare_day['close'])) / (compare_day['high'] - compare_day['low']), 2)
+    resp['ad_support_pressure'] = round((min(against_day['open'], against_day['close']) - against_day['low']) / (against_day['high'] - against_day['low']), 2)
+    resp['ad_resistance_pressure'] = round((against_day['high'] - max(against_day['open'], against_day['close'])) / (against_day['high'] - against_day['low']), 2)
     resp['ad_new_business_pressure'] = round(1 - resp['ad_support_pressure'] - resp['ad_resistance_pressure'], 2)
     resp['ad_retest_fract'] = round(((overlap[1] - overlap[0]) if len(overlap) else 0) / (against_day['high'] - against_day['low']), 2)
     resp['ad_type'] = 1 if (against_day['close'] - against_day['open']) > 0 else -1
