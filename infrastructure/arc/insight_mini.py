@@ -26,23 +26,6 @@ from infrastructure.arc.common_fn import CommonFN
 
 
 class InsightBook(CommonFN):
-    def set_key_levels(self):
-        ticker = self.ticker
-        self.weekly_pivots = get_pivot_points(get_prev_week_candle(ticker, self.trade_day))
-        self.yday_profile = get_nth_day_profile_data(ticker, self.trade_day, 1).to_dict('records')[0]
-        self.day_before_profile = get_nth_day_profile_data(ticker, self.trade_day, 2).to_dict('records')[0]
-        self.yday_level_breaks = {'high': {'value': False, 'time': -1}, 'low': {'value': False, 'time': -1}, 'poc_price': {'value': False, 'time': -1}, 'va_h_p': {'value': False, 'time': -1}, 'va_l_p': {'value': False, 'time': -1}}
-        self.day_before_level_breaks = {'high': {'value': False, 'time': -1}, 'low': {'value': False, 'time': -1}, 'poc_price': {'value': False, 'time': -1}, 'va_h_p': {'value': False, 'time': -1}, 'va_l_p': {'value': False, 'time': -1}}
-        self.weekly_level_breaks = {'high': {'value': False, 'time':-1}, 'low': {'value': False, 'time':-1}, 'Pivot': {'value': False, 'time':-1}, 'S1': {'value': False, 'time':-1}, 'S2': {'value': False, 'time':-1}, 'S3': {'value': False, 'time':-1}, 'S4': {'value': False, 'time':-1}, 'R1': {'value': False, 'time':-1}, 'R2': {'value': False, 'time':-1},  'R3': {'value': False, 'time':-1}, 'R4': {'value': False, 'time':-1}}
-        self.intraday_waves = {}
-        prev_key_levels = get_prev_day_key_levels(ticker, self.trade_day)
-
-        range_to_watch = [self.yday_profile['low'] * 0.97, self.yday_profile['high'] * 1.03]
-        existing_supports = json.loads(prev_key_levels[1])
-        existing_resistances = json.loads(prev_key_levels[2])
-        self.supports_to_watch = [x for x in existing_supports if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
-        self.resistances_to_watch = [x for x in existing_resistances if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
-
     def determine_level_break(self, ts):
         for k in self.yday_level_breaks:
             if not self.yday_level_breaks[k]['value']:

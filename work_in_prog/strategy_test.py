@@ -24,11 +24,11 @@ strategy_kwargs = [{'pattern':'BEAR_TREND', 'order_type':'SELL', 'exit_time':15,
 strategy_list = ['CandleAggregator']
 strategy_kwargs = [{}]
 strategy_list = ['FridayCandleFirst30Buy', 'FridayCandleFirst30Sell', 'FridayCandleBuyFullDay']
-strategy_kwargs = [{}]
+strategy_kwargs = [{}, {}, {}]
 strategy_classes = [eval(strategy) for strategy in strategy_list]
 symbols = ['NIFTY']
 days = []
-for_past_days = 180
+for_past_days = 10
 """
 import inspect
 print(inspect.getfullargspec(type(StateCapStrategy).__init__))

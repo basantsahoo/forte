@@ -16,7 +16,7 @@ class SupportResistance:
         self.resistance_removals = []
         self.symbol = symbol
         self.trade_day = day
-        self.pattern_detector = PriceInflexDetectorForTrend(symbol, callback=None, pattern_config=pattern_engine['DT'])
+        self.pattern_detector = PriceInflexDetectorForTrend(symbol, fpth = 0.001, spth = 0.001, callback=None)
 
     def record_intraday_highs(self, local_infl):
         #print('record_intraday_highs+++++++++++++')
@@ -49,7 +49,8 @@ class SupportResistance:
     def process(self):
         price_list = get_daily_tick_data(self.symbol, self.trade_day)
         price_list['symbol'] = helper_utils.root_symbol(self.symbol)
-        day_range = [min(price_list['close']), max(price_list['close'])]
+        #day_range = [min(price_list['close']), max(price_list['close'])]
+        day_range = [min(price_list['low']), max(price_list['high'])]
         price_list = price_list.to_dict('records')
         try:
             for i in range(len(price_list)):

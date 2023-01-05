@@ -232,11 +232,13 @@ class InsightBook:
                 self.intraday_waves[wave['wave_end_time']] = wave
             #print(self.intraday_waves)
         for strategy in self.strategies:
+            strategy.process_signal(pattern, pattern_match_idx)
+            """
             if strategy.is_aggregator:
                 strategy.process_signal(pattern, pattern_match_idx)
             elif strategy.price_pattern == pattern:
                 strategy.process_signal(pattern_match_idx)
-
+            """
         if self.pm.data_interface is not None:
             self.pm.data_interface.notify_pattern_signal(self.ticker, pattern, pattern_match_idx)
 

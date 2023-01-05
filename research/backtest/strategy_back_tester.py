@@ -63,6 +63,7 @@ def back_test(strategy_classes,strategy_kwargs, symbol, days):
                             _tmp[signal_param] = signal_details[signal_param]
                     if story_book.record_metric:
                         params = strategy_signal_generator.params_repo.get((strategy[2], trigger_id), {})
+                        print('params====', params)
                         _tmp = {**_tmp, **params}
                     results.append(_tmp)
         except Exception as e:
@@ -92,7 +93,7 @@ def test(strategy_class=DoubleTopBreakStrategy, strategy_kwargs=[], symbols = []
             end_date_index = all_days.index(end_date)
             start_date_index = min(end_date_index + for_past_days, len(all_days))
             days = all_days[end_date_index:start_date_index]
-
+            days = [x for x in days if x.weekday() >=3]
         result = back_test(strategy_class,strategy_kwargs, symbol, days)
         final_result.extend(result)
     return final_result

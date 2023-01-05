@@ -87,10 +87,14 @@ class CommonFN:
         prev_key_levels = get_prev_day_key_levels(ticker, self.trade_day)
 
         range_to_watch = [self.yday_profile['low'] * 0.97, self.yday_profile['high'] * 1.03]
+
         existing_supports = json.loads(prev_key_levels[1])
+        #print(existing_supports)
         existing_resistances = json.loads(prev_key_levels[2])
         self.supports_to_watch = [x for x in existing_supports if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
         self.resistances_to_watch = [x for x in existing_resistances if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
+        #print('self.supports_to_watch' , self.supports_to_watch)
+        #print('self.resistances_to_watch', self.resistances_to_watch)
 
     def set_transition_matrix(self):
         self.state_generator = DayFullStateGenerator(self.ticker, self.trade_day, self.yday_profile)
@@ -141,17 +145,20 @@ class CommonFN:
                     self.yday_level_breaks[k]['value'] = True
                     self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
         for k in self.day_before_level_breaks:
-            if not self.yday_level_breaks[k]['value']:
-                level_range = [self.yday_profile[k] * (1 - 0.0015), self.yday_profile[k] * (1 + 0.0015)]
+            if not self.day_before_level_breaks[k]['value']:
+                level_range = [self.day_before_level_breaks[k] * (1 - 0.0015), self.day_before_level_breaks[k] * (1 + 0.0015)]
                 ol = get_overlap(level_range, [self.range['low'], self.range['high']])
                 if ol > 0:
-                    self.yday_level_breaks[k]['value'] = True
-                    self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
+                    self.day_before_level_breaks[k]['value'] = True
+                    self.day_before_level_breaks[k]['time'] = ts-self.ib_periods[0]
 
     def update_periodic(self):
+        print('update periodic')
         self.intraday_trend.calculate_measures()
-        #print(self.intraday_trend.trend_params)
+        print(self.market_insights)
+        print(self.intraday_trend.trend_params)
         self.market_insights = {**self.market_insights, **self.intraday_trend.trend_params}
+
 
     def set_up_strategies(self):
         self.activity_log.set_up()
@@ -207,7 +214,7 @@ class CommonFN:
 
     def pattern_signal(self, pattern, pattern_match_idx):
         if pattern == 'TREND':
-            #print('TREND+++++', pattern, pattern_match_idx)
+            print('TREND+++++', pattern, pattern_match_idx)
             self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}
             for wave in pattern_match_idx['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave

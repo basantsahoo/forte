@@ -16,7 +16,8 @@ def save_back_test_results():
 
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
-    df = pd.read_csv(reports_dir + 'Cand_NIFTY_2022-12-28_2022-08-03 copy.csv')
+    df = pd.read_csv(reports_dir + 'Frid_Frid_Frid_NIFTY_2022-12-23_2022-04-07.csv')
+    # 'Cand_NIFTY_2022-12-28_2022-08-03 copy.csv'
     return df
 
 
@@ -137,40 +138,14 @@ def analysis(df):
     #df['infl_dir'] = df['infl_dir'].apply(lambda x: int(x > 0))
     # 'resistance_ind',	'support_ind'
 
-    exclude_vars = ['day', 'symbol', 'signal_id', 'trigger', 'entry_time', 'infl_0', 'infl_n', 'entry_price', ]
+    da_exclude_vars = ['day', 'symbol', 'signal_id', 'trigger', 'entry_time', 'infl_0', 'infl_n', 'entry_price', ]
     print('going to describe')
-    descriptive_analysis.perform_analysis_strategies(df, 'realized_pnl', exclude_vars)
+    descriptive_analysis.perform_analysis_strategies(df, 'realized_pnl', da_exclude_vars)
 
-    exclude_vars = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time']
-    imp_vars = ['dist_frm_level', 'mu_0', 'pattern_height', 'lw_total_energy_pyr', 'lw_d_en_ht', 'lw_d_en_pyr',
-                'five_min_trend', 'tpo', 'static_ratio', 'dynamic_ratio', 's_en_pyr', 'd_en_ht', 'open_type',
-                'd_en_pyr', 's_en_ht', 'pattern_location', 'lw_total_energy_ht', 'candles_in_range',
-                'five_min_ex_first_hr_trend', 'lw_s_en_pyr', 'support_ind', 'total_energy_pyr', 'resistance_ind',
-                'first_hour_trend', 'total_energy', 'w_S1', 'fifteen_min_trend', 'lw_static_ratio', 'lw_s_en_ht',
-                'total_energy_ht', 'whole_day_trend', 'infl_dir', 'exp_c', 'ret_trend', 'hurst_exp_15', 'quad',
-                'lw_dynamic_ratio', 'hurst_exp_5', 'pattern_lin', 'fifteen_min_ex_first_hr_trend', 'market_auc',
-                'pattern_lin_r2', 'pattern_trend_auc', 'mu_n', 'week_day']
-    # imp_vars_2 = ['dist_frm_level',	'mu_0',	'pattern_height',	'lw_total_energy_ht',	'five_min_trend',	'tpo',	'static_ratio',	'dynamic_ratio',	'pattern_location',	'candles_in_range',	'support_ind',	'total_energy_ht',	'resistance_ind',	'first_hour_trend',	'w_S1',	'infl_dir',	'exp_c',	'y_high',	'y_low',	'y_va_h_p',	'y_va_l_p',	'y_poc_price',	'w_high',	'w_low',	'w_Pivot',	'w_R1',	'w_S1',	'w_R2',	'w_S2',	'w_R3',	'w_S3', 'week_day', 'open_type']
-    imp_vars_2 = ['dist_frm_level', 'mu_0', 'pattern_height', 'lw_total_energy_ht', 'tpo', 'five_min_trend',
-                  'pattern_location', 'candles_in_range', 'support_ind', 'total_energy_ht', 'resistance_ind',
-                  'first_hour_trend', 'w_S1', 'infl_dir', 'exp_c', 'y_high',
-                  'y_low', 'y_va_h_p', 'y_va_l_p', 'y_poc_price', 'w_high', 'w_low', 'w_Pivot', 'week_day', 'open_type']
+    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time']
+    imp_features = ['week_day', 'dist_frm_level',	'ad_new_business_pressure',	'ad_resistance_pressure',	'ad_retest_fract',	'ad_support_pressure',	'ad_type',	'cd_close_rat',	'cd_new_business_pressure',	'cd_resistance_pressure',	'cd_retest_fract',	'cd_support_pressure',	'cd_type',	'gap',	'high',	'low',	'open_type',	'poc_price',	'resistance_ind',	'support_ind',	't_2_high',	't_2_low',	't_2_poc_price',	't_2_va_h_p',	't_2_va_l_p',	'va_h_p',	'va_l_p',	'w_high',	'w_low',	'w_Pivot',	'w_R1',	'w_R2',	'w_R3',	'w_R4',	'w_S1',	'w_S2',	'w_S3',	'w_S4',	'y_high',	'y_low',	'y_poc_price',	'y_va_h_p',	'y_va_l_p']
 
-    # Analyse weekly levels separately
-    wk = ['w_high', 'w_low', 'w_Pivot', 'w_R1', 'w_S1', 'w_R2', 'w_S2', 'w_R3', 'w_S3', ]
-    r = ['static_ratio', 'dynamic_ratio', 'pattern_location', 'candles_in_range', 'support_ind',
-         'total_energy_ht', 'resistance_ind', 'first_hour_trend', 'w_S1', 'infl_dir', 'exp_c', 'y_high',
-         'y_low', 'y_va_h_p', 'y_va_l_p', 'y_poc_price', 'w_high', 'w_low', 'w_Pivot', 'w_R1', 'w_S1', 'w_R2',
-         'w_S2', 'w_R3', 'w_S3', 'week_day', 'open_type']
-    imp_vars_3 = ['mu_0', 'w_S1', 'y_high', 'y_low', 'y_va_h_p', 'y_va_l_p', 'y_poc_price', 'w_high', 'w_Pivot',
-                  'week_day']
-    imp_vars_3 = ['mu_0', 'w_S1', 'y_high', 'y_low', 'y_va_h_p', 'y_va_l_p', 'y_poc_price', 'w_high', 'w_Pivot',
-                  'week_day', 'open_type']
-    imp_vars_4 = ['static_ratio', 'd_en_pyr', 'candles_in_range', 'dist_frm_level',
-                  'support_ind', 'y_low', 'y_va_h_p', 'y_va_l_p', 'y_poc_price',
-                  'w_S1', 'w_S2', 'pattern_location',
-                  'lw_total_energy_ht', 'auc_del', 'mu_n', 'open_type', 'week_day']
-    strategies = df['strategy'].unique()
+    strategies = ['CDLHIKKAKE_BUY_5_15'] #df['strategy'].unique()
     root_strategies = set([x.split("_")[0] for x in strategies])
     print('total patterns matched___', len(list(root_strategies)))
 
@@ -178,13 +153,24 @@ def analysis(df):
         print('classification for ================== ', strategy)
         # if strategy == 'CDLXSIDEGAP3METHODS_5_BUY_30':
         df_tmp = df[df['strategy'] == strategy] #[imp_vars_4 + ['realized_pnl']]
-        print(df_tmp.columns.to_list())
-        classifier_train.train(df_tmp, 'realized_pnl', exclude_vars)
-        data_set = df[df['strategy'] == strategy][imp_vars + ['realized_pnl']].copy()
+        df_tmp = df_tmp[imp_features + ['realized_pnl']]
+        #print(df_tmp.columns.to_list())
+        classifier_train.train(df_tmp, 'realized_pnl', non_features)
+        """
+        ds_variable = imp_vars + ['realized_pnl']
+        print(ds_variable)
+        data_set = df[df['strategy'] == strategy].copy()
+        for col in data_set.columns.to_list():
+            if col not in ds_variable:
+                print(col)
+                print(col not in ds_variable)
+                del data_set[col]
+        print(data_set.columns.to_list())
         del data_set['week_day']
         correlations = data_set.corr(method='pearson')
         correlations.to_csv('corr.csv')
         # print(correlations)
+        """
 
     # five_min_trend > -0.075 and pattern_auc_del <= 0.001 and market_auc <= 0.455 and ret_trend > 0.905 and hurst_exp_15 > -1.08
     """

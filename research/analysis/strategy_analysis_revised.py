@@ -17,7 +17,8 @@ def save_back_test_results():
 
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
-    df = pd.read_csv(reports_dir + 'Cand_NIFTY_2022-12-28_2022-08-03 copy.csv')
+    df = pd.read_csv(reports_dir + 'Frid_Frid_Frid_NIFTY_2022-12-23_2022-04-07.csv')
+    #'Cand_NIFTY_2022-12-28_2022-08-03 copy.csv'
     return df
 
 

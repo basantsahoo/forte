@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import auc,r2_score
 from scipy import stats
 import math
-from helper.utils import pattern_param_match
+from helper.utils import pattern_param_match, root_symbol
 from dynamics.patterns.technical_patterns import inflex_config
 
 """
@@ -26,9 +26,9 @@ from dynamics.patterns.technical_patterns import inflex_config
 class PriceInflexDetector:
     def __init__(self, symbol,  fpth = None, spth = None, tpth =None,  callback=None, fourth_pass=False):
         self.symbol = symbol
-        self.fpth = fpth if fpth is None else inflex_config[symbol]['fpth']
-        self.spth = spth if fpth is None else inflex_config[symbol]['spth']
-        self.tpth = tpth if fpth is None else inflex_config[symbol]['tpth']
+        self.fpth = fpth if fpth is not None else inflex_config[root_symbol(symbol)]['fpth']
+        self.spth = spth if fpth is not None else inflex_config[root_symbol(symbol)]['spth']
+        self.tpth = tpth if fpth is not None else inflex_config[root_symbol(symbol)]['tpth']
         self.fourth_pass = fourth_pass
         self.pBefore = 1
         self.minimum_data_points = self.pBefore * 2 + 1

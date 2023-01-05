@@ -88,7 +88,8 @@ class BaseStrategy:
         support_ind = 0
         for support in self.insight_book.supports_to_watch:
             support_range = [support-5, support+5]
-            candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
+            #candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
+            candle_range = [candle['low'], candle['high']]
             ol = helper_utils.get_overlap(support_range, candle_range)
             if ol > 0:
                 support_ind = 2 if support % 100 == 0 else 1
@@ -99,7 +100,8 @@ class BaseStrategy:
         resistance_ind = 0
         for resistance in self.insight_book.resistances_to_watch:
             resistance_range = [resistance-5, resistance+5]
-            candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
+            #candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
+            candle_range = [candle['low'], candle['high']]
             ol = helper_utils.get_overlap(resistance_range, candle_range)
             if ol > 0:
                 resistance_ind = 2 if resistance % 100 == 0 else 1
@@ -118,7 +120,9 @@ class BaseStrategy:
 
 
     def get_market_params(self):
+
         mkt_parms = self.insight_book.market_insights
+        print('get market params', mkt_parms)
         mkt_parms['open_type'] = self.insight_book.open_type
         mkt_parms['tpo'] = self.insight_book.curr_tpo
         """
@@ -155,7 +159,9 @@ class BaseStrategy:
             mkt_parms = {**mkt_parms, **self.insight_book.activity_log.activity}
         if self.strategy_params:
             mkt_parms = {**mkt_parms, **self.strategy_params}
+            print('self.strategy_params++++++', self.strategy_params)
             #self.strategy_params = {} #we may need to reset it please check?
+        print(mkt_parms)
         return mkt_parms
 
 

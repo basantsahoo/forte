@@ -36,7 +36,7 @@ def start():
     scheduler.add_job(calculate_historical_measures.run, 'cron', day_of_week='mon-fri', hour='19', minute='10')
     scheduler.add_job(historical_profile.run, 'cron', day_of_week='mon-fri', hour='9', minute='20')
     scheduler.add_job(running_weekly_stats.run, 'cron', day_of_week='mon-fri', hour='9', minute='25')
-    scheduler.add_job(calculate_support_resistance.run, 'cron', day_of_week='mon-fri', hour='9', minute='15')
+    scheduler.add_job(calculate_support_resistance.run, 'cron', day_of_week='mon-fri', hour='21', minute='15')
     scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='7', minute='45')
     scheduler.add_job(download_economic_calendar.run, 'cron', day_of_week='*', hour='9', minute='30')
     scheduler.add_job(download_earnings_calendar.run, 'cron', day_of_week='*', hour='9', minute='40')
