@@ -37,7 +37,7 @@ class InsightBook(CommonFN):
 
 
     def pattern_signal(self, pattern, pattern_match_idx):
-        #print('pattern_signal mini+++++++ 1', pattern, pattern_match_idx)
+        print('pattern_signal mini+++++++ 1', pattern, pattern_match_idx['strength'])
         if pattern == 'TREND':
             #print('TREND+++++', pattern, pattern_match_idx)
             self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}

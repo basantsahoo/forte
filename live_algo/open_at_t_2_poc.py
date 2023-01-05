@@ -5,6 +5,7 @@ from statistics import mean
 import math
 from db.market_data import get_candle_body_size
 
+# this is left inprogress
 class OpeningBearishTrendStrategy(BaseStrategy, PatternMetricRecordMixin):
     def __init__(self, insight_book, pattern="DUMMY", order_type="BUY", exit_time=10, period=5, trend=None, min_tpo=1, max_tpo=1, record_metric=True, triggers_per_signal=1, target=0.002, stop_loss=0.001):
         BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo, target, stop_loss)

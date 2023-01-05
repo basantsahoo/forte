@@ -84,86 +84,6 @@ class BaseStrategy:
         max_tpo_met = self.max_tpo is None or current_tpo <= self.max_tpo
         return min_tpo_met and max_tpo_met
 
-    def check_support(self, candle):
-        support_ind = 0
-        for support in self.insight_book.supports_to_watch:
-            support_range = [support-5, support+5]
-            #candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
-            candle_range = [candle['low'], candle['high']]
-            ol = helper_utils.get_overlap(support_range, candle_range)
-            if ol > 0:
-                support_ind = 2 if support % 100 == 0 else 1
-                break
-        return support_ind
-
-    def check_resistance(self, candle):
-        resistance_ind = 0
-        for resistance in self.insight_book.resistances_to_watch:
-            resistance_range = [resistance-5, resistance+5]
-            #candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
-            candle_range = [candle['low'], candle['high']]
-            ol = helper_utils.get_overlap(resistance_range, candle_range)
-            if ol > 0:
-                resistance_ind = 2 if resistance % 100 == 0 else 1
-                break
-        return resistance_ind
-
-    def check_level(self, candle, level):
-        ind = 0
-        level_rng = [level - 10, level + 10]
-        candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
-        ol = helper_utils.get_overlap(level_rng, candle_range)
-        if ol > 0:
-            ind = 1
-        return ind
-
-
-
-    def get_market_params(self):
-
-        mkt_parms = self.insight_book.market_insights
-        print('get market params', mkt_parms)
-        mkt_parms['open_type'] = self.insight_book.open_type
-        mkt_parms['tpo'] = self.insight_book.curr_tpo
-        """
-        mkt_parms['first_hour_trend'] = round(self.insight_book.intraday_trend.first_hour_trend,2)
-        mkt_parms['whole_day_trend'] = round(self.insight_book.intraday_trend.whole_day_trend,2)
-        mkt_parms['five_min_trend'] = round(self.insight_book.intraday_trend.five_min_trend,2)
-        mkt_parms['fifteen_min_trend'] = round(self.insight_book.intraday_trend.fifteen_min_trend,2)
-        mkt_parms['five_min_ex_first_hr_trend'] = round(self.insight_book.intraday_trend.five_min_ex_first_hr_trend,2)
-        mkt_parms['fifteen_min_ex_first_hr_trend'] = round(self.insight_book.intraday_trend.fifteen_min_ex_first_hr_trend,2)
-        mkt_parms['hurst_exp_15'] = round(self.insight_book.intraday_trend.hurst_exp_15,2)
-        mkt_parms['hurst_exp_5'] = round(self.insight_book.intraday_trend.hurst_exp_5,2)
-        mkt_parms['ret_trend'] = round(self.insight_book.intraday_trend.ret_trend,2)
-        """
-        mkt_parms['candles_in_range'] = round(self.insight_book.intraday_trend.candles_in_range,2)
-
-        last_candle = self.insight_book.last_tick
-        next_level = round(last_candle['close'] / 100,0) * 100
-        mkt_parms['dist_frm_level'] = last_candle['close']-next_level
-        mkt_parms['resistance_ind'] = self.check_resistance(last_candle)
-        mkt_parms['support_ind'] = self.check_support(last_candle)
-        yday_profile = {k: v for k, v in self.insight_book.yday_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p','poc_price')}
-        #print(self.insight_book.weekly_pivots)
-        for (lvl, price) in yday_profile.items():
-            mkt_parms['y_' + lvl] = self.check_level(last_candle, price)
-        t_2_profile = {k: v for k, v in self.insight_book.day_before_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p','poc_price')}
-        #print(self.insight_book.weekly_pivots)
-        for (lvl, price) in t_2_profile.items():
-            mkt_parms['t_2_' + lvl] = self.check_level(last_candle, price)
-
-        weekly_profile = {k: v for k, v in self.insight_book.weekly_pivots.items() if k not in ('open', 'close')}
-        for (lvl, price) in weekly_profile.items():
-            mkt_parms['w_' + lvl] = self.check_level(last_candle, price)
-        if self.insight_book.activity_log.activity:
-            mkt_parms = {**mkt_parms, **self.insight_book.activity_log.activity}
-        if self.strategy_params:
-            mkt_parms = {**mkt_parms, **self.strategy_params}
-            print('self.strategy_params++++++', self.strategy_params)
-            #self.strategy_params = {} #we may need to reset it please check?
-        print(mkt_parms)
-        return mkt_parms
-
 
     def get_lowest_candle(self):
         lowest_candle = None
@@ -179,7 +99,7 @@ class BaseStrategy:
         #print(triggers)
         for trigger in triggers:
             if self.record_metric:
-                self.params_repo[(sig_key, trigger['seq'])] = self.get_market_params()  # We are interested in signal features, trade features being stored separately
+                self.params_repo[(sig_key, trigger['seq'])] = self.insight_book.activity_log.get_market_params()  # We are interested in signal features, trade features being stored separately
         signal_info = {'symbol': self.insight_book.ticker, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         self.confirm_trigger(sig_key, triggers)
         self.insight_book.pm.strategy_entry_signal(signal_info)

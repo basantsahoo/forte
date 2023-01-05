@@ -22,7 +22,7 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.point_to_point_mc import MarkovChainPointToPoint
 from dynamics.transition.empirical import EmpiricalDistribution
-from infrastructure.arc.buy_sell_activity import BuySellActivity
+from infrastructure.arc.market_activity import BuySellActivity
 
 class InsightBook:
     def __init__(self, ticker, trade_day=None, record_metric=True):

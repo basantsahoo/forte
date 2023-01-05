@@ -40,3 +40,11 @@ conclusion
 
 further analysis is required for above setup
 
+
+# To do strat
+step 1.weekly/daily candle check pattern at day 3:15 or week 3:15
+step 2. calculate probability based on poc/value area
+step 3. suggest trades to be shown on frontend (P & L using option price calculation etc)
+step 4. execute them if you like manually (only button press)
+
+

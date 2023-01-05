@@ -93,6 +93,7 @@ def test(strategy_class=DoubleTopBreakStrategy, strategy_kwargs=[], symbols = []
             end_date_index = all_days.index(end_date)
             start_date_index = min(end_date_index + for_past_days, len(all_days))
             days = all_days[end_date_index:start_date_index]
+            # Doing only for Thursday & Friday
             days = [x for x in days if x.weekday() >=3]
         result = back_test(strategy_class,strategy_kwargs, symbol, days)
         final_result.extend(result)

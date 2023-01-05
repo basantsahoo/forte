@@ -108,7 +108,7 @@ def compare_day_activity(compare_day, against_day):
     for k in level_keys:
         level_range = [against_day[k] * (1 - 0.0015), against_day[k] * (1 + 0.0015)]
         ol = get_overlap(level_range, [compare_day['low'], compare_day['high']])
-        resp[k] = int(ol > 0)
+        resp['ad_'+k] = int(ol > 0)
     return resp
 
 

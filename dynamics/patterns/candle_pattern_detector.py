@@ -46,7 +46,7 @@ class CandlePatternDetector:
                     pattern_pos = bullish_match_idx[-1]
                     if pattern_id not in self.last_match_dict.keys() or self.last_match_dict[pattern_id] != pattern_pos:
                         self.last_match_dict[pattern_id] = pattern_pos
-                        self.insight_book.pattern_signal(pattern, {'time':pattern_df.timestamp[pattern_pos], 'candle':[pattern_df.open[pattern_pos],pattern_df.high[pattern_pos],pattern_df.low[pattern_pos], pattern_df.close[pattern_pos]], 'direction':'BUY', 'period': self.period})
+                        self.insight_book.pattern_signal(pattern, {'time':pattern_df.timestamp[pattern_pos], 'candle':[pattern_df.open[pattern_pos],pattern_df.high[pattern_pos],pattern_df.low[pattern_pos], pattern_df.close[pattern_pos]], 'direction':'BUY', 'period': self.period, 'strength':pattern_df[pattern][pattern_pos]})
                         #print({'time':pattern_df.timestamp[pattern_pos], 'candle':[pattern_df.open[pattern_pos],pattern_df.high[pattern_pos],pattern_df.low[pattern_pos], pattern_df.close[pattern_pos]], 'direction':'BUY'})
                         #print(price_list)
                 if len(bearish_match_idx) > 0:
@@ -54,4 +54,4 @@ class CandlePatternDetector:
                     pattern_pos = bearish_match_idx[-1]
                     if pattern_id not in self.last_match_dict.keys() or self.last_match_dict[pattern_id] != pattern_pos:
                         self.last_match_dict[pattern_id] = pattern_pos
-                        self.insight_book.pattern_signal(pattern, {'time':pattern_df.timestamp[pattern_pos], 'candle':[pattern_df.open[pattern_pos],pattern_df.high[pattern_pos],pattern_df.low[pattern_pos], pattern_df.close[pattern_pos]], 'direction':'SELL', 'period': self.period})
+                        self.insight_book.pattern_signal(pattern, {'time':pattern_df.timestamp[pattern_pos], 'candle':[pattern_df.open[pattern_pos],pattern_df.high[pattern_pos],pattern_df.low[pattern_pos], pattern_df.close[pattern_pos]], 'direction':'SELL', 'period': self.period, 'strength':pattern_df[pattern][pattern_pos]})
