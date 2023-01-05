@@ -10,7 +10,7 @@ from research.strategies.price_action_aggregator import PatternAggregator
 from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from research.strategies.state_cap_strategy import StateCapStrategy
 from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
-from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy
+from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell, FridayCandleBuyFullDay
 from research.backtest import strategy_back_tester
 import pandas as pd
 from settings import reports_dir
@@ -23,12 +23,12 @@ strategy_list = ['OpeningBearishTrendStrategy']
 strategy_kwargs = [{'pattern':'BEAR_TREND', 'order_type':'SELL', 'exit_time':15, 'period':5}]
 strategy_list = ['CandleAggregator']
 strategy_kwargs = [{}]
-strategy_list = ['FridayCandleFirst30Buy']
+strategy_list = ['FridayCandleFirst30Buy', 'FridayCandleFirst30Sell', 'FridayCandleBuyFullDay']
 strategy_kwargs = [{}]
 strategy_classes = [eval(strategy) for strategy in strategy_list]
 symbols = ['NIFTY']
 days = []
-for_past_days = 100
+for_past_days = 180
 """
 import inspect
 print(inspect.getfullargspec(type(StateCapStrategy).__init__))

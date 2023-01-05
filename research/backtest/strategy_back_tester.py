@@ -85,11 +85,14 @@ def test(strategy_class=DoubleTopBreakStrategy, strategy_kwargs=[], symbols = []
     for symbol in symbols:
         if len(days) == 0:
             all_days = get_all_days(helper_utils.get_nse_index_symbol(symbol))
+
             to_date = datetime.strptime(to_date, '%Y-%m-%d') if type(to_date) == str else to_date
+
             end_date = max(x for x in all_days if x <= to_date.date())
             end_date_index = all_days.index(end_date)
             start_date_index = min(end_date_index + for_past_days, len(all_days))
             days = all_days[end_date_index:start_date_index]
+
         result = back_test(strategy_class,strategy_kwargs, symbol, days)
         final_result.extend(result)
     return final_result
