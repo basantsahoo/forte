@@ -51,8 +51,8 @@ class CandleAggregator:
     def process_signal(self, pattern, pattern_match_idx):
         if self.relevant_signal():
             for strategy in self.individual_strategies:
-                if strategy.price_pattern == pattern and strategy.order_type == pattern_match_idx['direction'] and strategy.period == pattern_match_idx['period']:
-                    strategy.process_signal(pattern, pattern_match_idx)
+                #if strategy.price_pattern == pattern and strategy.order_type == pattern_match_idx['direction'] and strategy.period == pattern_match_idx['period']:
+                strategy.process_signal(pattern, pattern_match_idx)
 
     def evaluate(self):
         for strategy in self.individual_strategies:

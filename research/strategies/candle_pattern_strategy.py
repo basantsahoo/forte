@@ -60,7 +60,7 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         self.trigger_entry(self.order_type, sig_key, triggers)
 
     def evaluate_signal(self, matched_pattern):
-        #print('process_pattern_signal+++++++++++', matched_pattern)
+        print('process_pattern_signal+++++++++++', matched_pattern)
         # looking for overlap in time
         """
         determine whether a new signal

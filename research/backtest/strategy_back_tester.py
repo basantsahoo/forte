@@ -63,7 +63,7 @@ def back_test(strategy_classes,strategy_kwargs, symbol, days):
                             _tmp[signal_param] = signal_details[signal_param]
                     if story_book.record_metric:
                         params = strategy_signal_generator.params_repo.get((strategy[2], trigger_id), {})
-                        print('params====', params)
+                        #print('params====', params)
                         _tmp = {**_tmp, **params}
                     results.append(_tmp)
         except Exception as e:

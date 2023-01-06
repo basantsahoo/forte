@@ -116,22 +116,6 @@ class CommonFN:
                 self.strategies.remove(strategy)
                 break
 
-    def determine_level_break(self, ts):
-        for k in self.yday_level_breaks:
-            if not self.yday_level_breaks[k]['value']:
-                level_range = [self.yday_profile[k] * (1 - 0.0015), self.yday_profile[k] * (1 + 0.0015)]
-                ol = get_overlap(level_range, [self.range['low'], self.range['high']])
-                if ol > 0:
-                    self.yday_level_breaks[k]['value'] = True
-                    self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
-        for k in self.day_before_level_breaks:
-            if not self.day_before_level_breaks[k]['value']:
-                level_range = [self.day_before_level_breaks[k] * (1 - 0.0015), self.day_before_level_breaks[k] * (1 + 0.0015)]
-                ol = get_overlap(level_range, [self.range['low'], self.range['high']])
-                if ol > 0:
-                    self.day_before_level_breaks[k]['value'] = True
-                    self.day_before_level_breaks[k]['time'] = ts-self.ib_periods[0]
-
     def update_periodic(self):
         #print('update periodic')
         self.intraday_trend.calculate_measures()

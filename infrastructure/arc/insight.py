@@ -22,7 +22,7 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.point_to_point_mc import MarkovChainPointToPoint
 from dynamics.transition.empirical import EmpiricalDistribution
-from infrastructure.arc.market_activity import BuySellActivity
+from infrastructure.arc.market_activity import MarketActivity
 
 class InsightBook:
     def __init__(self, ticker, trade_day=None, record_metric=True):
@@ -34,7 +34,7 @@ class InsightBook:
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
-        self.activity_log = BuySellActivity(self)
+        self.activity_log = MarketActivity(self)
 		
         self.range = {'low': 99999999, 'high': 0}
         self.trade_day = trade_day
@@ -89,9 +89,6 @@ class InsightBook:
         self.weekly_pivots = get_pivot_points(get_prev_week_candle(ticker, self.trade_day))
         self.yday_profile = get_nth_day_profile_data(ticker, self.trade_day, 1).to_dict('records')[0]
         self.day_before_profile = get_nth_day_profile_data(ticker, self.trade_day, 2).to_dict('records')[0]
-        self.yday_level_breaks = {'high': {'value': False, 'time': -1}, 'low': {'value': False, 'time': -1}, 'poc_price': {'value': False, 'time': -1}, 'va_h_p': {'value': False, 'time': -1}, 'va_l_p': {'value': False, 'time': -1}}
-        self.day_before_level_breaks = {'high': {'value': False, 'time': -1}, 'low': {'value': False, 'time': -1}, 'poc_price': {'value': False, 'time': -1}, 'va_h_p': {'value': False, 'time': -1}, 'va_l_p': {'value': False, 'time': -1}}
-        self.weekly_level_breaks = {'high': {'value': False, 'time':-1}, 'low': {'value': False, 'time':-1}, 'Pivot': {'value': False, 'time':-1}, 'S1': {'value': False, 'time':-1}, 'S2': {'value': False, 'time':-1}, 'S3': {'value': False, 'time':-1}, 'S4': {'value': False, 'time':-1}, 'R1': {'value': False, 'time':-1}, 'R2': {'value': False, 'time':-1},  'R3': {'value': False, 'time':-1}, 'R4': {'value': False, 'time':-1}}
         self.intraday_waves = {}
         prev_key_levels = get_prev_day_key_levels(ticker, self.trade_day)
 
@@ -126,43 +123,13 @@ class InsightBook:
                 self.strategies.remove(strategy)
                 break
 
-    def determine_day_open(self): ## this is definitive
-        open_candle = next(iter(self.market_data.items()))[1]
-        open_low = open_candle['open']
-        open_high = open_candle['open']
-        if open_low >= self.yday_profile['high']:
-            self.open_type = 'GAP_UP'
-        elif open_high <= self.yday_profile['low']:
-            self.open_type = 'GAP_DOWN'
-        elif open_low >= self.yday_profile['va_h_p']:
-            self.open_type = 'ABOVE_VA'
-        elif open_high <= self.yday_profile['va_l_p']:
-            self.open_type = 'BELOW_VA'
-        else:
-            self.open_type = 'INSIDE_VA'
-
-    def determine_level_break(self, ts):
-        for k in self.yday_level_breaks:
-            if not self.yday_level_breaks[k]['value']:
-                level_range = [self.yday_profile[k] * (1 - 0.0015), self.yday_profile[k] * (1 + 0.0015)]
-                ol = get_overlap(level_range, [self.range['low'], self.range['high']])
-                if ol > 0:
-                    self.yday_level_breaks[k]['value'] = True
-                    self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
-        for k in self.day_before_level_breaks:
-            if not self.yday_level_breaks[k]['value']:
-                level_range = [self.yday_profile[k] * (1 - 0.0015), self.yday_profile[k] * (1 + 0.0015)]
-                ol = get_overlap(level_range, [self.range['low'], self.range['high']])
-                if ol > 0:
-                    self.yday_level_breaks[k]['value'] = True
-                    self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
-
     def update_periodic(self):
-        print('update_periodic')
+        #print('update periodic')
         self.intraday_trend.calculate_measures()
-        self.inflex_detector.update_trend()
-        self.market_insights = {**self.market_insights, **self.intraday_trend.trend_params}
-        self.market_insights = {**self.market_insights, **self.inflex_detector.trend_params}
+        self.activity_log.update_periodic()
+        #print(self.market_insights)
+        #print('self.intraday_trend.trend_params', self.intraday_trend.trend_params)
+        #self.market_insights = {**self.market_insights, **self.intraday_trend.trend_params}
     def set_up_strategies(self):
         self.activity_log.set_up()
         for strategy in self.strategies:
@@ -178,14 +145,13 @@ class InsightBook:
         #print(epoch_tick_time)
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
-        self.range['low'] = min(feed_small['low'], self.range['low'])
-        self.range['high'] = max(feed_small['high'], self.range['high'])
         self.market_data[epoch_minute] = feed_small
         self.set_curr_tpo(epoch_minute)
         if len(self.market_data.items()) == 2 and self.open_type is None:
-            self.determine_day_open()
+            #self.activity_log.determine_day_open()
             self.set_up_strategies()
-        self.determine_level_break(epoch_tick_time)
+        self.activity_log.update_last_candle()
+        self.activity_log.determine_level_break(epoch_tick_time)
         if self.last_periodic_update is None:
             self.last_periodic_update = epoch_minute
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
@@ -227,7 +193,7 @@ class InsightBook:
             #print('TREND+++++', pattern, pattern_match_idx)
             self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}
             print(self.market_insights)
-            #self.market_insights = {**self.market_insights, **pattern_match_idx['last_wave']}
+            self.activity_log.update_trend(pattern_match_idx['trend'])
             for wave in pattern_match_idx['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
             #print(self.intraday_waves)
