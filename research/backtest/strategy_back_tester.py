@@ -14,7 +14,7 @@ import traceback
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 
-def back_test(strategy_classes,strategy_kwargs, symbol, days):
+def back_test(strategy_classes,strategy_kwargs, symbol, days, candle_sw):
     results = []
     start_time = datetime.now()
     for day in days:
@@ -24,7 +24,7 @@ def back_test(strategy_classes,strategy_kwargs, symbol, days):
         processor = HistMarketProfileService()
         pm = AlgoPortfolioManager()
         in_day = day if type(day) == str else day.strftime('%Y-%m-%d')
-        story_book = InsightBook(symbol, in_day, record_metric=True)
+        story_book = InsightBook(symbol, in_day, record_metric=True, candle_sw=candle_sw)
         story_book.pm = pm
         #story_book.profile_processor = processor
         for s_id in range(len(strategy_classes)):
@@ -79,7 +79,7 @@ def back_test(strategy_classes,strategy_kwargs, symbol, days):
     return results
 
 
-def test(strategy_class=DoubleTopBreakStrategy, strategy_kwargs=[], symbols = [], days = [], for_past_days=30, to_date="2022-04-30"):
+def test(strategy_class=DoubleTopBreakStrategy, strategy_kwargs=[], symbols = [], days = [], for_past_days=30, to_date="2022-04-30", candle_sw=0):
     if len(symbols) == 0:
         symbols = default_symbols
     final_result = []
@@ -95,7 +95,7 @@ def test(strategy_class=DoubleTopBreakStrategy, strategy_kwargs=[], symbols = []
             days = all_days[end_date_index:start_date_index]
             # Doing only for Thursday & Friday
             days = [x for x in days if x.weekday() >=3]
-        result = back_test(strategy_class,strategy_kwargs, symbol, days)
+        result = back_test(strategy_class,strategy_kwargs, symbol, days, candle_sw)
         final_result.extend(result)
     return final_result
 

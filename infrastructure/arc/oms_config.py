@@ -1,7 +1,8 @@
 strategy_regulator={
     'DT_SELL': {1: {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
     'DTBRK_BUY': {1: {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
-    'CDLHIKKAKE_BUY': {1: {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}}
+    'CDLHIKKAKE_BUY': {1: {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
+    'CDLENGULFING_BUY': {1: {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
 }
 
 

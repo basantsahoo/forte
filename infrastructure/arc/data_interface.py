@@ -11,7 +11,7 @@ import helper.utils as helper_utils
 #from strategies_bkp.sma_cross_over_buy import SMACrossBuy
 import traceback
 from research.strategies.price_action_aggregator import PatternAggregator
-from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay
+from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 
 class AlgorithmIterface:
     def __init__(self, socket=None):
@@ -55,7 +55,7 @@ class AlgorithmIterface:
         hist = [{ky: vl for ky, vl in {**v, **{'timestamp': int(k), 'symbol': symbol}}.items() if ky not in ('lt', 'ht')} for (k, v) in hist.items()]
         #print(hist)
         epoch_minute = hist[0]['timestamp']
-        print(hist[0])
+        #print(hist[0])
         if self.trade_day is None:
             self.setup_in_progress = True
             self.set_trade_date_from_time(epoch_minute)

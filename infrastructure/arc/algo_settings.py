@@ -6,5 +6,5 @@ algorithm_setup = {
 """
 
 algorithm_setup = {
-    'NIFTY': {'strategies': ['FridayCandleBuyFullDay']},
+    'NIFTY': {'strategies': ['FridayCandleBuyFullDay', 'FridayCandleSellFullDay']},
 }

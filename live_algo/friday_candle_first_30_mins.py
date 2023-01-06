@@ -41,6 +41,26 @@ class FridayCandleBuyFullDay(CandlePatternStrategy):
 
         return enough_time and suitable_tpo
 
+class FridayCandleSellFullDay(CandlePatternStrategy):
+    def __init__(self, insight_book, pattern='CDLHIKKAKE', order_type="SELL", exit_time=15, period=5, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, target_pct=0.002, stop_loss_pct=0.001):
+        CandlePatternStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, trend, min_tpo, max_tpo, record_metric, triggers_per_signal, target_pct, stop_loss_pct)
+        self.weekdays_allowed = ['Friday', 'Thursday']
+
+    def suitable_market_condition(self, matched_pattern):
+        enough_time = self.insight_book.get_time_to_close() > self.exit_time
+        suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
+
+        return enough_time and suitable_tpo
 
 
+class FridayCandleBuyFullDayENG(CandlePatternStrategy):
+    def __init__(self, insight_book, pattern='CDLENGULFING', order_type="BUY", exit_time=15, period=5, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, target_pct=0.002, stop_loss_pct=0.001):
+        CandlePatternStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, trend, min_tpo, max_tpo, record_metric, triggers_per_signal, target_pct, stop_loss_pct)
+        self.weekdays_allowed = ['Friday', 'Thursday']
+
+    def suitable_market_condition(self, matched_pattern):
+        enough_time = self.insight_book.get_time_to_close() > self.exit_time
+        suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
+
+        return enough_time and suitable_tpo
 

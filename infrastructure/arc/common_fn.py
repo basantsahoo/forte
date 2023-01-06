@@ -25,9 +25,9 @@ from dynamics.transition.empirical import EmpiricalDistribution
 from infrastructure.arc.market_activity import MarketActivity
 
 class CommonFN:
-    def __init__(self, ticker, trade_day=None, record_metric=True):
+    def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
         self.intraday_trend = IntradayTrendCalculator(self)
-        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw)]
         self.activity_log = MarketActivity(self)
         self.day_setup_done = False
         self.strategy_setup_done = False
@@ -73,6 +73,8 @@ class CommonFN:
         end_ts = int(time.mktime(time.strptime(end_str, "%Y-%m-%d %H:%M:%S")))
         ib_end_ts = int(time.mktime(time.strptime(ib_end_str, "%Y-%m-%d %H:%M:%S")))
         self.ib_periods = [start_ts, ib_end_ts]
+        self.market_start_ts = start_ts
+        self.market_close_ts = end_ts
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
 
     def set_key_levels(self):
@@ -132,7 +134,7 @@ class CommonFN:
             strategy.set_up()
 
     def hist_feed_input(self, hist_feed):
-        print('hist_feed_input++++++++++++')
+        print('hist_feed_input++++++++++++', len(hist_feed))
         for price in hist_feed:
             epoch_tick_time = price['timestamp']
             epoch_minute = int(epoch_tick_time // 60 * 60) + 1
@@ -152,7 +154,6 @@ class CommonFN:
         self.set_up_strategies()
         for candle_detector in self.candle_pattern_detectors:
             candle_detector.evaluate(notify=False)
-
 
     def price_input_stream(self, price, iv=None):
         print('insight price_input_stream+++++ insight book')
@@ -252,7 +253,7 @@ class CommonFN:
         return self.inflex_detector
 
     def get_time_to_close(self):
-        return 375-len(self.market_data.items())
+        return (self.market_close_ts - self.last_tick['timestamp']) / 60
 
     def clean(self):
         self.inflex_detector = None

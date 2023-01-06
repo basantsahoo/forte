@@ -34,7 +34,7 @@ import inspect
 print(inspect.getfullargspec(type(StateCapStrategy).__init__))
 strategy = StateCapStrategy('x', **strategy_kwargs[0])
 """
-results = strategy_back_tester.test(strategy_classes, strategy_kwargs, symbols, days=days, for_past_days=for_past_days, to_date="2022-12-28")
+results = strategy_back_tester.test(strategy_classes, strategy_kwargs, symbols, days=days, for_past_days=for_past_days, to_date="2022-12-28", candle_sw=0)
 results = pd.DataFrame(results)
 part_results = results #[['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
 part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))
