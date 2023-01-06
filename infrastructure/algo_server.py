@@ -18,11 +18,24 @@ def refresh(ns):
             ns.refresh()
         sio.sleep(15*60)
 
+def connect_to_oms():
+    try:
+        sio.connect('http://localhost:8081/', wait_timeout=100, auth={'internal_app_id': 'CALG136148'})
+        #sio.emit('join_feed', default_symbols[0])
+        print('oms connection success')
+    except Exception as e:
+        print('oms connection fail')
+        print(e)
+        time.sleep(2)
+        connect_to_server()
+
+
 async def start():
-    ns = AlgoClient('/livefeed')
+    ns = AlgoClient('/oms')
     sio.register_namespace(ns)
     task = sio.start_background_task(refresh, ns)
+    #ns.connect_feed()
+    connect_to_oms()
     ns.connect_feed()
-    ns.connect_to_oms()
 
 

@@ -56,6 +56,7 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
             self.connect_feed()
 
     async def on_connect(self, sid,environ, auth={}):
+        print('connection request')
         print('AUTH++++++++++++', auth)
         if not socket_auth_enabled or (socket_auth_enabled and self.is_authenticated(auth)):
             await self.emit('other_message', 'connection successful')

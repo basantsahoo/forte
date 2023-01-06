@@ -131,8 +131,31 @@ class CommonFN:
             print('strategy setup+++++')
             strategy.set_up()
 
+    def hist_feed_input(self, hist_feed):
+        print('hist_feed_input++++++++++++')
+        for price in hist_feed:
+            epoch_tick_time = price['timestamp']
+            epoch_minute = int(epoch_tick_time // 60 * 60) + 1
+            key_list = ['timestamp', 'open', 'high', "low", "close"]
+            feed_small = {key: price[key] for key in key_list}
+            if not self.day_setup_done:
+                self.set_trade_date_from_time(epoch_tick_time)
+            self.market_data[epoch_minute] = feed_small
+        self.last_tick = feed_small
+        self.set_curr_tpo(epoch_minute)
+        self.activity_log.update_last_candle()
+        self.activity_log.determine_level_break(epoch_tick_time)
+        if self.last_periodic_update is None:
+            self.last_periodic_update = epoch_minute
+            self.update_periodic()
+        self.update_state_transition()
+        self.set_up_strategies()
+        for candle_detector in self.candle_pattern_detectors:
+            candle_detector.evaluate(notify=False)
+
+
     def price_input_stream(self, price, iv=None):
-        #print('price_input_stream+++++ insight book')
+        print('insight price_input_stream+++++ insight book')
         epoch_tick_time = price['timestamp']
         epoch_minute = int(epoch_tick_time // 60 * 60) + 1
         key_list = ['timestamp','open', 'high', "low", "close"]
@@ -143,7 +166,7 @@ class CommonFN:
             self.set_trade_date_from_time(epoch_tick_time)
         self.market_data[epoch_minute] = feed_small
         self.set_curr_tpo(epoch_minute)
-        if len(self.market_data.items()) == 2 and self.open_type is None:
+        if len(self.market_data.items()) == 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()
             self.set_up_strategies()
         self.activity_log.update_last_candle()

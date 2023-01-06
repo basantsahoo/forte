@@ -1,5 +1,5 @@
 from infrastructure.arc.algo_settings import algorithm_setup
-
+import json
 from datetime import datetime
 import time
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
@@ -47,9 +47,28 @@ class AlgorithmIterface:
         end_time = datetime.now()
         print('setup time', (end_time - start_time).total_seconds())
 
+    def on_hist_price(self, hist_feed):
+        hist_feed = json.loads(hist_feed)
+        symbol = hist_feed['symbol']
+        hist = hist_feed['hist']
+        #hist = [{**v, **{'timestamp':int(k), 'symbol':symbol}} for (k, v) in hist.items()]
+        hist = [{ky: vl for ky, vl in {**v, **{'timestamp': int(k), 'symbol': symbol}}.items() if ky not in ('lt', 'ht')} for (k, v) in hist.items()]
+        #print(hist)
+        epoch_minute = hist[0]['timestamp']
+        print(hist[0])
+        if self.trade_day is None:
+            self.setup_in_progress = True
+            self.set_trade_date_from_time(epoch_minute)
+            self.last_epoc_minute_data[symbol] = hist[-1]
+            self.portfolio_manager.price_input(hist[-1])
+            for insight_book in self.insight_books:
+                if insight_book.ticker == symbol:
+                    insight_book.hist_feed_input(hist)
+
+
     def on_tick_price(self, feed):
         feed = list(feed.values())[0]
-        #print(feed)
+        #print('tick feed====', feed)
         epoch_tick_time = feed['timestamp']
         epoch_minute = feed['timestamp'] #int(epoch_tick_time // 60 * 60)
         symbol = feed['symbol']
@@ -60,14 +79,17 @@ class AlgorithmIterface:
             self.set_trade_date_from_time(epoch_tick_time)
             return
         #print(self.last_epoc_minute_data[symbol]['timestamp'], epoch_minute)
-        if self.last_epoc_minute_data[symbol]['timestamp'] is None or (epoch_minute == self.last_epoc_minute_data[symbol]['timestamp']):
+        #if self.last_epoc_minute_data[symbol]['timestamp'] is None or (epoch_minute == self.last_epoc_minute_data[symbol]['timestamp']):
+        if self.last_epoc_minute_data[symbol]['timestamp'] is None:
             self.last_epoc_minute_data[symbol] = feed
-        else:
+            return
+        # new minute started so send previous minute data to insight book
+        if epoch_minute != self.last_epoc_minute_data[symbol]['timestamp']:
             for insight_book in self.insight_books:
                 if insight_book.ticker == symbol:
                     #print('sending from interface')
                     insight_book.price_input_stream(self.last_epoc_minute_data[symbol])
-            self.last_epoc_minute_data[symbol] = feed
+        self.last_epoc_minute_data[symbol] = feed
         self.portfolio_manager.price_input(feed)
 
     def place_entry_order(self, symbol, order_side, qty, strategy_id, order_id, order_type ):
@@ -80,7 +102,7 @@ class AlgorithmIterface:
                       'order_type': order_type
                       }
 
-        #self.socket.on_oms_entry_order(order_info)
+        self.socket.on_oms_entry_order(order_info)
 
 
     def place_exit_order(self, symbol, order_side, qty, strategy_id, order_id, order_type ):
@@ -93,7 +115,7 @@ class AlgorithmIterface:
                       'order_type': order_type
                       }
 
-        #self.socket.on_oms_exit_order(order_info)
+        self.socket.on_oms_exit_order(order_info)
 
     def notify_pattern_signal(self, ticker, pattern, pattern_match_idx):
         #print('notify_pattern_signal', pattern, pattern_match_idx)

@@ -31,12 +31,19 @@ class MarketClient(socketio.ClientNamespace):
     def on_tick_data(self, feed):
         print('on_price' , feed)
 
+    def on_hist(self, feed):
+        pass
+        #print('on_hist' , feed)
+
     def on_atm_option_feed(self, feed):
         print('on_atm_option_feed', feed)
 
 
     def on_connect(self):
         print('Market client  connected')
+        for symbol in self.subscribed_symbols:
+            self.emit('get_price_chart_data', symbol)
+        time.sleep(1)
         for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
 

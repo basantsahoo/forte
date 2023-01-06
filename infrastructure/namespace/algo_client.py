@@ -17,7 +17,7 @@ print(enabled_symbols)
 sio = socketio.Client(reconnection_delay=5)
 
 class AlgoClient(socketio.ClientNamespace):
-    def __init__(self,namespace=None):
+    def __init__(self, namespace=None):
         socketio.ClientNamespace.__init__(self, namespace)
         self.algo_interface = AlgorithmIterface(self)
         self.c_sio = socketio.Client(reconnection_delay=5)
@@ -25,6 +25,7 @@ class AlgoClient(socketio.ClientNamespace):
         self.c_sio.register_namespace(ns)
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
+        ns.on_hist = self.on_hist
 
     def refresh(self):
         self.algo_interface.clean()
@@ -34,20 +35,21 @@ class AlgoClient(socketio.ClientNamespace):
         #print('on_price' , feed)
         self.algo_interface.on_tick_price(feed)
 
+    def on_hist(self, feed):
+        self.algo_interface.on_hist_price(feed)
+
     def on_atm_option_feed(self, feed):
-        print('algo atm_option_feed =========================', feed)
+        pass
+        # print('algo atm_option_feed =========================', feed)
         #self.portfolio_manager.option_price_input(feed)
 
-    def on_hist(self, hist):
-        print(hist)
-        pass
-
-
     def on_connect(self):
-        print('Algo runner  connected')
+        print('Algo runner  connected to oms')
+        """
         for symbol in enabled_symbols:
             self.emit('join_tick_feed', symbol)
         self.emit('join_oms')
+        """
 
     def on_oms_entry_order(self, order_info):
         print('Algo oms entry placed')
@@ -81,7 +83,9 @@ class AlgoClient(socketio.ClientNamespace):
             print(e)
             time.sleep(2)
             self.connect_feed()
-
+    """
+    This one doesn't work because separate sio
+    
     def connect_to_oms(self):
         try:
             sio.connect('http://localhost:8081/', wait_timeout=100, auth={'internal_app_id': 'CALG136148'})
@@ -91,4 +95,5 @@ class AlgoClient(socketio.ClientNamespace):
             print('oms connection fail')
             print(e)
             time.sleep(2)
-            connect_to_oms()
+            self.connect_to_oms()
+    """
