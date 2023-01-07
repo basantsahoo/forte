@@ -11,7 +11,7 @@ import traceback
 #from strategies.sma_cross_over_buy import SMACrossBuy
 #from strategies_bkp.range_break_low_for_regression import RangeBreakDownStrategy
 
-from settings import reports_dir
+from backtest.settings import reports_dir
 from research.strategies.candle_aggregator import CandleAggregator
 from research.strategies.price_action_aggregator import PatternAggregator
 from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
