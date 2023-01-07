@@ -30,7 +30,7 @@ class MarketActivity:
 
     def set_up(self):
         self.determine_day_open()
-        self.candle_stats = get_candle_body_size(self.insight_book.ticker, self.insight_book.trade_day)
+        #self.candle_stats = get_candle_body_size(self.insight_book.ticker, self.insight_book.trade_day)
         self.t_minus_1 = {'high':self.insight_book.yday_profile['high'], 'va_h_p':self.insight_book.yday_profile['va_h_p'],'poc_price':self.insight_book.yday_profile['poc_price'], 'va_l_p':self.insight_book.yday_profile['va_l_p'], 'low':self.insight_book.yday_profile['low'], 'open':self.insight_book.yday_profile['open'], 'close':self.insight_book.yday_profile['close']}
         self.t_minus_2 = {'high': self.insight_book.day_before_profile['high'],
                           'va_h_p': self.insight_book.day_before_profile['va_h_p'],
@@ -82,6 +82,19 @@ class MarketActivity:
                     self.day_before_level_breaks[k]['value'] = True
                     self.day_before_level_breaks[k]['time'] = ts-self.insight_book.ib_periods[0]
 
+    def get_day_features(self):
+        resp = {}
+        for (lvl, item) in self.yday_level_breaks.items():
+            resp['d_y_' + lvl] = int(item['value'])
+        for (lvl, item) in self.day_before_level_breaks.items():
+            resp['d_t_2_' + lvl] = int(item['value'])
+        """
+        for (lvl, item) in self.weekly_level_breaks.items():
+            resp['d_w_' + lvl] = item['values']
+        """
+        return resp
+
+
     def check_support(self, candle):
         support_ind = 0
         for support in self.insight_book.supports_to_watch:
@@ -121,6 +134,26 @@ class MarketActivity:
     def update_trend(self):
         pass
 
+    def locate_price_region(self, mins=15):
+        ticks = list(self.insight_book.market_data.values())[-mins::]
+        candle = {'open': ticks[0]['open'], 'high': max([y['high'] for y in ticks]), 'low': min([y['low'] for y in ticks]), 'close': ticks[-1]['close']}
+        print('locate_price_region', candle)
+        return self.candle_position_wrt_key_levels(candle)
+
+    def candle_position_wrt_key_levels(self, candle):
+        resp = {}
+        yday_profile = {k: v for k, v in self.insight_book.yday_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
+        for (lvl, price) in yday_profile.items():
+            resp['y_' + lvl] = self.check_level(candle, price)
+        t_2_profile = {k: v for k, v in self.insight_book.day_before_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
+        for (lvl, price) in t_2_profile.items():
+            resp['t_2_' + lvl] = self.check_level(candle, price)
+        weekly_profile = {k: v for k, v in self.insight_book.weekly_pivots.items() if k not in ('open', 'close')}
+        for (lvl, price) in weekly_profile.items():
+            resp['w_' + lvl] = self.check_level(candle, price)
+        return resp
+
+
     def update_last_candle(self):
         self.lc_features = {}
         """
@@ -144,18 +177,9 @@ class MarketActivity:
         self.lc_features['lc_dist_frm_level'] = last_candle['close'] - next_level
         self.lc_features['lc_resistance_ind'] = self.check_resistance(last_candle)
         self.lc_features['lc_support_ind'] = self.check_support(last_candle)
-        yday_profile = {k: v for k, v in self.insight_book.yday_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
-        # print(self.insight_book.weekly_pivots)
-        for (lvl, price) in yday_profile.items():
-            self.lc_features['lc_y_' + lvl] = self.check_level(last_candle, price)
-        t_2_profile = {k: v for k, v in self.insight_book.day_before_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
-        # print(self.insight_book.weekly_pivots)
-        for (lvl, price) in t_2_profile.items():
-            self.lc_features['lc_t_2_' + lvl] = self.check_level(last_candle, price)
-
-        weekly_profile = {k: v for k, v in self.insight_book.weekly_pivots.items() if k not in ('open', 'close')}
-        for (lvl, price) in weekly_profile.items():
-            self.lc_features['lc_w_' + lvl] = self.check_level(last_candle, price)
+        candle_pos = self.candle_position_wrt_key_levels(last_candle)
+        for key, val in candle_pos.items():
+            self.lc_features['lc_'+ key] = val
 
     def get_market_params(self):
         mkt_parms = {}
@@ -164,6 +188,7 @@ class MarketActivity:
         mkt_parms['candles_in_range'] = round(self.insight_book.intraday_trend.candles_in_range,2)
         mkt_parms = {**mkt_parms, **self.trend_features}
         mkt_parms = {**mkt_parms, **self.lc_features}
+        mkt_parms = {**mkt_parms, **self.get_day_features()}
         for (k,v) in self.hist_2d_activity.items():
             mkt_parms['d2_'+k] = v
         return mkt_parms

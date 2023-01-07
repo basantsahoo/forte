@@ -73,7 +73,7 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         """
         if not last_match_ol and self.suitable_market_condition(matched_pattern):
             self.last_match = matched_pattern
-            self.record_params()
+            self.record_params(matched_pattern)
             signal_passed = True
         return signal_passed
 

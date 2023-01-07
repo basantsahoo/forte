@@ -117,8 +117,10 @@ def print_measures(pipeline, X_test, y_test):
     y_pred = pipeline.predict(pre_processed_x)
     accuracy = accuracy_score(np.array(y_test), y_pred)
     print('accuracy=====', accuracy)
+    print('classification report=====')
     print(classification_report(np.array(y_test), y_pred))
-    print(confusion_matrix(np.array(y_test), y_pred))
+    print('confusion matrix=====')
+    print(confusion_matrix(np.array(y_test), y_pred, labels=[0,1]))
     plot_roc(pipeline, pre_processed_x, y_test)
     display = PrecisionRecallDisplay.from_estimator(
         pipeline, pre_processed_x, y_test, name="LinearSVC"
@@ -219,7 +221,6 @@ def pre_process(x_input):
     return df
 
 
-
 def evaluate_features(x_input, y_input):
     print('feature evaluation=========================')
     pre_processed_x = pre_process(x_input)
@@ -261,10 +262,10 @@ def train(data_set, target, exclude_variables=[]):
     x_input = x_input[cols]
     X_train, X_test, y_train, y_test = train_test_split(x_input, y_input, test_size=0.33, random_state=42)
 
-    evaluate_features(X_train, y_train)
+    #evaluate_features(X_train, y_train)
     model = train_et_bs_model(X_train, y_train)
     print_measures(model,X_test, y_test)
 
     model = train_decission_tree(X_train, y_train)
     #print_decision_rules(model)
-    plot_surface(X_train, y_train)
+    #plot_surface(X_train, y_train)

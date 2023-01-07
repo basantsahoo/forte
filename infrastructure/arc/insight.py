@@ -25,12 +25,12 @@ from dynamics.transition.empirical import EmpiricalDistribution
 from infrastructure.arc.market_activity import MarketActivity
 
 class InsightBook:
-    def __init__(self, ticker, trade_day=None, record_metric=True):
+    def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
         # self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.0005, spth=0.001, callback=None)
         self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.001, spth = 0.001,  callback=None)
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
        # self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
-        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw)]
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
@@ -81,6 +81,8 @@ class InsightBook:
         end_ts = int(time.mktime(time.strptime(end_str, "%Y-%m-%d %H:%M:%S")))
         ib_end_ts = int(time.mktime(time.strptime(ib_end_str, "%Y-%m-%d %H:%M:%S")))
         self.ib_periods = [start_ts, ib_end_ts]
+        self.market_start_ts = start_ts
+        self.market_close_ts = end_ts
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
         #self.set_key_levels()
 
@@ -135,6 +137,28 @@ class InsightBook:
         for strategy in self.strategies:
             strategy.set_up()
 
+    def hist_feed_input(self, hist_feed):
+        print('hist_feed_input++++++++++++', len(hist_feed))
+        for price in hist_feed:
+            epoch_tick_time = price['timestamp']
+            epoch_minute = int(epoch_tick_time // 60 * 60) + 1
+            key_list = ['timestamp', 'open', 'high', "low", "close"]
+            feed_small = {key: price[key] for key in key_list}
+            if not self.day_setup_done:
+                self.set_trade_date_from_time(epoch_tick_time)
+            self.market_data[epoch_minute] = feed_small
+        self.last_tick = feed_small
+        self.set_curr_tpo(epoch_minute)
+        self.activity_log.update_last_candle()
+        self.activity_log.determine_level_break(epoch_tick_time)
+        if self.last_periodic_update is None:
+            self.last_periodic_update = epoch_minute
+            self.update_periodic()
+        self.update_state_transition()
+        self.set_up_strategies()
+        for candle_detector in self.candle_pattern_detectors:
+            candle_detector.evaluate(notify=False)
+
     def price_input_stream(self, price, iv=None):
         #print('price_input_stream+++++ insight book')
         epoch_tick_time = price['timestamp']
@@ -147,7 +171,7 @@ class InsightBook:
             self.set_trade_date_from_time(epoch_tick_time)
         self.market_data[epoch_minute] = feed_small
         self.set_curr_tpo(epoch_minute)
-        if len(self.market_data.items()) == 2 and self.open_type is None:
+        if len(self.market_data.items()) == 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()
             self.set_up_strategies()
         self.activity_log.update_last_candle()
@@ -253,7 +277,7 @@ class InsightBook:
         return self.inflex_detector
 
     def get_time_to_close(self):
-        return 375-len(self.market_data.items())
+        return (self.market_close_ts - self.last_tick['timestamp']) / 60
 
     def clean(self):
         self.inflex_detector = None

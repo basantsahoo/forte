@@ -16,7 +16,7 @@ def save_back_test_results():
 
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
-    df = pd.read_csv(reports_dir + 'Frid_Frid_Frid_NIFTY_2022-12-23_2022-04-07.csv')
+    df = pd.read_csv(reports_dir + 'Frid_NIFTY_2022-03-24_2021-07-15.csv')
     # 'Cand_NIFTY_2022-12-28_2022-08-03 copy.csv'
     return df
 
@@ -142,9 +142,10 @@ def analysis(df):
     print('going to describe')
     descriptive_analysis.perform_analysis_strategies(df, 'realized_pnl', da_exclude_vars)
 
-    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time']
-    imp_features = ['week_day', 'dist_frm_level',	'ad_new_business_pressure',	'ad_resistance_pressure',	'ad_retest_fract',	'ad_support_pressure',	'ad_type',	'cd_close_rat',	'cd_new_business_pressure',	'cd_resistance_pressure',	'cd_retest_fract',	'cd_support_pressure',	'cd_type',	'gap',	'high',	'low',	'open_type',	'poc_price',	'resistance_ind',	'support_ind',	't_2_high',	't_2_low',	't_2_poc_price',	't_2_va_h_p',	't_2_va_l_p',	'va_h_p',	'va_l_p',	'w_high',	'w_low',	'w_Pivot',	'w_R1',	'w_R2',	'w_R3',	'w_R4',	'w_S1',	'w_S2',	'w_S3',	'w_S4',	'y_high',	'y_low',	'y_poc_price',	'y_va_h_p',	'y_va_l_p']
-
+    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time', 'trigger', 'side', ]
+    imp_features = ['week_day', 'candles_in_range',	'd_t_2_high',	'd_t_2_low',	'd_t_2_poc_price',	'd_t_2_va_h_p',	'd_t_2_va_l_p',	'd_y_high',	'd_y_low',	'd_y_poc_price',	'd_y_va_h_p',	'd_y_va_l_p',	'd2_ad_high',	'd2_ad_low',	'd2_ad_new_business_pressure',	'd2_ad_poc_price',	'd2_ad_resistance_pressure',	'd2_ad_retest_fract',	'd2_ad_support_pressure',	'd2_ad_type',	'd2_ad_va_h_p',	'd2_ad_va_l_p',	'd2_cd_close_rat',	'd2_cd_new_business_pressure',	'd2_cd_resistance_pressure',	'd2_cd_retest_fract',	'd2_cd_support_pressure',	'd2_cd_type',	'd2_gap',	'lc_dist_frm_level',	'lc_resistance_ind',	'lc_support_ind',	'lc_t_2_high',	'lc_t_2_low',	'lc_t_2_poc_price',	'lc_t_2_va_h_p',	'lc_t_2_va_l_p',	'lc_w_high',	'lc_w_low',	'lc_w_Pivot',	'lc_w_R1',	'lc_w_R2',	'lc_w_R3',	'lc_w_S1',	'lc_w_S2',	'lc_w_S3',	'lc_y_high',	'lc_y_low',	'lc_y_poc_price',	'lc_y_va_h_p',	'lc_y_va_l_p',	'open_type',	'pat_t_2_high',	'pat_t_2_low',	'pat_t_2_poc_price',	'pat_t_2_va_h_p',	'pat_t_2_va_l_p',	'pat_w_high',	'pat_w_low',	'pat_w_Pivot',	'pat_w_R1',	'pat_w_R2',	'pat_w_R3',	'pat_w_S1',	'pat_w_S2',	'pat_w_S3',	'pat_y_high',	'pat_y_low',	'pat_y_poc_price',	'pat_y_va_h_p',	'pat_y_va_l_p',	'strength']
+    imp_features_2 = ['week_day', 'open_type', 'fifteen_min_trend',	'exp_c',	'five_min_trend',	'whole_day_trend',	'trend_auc',	'mu_0',	'exp_b',	'market_auc',	'lc_dist_frm_level',	'lin',	'mu_n',	'auc_del',	'quad',	'strength',	'quad_r2',	'lin_r2']
+    imp_features_3 = ['week_day', 'open_type', 'exp_b', 'five_min_trend', 'lc_dist_frm_level', 'd2_ad_resistance_pressure', 'd2_ad_support_pressure', 'd2_cd_new_business_pressure']
     strategies = ['CDLHIKKAKE_BUY_5_15'] #df['strategy'].unique()
     root_strategies = set([x.split("_")[0] for x in strategies])
     print('total patterns matched___', len(list(root_strategies)))
@@ -152,8 +153,8 @@ def analysis(df):
     for strategy in strategies:
         print('classification for ================== ', strategy)
         # if strategy == 'CDLXSIDEGAP3METHODS_5_BUY_30':
-        df_tmp = df[df['strategy'] == strategy] #[imp_vars_4 + ['realized_pnl']]
-        df_tmp = df_tmp[imp_features + ['realized_pnl']]
+        df_tmp = df[df['strategy'] == strategy]
+        df_tmp = df_tmp[imp_features_3 + ['realized_pnl']]
         #print(df_tmp.columns.to_list())
         classifier_train.train(df_tmp, 'realized_pnl', non_features)
         """
@@ -171,7 +172,9 @@ def analysis(df):
         correlations.to_csv('corr.csv')
         # print(correlations)
         """
-
+    # good: d2_ad_resistance_pressure <= 0.045 and lc_support_ind <= 0.5
+    # bad : d2_ad_support_pressure > 0.415
+    # good : d2_ad_resistance_pressure >= 0.045 & d2_ad_support_pressure <= 0.415 & candles_in_range <= 0.055 & d2_cd_new_business_pressure <= 0.355
     # five_min_trend > -0.075 and pattern_auc_del <= 0.001 and market_auc <= 0.455 and ret_trend > 0.905 and hurst_exp_15 > -1.08
     """
     -- perform descriptive -- requires strategy variable to be included
@@ -230,6 +233,6 @@ def run():
 
     df = get_cleaned_results()
     basic_statistics(df)
-    #portfolio_performance(df)
-    analysis(df)
+    portfolio_performance(df)
+    #analysis(df)
 

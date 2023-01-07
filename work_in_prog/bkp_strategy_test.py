@@ -15,8 +15,9 @@ from research.backtest import strategy_back_tester
 import pandas as pd
 from settings import reports_dir
 from datetime import datetime
-import json
-"""
+
+#strategy_list = ['PatternAggregator', 'CandleAggregator']
+strategy_list = ['StateCapStrategy']
 strategy_kwargs = [{'pattern':'STATE', 'order_type':'SELL', 'exit_time':10, 'period':1}]
 strategy_list = ['OpeningBearishTrendStrategy']
 strategy_kwargs = [{'pattern':'BEAR_TREND', 'order_type':'SELL', 'exit_time':15, 'period':5}]
@@ -26,16 +27,6 @@ strategy_list = ['FridayCandleFirst30Buy', 'FridayCandleFirst30Sell', 'FridayCan
 strategy_kwargs = [{}, {}, {}]
 strategy_list = ['FridayCandleBuyFullDay']
 strategy_kwargs = [{}]
-"""
-
-with open(str(Path(__file__).resolve().parent) + '/bt_config.json') as bt_config:
-  strat_config = json.load(bt_config)
-
-print(strat_config)
-
-#strategy_list = ['PatternAggregator', 'CandleAggregator']
-strategy_list = strat_config['strategies']
-strategy_kwargs = strat_config['strategy_kwargs']
 strategy_classes = [eval(strategy) for strategy in strategy_list]
 symbols = ['NIFTY']
 days = []

@@ -156,7 +156,7 @@ class CommonFN:
             candle_detector.evaluate(notify=False)
 
     def price_input_stream(self, price, iv=None):
-        print('insight price_input_stream+++++ insight book')
+        #print('insight price_input_stream+++++ insight book')
         epoch_tick_time = price['timestamp']
         epoch_minute = int(epoch_tick_time // 60 * 60) + 1
         key_list = ['timestamp','open', 'high', "low", "close"]

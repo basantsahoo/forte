@@ -20,7 +20,7 @@ class BaseStrategy:
         self.record_metric = False
         self.is_aggregator = False
         self.params_repo = {}
-        self.strategy_params = {}
+        self.signal_params = {} #self.strategy_params = {}
         self.last_match = None
         self.pending_signals = {}
         self.tradable_signals ={}
@@ -28,6 +28,7 @@ class BaseStrategy:
         self.max_signals = 1
         self.target_pct = target_pct
         self.stop_loss_pct = stop_loss_pct
+        self.criteria = []
         self.weekdays_allowed = []
 
     def set_up(self):
@@ -99,7 +100,10 @@ class BaseStrategy:
         #print(triggers)
         for trigger in triggers:
             if self.record_metric:
-                self.params_repo[(sig_key, trigger['seq'])] = self.insight_book.activity_log.get_market_params()  # We are interested in signal features, trade features being stored separately
+                mkt_parms = self.insight_book.activity_log.get_market_params()
+                if self.signal_params:
+                    mkt_parms = {**mkt_parms, **self.signal_params}
+                self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
         signal_info = {'symbol': self.insight_book.ticker, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         self.confirm_trigger(sig_key, triggers)
         self.insight_book.pm.strategy_entry_signal(signal_info)
@@ -165,7 +169,7 @@ class BaseStrategy:
 
     def process_signal(self, pattern, pattern_match_idx):
         if self.relevant_signal(pattern, pattern_match_idx):
-            print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()))
+            #print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()), "last tick===" , self.insight_book.last_tick['timestamp'])
             signal_passed = self.evaluate_signal(pattern_match_idx) #len(self.tradable_signals.keys()) < self.max_signals+5  #
             if signal_passed:
                 sig_key = self.add_tradable_signal(pattern_match_idx)
@@ -222,6 +226,29 @@ class BaseStrategy:
         pct = (1 - above / (above + below)) * 100
         return pct
         # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
+
+    def locate_price_region(self, mins=15):
+        ticks = list(self.insight_book.market_data.values())[-mins::]
+        candle_ohlc = [ticks[0]['open'], max([y['high'] for y in ticks]), min([y['low'] for y in ticks]), ticks[-1]['close']]
+        print('locate_price_region', candle_ohlc)
+
+    def suitable_market_condition(self,matched_pattern):
+        enough_time = self.insight_book.get_time_to_close() > self.exit_time
+        suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
+        suitable = enough_time and suitable_tpo
+        if suitable:
+            market_params = self.insight_book.activity_log.get_market_params()
+            d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']
+            five_min_trend = market_params['five_min_trend']
+            exp_b = market_params['exp_b']
+            d2_cd_new_business_pressure = market_params['d2_cd_new_business_pressure']
+            open_type = market_params['open_type']
+            flag = False
+            for condition in self.criteria:
+                flag = flag or eval(condition['logical_test'])
+            suitable = suitable and flag
+        return suitable
+
 
     def get_trades(self, **kwargs):
         pass

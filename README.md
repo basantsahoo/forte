@@ -267,3 +267,23 @@ conda install -c apple tensorflow-deps
 pymc3 3.11.5
 path modelling 
 ```
+
+
+### execute service
+```
+cd forte
+python servers/run_oms_server.py
+python servers/run_website_server.py
+python servers/run_test_fetcher.py
+
+```
+
+### Backtest
+
+```
+python work_in_prog/strategy_test.py
+python work_in_prog/ml.py
+
+option data : option_data
+key levels : key_levels
+```
