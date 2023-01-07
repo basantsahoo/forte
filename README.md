@@ -281,7 +281,7 @@ python servers/run_test_fetcher.py
 ### Backtest
 
 ```
-python work_in_prog/strategy_test.py
+python backtest/strategy_test.py strat_config=default.json
 python work_in_prog/ml.py
 
 option data : option_data

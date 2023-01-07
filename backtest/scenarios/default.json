@@ -1,0 +1,11 @@
+{
+  "strategies":["FridayCandleBuyFullDay"],
+  "strategy_kwargs":[{}],
+  "test_days": [],
+  "for_past_days": 50,
+  "symbols": ["NIFTY"],
+  "to_date": "2022-04-01",
+  "candle_sw" : 0,
+  "week_days": ["Friday"],
+  "record_metric": true
+}

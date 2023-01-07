@@ -1,5 +1,5 @@
 from research.strategies.candle_aggregator import CandleAggregator
-from research.backtest import strategy_back_tester
+from backtest import strategy_back_tester
 from research.analysis import classifier_train
 from research.analysis import regression_train
 from research.analysis import descriptive_analysis

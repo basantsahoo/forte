@@ -1,6 +1,6 @@
 #from strategies_bkp.sma_cross_over_buy import SMACrossBuy
 #from strategies_bkp.range_break import RangeBreakDownStrategy
-from research.backtest import strategy_back_tester
+from backtest import strategy_back_tester
 from research.analysis import classifier_train
 from research.analysis import regression_train
 from research.analysis import descriptive_analysis
