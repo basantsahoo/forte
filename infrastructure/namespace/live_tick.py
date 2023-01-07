@@ -20,7 +20,7 @@ import helper.utils as helper_utils
 from py_vollib_vectorized import price_dataframe
 from config import get_expiry_date, rest_api_url
 import requests
-from settings import reports_dir
+from servers.server_settings import cache_dir
 from diskcache import Cache
 option_rooms = [helper_utils.get_options_feed_room('NIFTY'), helper_utils.get_options_feed_room('BANKNIFTY')]
 
@@ -28,7 +28,7 @@ option_rooms = [helper_utils.get_options_feed_room('NIFTY'), helper_utils.get_op
 class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
     def __init__(self,namespace=None):
         socketio.AsyncNamespace.__init__(self,namespace)
-        self.market_cache = Cache(reports_dir + 'market_cache')
+        self.market_cache = Cache(cache_dir + 'market_cache')
         self.processor = TickMarketProfileEnablerService(market_cache=self.market_cache)
         self.option_processor = OptionProfileService(market_cache=self.market_cache)
         self.processor.socket = self

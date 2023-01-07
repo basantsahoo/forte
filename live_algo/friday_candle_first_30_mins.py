@@ -31,8 +31,8 @@ class FridayCandleFirst30Sell(CandlePatternStrategy):
         return enough_time and suitable_tpo and len(self.insight_book.market_data.items()) <= 30
 
 class FridayCandleBuyFullDay(CandlePatternStrategy):
-    def __init__(self, insight_book, pattern='CDLHIKKAKE', order_type="BUY", exit_time=15, period=5, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, target_pct=0.002, stop_loss_pct=0.001):
-        CandlePatternStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, trend, min_tpo, max_tpo, record_metric, triggers_per_signal, target_pct, stop_loss_pct)
+    def __init__(self, insight_book, pattern='CDLHIKKAKE', order_type="BUY", exit_time=15, period=5, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, target_pct=0.002, stop_loss_pct=0.001,criteria=[]):
+        CandlePatternStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, trend, min_tpo, max_tpo, record_metric, triggers_per_signal, target_pct, stop_loss_pct, criteria)
         self.weekdays_allowed = ['Friday', 'Thursday']
         self.criteria = [
                         {'op': 'or', 'logical_test': 'd2_ad_resistance_pressure <= 0.045 and five_min_trend > -0.1'},

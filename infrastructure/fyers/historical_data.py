@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 from infrastructure.fyers.authenication import get_access_token
 from fyers_api import fyersModel
 from infrastructure.fyers.settings import app_id
-from settings import log_dir
+from servers.server_settings import log_dir
 
 
 class FyersFeed:

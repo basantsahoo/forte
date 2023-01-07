@@ -7,8 +7,8 @@ from helper.utils import get_broker_order_type
 from research.strategies.strat_mixin import PatternMetricRecordMixin
 
 class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
-    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=2, target=0.002, stop_loss=0.001):
-        BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo, target, stop_loss)
+    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=2, target=0.002, stop_loss=0.001, criteria=[]):
+        BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo, target, stop_loss, criteria)
         self.id = pattern + "_" + order_type + "_" + str(period) + "_" + str(exit_time)
         #print(self.id)
         self.price_pattern = pattern

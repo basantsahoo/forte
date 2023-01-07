@@ -15,7 +15,6 @@ from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
 from dynamics.patterns.trend_detector import TrendDetector
 from dynamics.patterns.candle_pattern_detector import CandlePatternDetector
-from settings import reports_dir
 # Transitions
 from dynamics.transition.intra_day_transition import DayFullStateGenerator
 from dynamics.transition.mc_pre_process import MCPreprocessor

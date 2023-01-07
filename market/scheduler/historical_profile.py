@@ -6,7 +6,7 @@ import string
 #from matplotlib.finance import candlestick_ohlc
 #from mpl_finance import candlestick_ohlc
 from mplfinance.original_flavor import candlestick_ohlc
-from settings import reports_dir
+from servers.server_settings import reports_dir
 from config import default_symbols
 import time
 import datetime as dt

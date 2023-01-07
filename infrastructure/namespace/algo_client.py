@@ -1,6 +1,5 @@
 import time
 import os
-from settings import market_profile_db
 import socketio
 import asyncio
 from infrastructure.arc.algo_settings import algorithm_setup
@@ -11,6 +10,7 @@ import json
 import pytz
 from datetime import datetime
 from infrastructure.namespace.market_client import MarketClient
+from servers.server_settings import feed_socket_service
 enabled_symbols = list(algorithm_setup.keys())
 print(enabled_symbols)
 
@@ -75,7 +75,7 @@ class AlgoClient(socketio.ClientNamespace):
 
     def connect_feed(self):
         try:
-            self.c_sio.connect('http://localhost:8080/', wait_timeout=100, auth={'internal_app_id': 'FEEDTD136148'})
+            self.c_sio.connect(feed_socket_service, wait_timeout=100, auth={'internal_app_id': 'FEEDTD136148'})
             fetcher_started = True
             print('fetcher success')
         except Exception as e:

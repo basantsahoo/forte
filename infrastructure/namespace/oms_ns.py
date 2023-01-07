@@ -25,7 +25,7 @@ import helper.utils as helper_utils
 from py_vollib_vectorized import price_dataframe
 from config import get_expiry_date, rest_api_url
 import requests
-from settings import reports_dir
+from servers.server_settings import cache_dir
 from diskcache import Cache
 option_rooms = [helper_utils.get_options_feed_room('NIFTY'), helper_utils.get_options_feed_room('BANKNIFTY')]
 from infrastructure.namespace.market_client import MarketClient
@@ -38,7 +38,7 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
         self.c_sio.register_namespace(ns)
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
-        self.market_cache = Cache(reports_dir + 'oms_cache')
+        self.market_cache = Cache(cache_dir + 'oms_cache')
         self.portfolio_manager = OMSPortfolioManager(place_live_orders=True, market_cache=self.market_cache)
         self.processor = TickMarketProfileEnablerService(market_cache=self.market_cache)
         self.processor.socket = self

@@ -1,6 +1,5 @@
 import time
 import os
-from settings import market_profile_db
 import socketio
 import asyncio
 import asyncio

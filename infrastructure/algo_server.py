@@ -2,7 +2,7 @@ from infrastructure.namespace.algo_client import AlgoClient
 import socketio
 import pytz
 from datetime import datetime
-
+import time
 sio = socketio.Client(reconnection_delay=5)
 
 def refresh(ns):
@@ -27,7 +27,7 @@ def connect_to_oms():
         print('oms connection fail')
         print(e)
         time.sleep(2)
-        connect_to_server()
+        connect_to_oms()
 
 
 async def start():

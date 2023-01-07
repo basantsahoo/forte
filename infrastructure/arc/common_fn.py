@@ -15,7 +15,7 @@ from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
 from dynamics.patterns.trend_detector import TrendDetector
 from dynamics.patterns.candle_pattern_detector import CandlePatternDetector
-from settings import reports_dir
+from servers.server_settings import cache_dir
 # Transitions
 from dynamics.transition.intra_day_transition import DayFullStateGenerator
 from dynamics.transition.mc_pre_process import MCPreprocessor
@@ -96,7 +96,7 @@ class CommonFN:
     def set_transition_matrix(self):
         self.state_generator = DayFullStateGenerator(self.ticker, self.trade_day, self.yday_profile)
         try:
-            f = open(reports_dir + 'full_state_' + self.ticker + '.json')
+            f = open(cache_dir + 'full_state_' + self.ticker + '.json')
             data = json.load(f)
             self.transition_data = MCPreprocessor().get_processed_data(data, symbol=self.ticker, start_tpo=1, end_tpo=None)
             self.mc.from_data(self.transition_data, "unique_transitions_fill_break")

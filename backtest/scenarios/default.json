@@ -1,8 +1,22 @@
 {
   "strategies":["FridayCandleBuyFullDay"],
-  "strategy_kwargs":[{}],
+  "strategy_kwargs":[
+    {
+      "pattern":"CDLHIKKAKE",
+      "order_type":"BUY",
+      "exit_time":15,
+      "period":5,
+      "trend":null,
+      "min_tpo":1,
+      "max_tpo":13,
+      "record_metric":true,
+      "triggers_per_signal":1,
+      "target_pct":0.002,
+      "stop_loss_pct":0.001
+    }
+  ],
   "test_days": [],
-  "for_past_days": 50,
+  "for_past_days": 180,
   "symbols": ["NIFTY"],
   "to_date": "2022-04-01",
   "candle_sw" : 0,

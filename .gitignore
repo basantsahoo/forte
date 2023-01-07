@@ -6,6 +6,7 @@
 executables/
 data/
 reports/
+cache/
 models/
 logs/
 token/

@@ -17,7 +17,7 @@ from infrastructure.fyers.settings import (
     totp_key
 )
 import pyotp
-from settings import chromedriver,token_dir
+from servers.server_settings import chromedriver,token_dir
 
 
 def genereate_token():

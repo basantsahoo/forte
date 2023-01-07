@@ -7,7 +7,7 @@ import dynamics.patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
 class BaseStrategy:
-    def __init__(self, insight_book=None, order_type="BUY", min_tpo=None, max_tpo=None, target_pct=0.002, stop_loss_pct=0.001):
+    def __init__(self, insight_book=None, order_type="BUY", min_tpo=None, max_tpo=None, target_pct=0.002, stop_loss_pct=0.001, criteria=[]):
         self.id = None
         self.insight_book = insight_book
         self.order_type = order_type
@@ -28,7 +28,7 @@ class BaseStrategy:
         self.max_signals = 1
         self.target_pct = target_pct
         self.stop_loss_pct = stop_loss_pct
-        self.criteria = []
+        self.criteria = criteria
         self.weekdays_allowed = []
 
     def set_up(self):
