@@ -67,7 +67,7 @@ class StartegyBackTester:
                     processor.calculateMeasures()
                     pm.price_input(price)
                     story_book.price_input_stream(price, iv)
-                    time.sleep(0.005)
+                    #time.sleep(0.005)
 
                 for strategy, trade_details in pm.position_book.items():
                     #print(strategy)

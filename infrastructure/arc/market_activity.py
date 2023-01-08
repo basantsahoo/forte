@@ -12,6 +12,7 @@ class MarketActivity:
         self.candle_stats = []
         self.hist_2d_activity = {}
         self.trend_features = {}
+        self.spx_features = {}
         self.lc_features = {}
         self.open_type = None
         self.range = {'low': 99999999, 'high': 0}
@@ -132,12 +133,14 @@ class MarketActivity:
         self.trend_features = {**self.trend_features, **self.insight_book.intraday_trend.trend_params}
 
     def update_sp_trend(self,trend):
-        pass
+        #print('update_sp_trend======',trend)
+        self.spx_features = trend
+
 
     def locate_price_region(self, mins=15):
         ticks = list(self.insight_book.market_data.values())[-mins::]
         candle = {'open': ticks[0]['open'], 'high': max([y['high'] for y in ticks]), 'low': min([y['low'] for y in ticks]), 'close': ticks[-1]['close']}
-        print('locate_price_region', candle)
+        #print('locate_price_region', candle)
         return self.candle_position_wrt_key_levels(candle)
 
     def candle_position_wrt_key_levels(self, candle):
@@ -191,6 +194,7 @@ class MarketActivity:
         mkt_parms = {**mkt_parms, **self.get_day_features()}
         for (k,v) in self.hist_2d_activity.items():
             mkt_parms['d2_'+k] = v
+        mkt_parms = {**mkt_parms, **self.spx_features}
         return mkt_parms
 
     def candle_process(self):

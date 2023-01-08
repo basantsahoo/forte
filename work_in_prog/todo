@@ -27,6 +27,14 @@ BaseStartegy set_up method will be called after 1/2 tick/minute to check for dea
 Insight.pattern_signal will send pattern signal to strategy this will eventually call BaseStartegy process_signal
 process_signal will call evaluate_signal which will check whether signal is tradable
 after that it will register a tradable signal to tradable_signals
+process_signal ->
+# evaluate if tradable
+evaluate_signal ->
+# add signal params here
+add_tradable_signal ->
+
+initiate_signal_trades -> get_dt_trades -> trigger_entry
+trigger_entry -> confirm -> send to interface
 
 
 When there is a upward spike previous day at the end,

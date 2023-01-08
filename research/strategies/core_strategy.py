@@ -4,6 +4,7 @@ import helper.utils as helper_utils
 from dynamics.trend.technical_patterns import pattern_engine
 from statistics import mean
 import dynamics.patterns.utils as pattern_utils
+from helper.utils import get_broker_order_type
 
 #Check 13 May last pattern again why it was not triggered
 class BaseStrategy:
@@ -20,8 +21,8 @@ class BaseStrategy:
                  record_metric=True,
                  triggers_per_signal=1,
                  max_signal=1,
-                 target_pct=0.002,
-                 stop_loss_pct=0.001,
+                 target_pct = [0.002,0.003, 0.004, 0.005],
+                 stop_loss_pct = [0.001,0.002, 0.002,0.002],
                  weekdays_allowed=[],
                  criteria=[]
                  ):
@@ -35,7 +36,7 @@ class BaseStrategy:
         self.min_tpo = min_tpo
         self.max_tpo = max_tpo
         self.record_metric = record_metric
-        self.triggers_per_signal = triggers_per_signal
+        self.triggers_per_signal = min(4, triggers_per_signal) #Dont go past 4
         self.max_signal = max_signal
         self.target_pct = target_pct
         self.stop_loss_pct = stop_loss_pct
@@ -52,6 +53,11 @@ class BaseStrategy:
         self.tradable_signals ={}
         self.minimum_quantity = 1
 
+    def get_trades(self, pattern_price_info, idx=1, neck_point=0):
+        last_candle = self.insight_book.last_tick
+        close_point = last_candle['close']
+        side = get_broker_order_type(self.order_type)
+        return {'seq': idx, 'target': close_point * (1 + side * self.target_pct[idx-1]), 'stop_loss':close_point * (1 - side * self.stop_loss_pct[idx-1]),'duration': self.exit_time, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point, 'trigger_time':last_candle['timestamp']}
 
     def set_up(self):
         week_day_criterion = (not self.weekdays_allowed) or datetime.strptime(self.insight_book.trade_day, '%Y-%m-%d').strftime('%A') in self.weekdays_allowed
@@ -113,11 +119,6 @@ class BaseStrategy:
         return pct
         # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
 
-    def locate_price_region(self, mins=15):
-        ticks = list(self.insight_book.market_data.values())[-mins::]
-        candle_ohlc = [ticks[0]['open'], max([y['high'] for y in ticks]), min([y['low'] for y in ticks]), ticks[-1]['close']]
-        print('locate_price_region', candle_ohlc)
-
     def relevant_signal(self, pattern, pattern_match_idx):
         return self.price_pattern == pattern
 
@@ -129,6 +130,8 @@ class BaseStrategy:
         return min_tpo_met and max_tpo_met
 
     def trigger_entry(self, order_type, sig_key, triggers):
+        #print('trigger_entry',triggers)
+        #print(sig_key, order_type)
         #print(triggers)
         for trigger in triggers:
             if self.record_metric:
@@ -157,8 +160,7 @@ class BaseStrategy:
         lowest_candle = self.get_lowest_candle()
         self.insight_book.pm.strategy_exit_signal(self.insight_book.ticker, self.id, signal_id, trigger_id, lowest_candle)
 
-    def add_new_signal(self):
-        #print('add_new_signal core++++')
+    def add_new_signal_to_journal(self):
         existing_signals = len(self.tradable_signals.keys())
         sig_key = 'SIG_' + str(existing_signals + 1)
         self.tradable_signals[sig_key] = {}
@@ -166,13 +168,16 @@ class BaseStrategy:
         self.tradable_signals[sig_key]['targets'] = []
         self.tradable_signals[sig_key]['stop_losses'] = []
         self.tradable_signals[sig_key]['time_based_exists'] = []
-        self.tradable_signals[sig_key]['max_triggers'] = 1
         self.tradable_signals[sig_key]['trade_completed'] = False
+        self.tradable_signals[sig_key]['max_triggers'] = self.triggers_per_signal
         return sig_key
 
-
-    def add_tradable_signal(self):
-        sig_key = self.add_new_signal()
+    """
+    Define custom strategy parameters here
+    add_tradable_signal gives stretegies to define their own parameters to be added signals for record keeping
+    """
+    def add_tradable_signal(self, pattern_match_idx):
+        sig_key = self.add_new_signal_to_journal()
         return sig_key
 
     def confirm_trigger(self, sig_key, triggers):
@@ -187,7 +192,7 @@ class BaseStrategy:
         #print('initiate_signal_trades+++++', sig_key)
         curr_signal = self.tradable_signals[sig_key]
         next_trigger = len(curr_signal['triggers']) + 1
-        triggers = [self.get_dt_trades(curr_signal['pattern']['price_list'], trd_idx) for trd_idx in range(next_trigger, next_trigger+1+1)]
+        triggers = [self.get_trades(curr_signal['pattern'], trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
         # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
         #total_quantity = sum([trig['quantity'] for trig in triggers])
         self.trigger_entry(self.order_type,sig_key,triggers)
@@ -203,11 +208,11 @@ class BaseStrategy:
     def evaluate_signal(self, signal):
         return False
 
-    def check_non_pattern_signal(self):
+    def caclulate_custom_signal(self):
         return False
     """will be used by strategy which doesnt have a pattern/trend signal"""
-    def process_non_pattern_signal(self):
-        signal_found = self.check_non_pattern_signal() #len(self.tradable_signals.keys()) < self.max_signals+5  #
+    def process_custom_signal(self):
+        signal_found = self.caclulate_custom_signal() #len(self.tradable_signals.keys()) < self.max_signals+5  #
         if signal_found:
             sig_key = self.add_tradable_signal(pattern_match_idx)
             self.initiate_signal_trades(sig_key)
@@ -265,20 +270,14 @@ class BaseStrategy:
             market_params = self.insight_book.activity_log.get_market_params()
             d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']
             five_min_trend = market_params['five_min_trend']
-            exp_b = market_params['exp_b']
+            exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params['d2_cd_new_business_pressure']
             open_type = market_params['open_type']
-            flag = False
+            flag = not self.criteria
             for condition in self.criteria:
                 flag = flag or eval(condition['logical_test'])
             suitable = suitable and flag
         return suitable
 
-
-    def get_trades(self, **kwargs):
-        pass
-
-    def add_tradable_signal(self, **kwargs):
-        pass
 
 

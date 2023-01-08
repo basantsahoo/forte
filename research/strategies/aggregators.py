@@ -72,8 +72,8 @@ class CandleAggregator(StrategyAggregator):
             self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 30, 15))
             self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 30, 15))
             """
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, None, candle_pattern, "BUY", 10, 5, min_tpo=1, max_tpo=1, triggers_per_signal=1))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, None, candle_pattern, "SELL", 10, 5, min_tpo=1, max_tpo=1, triggers_per_signal=1))
+            self.individual_strategies.append(CandlePatternStrategy(insight_book, None, candle_pattern, "BUY", 10, 5, min_tpo=1, max_tpo=3, triggers_per_signal=1))
+            self.individual_strategies.append(CandlePatternStrategy(insight_book, None, candle_pattern, "SELL", 10, 5, min_tpo=1, max_tpo=3, triggers_per_signal=1))
 
 
 class PatternAggregator(StrategyAggregator):

@@ -208,11 +208,10 @@ class InsightBook:
             self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}})
 
     def pattern_signal(self, pattern, pattern_match_idx):
-        print("pattern_signal")
-
-        if pattern != 'TREND':
+        """
+        if pattern == 'DT':
             print('pattern_signal+++++++', pattern, pattern_match_idx)
-
+        """
         if pattern == 'TREND':
             #print('TREND+++++', pattern, pattern_match_idx)
             #self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}

@@ -7,6 +7,7 @@ from statistics import mean
 import dynamics.patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
+# This strategy required through analysis as many methods are overwritten
 class TrendStrategy(BaseStrategy):
     def __init__(self, insight_book, id, pattern, order_type, exit_time, period, trend=None, min_tpo=None, max_tpo=None, record_metric=True):
         BaseStrategy.__init__(self, id, insight_book, min_tpo, max_tpo)
@@ -33,7 +34,7 @@ class TrendStrategy(BaseStrategy):
         return pct
     # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
 
-    def get_dt_trades(self, pattern_match_prices, idx=1, curr_price=None,):
+    def get_trades(self, pattern_match_prices, idx=1, curr_price=None,):
         highest_high_point = max(pattern_match_prices[1], pattern_match_prices[3])
         lowest_high_point = min(pattern_match_prices[1], pattern_match_prices[3])
         neck_point = pattern_match_prices[2]
@@ -46,26 +47,11 @@ class TrendStrategy(BaseStrategy):
             return {'seq': idx, 'target': 75, 'stop_loss': 40, 'duration': 45, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point}
 
     def add_tradable_signal(self,matched_pattern):
-        existing_signals = len(self.tradable_signals.keys())
-        sig_key = 'SIG_' + str(existing_signals + 1)
-        self.tradable_signals[sig_key] = {}
+        sig_key = self.add_new_signal_to_journal()
         self.tradable_signals[sig_key]['pattern'] = matched_pattern
         self.tradable_signals[sig_key]['pattern_height'] = 0
-        self.tradable_signals[sig_key]['triggers'] = {}
-        self.tradable_signals[sig_key]['targets'] = []
-        self.tradable_signals[sig_key]['stop_losses'] = []
-        self.tradable_signals[sig_key]['time_based_exists'] = []
-        self.tradable_signals[sig_key]['max_triggers'] = 4
-        self.tradable_signals[sig_key]['trade_completed'] = False
         return sig_key
 
-    def confirm_trade_from_trigger(self, sig_key, triggers):
-        curr_signal = self.tradable_signals[sig_key]
-        for trigger in triggers:
-            curr_signal['targets'].append(trigger['target'])
-            curr_signal['stop_losses'].append(trigger['stop_loss'])
-            curr_signal['time_based_exists'].append(trigger['duration'])
-            curr_signal['triggers'][trigger['seq']] = trigger
 
 
     def initiate_signal_trades(self, sig_key):
