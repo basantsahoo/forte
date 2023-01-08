@@ -1,15 +1,15 @@
 {
-  "strategies":["CandleAggregator", "PatternAggregator", "DoubleTopBreakStrategy"],
+  "strategies":["FridayCandleBuyFullDay", "FridayCandleFirst30Buy", "FridayCandleFirst30Sell"],
   "strategy_kwargs":[
     {},
     {},
     {}
   ],
   "test_days": [],
-  "for_past_days": 5,
+  "for_past_days": 7,
   "symbols": ["NIFTY"],
-  "to_date": "2022-04-01",
+  "to_date": "2022-12-30",
   "candle_sw" : 0,
-  "week_days": [],
+  "week_days": ["Friday"],
   "record_metric": true
 }

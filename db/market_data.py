@@ -345,6 +345,13 @@ def get_daily_option_data(symbol, trade_day):
     conn.close()
     return df
 
+def get_daily_option_data_2(symbol, trade_day):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    stmt_1 = "select timestamp,option_symbol, CONCAT(strike,'_', kind) AS instrument, strike, kind, oi, volume  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc"
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(symbol, trade_day), conn)
+    conn.close()
+    return df
 
 
 def get_aggregate_option_data_ts(symbol, dt=None):

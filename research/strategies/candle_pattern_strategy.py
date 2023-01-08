@@ -6,8 +6,8 @@ import dynamics.patterns.utils as pattern_utils
 from research.strategies.strat_mixin import PatternMetricRecordMixin
 
 class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
-    def __init__(self, insight_book, id, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, target=[0.002,0.003, 0.004, 0.005], stop_loss=[0.001,0.002, 0.002,0.002], weekdays_allowed=[], criteria=[]):
-        BaseStrategy.__init__(self, insight_book, id, pattern, order_type,exit_time, period,trend, min_tpo, max_tpo, record_metric, triggers_per_signal, max_signal, target, stop_loss, weekdays_allowed, criteria)
+    def __init__(self, insight_book, id, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, target_pct=[0.002,0.003, 0.004, 0.005], stop_loss_pct=[0.001,0.002, 0.002,0.002], weekdays_allowed=[], criteria=[]):
+        BaseStrategy.__init__(self, insight_book, id, pattern, order_type,exit_time, period,trend, min_tpo, max_tpo, record_metric, triggers_per_signal, max_signal, target_pct, stop_loss_pct, weekdays_allowed, criteria)
         self.id = pattern + "_" + order_type + "_" + str(period) + "_" + str(exit_time) if id is None else id
         #print(self.id)
         self.last_match = None
@@ -36,7 +36,7 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         Control when a signal is considered for trade
         """
         #print("self.suitable_market_condition======", self.suitable_market_condition(matched_pattern))
-        if not last_match_ol and self.suitable_market_condition(matched_pattern):
+        if not last_match_ol and self.suitable_market_condition():
             self.last_match = matched_pattern
             self.record_params(matched_pattern)
             signal_passed = True

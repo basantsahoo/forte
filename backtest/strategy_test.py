@@ -21,7 +21,7 @@ from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayC
 from dynamics.profile.market_profile import HistMarketProfileService
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
 from infrastructure.arc.insight import InsightBook
-from db.market_data import (get_all_days, get_daily_tick_data, prev_day_data, get_prev_week_candle, get_nth_day_profile_data)
+from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
@@ -54,6 +54,8 @@ class StartegyBackTester:
                 strategy_kwargs = self.strat_config['strategy_kwargs'][s_id]
                 story_book.add_strategy(strategy_class, strategy_kwargs)
             price_list = get_daily_tick_data(symbol, day)
+            option_list = get_daily_option_data_2(symbol, day)
+            print(option_list)
             price_list['symbol'] = helper_utils.root_symbol(symbol)
             price_list = price_list.to_dict('records')
             ivs = helper_utils.generate_random_ivs()
@@ -61,13 +63,11 @@ class StartegyBackTester:
                 for i in range(len(price_list)):
                     price = price_list[i]
                     iv = ivs[i]
-                    # print(price)
-                    # print(prof_data)
-                    processor.process_input_data([price])
-                    processor.calculateMeasures()
+                    #processor.process_input_data([price])
+                    #processor.calculateMeasures()
                     pm.price_input(price)
                     story_book.price_input_stream(price, iv)
-                    #time.sleep(0.005)
+                    time.sleep(0.005)
 
                 for strategy, trade_details in pm.position_book.items():
                     #print(strategy)

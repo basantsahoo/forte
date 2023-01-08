@@ -278,6 +278,9 @@ class InsightBook:
     def get_time_to_close(self):
         return (self.market_close_ts - self.last_tick['timestamp']) / 60
 
+    def get_time_since_market_open(self):
+        return (self.last_tick['timestamp'] - self.market_start_ts) / 60
+
     def clean(self):
         self.inflex_detector = None
         for detector in self.price_action_pattern_detectors:

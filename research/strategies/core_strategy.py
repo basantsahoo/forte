@@ -198,7 +198,7 @@ class BaseStrategy:
         self.trigger_entry(self.order_type,sig_key,triggers)
 
     def process_signal(self, pattern, pattern_match_idx):
-        if self.relevant_signal(pattern, pattern_match_idx):
+        if self.relevant_signal(pattern, pattern_match_idx) and (len(self.tradable_signals.keys()) < self.max_signal):
             #print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()), "last tick===" , self.insight_book.last_tick['timestamp'])
             signal_passed = self.evaluate_signal(pattern_match_idx) #len(self.tradable_signals.keys()) < self.max_signals+5  #
             if signal_passed:
@@ -262,7 +262,7 @@ class BaseStrategy:
         elif self.order_type == 'SELL':
             self.monitor_sell_positions()
 
-    def suitable_market_condition(self,matched_pattern):
+    def suitable_market_condition(self):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
         suitable = enough_time and suitable_tpo
