@@ -7,7 +7,7 @@ from itertools import compress
 from dynamics.trend.candle_rank import candle_rankings
 candle_names = talib.get_function_groups()['Pattern Recognition']
 
-class CandleAggregator:
+class CandleAggregatorDelete:
     def __init__(self, insight_book=None):
         self.id = 'CANDLE_AGGR'
         self.insight_book = insight_book

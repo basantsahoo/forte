@@ -25,15 +25,6 @@ from infrastructure.arc.common_fn import CommonFN
 
 
 class InsightBook(CommonFN):
-    def determine_level_break(self, ts):
-        for k in self.yday_level_breaks:
-            if not self.yday_level_breaks[k]['value']:
-                level_range = [self.yday_profile[k] * (1 - 0.0015), self.yday_profile[k] * (1 + 0.0015)]
-                ol = get_overlap(level_range, [self.range['low'], self.range['high']])
-                if ol > 0:
-                    self.yday_level_breaks[k]['value'] = True
-                    self.yday_level_breaks[k]['time'] = ts-self.ib_periods[0]
-
 
     def pattern_signal(self, pattern, pattern_match_idx):
         #print('pattern_signal mini+++++++ 1', pattern, pattern_match_idx['strength'])

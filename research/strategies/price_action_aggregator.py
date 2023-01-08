@@ -2,7 +2,7 @@ from research.strategies.double_top_strategy import DoubleTopStrategy
 from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from research.strategies.trend_strategy import TrendStrategy
 
-class PatternAggregator:
+class PatternAggregatorDelete:
     def __init__(self, insight_book=None):
         self.insight_book = insight_book
         self.id = 'PATTERN_AGGR'
@@ -56,13 +56,18 @@ class PatternAggregator:
         self.individual_strategies.append(DoubleTopStrategy(insight_book, 'DB', "SELL", 45, 1, 'DOWN'))
         self.individual_strategies.append(DoubleTopStrategy(insight_book, 'DB', "SELL", 60, 1, 'DOWN'))
         """
+    def set_up(self):
+        for strategy in self.individual_strategies:
+            strategy.set_up()
+
+    def relevant_signal(self):
+        return True
+
     def process_signal(self, pattern, pattern_match_idx):
         if self.relevant_signal():
             for strategy in self.individual_strategies:
                 strategy.process_signal(pattern, pattern_match_idx)
 
-    def relevant_signal(self):
-        return True
 
     def evaluate(self):
         for strategy in self.individual_strategies:

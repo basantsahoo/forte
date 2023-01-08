@@ -7,9 +7,9 @@ import dynamics.patterns.utils as pattern_utils
 
 
 class DoubleTopBreakStrategy(DoubleTopStrategy):
-    def __init__(self, insight_book, pattern, order_type, exit_time, period, min_tpo=None, max_tpo=None, record_metric=True):
-        DoubleTopStrategy.__init__(self, insight_book, pattern, order_type, exit_time, period, min_tpo=min_tpo, max_tpo=max_tpo, record_metric=record_metric)
-        self.id = 'DTBRK' + "_" + order_type + "_" + str(period) + "_" + str(exit_time)
+    def __init__(self, insight_book, id=None, pattern="DT", order_type="SELL", exit_time=10, period=5, min_tpo=None, max_tpo=None, record_metric=True):
+        DoubleTopStrategy.__init__(self, insight_book, id, pattern, order_type, exit_time, period, min_tpo=min_tpo, max_tpo=max_tpo, record_metric=record_metric)
+        self.id = 'DTBRK' + "_" + order_type + "_" + str(period) + "_" + str(exit_time) if id is None else id
 
     def get_trades(self, pattern_match_prices, idx=1, curr_price=None,):
         highest_high_point = max(pattern_match_prices[1], pattern_match_prices[3])

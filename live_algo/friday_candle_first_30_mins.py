@@ -5,7 +5,7 @@ from statistics import mean
 import dynamics.patterns.utils as pattern_utils
 from helper.utils import get_broker_order_type
 from research.strategies.strat_mixin import PatternMetricRecordMixin
-from research.strategies.candle_pattern_strategy import CandlePatternStrategy
+from research.strategies.aggregators import CandlePatternStrategy
 
 class FridayCandleFirst30Buy(CandlePatternStrategy):
     def __init__(self, insight_book, pattern='CDLHIKKAKE', order_type="BUY", exit_time=10, period=5, trend=None, min_tpo=1, max_tpo=1, record_metric=True, triggers_per_signal=1, target_pct=0.002, stop_loss_pct=0.001):

@@ -131,7 +131,7 @@ class MarketActivity:
     def update_periodic(self):
         self.trend_features = {**self.trend_features, **self.insight_book.intraday_trend.trend_params}
 
-    def update_trend(self):
+    def update_sp_trend(self,trend):
         pass
 
     def locate_price_region(self, mins=15):

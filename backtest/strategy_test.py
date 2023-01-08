@@ -12,17 +12,15 @@ import traceback
 #from strategies_bkp.range_break_low_for_regression import RangeBreakDownStrategy
 
 from backtest.settings import reports_dir
-from research.strategies.candle_aggregator import CandleAggregator
-from research.strategies.price_action_aggregator import PatternAggregator
+from research.strategies.aggregators import CandleAggregator, PatternAggregator
 from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from research.strategies.state_cap_strategy import StateCapStrategy
 from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
-from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell, FridayCandleBuyFullDay
 
 from dynamics.profile.market_profile import HistMarketProfileService
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
-from infrastructure.arc.insight_mini import InsightBook
+from infrastructure.arc.insight import InsightBook
 from db.market_data import (get_all_days, get_daily_tick_data, prev_day_data, get_prev_week_candle, get_nth_day_profile_data)
 import helper.utils as helper_utils
 
@@ -51,6 +49,7 @@ class StartegyBackTester:
             story_book.pm = pm
             #story_book.profile_processor = processor
             for s_id in range(len(self.strat_config['strategies'])):
+                print('strategy=====', self.strat_config['strategies'][s_id])
                 strategy_class = eval(self.strat_config['strategies'][s_id])
                 strategy_kwargs = self.strat_config['strategy_kwargs'][s_id]
                 story_book.add_strategy(strategy_class, strategy_kwargs)

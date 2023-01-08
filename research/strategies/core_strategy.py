@@ -7,29 +7,51 @@ import dynamics.patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
 class BaseStrategy:
-    def __init__(self, insight_book=None, order_type="BUY", min_tpo=None, max_tpo=None, target_pct=0.002, stop_loss_pct=0.001, criteria=[]):
-        self.id = None
+    def __init__(self,
+                 insight_book=None,
+                 id=None,
+                 pattern=None,
+                 order_type="BUY",
+                 exit_time=10,
+                 period=5,
+                 trend=None,
+                 min_tpo=1,
+                 max_tpo=13,
+                 record_metric=True,
+                 triggers_per_signal=1,
+                 max_signal=1,
+                 target_pct=0.002,
+                 stop_loss_pct=0.001,
+                 weekdays_allowed=[],
+                 criteria=[]
+                 ):
+        self.id = id
         self.insight_book = insight_book
+        self.price_pattern = pattern
         self.order_type = order_type
+        self.exit_time = exit_time
+        self.period = period
+        self.trend = trend
         self.min_tpo = min_tpo
         self.max_tpo = max_tpo
+        self.record_metric = record_metric
+        self.triggers_per_signal = triggers_per_signal
+        self.max_signal = max_signal
+        self.target_pct = target_pct
+        self.stop_loss_pct = stop_loss_pct
+        self.criteria = criteria
+        self.weekdays_allowed = weekdays_allowed
+
         self.activated = True
-        self.price_pattern = None
-        self.max_orders = 1
-        self.force_exit = False
-        self.record_metric = False
         self.is_aggregator = False
+
         self.params_repo = {}
         self.signal_params = {} #self.strategy_params = {}
         self.last_match = None
         self.pending_signals = {}
         self.tradable_signals ={}
         self.minimum_quantity = 1
-        self.max_signals = 1
-        self.target_pct = target_pct
-        self.stop_loss_pct = stop_loss_pct
-        self.criteria = criteria
-        self.weekdays_allowed = []
+
 
     def set_up(self):
         week_day_criterion = (not self.weekdays_allowed) or datetime.strptime(self.insight_book.trade_day, '%Y-%m-%d').strftime('%A') in self.weekdays_allowed
@@ -37,22 +59,18 @@ class BaseStrategy:
         if not activation_criterion:
             self.deactivate()
 
-    def relevant_signal(self, pattern, pattern_match_idx):
-        return self.price_pattern == pattern
-
     """Deactivate when not required to run in a particular day"""
     def deactivate(self):
         self.activated = False
         self.insight_book.remove_strategy(self)
 
-    def th_time_lapsed_since_mkt_open(self, min):
-        time_lapsed = self.last_time - self.insight_book.ib_periods[0]
-        #print(time_lapsed)
-        return time_lapsed > min * 60
+    def time_lapsed_since_mkt_open(self):
+        time_lapsed = self.insight_book.last_tick['timestamp'] - self.insight_book.ib_periods[0]
+        return time_lapsed
 
-    def th_time_lapsed_since_trade_begin(self, min, trade_open_time):
-        time_lapsed = self.last_time - trade_open_time
-        return time_lapsed > min * 60
+    def time_lapsed_since_trade_begin(self, min, trade_open_time):
+        time_lapsed = self.insight_book.last_tick['timestamp'] - trade_open_time
+        return time_lapsed
 
     def target_achieved(self, trade_open_price, th):
         return (1 - self.ltp/trade_open_price) >= th
@@ -78,13 +96,6 @@ class BaseStrategy:
             #print(pivot_targets)
             return self.ltp < pivot_targets[th] * (1 + 0.001)
 
-    """ Every strategy should run in valid tpo"""
-    def valid_tpo(self):
-        current_tpo = self.insight_book.curr_tpo
-        min_tpo_met = self.min_tpo is None or current_tpo >= self.min_tpo
-        max_tpo_met = self.max_tpo is None or current_tpo <= self.max_tpo
-        return min_tpo_met and max_tpo_met
-
 
     def get_lowest_candle(self):
         lowest_candle = None
@@ -95,6 +106,27 @@ class BaseStrategy:
                 break
         return lowest_candle
 
+    def locate_point(self, df, threshold):
+        above = len(np.array(df.index[df.Close > threshold]))
+        below = len(np.array(df.index[df.Close <= threshold]))
+        pct = (1 - above / (above + below)) * 100
+        return pct
+        # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
+
+    def locate_price_region(self, mins=15):
+        ticks = list(self.insight_book.market_data.values())[-mins::]
+        candle_ohlc = [ticks[0]['open'], max([y['high'] for y in ticks]), min([y['low'] for y in ticks]), ticks[-1]['close']]
+        print('locate_price_region', candle_ohlc)
+
+    def relevant_signal(self, pattern, pattern_match_idx):
+        return self.price_pattern == pattern
+
+    """ Every strategy should run in valid tpo"""
+    def valid_tpo(self):
+        current_tpo = self.insight_book.curr_tpo
+        min_tpo_met = self.min_tpo is None or current_tpo >= self.min_tpo
+        max_tpo_met = self.max_tpo is None or current_tpo <= self.max_tpo
+        return min_tpo_met and max_tpo_met
 
     def trigger_entry(self, order_type, sig_key, triggers):
         #print(triggers)
@@ -143,9 +175,6 @@ class BaseStrategy:
         sig_key = self.add_new_signal()
         return sig_key
 
-    def initiate_signal_trades(self, sig_key):
-        pass
-
     def confirm_trigger(self, sig_key, triggers):
         curr_signal = self.tradable_signals[sig_key]
         for trigger in triggers:
@@ -163,10 +192,6 @@ class BaseStrategy:
         #total_quantity = sum([trig['quantity'] for trig in triggers])
         self.trigger_entry(self.order_type,sig_key,triggers)
 
-
-    def evaluate_signal(self, signal):
-        return False
-
     def process_signal(self, pattern, pattern_match_idx):
         if self.relevant_signal(pattern, pattern_match_idx):
             #print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()), "last tick===" , self.insight_book.last_tick['timestamp'])
@@ -174,6 +199,18 @@ class BaseStrategy:
             if signal_passed:
                 sig_key = self.add_tradable_signal(pattern_match_idx)
                 self.initiate_signal_trades(sig_key)
+
+    def evaluate_signal(self, signal):
+        return False
+
+    def check_non_pattern_signal(self):
+        return False
+    """will be used by strategy which doesnt have a pattern/trend signal"""
+    def process_non_pattern_signal(self):
+        signal_found = self.check_non_pattern_signal() #len(self.tradable_signals.keys()) < self.max_signals+5  #
+        if signal_found:
+            sig_key = self.add_tradable_signal(pattern_match_idx)
+            self.initiate_signal_trades(sig_key)
 
     def process_incomplete_signals(self):
         pass
@@ -219,18 +256,6 @@ class BaseStrategy:
             self.monitor_buy_positions()
         elif self.order_type == 'SELL':
             self.monitor_sell_positions()
-
-    def locate_point(self, df, threshold):
-        above = len(np.array(df.index[df.Close > threshold]))
-        below = len(np.array(df.index[df.Close <= threshold]))
-        pct = (1 - above / (above + below)) * 100
-        return pct
-        # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
-
-    def locate_price_region(self, mins=15):
-        ticks = list(self.insight_book.market_data.values())[-mins::]
-        candle_ohlc = [ticks[0]['open'], max([y['high'] for y in ticks]), min([y['low'] for y in ticks]), ticks[-1]['close']]
-        print('locate_price_region', candle_ohlc)
 
     def suitable_market_condition(self,matched_pattern):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time

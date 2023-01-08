@@ -8,9 +8,9 @@ import dynamics.patterns.utils as pattern_utils
 
 #Check 13 May last pattern again why it was not triggered
 class TrendStrategy(BaseStrategy):
-    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=None, max_tpo=None, record_metric=True):
-        BaseStrategy.__init__(self, insight_book, min_tpo, max_tpo)
-        self.id = pattern + "_" + str(period) + "_" + order_type + "_" + str(exit_time)
+    def __init__(self, insight_book, id, pattern, order_type, exit_time, period, trend=None, min_tpo=None, max_tpo=None, record_metric=True):
+        BaseStrategy.__init__(self, id, insight_book, min_tpo, max_tpo)
+        self.id = pattern + "_" + str(period) + "_" + order_type + "_" + str(exit_time) if id is None else id
         #print(self.id)
         self.price_pattern = pattern
         self.order_type = order_type

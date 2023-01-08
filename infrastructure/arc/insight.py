@@ -35,7 +35,6 @@ class InsightBook:
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
         self.activity_log = MarketActivity(self)
-		
         self.range = {'low': 99999999, 'high': 0}
         self.trade_day = trade_day
         self.market_data = OrderedDict()
@@ -209,15 +208,16 @@ class InsightBook:
             self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}})
 
     def pattern_signal(self, pattern, pattern_match_idx):
-        """
+        print("pattern_signal")
+
         if pattern != 'TREND':
             print('pattern_signal+++++++', pattern, pattern_match_idx)
-        """
+
         if pattern == 'TREND':
             #print('TREND+++++', pattern, pattern_match_idx)
-            self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}
-            print(self.market_insights)
-            self.activity_log.update_trend(pattern_match_idx['trend'])
+            #self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}
+            #print(self.market_insights)
+            self.activity_log.update_sp_trend(pattern_match_idx['trend'])
             for wave in pattern_match_idx['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
             #print(self.intraday_waves)

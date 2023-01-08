@@ -7,19 +7,11 @@ from helper.utils import get_broker_order_type
 from research.strategies.strat_mixin import PatternMetricRecordMixin
 
 class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
-    def __init__(self, insight_book, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=2, target=0.002, stop_loss=0.001, criteria=[]):
-        BaseStrategy.__init__(self, insight_book, order_type, min_tpo, max_tpo, target, stop_loss, criteria)
-        self.id = pattern + "_" + order_type + "_" + str(period) + "_" + str(exit_time)
+    def __init__(self, insight_book, id, pattern, order_type, exit_time, period, trend=None, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, target=0.002, stop_loss=0.001, weekdays_allowed=[], criteria=[]):
+        BaseStrategy.__init__(self, insight_book, id, pattern, order_type,exit_time, period,trend, min_tpo, max_tpo, record_metric, triggers_per_signal, max_signal, target, stop_loss, weekdays_allowed, criteria)
+        self.id = pattern + "_" + order_type + "_" + str(period) + "_" + str(exit_time) if id is None else id
         #print(self.id)
-        self.price_pattern = pattern
-        self.order_type = order_type
-        self.insight_book = insight_book
         self.last_match = None
-        self.exit_time = exit_time
-        self.period = period
-        self.record_metric = record_metric
-        self.trend = trend
-        self.triggers_per_signal = triggers_per_signal
 
     def relevant_signal(self, pattern, pattern_match_idx):
         return self.price_pattern == pattern and self.order_type == pattern_match_idx['direction'] and self.period == pattern_match_idx['period']
@@ -46,7 +38,6 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
     def suitable_market_condition(self,matched_pattern):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
-
         return enough_time and suitable_tpo and len(self.insight_book.market_data.items()) <= 30
 
 
@@ -60,7 +51,7 @@ class CandlePatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         self.trigger_entry(self.order_type, sig_key, triggers)
 
     def evaluate_signal(self, matched_pattern):
-        print('process_pattern_signal+++++++++++', matched_pattern)
+        #print('process_pattern_signal+++++++++++', matched_pattern)
         # looking for overlap in time
         """
         determine whether a new signal
