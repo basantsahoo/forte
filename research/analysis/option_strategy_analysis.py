@@ -8,10 +8,9 @@ from settings import reports_dir
 import matplotlib.pyplot as plt
 
 
-
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
-    df = pd.read_csv(reports_dir + 'Frid_NIFTY_2022-03-24_2021-07-15.csv')
+    df = pd.read_csv(reports_dir + 'test.csv')
     # 'Cand_NIFTY_2022-12-28_2022-08-03 copy.csv'
     return df
 
@@ -54,8 +53,8 @@ def plot_curve(df):
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    plt.plot(df.index, df['close'])
-    plt.ylabel('close price')
+    plt.plot(df.index, df['spot'])
+    plt.ylabel('spot price')
     plt.xlabel("day")
     plt.xticks(rotation=90)
     ax2 = ax.twinx()
@@ -69,14 +68,18 @@ def plot_curve(df):
     plt.text(0.01, 1.1, 'Max drawdown period = ' + str(drawdown[1]), transform=ax.transAxes)
     plt.show()
 
+    df['daily_return'] = df['spot'].pct_change()
+    correl = df[['daily_return', 'return']].corr(method='pearson')
+    print('correllation with index============', correl)
+
 
 def portfolio_performance(df):
     print('portfolio_performance=================================================')
-    df = df[['day', 'entry_price', 'realized_pnl']].copy()
-    df_1 = df.groupby(['day']).agg({'realized_pnl': ['sum'], 'entry_price':['mean']}).reset_index()
-    df_1.columns = ['day', 'realized_pnl', 'close']
+    df = df[['day', 'spot', 'entry_price', 'realized_pnl']].copy()
+    df_1 = df.groupby(['day']).agg({'realized_pnl': ['sum'], 'spot':['mean'], 'entry_price':['sum']}).reset_index()
+    df_1.columns = ['day', 'realized_pnl', 'spot', 'premium']
     df = df_1
-    df['return'] = df['realized_pnl'] / df['close']
+    df['return'] = df['realized_pnl'] / df['premium']
     df['cum_return'] = df['return'].cumsum()
     df['equity_curve'] = (1.0 + df['cum_return'])
     df.set_index('day', inplace=True)
@@ -91,6 +94,7 @@ def basic_statistics(df):
     print("Total no of days pattern matched ====", len(df['day'].unique()))
     print("Total no of  pattern matched ====", len(df['entry_time'].unique()))
     print("Trades per day", len(df['entry_time'].unique())/len(df['day'].unique()))
+    print("Premium earned", df['realized_pnl'].sum())
 
 def get_cleaned_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
@@ -137,11 +141,11 @@ def analysis(df):
     print('going to describe')
     descriptive_analysis.perform_analysis_strategies(df, 'realized_pnl', da_exclude_vars)
 
-    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time', 'trigger', 'side', ]
+    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time', 'trigger', 'side', 'instrument', 'strike' ,'kind']
     imp_features = ['week_day', 'candles_in_range',	'd_t_2_high',	'd_t_2_low',	'd_t_2_poc_price',	'd_t_2_va_h_p',	'd_t_2_va_l_p',	'd_y_high',	'd_y_low',	'd_y_poc_price',	'd_y_va_h_p',	'd_y_va_l_p',	'd2_ad_high',	'd2_ad_low',	'd2_ad_new_business_pressure',	'd2_ad_poc_price',	'd2_ad_resistance_pressure',	'd2_ad_retest_fract',	'd2_ad_support_pressure',	'd2_ad_type',	'd2_ad_va_h_p',	'd2_ad_va_l_p',	'd2_cd_close_rat',	'd2_cd_new_business_pressure',	'd2_cd_resistance_pressure',	'd2_cd_retest_fract',	'd2_cd_support_pressure',	'd2_cd_type',	'd2_gap',	'lc_dist_frm_level',	'lc_resistance_ind',	'lc_support_ind',	'lc_t_2_high',	'lc_t_2_low',	'lc_t_2_poc_price',	'lc_t_2_va_h_p',	'lc_t_2_va_l_p',	'lc_w_high',	'lc_w_low',	'lc_w_Pivot',	'lc_w_R1',	'lc_w_R2',	'lc_w_R3',	'lc_w_S1',	'lc_w_S2',	'lc_w_S3',	'lc_y_high',	'lc_y_low',	'lc_y_poc_price',	'lc_y_va_h_p',	'lc_y_va_l_p',	'open_type',	'pat_t_2_high',	'pat_t_2_low',	'pat_t_2_poc_price',	'pat_t_2_va_h_p',	'pat_t_2_va_l_p',	'pat_w_high',	'pat_w_low',	'pat_w_Pivot',	'pat_w_R1',	'pat_w_R2',	'pat_w_R3',	'pat_w_S1',	'pat_w_S2',	'pat_w_S3',	'pat_y_high',	'pat_y_low',	'pat_y_poc_price',	'pat_y_va_h_p',	'pat_y_va_l_p',	'strength']
     imp_features_2 = ['week_day', 'open_type', 'fifteen_min_trend',	'exp_c',	'five_min_trend',	'whole_day_trend',	'trend_auc',	'mu_0',	'exp_b',	'market_auc',	'lc_dist_frm_level',	'lin',	'mu_n',	'auc_del',	'quad',	'strength',	'quad_r2',	'lin_r2']
     imp_features_3 = ['week_day', 'open_type', 'exp_b', 'five_min_trend', 'lc_dist_frm_level', 'd2_ad_resistance_pressure', 'd2_ad_support_pressure', 'd2_cd_new_business_pressure']
-    strategies = ['CDLHIKKAKE_BUY_5_15'] #df['strategy'].unique()
+    strategies = ['OPTION_CHEAP_BUY'] #df['strategy'].unique()
     root_strategies = set([x.split("_")[0] for x in strategies])
     print('total patterns matched___', len(list(root_strategies)))
 
@@ -149,7 +153,11 @@ def analysis(df):
         print('classification for ================== ', strategy)
         # if strategy == 'CDLXSIDEGAP3METHODS_5_BUY_30':
         df_tmp = df[df['strategy'] == strategy]
-        df_tmp = df_tmp[imp_features_3 + ['realized_pnl']]
+       # df_tmp = df_tmp[df['money_ness'] != 'OTM7']
+        #df_tmp = df_tmp[df['money_ness'] != 'OTM6']
+        #df_tmp = df_tmp[df['money_ness'] == 'ATM0']
+        #print(df_tmp['money_ness'].unique())
+        #df_tmp = df_tmp[imp_features_3 + ['realized_pnl']]
         #print(df_tmp.columns.to_list())
         classifier_train.train(df_tmp, 'realized_pnl', non_features)
         """
@@ -203,24 +211,6 @@ def analysis(df):
         regression_train.train(df_tmp, 'realized_pnl', exclude_vars)
     """
 
-    # tier -1
-    # CDL3OUTSIDE_5_BUY_15 - 0.67
-    # CDL3OUTSIDE_5_BUY_20 - 0.71
-    # CDL3OUTSIDE_5_BUY_30 - 0.77
-    # CDL3OUTSIDE_5_SELL_20 - 0.73
-    # CDL3OUTSIDE_15_SELL_30 - 0.64
-    # CDLXSIDEGAP3METHODS_5_BUY_15 - 0.72
-    # CDLXSIDEGAP3METHODS_5_BUY_30 - 0.85
-
-    # tier -2
-    # CDLENGULFING_15_BUY_15 - 0.52
-    # CDLENGULFING_5_SELL_20 - 0.78
-    # CDLENGULFING_5_SELL_30 - 0.80
-    # CDL3OUTSIDE_5_SELL_30  - 0.73
-    # CDL3OUTSIDE_15_SELL_15 - 0.42
-    # CDL3OUTSIDE_15_BUY_10  - 0.42
-    # classifier_train.train(df, 'realized_pnl', exclude_vars)
-
 
 def run():
 
@@ -228,6 +218,6 @@ def run():
 
     df = get_cleaned_results()
     basic_statistics(df)
-    portfolio_performance(df)
-    #analysis(df)
+    #portfolio_performance(df)
+    analysis(df)
 

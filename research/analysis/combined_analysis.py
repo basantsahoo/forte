@@ -1,6 +1,6 @@
 #from strategies_bkp.sma_cross_over_buy import SMACrossBuy
 #from strategies_bkp.range_break import RangeBreakDownStrategy
-from backtest import strategy_back_tester
+#from backtest import strategy_back_tester
 from research.analysis import classifier_train
 from research.analysis import regression_train
 from research.analysis import descriptive_analysis
@@ -10,11 +10,6 @@ from settings import reports_dir
 import matplotlib.pyplot as plt
 
 
-def save_back_test_results():
-    # results = strategy_back_tester.test(strategy_class=SMACrossBuy, symbols=['NIFTY'],days=['2022-05-25'])
-    # results = strategy_back_tester.test(SMACrossBuy, ['NIFTY'], days=['2022-06-03'], for_past_days=300)
-    # pd.DataFrame(results).to_csv(reports_dir + 'SMACrossBuy_nifty_results.csv')
-    pass
 
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')

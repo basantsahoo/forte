@@ -17,7 +17,7 @@ from sklearn.preprocessing import LabelEncoder
 CAT_NUM_LABEL = []
 
 # Categorical variables with text label
-CAT_TXT_LABEL = ['week_day','open_type', 'strategy']
+CAT_TXT_LABEL = ['week_day','open_type', 'strategy', 'money_ness']
 
 # High dimensional categorical variables
 CAT_HIGH_DIM = []

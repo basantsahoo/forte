@@ -193,13 +193,25 @@ def train_decission_tree(x_input, y_input):
     return pipeline
 
 def pre_process(x_input):
+    """
+    If you get exception because of adding new categorical variable, check build feature that it's added as categorical
+    other wise variable will be processed as bot cat and numeric
+    :param x_input:
+    :return:
+    """
     open_type_order = ['GAP_UP','ABOVE_VA','INSIDE_VA','BELOW_VA','GAP_DOWN']
+    money_ness_order = ['OTM7', 'OTM6', 'OTM5', 'OTM4', 'OTM3', 'OTM2', 'OTM1', 'ATM0', 'ITM1', 'ITM2', 'ITM3','ITM4']
+    money_ness_order = ['OTM_7', 'OTM_6', 'OTM_5', 'OTM_4', 'OTM_3', 'OTM_2', 'OTM_1', 'ATM_0', 'ITM_1', 'ITM_2', 'ITM_3','ITM_4']
+
     #x_input['open_type'] = ordinal_encoder(categories=[open_type_order]).fit_transform(x_input['open_type'])
     cat_transformer = make_column_transformer(
         (OrdinalEncoder(categories=[open_type_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['open_type']),
+        (OrdinalEncoder(categories=[money_ness_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['money_ness']),
         (OneHotEncoder(), ['week_day']),
+        #(OneHotEncoder(), ['money_ness']),
         remainder="drop"
     )
+
     """
         feature_union = FeatureUnion(transformer_list=[
         ('open_type', make_pipeline(Columns(names==['open_type']),OrdinalEncoder(categories=[open_type_order], handle_unknown="use_encoded_value", unknown_value=np.nan))),
@@ -210,7 +222,6 @@ def pre_process(x_input):
     feature_union = FeatureUnion(transformer_list=[
         ('numprocessor', NumericProcessor()),
         ('open_type', cat_transformer),
-
     ])
     preprocessor = Pipeline([('union', feature_union)])
     X = preprocessor.fit_transform(x_input)
@@ -257,10 +268,13 @@ def train(data_set, target, exclude_variables=[]):
     data_set[target] = data_set[target].apply(lambda x : int(x > 0))
     y_input = data_set[target]
     x_input = data_set.drop(target, axis=1)
-    cols = ['week_day','open_type','tpo','first_hour_trend','whole_day_trend','candles_in_range']
     cols =  [x for x in x_input.columns if x not in exclude_variables]
     x_input = x_input[cols]
-    X_train, X_test, y_train, y_test = train_test_split(x_input, y_input, test_size=0.33, random_state=42)
+    train_size = int(x_input.shape[0] * 0.66)
+    X_train, X_test = x_input[0:train_size], x_input[train_size:x_input.shape[0]]
+    y_train, y_test = y_input[0:train_size], y_input[train_size:len(y_input)]
+
+    #X_train, X_test, y_train, y_test = train_test_split(x_input, y_input, test_size=0.33, random_state=42)
 
     #evaluate_features(X_train, y_train)
     model = train_et_bs_model(X_train, y_train)

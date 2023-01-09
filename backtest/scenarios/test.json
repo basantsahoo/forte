@@ -6,10 +6,10 @@
     {}
   ],
   "test_days": [],
-  "for_past_days": 7,
+  "for_past_days": 150,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-30",
   "candle_sw" : 0,
-  "week_days": ["Friday"],
+  "week_days": [],
   "record_metric": true
 }

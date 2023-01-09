@@ -5,11 +5,12 @@ sys.path.insert(1, project_path)
 #from research.analysis import strategy_analysis
 from research.analysis import strategy_analysis_revised
 from research.analysis import candle_strategy_analysis
+from research.analysis import option_strategy_analysis
 from research.analysis import combined_analysis
 from research.analysis import visualize_pattern
 #strategy_analysis_revised.run()
 #combined_analysis.run()
-candle_strategy_analysis.run()
+option_strategy_analysis.run()
 
 
 
