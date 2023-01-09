@@ -73,7 +73,9 @@ def plot_curve(df):
     print('correllation with index============', correl)
 
 
-def portfolio_performance(df):
+def portfolio_performance(df, filter={}):
+    for key, value in filter.items():
+        df = df[df[key] == value]
     print('portfolio_performance=================================================')
     df = df[['day', 'spot', 'entry_price', 'realized_pnl']].copy()
     df_1 = df.groupby(['day']).agg({'realized_pnl': ['sum'], 'spot':['mean'], 'entry_price':['sum']}).reset_index()
@@ -99,18 +101,22 @@ def basic_statistics(df):
 def get_cleaned_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     df = load_back_test_results()
-    drop_cols = ['exit_time', 'exit_price', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type', 'closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
+    df['realized_pnl'] = df['realized_pnl'] + df['un_realized_pnl']
+    df['target_pct'] = df['target']/df['entry_price'] -1
+    df['pnl_pct'] = df['realized_pnl'] / df['entry_price']
+    df['stop_loss_pct'] = 1 - df['stop_loss'] / df['entry_price']
+    print(df['target_pct'])
+
+    drop_cols = ['entry_price', 'exit_time', 'exit_price','un_realized_pnl', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type', 'closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
     for col in drop_cols:
         try:
             df.drop(col, axis=1, inplace=True)
         except:
             pass
-    df['realized_pnl'] = df['realized_pnl'] + df['un_realized_pnl']
-    del df['un_realized_pnl']
     print('Basic analysis of P & L by trigger ====================================')
     print(df.groupby(['strategy', 'trigger']).agg({'realized_pnl': ['count', 'mean', 'min', 'max']}))
 
-    df['trigger'] = df['trigger'].apply(lambda x: 1 if x == 2 else x)
+    #df['trigger'] = df['trigger'].apply(lambda x: 1 if x == 2 else x)
     common_cols = ['day', 'symbol', 'strategy', 'signal_id', 'trigger', 'entry_time']
     df_1_cols = ['realized_pnl']
     df_1 = df[common_cols + df_1_cols]
@@ -121,10 +127,11 @@ def get_cleaned_results():
     df_2 = df[common_cols + df_2_cols]
 
     df_2.drop_duplicates(inplace=True)
-
-    #print(df_2.shape)
+    print(df.shape)
+    print(df_2.shape)
     #print(df_1.shape)
     final_df = pd.merge(df_1, df_2, how='left', left_on=common_cols, right_on=common_cols)
+    #print(final_df.columns.to_list())
     #print(final_df.shape)
     #print(final_df.tail().T.to_string())
 
@@ -137,11 +144,13 @@ def analysis(df):
     #df['infl_dir'] = df['infl_dir'].apply(lambda x: int(x > 0))
     # 'resistance_ind',	'support_ind'
 
-    da_exclude_vars = ['day', 'symbol', 'signal_id', 'trigger', 'entry_time', 'infl_0', 'infl_n', 'entry_price', ]
+    da_exclude_vars = ['symbol', 'signal_id', 'trigger', 'entry_time', 'infl_0', 'infl_n', 'entry_price', ]
     print('going to describe')
-    descriptive_analysis.perform_analysis_strategies(df, 'realized_pnl', da_exclude_vars)
-
-    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time', 'trigger', 'side', 'instrument', 'strike' ,'kind']
+    train_size = int(df.shape[0] * 0.66)
+    df_train = df[0:train_size]
+    descriptive_analysis.perform_analysis_strategies(df_train, 'pnl_pct', da_exclude_vars)
+    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time', 'trigger', 'side', 'instrument', 'strike']
+    imp_features1 = ['week_day', 'money_ness', 'tpo','open_type', 'strength', 'd2_cd_new_business_pressure', 'd2_cd_support_pressure', 'lc_dist_frm_level', 'total_energy', 'five_min_trend', 'dynamic_ratio' , 'total_energy_pyr',	'kind',	'd_en_ht',	'total_energy_ht']
     imp_features = ['week_day', 'candles_in_range',	'd_t_2_high',	'd_t_2_low',	'd_t_2_poc_price',	'd_t_2_va_h_p',	'd_t_2_va_l_p',	'd_y_high',	'd_y_low',	'd_y_poc_price',	'd_y_va_h_p',	'd_y_va_l_p',	'd2_ad_high',	'd2_ad_low',	'd2_ad_new_business_pressure',	'd2_ad_poc_price',	'd2_ad_resistance_pressure',	'd2_ad_retest_fract',	'd2_ad_support_pressure',	'd2_ad_type',	'd2_ad_va_h_p',	'd2_ad_va_l_p',	'd2_cd_close_rat',	'd2_cd_new_business_pressure',	'd2_cd_resistance_pressure',	'd2_cd_retest_fract',	'd2_cd_support_pressure',	'd2_cd_type',	'd2_gap',	'lc_dist_frm_level',	'lc_resistance_ind',	'lc_support_ind',	'lc_t_2_high',	'lc_t_2_low',	'lc_t_2_poc_price',	'lc_t_2_va_h_p',	'lc_t_2_va_l_p',	'lc_w_high',	'lc_w_low',	'lc_w_Pivot',	'lc_w_R1',	'lc_w_R2',	'lc_w_R3',	'lc_w_S1',	'lc_w_S2',	'lc_w_S3',	'lc_y_high',	'lc_y_low',	'lc_y_poc_price',	'lc_y_va_h_p',	'lc_y_va_l_p',	'open_type',	'pat_t_2_high',	'pat_t_2_low',	'pat_t_2_poc_price',	'pat_t_2_va_h_p',	'pat_t_2_va_l_p',	'pat_w_high',	'pat_w_low',	'pat_w_Pivot',	'pat_w_R1',	'pat_w_R2',	'pat_w_R3',	'pat_w_S1',	'pat_w_S2',	'pat_w_S3',	'pat_y_high',	'pat_y_low',	'pat_y_poc_price',	'pat_y_va_h_p',	'pat_y_va_l_p',	'strength']
     imp_features_2 = ['week_day', 'open_type', 'fifteen_min_trend',	'exp_c',	'five_min_trend',	'whole_day_trend',	'trend_auc',	'mu_0',	'exp_b',	'market_auc',	'lc_dist_frm_level',	'lin',	'mu_n',	'auc_del',	'quad',	'strength',	'quad_r2',	'lin_r2']
     imp_features_3 = ['week_day', 'open_type', 'exp_b', 'five_min_trend', 'lc_dist_frm_level', 'd2_ad_resistance_pressure', 'd2_ad_support_pressure', 'd2_cd_new_business_pressure']
@@ -151,15 +160,13 @@ def analysis(df):
 
     for strategy in strategies:
         print('classification for ================== ', strategy)
+        """ -- uncomment this block
         # if strategy == 'CDLXSIDEGAP3METHODS_5_BUY_30':
         df_tmp = df[df['strategy'] == strategy]
-       # df_tmp = df_tmp[df['money_ness'] != 'OTM7']
-        #df_tmp = df_tmp[df['money_ness'] != 'OTM6']
-        #df_tmp = df_tmp[df['money_ness'] == 'ATM0']
-        #print(df_tmp['money_ness'].unique())
-        #df_tmp = df_tmp[imp_features_3 + ['realized_pnl']]
+        df_tmp = df_tmp[imp_features1 + ['realized_pnl']]
         #print(df_tmp.columns.to_list())
         classifier_train.train(df_tmp, 'realized_pnl', non_features)
+        """
         """
         ds_variable = imp_vars + ['realized_pnl']
         print(ds_variable)
@@ -211,13 +218,66 @@ def analysis(df):
         regression_train.train(df_tmp, 'realized_pnl', exclude_vars)
     """
 
-
+    """
+    tpo : 8, 9, 10
+    ABOVE_VA, BELOW_VA
+    
+    scen 1 : Monday, ABOVE_VA , (tpo 10 , call, srrength 50% looks better)
+    scen 2 : Tuesday, BELOW_VA,INSIDE_VA , (tpo 9/10 , call,ITM_1 to 4, strength 40-50% looks better, strength 60% best no loss)
+    scen 3 : Wednesday, ABOVE_VA,BELOW_VA,GAP_DOWN (tpo 1,2 & 8,9,10,11 , call/Put,ITM_1 to 3, & OTM 1,2 strength above 30% looks better)
+    scen 4 : Thursday not good day
+    Scen 5 : Friday, ABOVE_VA, tpo 1, PE, moneyness - doesn't look good strength also doesn't differentiate 
+    
+    wednesday looks best so far
+    
+    CE, BELOW_VA looks better
+    PE, Wednesday, Friday, ABOVE_VA, tpo - 7 to 11 OTM-3 to ITM 3 looks fine strength 20-40 looks better >50 doesnt trade
+    
+    Open type
+    =========
+    Above VA (best) strength 20-30 % any moneyness , days other than Thursday, favours puts buys, tpo 8/9/10
+    GAP UP DAYS are not good for buying 
+    INSIDE VA tpo 10,11 Tuesday < 50% 
+    INSIDE VA THURSDAY good for selling
+    INSIDE VA > 50% good for selling 
+    BELOW VA Wednesday best for buying , tpo 1, 3-6  CE, PE both , All moneyness strength 20% - 50% but % days very less
+    GAP DOWN, Wednesday and Friday, tpo  3 -9 , CE , ITM 1- 3
+    
+    TPO
+    ======
+    1. Thursday good for selling (lot of trades)
+    1. BELOW_VA good for buying,  20-50% good for selling analyse this again
+    2. Very good for selling 
+    3. Monday, Tuesday, Wednesday good for buying any open other than inside va, any moneyness, strength 30-40%
+    4. Almost similar to 3 slight diff and less accurate 
+    5. ignore
+    6. more than 40% good for sell
+    7. decent but very less return
+    8. Monday and Gapup 
+    9. other than Friday
+    10. other than Friday ABOVE_VA, INSIDE_VA
+    11. Other than Friday, ABOVE_VA, Inside VA OTMS
+    
+    Moneyness (This definition is not correct as they are determined by variable spot) we need to keep the fixed spot
+    =========
+    ITM_1 : Wednesday tpo 8-10
+    ITM_2 : Wednesday tpo 2-5, strength 20-30
+    
+    Strength 
+    ========
+    20% : ABOVE_VA, BELOW VA, 6-10
+    30% : Tuesday, Wednesday ABOVE_VA, BELOW_VA, 3-6
+    40% : Tuesday, Wednesday BELOW_VA, 3-6
+    50% : Thurday good for selling,  Monday Tuesday, Wednesday good for buying , BELOW_VA, 
+    60% : ABOVE_VA, 
+     
+    """
 def run():
 
     #save_back_test_results()
 
     df = get_cleaned_results()
-    basic_statistics(df)
-    #portfolio_performance(df)
+    #basic_statistics(df)
+    #portfolio_performance(df, filter={})
     analysis(df)
 

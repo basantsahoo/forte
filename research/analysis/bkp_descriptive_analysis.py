@@ -47,10 +47,7 @@ def add_text_page(report, txt):
     report.savefig()
     plt.close()
 
-def group_wise_summary(report, df_i,target, grp, filter={}):
-    for key, value in filter.items():
-        df_i = df_i[df_i[key] == value]
-
+def group_wise_summary(report, df_i,target, grp):
     day_wise_df = df_i.groupby([grp]).agg({target: ['count', 'mean', 'min', 'max']})
     # day_wise_df = df_i.groupby(['strategy', 'support_ind',]).agg({target: ['count', 'mean', 'min', 'max']})
     day_wise_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
@@ -66,13 +63,8 @@ def group_wise_summary(report, df_i,target, grp, filter={}):
     plot_table(report, day_wise_df)
 
 
-def add_strategy_details(report, df_i, target,filter={}):
-    total_days = len(df_i['day'].unique())
-    for key, value in filter.items():
-        df_i = df_i[df_i[key] == value]
-
+def add_strategy_details(report, df_i):
     strategy = df_i['strategy'].to_list()[0]
-    no_of_days = len(df_i['day'].unique())
     winning_trades = df_i[df_i[target] > 0]
     losing_trades = df_i[df_i[target] < 0]
     winning_count = df_i[df_i[target] > 0][target].count()
@@ -80,13 +72,11 @@ def add_strategy_details(report, df_i, target,filter={}):
     losing_count = df_i[df_i[target] < 0][target].count()
     losing_avg = round(df_i[df_i[target] < 0][target].mean(), 2)
     winning_pct = round(winning_trades.shape[0] / (winning_trades.shape[0] + losing_trades.shape[0]) * 100, 1)
-    days_for_scen = round(no_of_days / total_days * 100, 2)
     print('winning trade count', df_i[df_i[target] > 0][target].count())
     print('winning trade avg', round(df_i[df_i[target] > 0][target].mean(), 2))
-    print('losing trade count', df_i[df_i[target] < 0][target].count())
-    print('losing trade avg', round(df_i[df_i[target] < 0][target].mean(), 2))
+    print('losing trade count', df_i[df_i['realized_pnl'] < 0][target].count())
+    print('losing trade avg', round(df_i[df_i['realized_pnl'] < 0]['target'].mean(), 2))
     print('percentage winning trade', str(winning_pct) + "%")
-    print('percentage days for scenario', str(days_for_scen) + "%")
 
     txt_d = 'Details of strategy ' + strategy
     firstPage = plt.figure(figsize=(11.69, 8.27))
@@ -105,9 +95,6 @@ def add_strategy_details(report, df_i, target,filter={}):
     firstPage.text(0.4, 0.4, 'percentage winning trade = ' + str(winning_pct) + "%", transform=firstPage.transFigure, size=15,
                    ha="center")
 
-    firstPage.text(0.4, 0.3, 'percentage days for scenario = ' + str(days_for_scen) + "%", transform=firstPage.transFigure,
-                   size=15,
-                   ha="center")
     report.savefig()
     plt.close()
 
@@ -214,54 +201,40 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 txt = 'Analysis of  strategy ' + strategy
                 add_text_page(report, txt)
                 df_i = data_set[data_set['strategy'] == strategy]
-                """
                 group_wise_summary(report, df_i, target, 'week_day')
                 group_wise_summary(report, df_i, target, 'open_type')
                 group_wise_summary(report, df_i, target, 'tpo')
-                group_wise_summary(report, df_i, target, 'kind')
-                group_wise_summary(report, df_i, target, 'money_ness')
-                group_wise_summary(report, df_i, target, 'strength')
-                """
-                filter = {'strength': 60}
-                group_wise_summary(report, df_i, target, 'week_day', filter=filter)
-                group_wise_summary(report, df_i, target, 'open_type', filter=filter)
-                group_wise_summary(report, df_i, target, 'tpo', filter=filter)
-                group_wise_summary(report, df_i, target, 'kind', filter=filter)
-                group_wise_summary(report, df_i, target, 'money_ness', filter=filter)
-                group_wise_summary(report, df_i, target, 'strength', filter=filter)
+                add_strategy_details(report,df_i)
 
-                add_strategy_details(report,df_i,target,filter=filter)
+                box_plot(report, df_i, 'realized_pnl')
+                plot_histogram(report, df_i, 'realized_pnl')
+                box_plot_by_group(report, df_i, 'realized_pnl', 'week_day')
+                box_plot_by_group(report, df_i, 'realized_pnl', 'open_type')
+                box_plot_by_group(report, df_i, 'realized_pnl', 'tpo')
                 """
-                box_plot(report, df_i, target)
-                plot_histogram(report, df_i, target)
-                box_plot_by_group(report, df_i, target, 'week_day')
-                box_plot_by_group(report, df_i, target, 'open_type')
-                box_plot_by_group(report, df_i, target, 'tpo')
-                """
-                """
-                plot_histogram(report, df_i, target, filter={'week_day': 'Monday'})
-                plot_histogram(report, df_i, target, filter={'week_day': 'Tuesday'})
-                plot_histogram(report, df_i, target, filter={'week_day': 'Wednesday'})
-                plot_histogram(report, df_i, target, filter={'week_day': 'Thursday'})
-                plot_histogram(report, df_i, target, filter={'week_day': 'Friday'})
+                plot_histogram(report, df_i, 'realized_pnl', filter={'week_day': 'Monday'})
+                plot_histogram(report, df_i, 'realized_pnl', filter={'week_day': 'Tuesday'})
+                plot_histogram(report, df_i, 'realized_pnl', filter={'week_day': 'Wednesday'})
+                plot_histogram(report, df_i, 'realized_pnl', filter={'week_day': 'Thursday'})
+                plot_histogram(report, df_i, 'realized_pnl', filter={'week_day': 'Friday'})
                 box_plot(report, df_i, 'dist_frm_level')
-                plot_scatter(report, df_i, 'dist_frm_level', target, 1)
-                plot_scatter(report, df_i, 'dist_frm_level', target, 1, filter={'week_day': 'Monday'})
-                plot_scatter(report, df_i, 'dist_frm_level', target, 1, filter={'week_day': 'Tuesday'})
-                plot_scatter(report, df_i, 'dist_frm_level', target, 1, filter={'week_day': 'Wednesday'})
-                plot_scatter(report, df_i, 'dist_frm_level', target, 1, filter={'week_day': 'Thursday'})
-                plot_scatter(report, df_i, 'dist_frm_level', target, 1, filter={'week_day': 'Friday'})
+                plot_scatter(report, df_i, 'dist_frm_level', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'dist_frm_level', 'realized_pnl', 1, filter={'week_day': 'Monday'})
+                plot_scatter(report, df_i, 'dist_frm_level', 'realized_pnl', 1, filter={'week_day': 'Tuesday'})
+                plot_scatter(report, df_i, 'dist_frm_level', 'realized_pnl', 1, filter={'week_day': 'Wednesday'})
+                plot_scatter(report, df_i, 'dist_frm_level', 'realized_pnl', 1, filter={'week_day': 'Thursday'})
+                plot_scatter(report, df_i, 'dist_frm_level', 'realized_pnl', 1, filter={'week_day': 'Friday'})
                 """
                 """
-                plot_scatter(report, df_i, 'static_ratio', target, 1)
-                plot_scatter(report, df_i, 'd_en_pyr', target, 1)
-                plot_scatter(report, df_i, 'candles_in_range', target, 1)
-                plot_scatter(report, df_i, 'dist_frm_level', target, 1)
-                plot_scatter(report, df_i, 'support_ind', target, 1)
-                plot_scatter(report, df_i, 'y_low', target, 1)
-                plot_scatter(report, df_i, 'y_va_h_p', target', 1)
-                plot_scatter(report, df_i, 'y_va_l_p', target, 1)
-                plot_scatter(report, df_i, 'y_poc_price', target, 1)
+                plot_scatter(report, df_i, 'static_ratio', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'd_en_pyr', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'candles_in_range', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'dist_frm_level', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'support_ind', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'y_low', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'y_va_h_p', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'y_va_l_p', 'realized_pnl', 1)
+                plot_scatter(report, df_i, 'y_poc_price', 'realized_pnl', 1)
                 """
                 x = ['static_ratio', 'd_en_pyr', 'candles_in_range', 'dist_frm_level',
                'support_ind', 'y_low', 'y_va_h_p', 'y_va_l_p', 'y_poc_price',
@@ -271,7 +244,7 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 """
                 for col in x:
                     df_t = df_i.dropna(subset=[col])
-                    plot_scatter(report, df_t, col, target, 1)
+                    plot_scatter(report, df_t, col, 'realized_pnl', 1)
                 """
                 #print(day_wise_df[day_wise_df['support_ind']==0].to_string())
 

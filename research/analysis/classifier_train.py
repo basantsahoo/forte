@@ -171,7 +171,7 @@ def train_et_bs_model(x_input, y_input):
 
 def train_svc_model(x_input, y_input):
     pre_processed_x = pre_process(x_input)
-    pipeline = Pipeline([('clf', SVC(kernel="poly", C=10, gamma=0.05))])
+    pipeline = Pipeline([('clf', SVC(kernel="rbf", C=10))])
     pipeline.fit(pre_processed_x, y_input)
 
     return pipeline
@@ -208,6 +208,7 @@ def pre_process(x_input):
         (OrdinalEncoder(categories=[open_type_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['open_type']),
         (OrdinalEncoder(categories=[money_ness_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['money_ness']),
         (OneHotEncoder(), ['week_day']),
+        (OneHotEncoder(), ['kind']),
         #(OneHotEncoder(), ['money_ness']),
         remainder="drop"
     )
@@ -277,6 +278,7 @@ def train(data_set, target, exclude_variables=[]):
     #X_train, X_test, y_train, y_test = train_test_split(x_input, y_input, test_size=0.33, random_state=42)
 
     #evaluate_features(X_train, y_train)
+    #model = train_svc_model(X_train, y_train)
     model = train_et_bs_model(X_train, y_train)
     print_measures(model,X_test, y_test)
 
