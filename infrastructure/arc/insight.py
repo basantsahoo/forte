@@ -23,6 +23,7 @@ from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.point_to_point_mc import MarkovChainPointToPoint
 from dynamics.transition.empirical import EmpiricalDistribution
 from infrastructure.arc.market_activity import MarketActivity
+from infrastructure.arc.intraday_option_processor import IntradayOptionProcessor
 
 class InsightBook:
     def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
@@ -31,6 +32,7 @@ class InsightBook:
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
        # self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
         self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw)]
+        self.option_processor = IntradayOptionProcessor(self, ticker)
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
@@ -192,7 +194,16 @@ class InsightBook:
         #self.activity_log.process()
 
         for strategy in self.strategies:
+            strategy.process_custom_signal()
             strategy.evaluate()
+
+    def option_input_stream(self, option_data_list):
+        #print('price_input_stream+++++ insight book')
+        epoch_tick_time = option_data_list[0]['timestamp']
+        epoch_minute = int(epoch_tick_time // 60 * 60) + 1
+        if not self.day_setup_done:
+            self.set_trade_date_from_time(epoch_tick_time)
+        self.option_processor.process_input_stream(option_data_list)
 
     def update_state_transition(self):
         last_state = self.state_generator.curr_state
@@ -208,6 +219,10 @@ class InsightBook:
             self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}})
 
     def pattern_signal(self, pattern, pattern_match_idx):
+        """
+        if pattern == 'OPTION_PRICE_DROP':
+            print('pattern_signal+++++++', pattern, pattern_match_idx)
+        """
         """
         if pattern == 'DT':
             print('pattern_signal+++++++', pattern, pattern_match_idx)

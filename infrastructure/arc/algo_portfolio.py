@@ -31,20 +31,6 @@ class AlgoPortfolioManager:
         pass
         #self.set_dummy_broker()
 
-    def option_price_input(self, input):
-        for item in input:
-            self.atm_options[item[0]] = {'strike': item[1], 'price':item[2], 'spot': item[3], 'expiry': item[4]}
-
-    def get_optimal_order_info(self, underlying, side, qty):
-        index = root_symbol(underlying)
-        lot_size = get_lot_size(index)
-        key = index + "_" + get_instr_type(side)
-        instrument = self.atm_options[key]
-        instrument['underlying'] = index
-        instrument['type'] = get_instr_type(side)
-        instrument['qty'] = qty * lot_size
-        return instrument
-
     def price_input(self, input):
         #print('price input', input)
         self.ltps[input['symbol']] = input['close']
@@ -52,23 +38,34 @@ class AlgoPortfolioManager:
         self.evaluate_risk()
         self.monitor_position()
 
+    def option_price_input(self, option_data_list):
+        for option_data in option_data_list:
+            ts = option_data['timestamp']
+            option_recs = option_data['records']
+            for instrument, data in option_recs.items():
+                symbol = option_data['symbol'] + "_" + instrument
+                self.last_times[symbol] = ts
+                self.ltps[symbol] = data['close']
+        self.evaluate_risk()
+        self.monitor_position()
+
     def monitor_position(self):
         pass
 
-    def place_oms_entry_order(self, strategy_id, symbol, order_side,order_id, qty=1):
+    def place_oms_entry_order(self, strategy_id, symbol, order_side,order_id, qty, option_signal):
         #print('going to place place_oms_entry_order', strategy_id, symbol, order_side,order_id,qty)
         qty = abs(qty)
         if self.data_interface is not None:
-            self.data_interface.place_entry_order(symbol, order_side, qty, strategy_id, order_id, 'MARKET')
+            self.data_interface.place_entry_order(symbol, order_side, qty, strategy_id, order_id, 'MARKET', option_signal)
 
-    def place_oms_exit_order(self, strategy_id, symbol, order_side, order_id, qty=1):
+    def place_oms_exit_order(self, strategy_id, symbol, order_side, order_id, qty, option_signal):
         #print('going to place place_oms_exit_order', strategy_id, symbol, order_side, order_id,qty)
         qty = abs(qty)
         if self.data_interface is not None:
-            self.data_interface.place_exit_order(symbol, order_side, qty, strategy_id, order_id, 'MARKET')
+            self.data_interface.place_exit_order(symbol, order_side, qty, strategy_id, order_id, 'MARKET', option_signal)
 
 
-    def strategy_entry_signal(self, signal_info):
+    def strategy_entry_signal(self, signal_info, option_signal=False):
         print('algo port strategy_entry_signal')
         print(signal_info)
 
@@ -80,7 +77,7 @@ class AlgoPortfolioManager:
         self.executed_orders += 1
         order_id = 'AL' + str(self.executed_orders)
         side = get_broker_order_type(order_type)
-        self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity)
+        self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity, option_signal)
         #print('strategy_entry_signal')
         #print(symbol, id, trigger_id,  order_type, qty)
 
@@ -102,7 +99,7 @@ class AlgoPortfolioManager:
                     self.dummy_broker.place_order(strategy_id, signal_id, trigger_seq, symbol, side, self.ltps[symbol], qty, trade_date, order_time)
 
 
-    def strategy_exit_signal(self, signal_info, candle=None):
+    def strategy_exit_signal(self, signal_info, candle=None, option_signal=False):
         symbol = signal_info['symbol']
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
@@ -129,7 +126,7 @@ class AlgoPortfolioManager:
             self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]['exit_time'] = l_time
             self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]['exit_price'] = l_price
             if candle is None:
-                self.place_oms_exit_order(strategy_id, symbol, exit_order_type, order_id, qty)
+                self.place_oms_exit_order(strategy_id, symbol, exit_order_type, order_id, qty, option_signal)
             if self.dummy_broker is not None:
                 self.dummy_broker.place_order(strategy_id, signal_id, trigger_seq, symbol, exit_order_type, l_price, qty, trade_date, order_time)
 

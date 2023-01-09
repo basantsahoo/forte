@@ -188,7 +188,8 @@ class MarketActivity:
         mkt_parms = {}
         mkt_parms['open_type'] = self.open_type
         mkt_parms['tpo'] = self.insight_book.curr_tpo
-        mkt_parms['candles_in_range'] = round(self.insight_book.intraday_trend.candles_in_range,2)
+        mkt_parms['spot'] = self.insight_book.last_tick['close']
+        mkt_parms['candles_in_range'] = round(self.insight_book.intraday_trend.candles_in_range, 2)
         mkt_parms = {**mkt_parms, **self.trend_features}
         mkt_parms = {**mkt_parms, **self.lc_features}
         mkt_parms = {**mkt_parms, **self.get_day_features()}

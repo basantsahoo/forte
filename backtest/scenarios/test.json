@@ -1,5 +1,5 @@
 {
-  "strategies":["FridayCandleBuyFullDay", "FridayCandleFirst30Buy", "FridayCandleFirst30Sell"],
+  "strategies":["OptionHeavySellStrategy"],
   "strategy_kwargs":[
     {},
     {},

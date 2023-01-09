@@ -12,6 +12,14 @@ class PatternMetricRecordMixin:
             self.signal_params['pattern_time'] = [matched_pattern['time']]
             self.signal_params['pattern_price'] = [matched_pattern['candle']]
             self.signal_params['strength'] = matched_pattern['strength']
+
+            if 'strike' in matched_pattern:
+                self.signal_params['strike'] = matched_pattern['strike']
+            if 'kind' in matched_pattern:
+                self.signal_params['kind'] = matched_pattern['kind']
+            if 'money_ness' in matched_pattern:
+                self.signal_params['money_ness'] = matched_pattern['money_ness']
+
             #self.signal_params['pattern_location'] = pattern_location
             price_region = self.insight_book.activity_log.locate_price_region()
             for key, val in price_region.items():
@@ -23,3 +31,15 @@ class PatternMetricRecordMixin:
             for key in keys:
                 self.signal_params['lw_' + key] = last_wave[key]
             """
+
+
+class OptionMetricRecordMixin:
+    def __init__(self, record_metric):
+        self.record_metric = record_metric
+
+    def record_params(self, matched_pattern):
+        if self.record_metric:
+            self.signal_params['pattern_time'] = [matched_pattern['time']]
+            self.signal_params['pattern_price'] = [matched_pattern['candle']]
+            self.signal_params['strength'] = matched_pattern['strength']
+

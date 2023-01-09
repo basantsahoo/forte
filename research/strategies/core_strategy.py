@@ -120,6 +120,7 @@ class BaseStrategy:
         # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
 
     def relevant_signal(self, pattern, pattern_match_idx):
+        #print('relevant_signal' , self.price_pattern , pattern)
         return self.price_pattern == pattern
 
     """ Every strategy should run in valid tpo"""
@@ -208,11 +209,11 @@ class BaseStrategy:
     def evaluate_signal(self, signal):
         return False
 
-    def caclulate_custom_signal(self):
+    def calculate_custom_signal(self):
         return False
     """will be used by strategy which doesnt have a pattern/trend signal"""
     def process_custom_signal(self):
-        signal_found = self.caclulate_custom_signal() #len(self.tradable_signals.keys()) < self.max_signals+5  #
+        signal_found = self.calculate_custom_signal() #len(self.tradable_signals.keys()) < self.max_signals+5  #
         if signal_found:
             sig_key = self.add_tradable_signal(pattern_match_idx)
             self.initiate_signal_trades(sig_key)

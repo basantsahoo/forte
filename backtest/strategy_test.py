@@ -17,7 +17,7 @@ from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from research.strategies.state_cap_strategy import StateCapStrategy
 from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
 from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell, FridayCandleBuyFullDay
-
+from research.strategies.option_heavy_sell import OptionHeavySellStrategy
 from dynamics.profile.market_profile import HistMarketProfileService
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
 from infrastructure.arc.insight import InsightBook
@@ -54,18 +54,24 @@ class StartegyBackTester:
                 strategy_kwargs = self.strat_config['strategy_kwargs'][s_id]
                 story_book.add_strategy(strategy_class, strategy_kwargs)
             price_list = get_daily_tick_data(symbol, day)
-            option_list = get_daily_option_data_2(symbol, day)
-            print(option_list)
             price_list['symbol'] = helper_utils.root_symbol(symbol)
             price_list = price_list.to_dict('records')
             ivs = helper_utils.generate_random_ivs()
+            option_df = get_daily_option_data_2(symbol, day)
+
             try:
                 for i in range(len(price_list)):
                     price = price_list[i]
                     iv = ivs[i]
                     #processor.process_input_data([price])
                     #processor.calculateMeasures()
+                    ts = price['timestamp']
+                    t_df = option_df[option_df['timestamp'] == ts][['instrument', 'oi', 'volume', 'open', 'high', 'low', 'close']]
+                    t_df.set_index('instrument', inplace=True)
+                    recs = t_df.to_dict('index')
+                    pm.option_price_input([{'timestamp': ts, 'symbol': symbol, 'records': recs}])
                     pm.price_input(price)
+                    story_book.option_input_stream([{'timestamp': ts, 'symbol': symbol, 'records': recs}])
                     story_book.price_input_stream(price, iv)
                     time.sleep(0.005)
 
