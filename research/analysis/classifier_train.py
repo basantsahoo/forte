@@ -201,12 +201,12 @@ def pre_process(x_input):
     """
     open_type_order = ['GAP_UP','ABOVE_VA','INSIDE_VA','BELOW_VA','GAP_DOWN']
     money_ness_order = ['OTM7', 'OTM6', 'OTM5', 'OTM4', 'OTM3', 'OTM2', 'OTM1', 'ATM0', 'ITM1', 'ITM2', 'ITM3','ITM4']
-    money_ness_order = ['OTM_7', 'OTM_6', 'OTM_5', 'OTM_4', 'OTM_3', 'OTM_2', 'OTM_1', 'ATM_0', 'ITM_1', 'ITM_2', 'ITM_3','ITM_4']
+    money_ness_order = ['OTM_10', 'OTM_9', 'OTM_8', 'OTM_7', 'OTM_6', 'OTM_5', 'OTM_4', 'OTM_3', 'OTM_2', 'OTM_1', 'ATM_0', 'ITM_1', 'ITM_2', 'ITM_3','ITM_4', 'ITM_5', 'ITM_6']
 
     #x_input['open_type'] = ordinal_encoder(categories=[open_type_order]).fit_transform(x_input['open_type'])
     cat_transformer = make_column_transformer(
         (OrdinalEncoder(categories=[open_type_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['open_type']),
-        (OrdinalEncoder(categories=[money_ness_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['money_ness']),
+        #(OrdinalEncoder(categories=[money_ness_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['money_ness']),
         (OneHotEncoder(), ['week_day']),
         (OneHotEncoder(), ['kind']),
         #(OneHotEncoder(), ['money_ness']),
@@ -269,19 +269,35 @@ def train(data_set, target, exclude_variables=[]):
     data_set[target] = data_set[target].apply(lambda x : int(x > 0))
     y_input = data_set[target]
     x_input = data_set.drop(target, axis=1)
-    cols =  [x for x in x_input.columns if x not in exclude_variables]
+    other_variables = ['money_ness']
+    cols =  [x for x in x_input.columns if x not in exclude_variables and x not in other_variables]
     x_input = x_input[cols]
     train_size = int(x_input.shape[0] * 0.66)
     X_train, X_test = x_input[0:train_size], x_input[train_size:x_input.shape[0]]
     y_train, y_test = y_input[0:train_size], y_input[train_size:len(y_input)]
+    #print(list(X_train['money_ness'].unique()).sort())
+    #print(list(X_test['money_ness'].unique()).sort())
+    #X_train.fillna(X_train.mean(), inplace=True)
+    #X_test.fillna(X_train.mean(), inplace=True)
+    #X_train.to_csv('X_train.csv')
 
+    #print(X_train)
     #X_train, X_test, y_train, y_test = train_test_split(x_input, y_input, test_size=0.33, random_state=42)
 
+    #print(X_train.columns[X_train.isna().any()].tolist())
+    #print(X_train.columns[X_train.isnull().any()])
+    #print(X_train[X_train == np.inf])
+
+    #print(X_train.shape)
     #evaluate_features(X_train, y_train)
     #model = train_svc_model(X_train, y_train)
+
+    print(X_test.tail())
     model = train_et_bs_model(X_train, y_train)
+    #model = train_et_bs_model(X_test, y_test)
+
     print_measures(model,X_test, y_test)
 
-    model = train_decission_tree(X_train, y_train)
+    #model = train_decission_tree(X_train, y_train)
     #print_decision_rules(model)
     #plot_surface(X_train, y_train)

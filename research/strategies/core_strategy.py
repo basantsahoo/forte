@@ -263,17 +263,21 @@ class BaseStrategy:
         elif self.order_type == 'SELL':
             self.monitor_sell_positions()
 
-    def suitable_market_condition(self):
+    def suitable_market_condition(self, signal={}):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
         suitable = enough_time and suitable_tpo
         if suitable:
             market_params = self.insight_book.activity_log.get_market_params()
             d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']
-            five_min_trend = market_params['five_min_trend']
+            five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params['d2_cd_new_business_pressure']
             open_type = market_params['open_type']
+            tpo = market_params['tpo']
+            strength = signal.get('strength', 0)
+            kind = signal['kind']
+            money_ness = signal['money_ness']
             flag = not self.criteria
             for condition in self.criteria:
                 flag = flag or eval(condition['logical_test'])

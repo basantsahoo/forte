@@ -1,0 +1,24 @@
+{
+  "strategies":["OptionHeavySellStrategy"],
+  "strategy_kwargs":[
+    {
+      "pattern":"OPTION_PRICE_DROP",
+      "order_type":"BUY",
+      "exit_time":60,
+      "min_tpo":1,
+      "max_tpo":13,
+      "target_pct":[0.1,0.2,0.3,0.4],
+      "stop_loss_pct":[0.5,0.5,0.5,0.5],
+      "criteria" : [
+        {"op": "or", "logical_test": "open_type in ['BELOW_VA','INSIDE_VA'] and tpo == 3 and strength >= 30"}
+      ]
+    }
+  ],
+  "test_days": [],
+  "for_past_days": 75,
+  "symbols": ["NIFTY"],
+  "to_date": "2022-12-30",
+  "candle_sw" : 0,
+  "week_days": ["Tuesday"],
+  "record_metric": true
+}

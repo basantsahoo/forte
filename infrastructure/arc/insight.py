@@ -291,7 +291,7 @@ class InsightBook:
         return self.inflex_detector
 
     def get_time_to_close(self):
-        return (self.market_close_ts - self.last_tick['timestamp']) / 60
+        return (self.market_close_ts - self.last_tick['timestamp']) / 60 -1 # - 1 is done as hack
 
     def get_time_since_market_open(self):
         return (self.last_tick['timestamp'] - self.market_start_ts) / 60

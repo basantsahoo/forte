@@ -1,0 +1,35 @@
+{
+  "strategies":["OptionHeavySellStrategy"],
+  "strategy_kwargs":[
+    {
+      "pattern":"OPTION_PRICE_DROP",
+      "order_type":"BUY",
+      "exit_time":60,
+      "min_tpo":1,
+      "max_tpo":13,
+      "target_pct":[0.1,0.2,0.3,0.4],
+      "stop_loss_pct":[0.5,0.5,0.5,0.5],
+      "criteria" : [
+        {"op": "or", "logical_test": "open_type in ['GAP_UP'] and tpo in [1,2,3] and strength >= 30  and kind in ['PE'] and money_ness in ['ITM_1' , 'ATM_0' , 'OTM_1' , 'OTM_2' ]" },
+        {"op": "or", "logical_test": "open_type in ['BELOW_VA'] and tpo in [1,2,3] and strength >= 30  and kind in ['PE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" },
+        {"op": "or", "logical_test": "open_type in ['BELOW_VA'] and tpo in [11] and strength >= 50  and kind in ['PE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" },
+        {"op": "or", "logical_test": "open_type in ['ABOVE_VA'] and tpo in [1,2,3,4,5, 9, 10] and strength >= 20  and kind in ['PE'] and money_ness in ['ATM_0' , 'OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" },
+        {"op": "or", "logical_test": "open_type in ['GAP_DOWN'] and tpo in [1,2,3] and strength in [20,30]  and kind in ['PE'] and money_ness in ['ITM_2', 'ITM_3' ,'OTM_5']" },
+        {"op": "or", "logical_test": "open_type in ['GAP_DOWN'] and tpo in [9,10,11] and strength >=50  and kind in ['PE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" },
+
+        {"op": "or", "logical_test": "open_type in ['ABOVE_VA'] and tpo in [1,2,10,11] and strength >=20  and kind in ['CE'] and money_ness in ['ITM_1' , 'ATM_0' , 'OTM_1' , 'OTM_2' ]" },
+        {"op": "or", "logical_test": "open_type in ['BELOW_VA'] and tpo in [1,2,3] and strength >= 30  and kind in ['CE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" },
+        {"op": "or", "logical_test": "open_type in ['BELOW_VA'] and tpo in [7,8,9] and strength >= 30  and kind in ['CE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" },
+        {"op": "or", "logical_test": "open_type in ['GAP_UP'] and tpo in [1] and strength >= 20  and kind in ['CE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" },
+        {"op": "or", "logical_test": "open_type in ['GAP_DOWN'] and tpo in [1,2,3,4,5,6,7] and strength >= 30  and kind in ['CE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3','OTM_4','OTM_5']" }
+      ]
+    }
+  ],
+  "test_days": [],
+  "for_past_days": 80,
+  "symbols": ["NIFTY"],
+  "to_date": "2022-12-30",
+  "candle_sw" : 0,
+  "week_days": ["Wednesday"],
+  "record_metric": true
+}

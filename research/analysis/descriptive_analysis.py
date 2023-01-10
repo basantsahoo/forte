@@ -47,6 +47,18 @@ def add_text_page(report, txt):
     report.savefig()
     plt.close()
 
+def all_group_summary(report, df_i,target, grp_list, filter={}):
+    for key, value in filter.items():
+        df_i = df_i[df_i[key] == value]
+
+    day_wise_df = df_i.groupby(grp_list).agg({target: ['count', 'mean', 'min', 'max']})
+    # day_wise_df = df_i.groupby(['strategy', 'support_ind',]).agg({target: ['count', 'mean', 'min', 'max']})
+    day_wise_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
+    day_wise_df = day_wise_df.reset_index().round(2)
+    day_wise_df.to_csv('reports/all_group_summary.csv')
+    plot_table(report, day_wise_df)
+
+
 def group_wise_summary(report, df_i,target, grp, filter={}):
     for key, value in filter.items():
         df_i = df_i[df_i[key] == value]
@@ -222,7 +234,10 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 group_wise_summary(report, df_i, target, 'money_ness')
                 group_wise_summary(report, df_i, target, 'strength')
                 """
-                filter = {'strength': 60}
+                filter = {}
+                all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind','money_ness', 'strength'], filter=filter)
+
+                filter = {'week_day': 'Friday'}
                 group_wise_summary(report, df_i, target, 'week_day', filter=filter)
                 group_wise_summary(report, df_i, target, 'open_type', filter=filter)
                 group_wise_summary(report, df_i, target, 'tpo', filter=filter)

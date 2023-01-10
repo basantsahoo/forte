@@ -62,7 +62,7 @@ class IntradayOptionProcessor:
                     if self.price_drop_book[inst].get('drop_'+ str(pct), None) is None:
                         self.price_drop_book[inst]['drop_'+ str(pct)] = last_ts
                         inst_details = self.get_inst_details(inst)
-                        matched_pattern = {'time': last_ts, 'instrument': inst, 'threshold': pct, **inst_details}
+                        matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
                         self.insight_book.pattern_signal('OPTION_PRICE_DROP', matched_pattern)
                 else:
                     self.price_drop_book[inst]['drop_' + str(pct)] = None

@@ -10,7 +10,12 @@ import matplotlib.pyplot as plt
 
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
-    df = pd.read_csv(reports_dir + 'test.csv')
+    #df = pd.read_csv(reports_dir + 'test1.csv')
+    df = pd.read_csv(reports_dir + 'cheap_option.csv')
+    df = df.sort_values(['entry_time', 'signal_id', 'trigger'], ascending=[True,True, True]).reset_index(drop=True)
+    #print(df.head().T)
+
+    #df = pd.read_csv(reports_dir + 'ddddd.csv')
     # 'Cand_NIFTY_2022-12-28_2022-08-03 copy.csv'
     return df
 
@@ -63,8 +68,8 @@ def plot_curve(df):
     ax2.set_ylabel("equity", color="red", fontsize=14)
 
     plt.title("Equity curve")
-    plt.text(0.6, 1.1, 'sharpe ratio = ' + str(sharpe_ratio), transform=ax.transAxes)
-    plt.text(0.01, 1.05, 'Max drawdown = ' + str(drawdown[0]), transform=ax.transAxes)
+    plt.text(0.6, 1.1, 'sharpe ratio = ' + str(round(sharpe_ratio,2)), transform=ax.transAxes)
+    plt.text(0.01, 1.05, 'Max drawdown = ' + str(round(drawdown[0]*100, 2)) + "%", transform=ax.transAxes)
     plt.text(0.01, 1.1, 'Max drawdown period = ' + str(drawdown[1]), transform=ax.transAxes)
     plt.show()
 
@@ -105,16 +110,15 @@ def get_cleaned_results():
     df['target_pct'] = df['target']/df['entry_price'] -1
     df['pnl_pct'] = df['realized_pnl'] / df['entry_price']
     df['stop_loss_pct'] = 1 - df['stop_loss'] / df['entry_price']
-    print(df['target_pct'])
 
-    drop_cols = ['entry_price', 'exit_time', 'exit_price','un_realized_pnl', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type', 'closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
+    drop_cols = [ 'exit_time', 'exit_price','un_realized_pnl', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type', 'closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
     for col in drop_cols:
         try:
             df.drop(col, axis=1, inplace=True)
         except:
             pass
     print('Basic analysis of P & L by trigger ====================================')
-    print(df.groupby(['strategy', 'trigger']).agg({'realized_pnl': ['count', 'mean', 'min', 'max']}))
+    #print(df.groupby(['strategy', 'trigger']).agg({'realized_pnl': ['count', 'mean', 'min', 'max']}))
 
     #df['trigger'] = df['trigger'].apply(lambda x: 1 if x == 2 else x)
     common_cols = ['day', 'symbol', 'strategy', 'signal_id', 'trigger', 'entry_time']
@@ -127,10 +131,10 @@ def get_cleaned_results():
     df_2 = df[common_cols + df_2_cols]
 
     df_2.drop_duplicates(inplace=True)
-    print(df.shape)
-    print(df_2.shape)
     #print(df_1.shape)
     final_df = pd.merge(df_1, df_2, how='left', left_on=common_cols, right_on=common_cols)
+    final_df = final_df.sort_values(['entry_time', 'signal_id', 'trigger'], ascending=[True, True, True]).reset_index(drop=True)
+    #print(final_df)
     #print(final_df.columns.to_list())
     #print(final_df.shape)
     #print(final_df.tail().T.to_string())
@@ -148,8 +152,9 @@ def analysis(df):
     print('going to describe')
     train_size = int(df.shape[0] * 0.66)
     df_train = df[0:train_size]
+    #print(df_train)
     descriptive_analysis.perform_analysis_strategies(df_train, 'pnl_pct', da_exclude_vars)
-    non_features = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time', 'trigger', 'side', 'instrument', 'strike']
+    non_features = ['day','pnl_pct', 'symbol', 'signal_id', 'strategy','entry_price', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time', 'trigger', 'side', 'instrument', 'strike']
     imp_features1 = ['week_day', 'money_ness', 'tpo','open_type', 'strength', 'd2_cd_new_business_pressure', 'd2_cd_support_pressure', 'lc_dist_frm_level', 'total_energy', 'five_min_trend', 'dynamic_ratio' , 'total_energy_pyr',	'kind',	'd_en_ht',	'total_energy_ht']
     imp_features = ['week_day', 'candles_in_range',	'd_t_2_high',	'd_t_2_low',	'd_t_2_poc_price',	'd_t_2_va_h_p',	'd_t_2_va_l_p',	'd_y_high',	'd_y_low',	'd_y_poc_price',	'd_y_va_h_p',	'd_y_va_l_p',	'd2_ad_high',	'd2_ad_low',	'd2_ad_new_business_pressure',	'd2_ad_poc_price',	'd2_ad_resistance_pressure',	'd2_ad_retest_fract',	'd2_ad_support_pressure',	'd2_ad_type',	'd2_ad_va_h_p',	'd2_ad_va_l_p',	'd2_cd_close_rat',	'd2_cd_new_business_pressure',	'd2_cd_resistance_pressure',	'd2_cd_retest_fract',	'd2_cd_support_pressure',	'd2_cd_type',	'd2_gap',	'lc_dist_frm_level',	'lc_resistance_ind',	'lc_support_ind',	'lc_t_2_high',	'lc_t_2_low',	'lc_t_2_poc_price',	'lc_t_2_va_h_p',	'lc_t_2_va_l_p',	'lc_w_high',	'lc_w_low',	'lc_w_Pivot',	'lc_w_R1',	'lc_w_R2',	'lc_w_R3',	'lc_w_S1',	'lc_w_S2',	'lc_w_S3',	'lc_y_high',	'lc_y_low',	'lc_y_poc_price',	'lc_y_va_h_p',	'lc_y_va_l_p',	'open_type',	'pat_t_2_high',	'pat_t_2_low',	'pat_t_2_poc_price',	'pat_t_2_va_h_p',	'pat_t_2_va_l_p',	'pat_w_high',	'pat_w_low',	'pat_w_Pivot',	'pat_w_R1',	'pat_w_R2',	'pat_w_R3',	'pat_w_S1',	'pat_w_S2',	'pat_w_S3',	'pat_y_high',	'pat_y_low',	'pat_y_poc_price',	'pat_y_va_h_p',	'pat_y_va_l_p',	'strength']
     imp_features_2 = ['week_day', 'open_type', 'fifteen_min_trend',	'exp_c',	'five_min_trend',	'whole_day_trend',	'trend_auc',	'mu_0',	'exp_b',	'market_auc',	'lc_dist_frm_level',	'lin',	'mu_n',	'auc_del',	'quad',	'strength',	'quad_r2',	'lin_r2']
@@ -159,64 +164,19 @@ def analysis(df):
     print('total patterns matched___', len(list(root_strategies)))
 
     for strategy in strategies:
+
         print('classification for ================== ', strategy)
-        """ -- uncomment this block
-        # if strategy == 'CDLXSIDEGAP3METHODS_5_BUY_30':
+        """
         df_tmp = df[df['strategy'] == strategy]
-        df_tmp = df_tmp[imp_features1 + ['realized_pnl']]
+        df_tmp.replace([np.inf, -np.inf], np.nan, inplace=True)
+        df_tmp.fillna(0, inplace=True)
+        print(df_tmp.columns[df_tmp.isna().any()].tolist())
+
+        #df_tmp = df_tmp[imp_features1 + ['realized_pnl']]
         #print(df_tmp.columns.to_list())
         classifier_train.train(df_tmp, 'realized_pnl', non_features)
         """
-        """
-        ds_variable = imp_vars + ['realized_pnl']
-        print(ds_variable)
-        data_set = df[df['strategy'] == strategy].copy()
-        for col in data_set.columns.to_list():
-            if col not in ds_variable:
-                print(col)
-                print(col not in ds_variable)
-                del data_set[col]
-        print(data_set.columns.to_list())
-        del data_set['week_day']
-        correlations = data_set.corr(method='pearson')
-        correlations.to_csv('corr.csv')
-        # print(correlations)
-        """
-    # good: d2_ad_resistance_pressure <= 0.045 and lc_support_ind <= 0.5
-    # bad : d2_ad_support_pressure > 0.415
-    # good : d2_ad_resistance_pressure >= 0.045 & d2_ad_support_pressure <= 0.415 & candles_in_range <= 0.055 & d2_cd_new_business_pressure <= 0.355
-    # five_min_trend > -0.075 and pattern_auc_del <= 0.001 and market_auc <= 0.455 and ret_trend > 0.905 and hurst_exp_15 > -1.08
-    """
-    -- perform descriptive -- requires strategy variable to be included
-    df = load_back_test_results()
-    df['infl_dir'] = df['infl_n'] - df['infl_0']
-    df['infl_dir'] = df['infl_dir'].apply(lambda x : int(x > 0))
-    # 'resistance_ind',	'support_ind'
-    exclude_vars = ['day',	'symbol', 	'trigger',	'infl_0',	'infl_n','Unnamed: 0','un_realized_pnl', 'entry_time', 'exit_time']
-    descriptive_analysis.perform_analysis_strategies(df, 'realized_pnl', exclude_vars)
-    """
-    """
-    -- perform classification
-    df = load_back_test_results()
-    df['infl_dir'] = df['infl_n'] - df['infl_0']
-    df['infl_dir'] = df['infl_dir'].apply(lambda x : int(x > 0))
-    # 'resistance_ind',	'support_ind'
-    exclude_vars = ['day',	'symbol', 	'strategy', 'trigger',	'infl_0',	'infl_n','Unnamed: 0','un_realized_pnl', 'entry_time', 'exit_time']
-    strategies = df['strategy'].unique()
-    for strategy in strategies:
-        print(strategy)
-        #if strategy == 'CDLXSIDEGAP3METHODS_5_BUY_30':
-        df_tmp = df[df['strategy'] == strategy]
-        classifier_train.train(df_tmp, 'realized_pnl', exclude_vars)
 
-    """
-    """
-
-    for strategy in strategies:
-        print(strategy, "++++++++++++++++++++++++++++++++")
-        df_tmp = df[df['strategy'] == strategy]
-        regression_train.train(df_tmp, 'realized_pnl', exclude_vars)
-    """
 
     """
     tpo : 8, 9, 10
@@ -272,12 +232,35 @@ def analysis(df):
     60% : ABOVE_VA, 
      
     """
+    """
+    Ananlysis 2
+    overall
+    -------
+    Monday, Tuesday, Wednesday better that Thursday Friday
+    BELOW_VA better than others 
+    
+    1,2 best for selling and 6/7 best for buying
+    OTM_5 and ITM 2,3,4
+    strngth 80,90 
+    
+    Week day 
+    Monday : BELOW_VA, INSIDE_VA, tpo 7 -10 CE > PE OTM_5 and ITM 2,3,4 strength 40-60 
+    Tueday : Tpo - 4 -9 ITM 2, OTM 5, strength 40
+    Wednesday : Best day ,ABOVE_VA and BELOW_VA ,tpo 1-3 and 7-9 PE > CE  , > 30%
+    Thursday: good for selling , ITM 2-3-4 OTM_5 and >80% looks fine for buying
+    Friday : selling prefered specifically for PE, Buying - ABOVE_VA  and GAP_DOWN CE > PE, moneyness no clarity 
+    
+    """
+
+
+
 def run():
 
     #save_back_test_results()
 
     df = get_cleaned_results()
     #basic_statistics(df)
-    #portfolio_performance(df, filter={})
-    analysis(df)
+    portfolio_performance(df)
+    #portfolio_performance(df, filter={'open_type': 'ABOVE_VA', 'week_day': 'Monday'})
+    #analysis(df)
 

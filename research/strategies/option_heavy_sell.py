@@ -6,8 +6,8 @@ import dynamics.patterns.utils as pattern_utils
 from research.strategies.strat_mixin import PatternMetricRecordMixin
 
 class OptionHeavySellStrategy(BaseOptionStrategy, PatternMetricRecordMixin):
-    def __init__(self, insight_book, id="OPTION_CHEAP_BUY", pattern="OPTION_PRICE_DROP", order_type="BUY", exit_time=60, min_tpo=1, max_tpo=13,  max_signal = 100, target_pct=[0.1,0.2, 0.3, 0.5], stop_loss_pct=[0.5,0.5, 0.5,0.5]):
-        BaseOptionStrategy.__init__(self, insight_book, id=id, pattern=pattern, order_type=order_type, exit_time=exit_time, min_tpo=min_tpo, max_tpo=max_tpo, max_signal=max_signal, target_pct=target_pct, stop_loss_pct=stop_loss_pct)
+    def __init__(self, insight_book, id="OPTION_CHEAP_BUY", pattern="OPTION_PRICE_DROP", order_type="BUY", exit_time=60, min_tpo=1, max_tpo=13,  max_signal = 10000000, target_pct=[0.1,0.2, 0.3, 0.5], stop_loss_pct=[0.5,0.5, 0.5,0.5], criteria=[]):
+        BaseOptionStrategy.__init__(self, insight_book, id=id, pattern=pattern, order_type=order_type, exit_time=exit_time, min_tpo=min_tpo, max_tpo=max_tpo, max_signal=max_signal, target_pct=target_pct, stop_loss_pct=stop_loss_pct, criteria=criteria)
         self.id = pattern + "_" + order_type + "_" + str(period) + "_" + str(exit_time) if id is None else id
         #print(self.id)
         #self.record_metric = False
@@ -21,13 +21,10 @@ class OptionHeavySellStrategy(BaseOptionStrategy, PatternMetricRecordMixin):
         Control when a signal is considered for trade
         """
         #print("self.suitable_market_condition======", self.suitable_market_condition(matched_pattern))
-        if not last_match_ol and self.suitable_market_condition():
+        if not last_match_ol and self.suitable_market_condition(matched_pattern):
             self.last_match = matched_pattern
-            strike = matched_pattern['instrument'].split("_")[0]
-            instrument = matched_pattern['instrument'].split("_")[1]
             print('in evaluate_signal,', self.record_metric)
             matched_pattern['candle'] = [0,0,0,0]
-            matched_pattern['strength'] = matched_pattern['threshold']
             self.record_params(matched_pattern)
             signal_passed = True
         #print('signal_passed====', signal_passed)

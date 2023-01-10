@@ -6,7 +6,7 @@
     {}
   ],
   "test_days": [],
-  "for_past_days": 150,
+  "for_past_days": 80,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-30",
   "candle_sw" : 0,
