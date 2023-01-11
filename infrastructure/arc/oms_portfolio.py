@@ -124,9 +124,11 @@ class OMSPortfolioManager:
 
 
     def get_optimal_entry_order_info(self, order_info, strategy_regulation):
+        print('get_optimal_entry_order_info++++', order_info)
         index = root_symbol(order_info['symbol'])
         lot_size = oms_config.get_lot_size(index)
         side = get_broker_order_type(order_info['order_side'])
+
         (inst,side) = self.get_instr_type(side, strategy_regulation['instruments'])
         key = index + "_" + inst
         instrument = self.atm_options[key]
@@ -134,6 +136,11 @@ class OMSPortfolioManager:
         instrument['type'] = inst
         instrument['side'] = side
         instrument['qty'] = order_info['qty'] * lot_size * strategy_regulation['scale']
+        if order_info.get('option_flag', False):
+            [ind ,strike, type] = order_info['symbol'].split("_")
+            instrument['type'] = type
+            instrument['strike'] = int(strike)
+
         print('instrument++++++', instrument)
         return instrument
 

@@ -48,7 +48,7 @@ class IntradayOptionProcessor:
             money_ness = ('OTM_' if dist > 0 else 'ITM_' if dist < 0 else 'ATM_') + str(abs(dist))
         else:
             money_ness = ('OTM_' if dist < 0 else 'ITM_' if dist > 0 else 'ATM_') + str(abs(dist))
-        return {'strike' : strike, 'kind': kind, 'money_ness' : money_ness}
+        return {'strike' : strike, 'kind': kind, 'money_ness' : money_ness, 'dist' :abs(dist)}
 
     def calculate_price_drop(self):
         drop_pcts = [20, 30, 40, 50, 60, 70, 80, 90]
@@ -68,8 +68,9 @@ class IntradayOptionProcessor:
                         #print('triger+++++++++++++++++')
                         self.price_drop_book[inst]['drop_'+ str(pct)] = last_ts
                         inst_details = self.get_inst_details(inst)
-                        matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
-                        self.insight_book.pattern_signal('OPTION_PRICE_DROP', matched_pattern)
+                        if inst_details['dist'] <= 10:
+                            matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
+                            self.insight_book.pattern_signal('OPTION_PRICE_DROP', matched_pattern)
                 else:
                     self.price_drop_book[inst]['drop_' + str(pct)] = None
 

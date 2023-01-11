@@ -12,6 +12,7 @@ import helper.utils as helper_utils
 import traceback
 from research.strategies.aggregators import PatternAggregator
 from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
+from live_algo.wednesday_option_buy import WednesdayOptionBuy
 
 class AlgorithmIterface:
     def __init__(self, socket=None):
@@ -44,7 +45,9 @@ class AlgorithmIterface:
             self.last_epoc_minute_data[symbol+"_O"] = {'timestamp': None}
             self.insight_books.append(insight_book)
             for strategy in algorithm_setup[symbol]['strategies']:
+                print('adding strategy +++++', strategy)
                 insight_book.add_strategy(eval(strategy))
+            print('all strategy added+++++')
         self.trade_day = trade_day
         self.setup_in_progress = False
         end_time = datetime.now()

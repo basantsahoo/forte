@@ -200,7 +200,7 @@ class CommonFN:
     def hist_option_feed_input(self, hist_feed):
         print('hist_option_feed_input++++++++++++++++')
         for option_data in hist_feed:
-            self.option_processor.process_input_stream(option_data)
+            self.option_processor.process_input_stream(option_data, notify=False)
             
     def update_state_transition(self):
         last_state = self.state_generator.curr_state
