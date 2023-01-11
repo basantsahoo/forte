@@ -23,11 +23,13 @@ from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.point_to_point_mc import MarkovChainPointToPoint
 from dynamics.transition.empirical import EmpiricalDistribution
 from infrastructure.arc.market_activity import MarketActivity
+from infrastructure.arc.intraday_option_processor import IntradayOptionProcessor
 
 class CommonFN:
     def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
         self.intraday_trend = IntradayTrendCalculator(self)
         self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw)]
+        self.option_processor = IntradayOptionProcessor(self, ticker)
         self.activity_log = MarketActivity(self)
         self.day_setup_done = False
         self.strategy_setup_done = False
@@ -184,8 +186,20 @@ class CommonFN:
         #self.activity_log.process()
 
         for strategy in self.strategies:
+            strategy.process_custom_signal()
             strategy.evaluate()
 
+    def option_input_stream(self, option_data):
+        #print('price_input_stream+++++ insight book')
+        epoch_tick_time = option_data['timestamp']
+        if not self.day_setup_done:
+            self.set_trade_date_from_time(epoch_tick_time)
+        self.option_processor.process_input_stream(option_data)
+
+    def hist_option_feed_input(self, hist_feed):
+        for option_data in hist_feed:
+            self.option_processor.process_input_stream(option_data)
+            
     def update_state_transition(self):
         last_state = self.state_generator.curr_state
         if last_state == '':
@@ -253,7 +267,10 @@ class CommonFN:
         return self.inflex_detector
 
     def get_time_to_close(self):
-        return (self.market_close_ts - self.last_tick['timestamp']) / 60
+        return (self.market_close_ts - self.last_tick['timestamp']) / 60 -1 # - 1 is done as hack
+
+    def get_time_since_market_open(self):
+        return (self.last_tick['timestamp'] - self.market_start_ts) / 60
 
     def clean(self):
         self.inflex_detector = None

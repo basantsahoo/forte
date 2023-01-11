@@ -9,7 +9,8 @@ from infrastructure.market_profile_enabler import MarketProfileEnablerService
 from infrastructure.namespace.auth_mixin import AuthMixin
 from infrastructure.arc.oms_portfolio import OMSPortfolioManager
 from dynamics.profile.utils import NpEncoder, get_tick_size
-from db.market_data import get_daily_tick_data
+from db.market_data import get_daily_tick_data, get_daily_option_data_2
+import helper.utils as helper_utils
 from config import socket_auth_enabled
 from config import back_test_day as default_back_test_day
 
@@ -24,9 +25,25 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         converted = tick_df.to_dict("records")
         return (x for x in converted)
 
+    def get_option_data(self, sym, trade_day):
+        option_df = get_daily_option_data_2(sym, trade_day)
+        ts_list = list(option_df['timestamp'].unique())
+        converted = []
+        for ts in ts_list:
+            t_df = option_df[option_df['timestamp'] == ts][['instrument', 'oi', 'volume', 'open', 'high', 'low', 'close']]
+            t_df.set_index('instrument', inplace=True)
+            recs = t_df.to_dict('index')
+            converted.append({'timestamp': ts, 'symbol': sym, 'records': recs})
+        return (x for x in converted)
+
     def get_price(self):
         #print('getting price')
         yield [next(pl) for pl in self.price_lst ]
+
+    def get_option_price(self):
+        #print('getting price')
+        yield [next(pl) for pl in self.option_lst]
+
 
     async def on_connect(self, sid,environ, auth={}):
         print('AUTH++++++++++++', auth)
@@ -45,7 +62,7 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
     async def on_join_tick_feed(self, sid, ticker):
         print("JOIN BY USER", ticker)
         self.enter_room(sid, ticker)
-        await self.on_request_data(sid,ticker)
+        #await self.on_request_data(sid,ticker)
 
 
     async def on_request_data(self, sid,ticker, back_test_date=None):
@@ -69,9 +86,14 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         #self.pm.set_pivots(pivots)
         self.price_lst = []
         self.price_lst.append(self.get_data(ticker, back_test_date))
+        self.option_lst = []
+        self.option_lst.append(self.get_option_data(ticker, back_test_date))
+
         obs = rx.interval(1).pipe(ops.map(lambda i: next(self.get_price())))
+        obs2 = rx.interval(1).pipe(ops.map(lambda i: next(self.get_option_price())))
         loop = asyncio.get_event_loop()
         self.obs = obs.subscribe(on_next=lambda s:  rx.from_future(loop.create_task(self.on_input_feed(s))), on_error=lambda x: print('error in generator'), scheduler=AsyncIOScheduler(loop))
+        self.obs2 = obs2.subscribe(on_next=lambda s: rx.from_future(loop.create_task(self.on_option_input_feed(s))), on_error=lambda x: print('error in generator'), scheduler=AsyncIOScheduler(loop))
 
     async def on_exit_feed(self, sid, ticker):
         print('leave room', ticker)
@@ -83,6 +105,15 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
 
         self.obs.dispose()
         await self.emit('my_response', {'data': 'Left room: ' + ticker}, room=sid)
+
+    async def on_join_options_feed(self, sid, ticker):
+        self.enter_room(sid, helper_utils.get_options_feed_room(ticker))
+
+    async def on_option_input_feed(self, lst):
+        print('input option received')
+        for item in lst:
+            await self.emit('all_option_data', json.dumps(item, cls=NpEncoder), room= helper_utils.get_options_feed_room(item['symbol']))
+
 
     async def on_input_feed(self, lst):
         print('input received')

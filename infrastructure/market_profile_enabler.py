@@ -38,6 +38,8 @@ class MarketProfileEnablerService:
                 self.waiting_for_data = False
                 self.price_data[self.trade_day] = price_data
 
+    def set_trade_day(self, trade_day):
+        self.trade_day = trade_day
 
     def set_trade_date_from_time(self, epoch_tick_time):
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)

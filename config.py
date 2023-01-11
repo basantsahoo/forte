@@ -15,7 +15,7 @@ include_pre_market = False
 regimes = ['2018-12-10', '2019-06-12', '2020-02-20', '2020-04-03', '2020-10-03', '2021-02-15', '2021-07-26', '2021-12-10']
 regime_desc = ['All 1', 'bear & reversal', 'sharp bear', 'bull & correction 1', 'sharp bull', 'All 2', 'bull & correction 2']
 
-back_test_day = '2022-07-28' #'2021-12-09'
+back_test_day = '2023-01-04' #'2021-12-09'
 place_live_orders = True # determines placing of order
 live_feed = True #True  #determines servers tickdata or historical 1 min data
 socket_auth_enabled = True

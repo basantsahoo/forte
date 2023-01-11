@@ -9,6 +9,7 @@ from datetime import datetime
 from infrastructure.arc.algo_settings import algorithm_setup
 import asyncio
 from dynamics.profile.utils import NpEncoder
+import helper.utils as helper_utils
 import json
 import pytz
 from datetime import datetime
@@ -34,17 +35,29 @@ class MarketClient(socketio.ClientNamespace):
         pass
         #print('on_hist' , feed)
 
+    def on_hist_option_data(self, feed):
+        pass
+
     def on_atm_option_feed(self, feed):
         print('on_atm_option_feed', feed)
 
+    def on_all_option_data(self, feed):
+        pass
 
     def on_connect(self):
         print('Market client  connected')
         for symbol in self.subscribed_symbols:
             self.emit('get_price_chart_data', symbol)
-        time.sleep(1)
+            time.sleep(10)
+            self.emit('get_hist_option_data', symbol)
+
         for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
+            self.emit('request_data', symbol)
+
+
+            self.emit('join_options_feed', symbol)
+
 
         self.emit('join_tick_feed', 'atm_option_room')
 

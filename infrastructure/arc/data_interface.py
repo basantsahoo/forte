@@ -10,7 +10,7 @@ import helper.utils as helper_utils
 #from strategies_bkp.range_break import RangeBreakDownStrategy
 #from strategies_bkp.sma_cross_over_buy import SMACrossBuy
 import traceback
-from research.strategies.price_action_aggregator import PatternAggregator
+from research.strategies.aggregators import PatternAggregator
 from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 
 class AlgorithmIterface:
@@ -32,13 +32,16 @@ class AlgorithmIterface:
         self.portfolio_manager = None
 
     def set_trade_date_from_time(self, epoch_tick_time):
+        print('set_trade_date_from_time+++++++')
         start_time = datetime.now()
         trade_day = helper_utils.day_from_epoc_time(epoch_tick_time)
         self.portfolio_manager = AlgoPortfolioManager(place_live_orders=True, data_interface=self)
         for symbol in list(algorithm_setup.keys()):
             insight_book = InsightBook(symbol, trade_day, record_metric=False)
+            print('insight_book created')
             insight_book.pm = self.portfolio_manager
             self.last_epoc_minute_data[symbol] = {'timestamp': None}
+            self.last_epoc_minute_data[symbol+"_O"] = {'timestamp': None}
             self.insight_books.append(insight_book)
             for strategy in algorithm_setup[symbol]['strategies']:
                 insight_book.add_strategy(eval(strategy))
@@ -64,6 +67,24 @@ class AlgorithmIterface:
             for insight_book in self.insight_books:
                 if insight_book.ticker == symbol:
                     insight_book.hist_feed_input(hist)
+
+    def on_hist_option_price(self, hist_feed):
+        print('here 1')
+        symbol = hist_feed['symbol']+"_O"
+        hist = hist_feed['hist']
+        #print(hist)
+        epoch_minute = hist[0]['timestamp']
+        #print(hist[0])
+        if self.trade_day is None:
+            self.setup_in_progress = True
+            self.set_trade_date_from_time(epoch_minute)
+        self.last_epoc_minute_data[symbol] = hist[-1]
+        self.portfolio_manager.option_price_input(hist[-1])
+        time.sleep(0.5)
+        for insight_book in self.insight_books:
+            print('here 2')
+            if insight_book.ticker == hist_feed['symbol']:
+                insight_book.hist_option_feed_input(hist)
 
 
     def on_tick_price(self, feed):
@@ -91,6 +112,29 @@ class AlgorithmIterface:
                     insight_book.price_input_stream(self.last_epoc_minute_data[symbol])
         self.last_epoc_minute_data[symbol] = feed
         self.portfolio_manager.price_input(feed)
+
+
+    def on_option_tick_data(self, feed):
+        epoch_tick_time = feed['timestamp']
+        epoch_minute = feed['timestamp'] #int(epoch_tick_time // 60 * 60)
+        symbol = feed['symbol'] + "_O"
+        if self.setup_in_progress:
+            return
+        if self.trade_day is None:
+            self.setup_in_progress = True
+            self.set_trade_date_from_time(epoch_tick_time)
+            return
+        if self.last_epoc_minute_data[symbol]['timestamp'] is None:
+            self.last_epoc_minute_data[symbol] = feed
+            return
+        # new minute started so send previous minute data to insight book
+        if epoch_minute != self.last_epoc_minute_data[symbol]['timestamp']:
+            for insight_book in self.insight_books:
+                if insight_book.ticker == feed['symbol']:
+                    #print('sending from interface')
+                    insight_book.option_input_stream(self.last_epoc_minute_data[symbol])
+        self.last_epoc_minute_data[symbol] = feed
+        self.portfolio_manager.option_price_input(feed)
 
     def place_entry_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ):
         print('place_entry_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type)

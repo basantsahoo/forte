@@ -69,9 +69,9 @@ class StartegyBackTester:
                     t_df = option_df[option_df['timestamp'] == ts][['instrument', 'oi', 'volume', 'open', 'high', 'low', 'close']]
                     t_df.set_index('instrument', inplace=True)
                     recs = t_df.to_dict('index')
-                    pm.option_price_input([{'timestamp': ts, 'symbol': symbol, 'records': recs}])
+                    pm.option_price_input({'timestamp': ts, 'symbol': symbol, 'records': recs})
                     pm.price_input(price)
-                    story_book.option_input_stream([{'timestamp': ts, 'symbol': symbol, 'records': recs}])
+                    story_book.option_input_stream({'timestamp': ts, 'symbol': symbol, 'records': recs})
                     story_book.price_input_stream(price, iv)
                     time.sleep(0.005)
 

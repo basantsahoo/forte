@@ -19,7 +19,6 @@ from infrastructure.namespace.auth_mixin import AuthMixin
 from dynamics.profile.options_profile import OptionProfileService
 from dynamics.profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data
-import settings
 from config import live_feed, place_live_orders, socket_auth_enabled, allowed_apps
 import helper.utils as helper_utils
 from py_vollib_vectorized import price_dataframe
@@ -43,7 +42,14 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
         self.processor = TickMarketProfileEnablerService(market_cache=self.market_cache)
         self.processor.socket = self
 
-
+    def refresh(self):
+        pass
+        """
+        self.market_cache.set('hist_insight', [])
+        self.market_cache.set('price_data', {})
+        self.market_cache.set('option_data', {})
+        self.market_cache.set('latest_option_data', {})
+        """
     def connect_feed(self):
         try:
             self.c_sio.connect('http://localhost:8080/', wait_timeout=100, auth={'internal_app_id': 'FEEDTD136148'})

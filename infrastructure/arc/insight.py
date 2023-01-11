@@ -197,13 +197,16 @@ class InsightBook:
             strategy.process_custom_signal()
             strategy.evaluate()
 
-    def option_input_stream(self, option_data_list):
+    def option_input_stream(self, option_data):
         #print('price_input_stream+++++ insight book')
-        epoch_tick_time = option_data_list[0]['timestamp']
-        epoch_minute = int(epoch_tick_time // 60 * 60) + 1
+        epoch_tick_time = option_data['timestamp']
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
-        self.option_processor.process_input_stream(option_data_list)
+        self.option_processor.process_input_stream(option_data)
+
+    def hist_option_feed_input(self, hist_feed):
+        for option_data in hist_feed:
+            self.option_processor.process_input_stream(option_data)
 
     def update_state_transition(self):
         last_state = self.state_generator.curr_state

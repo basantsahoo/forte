@@ -4,7 +4,12 @@ algorithm_setup = {
     'BANKNIFTY':{'strategies': ['PatternAggregator']},
 }
 """
-
+"""
 algorithm_setup = {
     'NIFTY': {'strategies': ['FridayCandleBuyFullDay', 'FridayCandleSellFullDay']},
+}
+"""
+algorithm_setup = {
+    'NIFTY': {'strategies': []}
+    #'NIFTY': {'strategies': ['FridayCandleBuyFullDay', 'FridayCandleSellFullDay']},
 }

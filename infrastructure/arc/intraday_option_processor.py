@@ -14,22 +14,21 @@ class IntradayOptionProcessor:
     def weighted_average(self,nums, weights):
         return sum(x * y for x, y in zip(nums, weights)) / sum(weights)
 
-    def process_input_stream(self,option_data_list):
-        for option_data in option_data_list:
-            if option_data['symbol'] == self.symbol:
-                ts = option_data['timestamp']
-                option_recs = option_data['records']
-                if ts not in self.option_data_cross_ts_inst_oi:
-                    self.option_data_cross_ts_inst_oi[ts] = {}
-                if ts not in self.option_data_cross_ts_inst_volume:
-                    self.option_data_cross_ts_inst_volume[ts] = {}
+    def process_input_stream(self, option_data):
+        if option_data['symbol'] == self.symbol:
+            ts = option_data['timestamp']
+            option_recs = option_data['records']
+            if ts not in self.option_data_cross_ts_inst_oi:
+                self.option_data_cross_ts_inst_oi[ts] = {}
+            if ts not in self.option_data_cross_ts_inst_volume:
+                self.option_data_cross_ts_inst_volume[ts] = {}
 
-                for instrument, data in option_recs.items():
-                    if instrument not in self.option_data_inst_ts:
-                        self.option_data_inst_ts[instrument] = OrderedDict() #{}
-                    self.option_data_inst_ts[instrument][ts] = data
-                    self.option_data_cross_ts_inst_oi[ts][instrument] = data['oi']
-                    self.option_data_cross_ts_inst_volume[ts][instrument] = data['volume']
+            for instrument, data in option_recs.items():
+                if instrument not in self.option_data_inst_ts:
+                    self.option_data_inst_ts[instrument] = OrderedDict() #{}
+                self.option_data_inst_ts[instrument][ts] = data
+                self.option_data_cross_ts_inst_oi[ts][instrument] = data['oi']
+                self.option_data_cross_ts_inst_volume[ts][instrument] = data['volume']
         self.perform_calculations()
 
 

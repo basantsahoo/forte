@@ -83,6 +83,7 @@ def get_filtered_days(ticker, filter):
     return df[['date', 'open', 'high', 'low', 'close', 'candle']].to_dict('records')
 
 def prev_day_data(symbol, trade_day):
+    print('prev_day_data', symbol)
     symbol = helper_utils.get_nse_index_symbol(symbol)
     stmt = """select date,open,high,low,close,volume,poc_price,va_l_p,va_h_p,ib_l,ib_h, h_a_l, ht, lt,poc_price,ext_low,ext_high,le_f,he_f
             from daily_profile

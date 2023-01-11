@@ -8,6 +8,7 @@ import asyncio
 from dynamics.profile.utils import NpEncoder
 import json
 import pytz
+import pandas as pd
 from datetime import datetime
 from infrastructure.namespace.market_client import MarketClient
 from servers.server_settings import feed_socket_service
@@ -26,14 +27,57 @@ class AlgoClient(socketio.ClientNamespace):
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
         ns.on_hist = self.on_hist
+        ns.on_all_option_data = self.on_option_tick_data
+        ns.on_hist_option_data = self.on_hist_option_data
 
     def refresh(self):
         self.algo_interface.clean()
         self.algo_interface = AlgorithmIterface(self)
 
     def on_tick_data(self, feed):
-        #print('on_price' , feed)
+        print('on_price' , feed)
         self.algo_interface.on_tick_price(feed)
+
+    def on_hist_option_data(self, feed):
+        print('hist option data+++++++++++++++++++++')
+        symbol = feed['symbol']
+        recs = feed['data']
+        f_recs = {}
+        for rec in recs:
+            inst = str(rec['strike'])+"_"+rec['type']
+            rec['open'] = rec['ltp']
+            rec['high'] = rec['ltp']
+            rec['low'] = rec['ltp']
+            rec['close'] = rec['ltp']
+            rec['instrument'] = inst
+        b_df = pd.DataFrame(recs)
+        ts_list = list(b_df['ltt'].unique())
+        ts_list.sort()
+
+        hist_recs = []
+        for ts in ts_list[0:1]:
+            s_df = b_df[b_df['ltt'] == ts][['instrument', 'oi', 'volume', 'open', 'high', 'low', 'close']]
+            s_df.set_index('instrument', inplace=True)
+            recs_kk = s_df.to_dict('index')
+            print(recs_kk)
+            hist_recs.append({'timestamp': ts, 'symbol': symbol, 'records': recs_kk})
+
+        #print('hist options feed', feed)
+        self.algo_interface.on_hist_option_price({'symbol': symbol, 'hist': hist_recs})
+
+    def on_option_tick_data(self, feed):
+        #print('on_price' , feed)
+        #feed = json.dumps(feed)
+        symbol = feed['symbol']
+        recs = feed['data']
+        recs_mid = int(len(recs)/2)
+        ts = recs[recs_mid]['ltt']
+        f_recs = {}
+        for rec in recs:
+            inst = str(rec['strike'])+"_"+rec['type']
+            f_recs[inst] = rec
+
+        self.algo_interface.on_option_tick_data({'timestamp': ts, 'symbol': symbol, 'records': f_recs})
 
     def on_hist(self, feed):
         self.algo_interface.on_hist_price(feed)

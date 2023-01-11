@@ -14,7 +14,6 @@ from infrastructure.namespace.auth_mixin import AuthMixin
 from dynamics.profile.options_profile import OptionProfileService
 from dynamics.profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data
-import settings
 from config import live_feed, place_live_orders, socket_auth_enabled, allowed_apps
 import helper.utils as helper_utils
 from py_vollib_vectorized import price_dataframe
