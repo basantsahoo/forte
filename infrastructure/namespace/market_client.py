@@ -48,9 +48,9 @@ class MarketClient(socketio.ClientNamespace):
         print('Market client  connected')
         for symbol in self.subscribed_symbols:
             self.emit('get_price_chart_data', symbol)
-            time.sleep(10)
+            time.sleep(12)
             self.emit('get_hist_option_data', symbol)
-
+            time.sleep(5)
         for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
             self.emit('request_data', symbol)

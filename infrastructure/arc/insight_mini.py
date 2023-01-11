@@ -26,7 +26,7 @@ from infrastructure.arc.common_fn import CommonFN
 
 class InsightBook(CommonFN):
 
-    def pattern_signal(self, pattern, pattern_match_idx):
+    def pattern_signal_to_remove(self, pattern, pattern_match_idx):
         #print('pattern_signal mini+++++++ 1', pattern, pattern_match_idx['strength'])
         if pattern == 'TREND':
             #print('TREND+++++', pattern, pattern_match_idx)

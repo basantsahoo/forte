@@ -115,6 +115,7 @@ class OptionProfileService:
 
         if self.socket is not None:
             symbol_option_data = self.option_data[data_dict['symbol']]
+            #print('symbol_option_data', symbol_option_data)
             df = pd.DataFrame(option_lst)
             df['ltt'] = df['ltt'].apply(lambda x: epoch_tick_time)
             df.fillna(0, inplace=True)

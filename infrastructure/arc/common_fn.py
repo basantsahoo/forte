@@ -146,6 +146,7 @@ class CommonFN:
                 self.set_trade_date_from_time(epoch_tick_time)
             self.market_data[epoch_minute] = feed_small
         self.last_tick = feed_small
+        print('self.last_tick' , self.last_tick)
         self.set_curr_tpo(epoch_minute)
         self.activity_log.update_last_candle()
         self.activity_log.determine_level_break(epoch_tick_time)
@@ -197,6 +198,7 @@ class CommonFN:
         self.option_processor.process_input_stream(option_data)
 
     def hist_option_feed_input(self, hist_feed):
+        print('hist_option_feed_input++++++++++++++++')
         for option_data in hist_feed:
             self.option_processor.process_input_stream(option_data)
             

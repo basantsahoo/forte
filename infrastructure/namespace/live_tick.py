@@ -219,6 +219,7 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         await self.emit('my_response', {'data': 'Left room: ' + ticker}, room=sid)
 
     async def on_td_oc_feed(self, sid, feed):
+        #print('oc feed', feed)
         self.option_processor.process_input_data(feed)
 
     async def on_td_option_price_feed(self, sid, feed):

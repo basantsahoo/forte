@@ -14,7 +14,8 @@ class IntradayOptionProcessor:
     def weighted_average(self,nums, weights):
         return sum(x * y for x, y in zip(nums, weights)) / sum(weights)
 
-    def process_input_stream(self, option_data):
+    def process_input_stream(self, option_data, notify=True):
+        print('option processor process_input_stream', option_data['timestamp'])
         if option_data['symbol'] == self.symbol:
             ts = option_data['timestamp']
             option_recs = option_data['records']
@@ -29,7 +30,8 @@ class IntradayOptionProcessor:
                 self.option_data_inst_ts[instrument][ts] = data
                 self.option_data_cross_ts_inst_oi[ts][instrument] = data['oi']
                 self.option_data_cross_ts_inst_volume[ts][instrument] = data['volume']
-        self.perform_calculations()
+        if notify:
+            self.perform_calculations()
 
 
     def perform_calculations(self):
@@ -39,6 +41,7 @@ class IntradayOptionProcessor:
     def get_inst_details(self, inst):
         strike = int(inst.split("_")[0])
         kind = inst.split("_")[1]
+        #print(self.insight_book.last_tick)
         spot = self.insight_book.last_tick['close']
         dist = round((strike - spot) / 100)
         if kind == 'CE':
@@ -52,13 +55,17 @@ class IntradayOptionProcessor:
         for inst in self.option_data_inst_ts:
             if inst not in self.price_drop_book:
                 self.price_drop_book[inst] = {}
+            first_ts = list(self.option_data_inst_ts[inst].keys())[0]
             first_item = list(self.option_data_inst_ts[inst].values())[0]
-            #print(first_item)
+            #print('first_item+++++', list(self.option_data_inst_ts[inst].keys())[0])
             (last_ts, last_item) = list(self.option_data_inst_ts[inst].items())[-1]
             #print(last_item)
             for pct in drop_pcts:
+
                 if last_item['close']/first_item['close'] < (1 - pct/100):
+                    #print(inst,round(last_item['close'] / first_item['close'], 2))
                     if self.price_drop_book[inst].get('drop_'+ str(pct), None) is None:
+                        #print('triger+++++++++++++++++')
                         self.price_drop_book[inst]['drop_'+ str(pct)] = last_ts
                         inst_details = self.get_inst_details(inst)
                         matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
@@ -73,6 +80,7 @@ class IntradayOptionProcessor:
             if inst not in self.vwap:
                 self.vwap[inst] = OrderedDict()
             max_ts = list(self.option_data_inst_ts[inst].keys())[-1]
+            #print(self.option_data_inst_ts[inst].values())
             prices = [x['close'] for x in self.option_data_inst_ts[inst].values()]
             volumes = [x['volume'] for x in self.option_data_inst_ts[inst].values()]
             vwap = self.weighted_average(prices, volumes)

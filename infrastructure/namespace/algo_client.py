@@ -35,7 +35,7 @@ class AlgoClient(socketio.ClientNamespace):
         self.algo_interface = AlgorithmIterface(self)
 
     def on_tick_data(self, feed):
-        print('on_price' , feed)
+        #print('on_price' , feed)
         self.algo_interface.on_tick_price(feed)
 
     def on_hist_option_data(self, feed):
@@ -53,14 +53,15 @@ class AlgoClient(socketio.ClientNamespace):
         b_df = pd.DataFrame(recs)
         ts_list = list(b_df['ltt'].unique())
         ts_list.sort()
+        #print(ts_list)
 
         hist_recs = []
-        for ts in ts_list[0:1]:
+        for ts in ts_list:
             s_df = b_df[b_df['ltt'] == ts][['instrument', 'oi', 'volume', 'open', 'high', 'low', 'close']]
             s_df.set_index('instrument', inplace=True)
             recs_kk = s_df.to_dict('index')
-            print(recs_kk)
-            hist_recs.append({'timestamp': ts, 'symbol': symbol, 'records': recs_kk})
+            #print(recs_kk)
+            hist_recs.append({'timestamp': int(ts // 60 * 60) + 60, 'symbol': symbol, 'records': recs_kk})
 
         #print('hist options feed', feed)
         self.algo_interface.on_hist_option_price({'symbol': symbol, 'hist': hist_recs})
@@ -71,15 +72,19 @@ class AlgoClient(socketio.ClientNamespace):
         symbol = feed['symbol']
         recs = feed['data']
         recs_mid = int(len(recs)/2)
+
         ts = recs[recs_mid]['ltt']
+        epoch_minute = int(ts // 60 * 60) + 60
         f_recs = {}
         for rec in recs:
+            rec['close'] = rec['ltp']
             inst = str(rec['strike'])+"_"+rec['type']
             f_recs[inst] = rec
 
-        self.algo_interface.on_option_tick_data({'timestamp': ts, 'symbol': symbol, 'records': f_recs})
+        self.algo_interface.on_option_tick_data({'timestamp': epoch_minute, 'symbol': symbol, 'records': f_recs})
 
     def on_hist(self, feed):
+        print('on hist price+++++++++++++++++++++')
         self.algo_interface.on_hist_price(feed)
 
     def on_atm_option_feed(self, feed):

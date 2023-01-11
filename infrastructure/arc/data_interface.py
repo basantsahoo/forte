@@ -51,6 +51,7 @@ class AlgorithmIterface:
         print('setup time', (end_time - start_time).total_seconds())
 
     def on_hist_price(self, hist_feed):
+        print('di +++++ on_hist_price +++++')
         hist_feed = json.loads(hist_feed)
         symbol = hist_feed['symbol']
         hist = hist_feed['hist']
@@ -59,7 +60,7 @@ class AlgorithmIterface:
         #print(hist)
         epoch_minute = hist[0]['timestamp']
         #print(hist[0])
-        if self.trade_day is None:
+        if self.trade_day is None and not self.setup_in_progress:
             self.setup_in_progress = True
             self.set_trade_date_from_time(epoch_minute)
             self.last_epoc_minute_data[symbol] = hist[-1]
@@ -69,21 +70,22 @@ class AlgorithmIterface:
                     insight_book.hist_feed_input(hist)
 
     def on_hist_option_price(self, hist_feed):
-        print('here 1')
+        print('di +++++ on_hist_option_price +++++', len(hist_feed['hist']))
         symbol = hist_feed['symbol']+"_O"
         hist = hist_feed['hist']
         #print(hist)
         epoch_minute = hist[0]['timestamp']
         #print(hist[0])
-        if self.trade_day is None:
+        if self.trade_day is None and not self.setup_in_progress:
             self.setup_in_progress = True
             self.set_trade_date_from_time(epoch_minute)
         self.last_epoc_minute_data[symbol] = hist[-1]
         self.portfolio_manager.option_price_input(hist[-1])
         time.sleep(0.5)
         for insight_book in self.insight_books:
-            print('here 2')
+
             if insight_book.ticker == hist_feed['symbol']:
+                print('sending hist to insight')
                 insight_book.hist_option_feed_input(hist)
 
 
