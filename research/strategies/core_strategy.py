@@ -267,6 +267,8 @@ class BaseStrategy:
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
         suitable = enough_time and suitable_tpo
+        #print('enough_time', enough_time)
+        #print('suitable_tpo', suitable_tpo)
         if suitable:
             market_params = self.insight_book.activity_log.get_market_params()
             d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']

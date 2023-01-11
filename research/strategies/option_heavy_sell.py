@@ -16,7 +16,7 @@ class OptionHeavySellStrategy(BaseOptionStrategy, PatternMetricRecordMixin):
         self.last_match = None
 
     def evaluate_signal(self, matched_pattern):
-        print('process_pattern_signal option heavy sell+++++++++++', matched_pattern)
+        #print('process_pattern_signal option heavy sell+++++++++++', matched_pattern)
         last_match_ol = 0
         signal_passed = False
         """

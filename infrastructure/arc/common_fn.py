@@ -146,7 +146,6 @@ class CommonFN:
                 self.set_trade_date_from_time(epoch_tick_time)
             self.market_data[epoch_minute] = feed_small
         self.last_tick = feed_small
-        print('self.last_tick' , self.last_tick)
         self.set_curr_tpo(epoch_minute)
         self.activity_log.update_last_candle()
         self.activity_log.determine_level_break(epoch_tick_time)
@@ -216,7 +215,15 @@ class CommonFN:
             self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}, 'strength':0})
 
     def pattern_signal(self, pattern, pattern_match_idx):
-        print(pattern, pattern_match_idx)
+        #print('pattern_signal+++++++', pattern, pattern_match_idx)
+        """
+        if pattern == 'OPTION_PRICE_DROP':
+            print('pattern_signal+++++++', pattern, pattern_match_idx)
+        """
+        """
+        if pattern == 'DT':
+            print('pattern_signal+++++++', pattern, pattern_match_idx)
+        """
         if pattern == 'TREND':
             print('TREND+++++', pattern, pattern_match_idx)
             self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}

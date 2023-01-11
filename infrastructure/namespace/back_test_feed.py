@@ -22,6 +22,7 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
     def get_data(self, sym, trade_day):
         tick_df = get_daily_tick_data(sym, trade_day)
         tick_df['symbol'] = sym
+        tick_df['ltp'] = tick_df['close']
         converted = tick_df.to_dict("records")
         return (x for x in converted)
 
@@ -31,9 +32,15 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         converted = []
         for ts in ts_list:
             t_df = option_df[option_df['timestamp'] == ts][['instrument', 'oi', 'volume', 'open', 'high', 'low', 'close']]
-            t_df.set_index('instrument', inplace=True)
-            recs = t_df.to_dict('index')
-            converted.append({'timestamp': ts, 'symbol': sym, 'records': recs})
+            t_df['ltt'] = ts
+            t_df['ltp'] = t_df['close']
+            #t_df.set_index('instrument', inplace=True)
+            recs = t_df.to_dict('records')
+            for rec in recs:
+                [strike, kind] = rec['instrument'].split("_")
+                rec['strike'] = strike
+                rec['type'] = kind
+            converted.append({'timestamp': ts, 'symbol': sym, 'data': recs})
         return (x for x in converted)
 
     def get_price(self):
@@ -110,9 +117,10 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         self.enter_room(sid, helper_utils.get_options_feed_room(ticker))
 
     async def on_option_input_feed(self, lst):
-        print('input option received')
+        #print('input option received', lst)
         for item in lst:
             await self.emit('all_option_data', json.dumps(item, cls=NpEncoder), room= helper_utils.get_options_feed_room(item['symbol']))
+            #await self.emit('all_option_data', item, room=helper_utils.get_options_feed_room(item['symbol']))
 
 
     async def on_input_feed(self, lst):

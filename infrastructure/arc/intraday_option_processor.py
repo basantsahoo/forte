@@ -15,7 +15,7 @@ class IntradayOptionProcessor:
         return sum(x * y for x, y in zip(nums, weights)) / sum(weights)
 
     def process_input_stream(self, option_data, notify=True):
-        print('option processor process_input_stream', option_data['timestamp'])
+        #print('option processor process_input_stream', option_data['timestamp'])
         if option_data['symbol'] == self.symbol:
             ts = option_data['timestamp']
             option_recs = option_data['records']

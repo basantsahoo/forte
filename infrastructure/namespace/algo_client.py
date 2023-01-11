@@ -22,7 +22,7 @@ class AlgoClient(socketio.ClientNamespace):
         socketio.ClientNamespace.__init__(self, namespace)
         self.algo_interface = AlgorithmIterface(self)
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = MarketClient('/livefeed', ['NIFTY'])
+        ns = MarketClient('/histfeed', ['NIFTY'])
         self.c_sio.register_namespace(ns)
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
@@ -67,12 +67,11 @@ class AlgoClient(socketio.ClientNamespace):
         self.algo_interface.on_hist_option_price({'symbol': symbol, 'hist': hist_recs})
 
     def on_option_tick_data(self, feed):
-        #print('on_price' , feed)
-        #feed = json.dumps(feed)
+        if type(feed) == str:
+            feed = json.loads(feed)
         symbol = feed['symbol']
         recs = feed['data']
         recs_mid = int(len(recs)/2)
-
         ts = recs[recs_mid]['ltt']
         epoch_minute = int(ts // 60 * 60) + 60
         f_recs = {}
