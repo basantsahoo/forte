@@ -30,7 +30,7 @@ class IntradayOptionProcessor:
                 self.option_data_inst_ts[instrument][ts] = data
                 self.option_data_cross_ts_inst_oi[ts][instrument] = data['oi']
                 self.option_data_cross_ts_inst_volume[ts][instrument] = data['volume']
-        if notify:
+        if notify and len(list(self.option_data_cross_ts_inst_oi.keys())) > 2:
             self.perform_calculations()
 
 

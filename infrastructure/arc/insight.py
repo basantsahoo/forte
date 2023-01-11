@@ -206,7 +206,7 @@ class InsightBook:
 
     def hist_option_feed_input(self, hist_feed):
         for option_data in hist_feed:
-            self.option_processor.process_input_stream(option_data)
+            self.option_processor.process_input_stream(option_data, notify=False)
 
     def update_state_transition(self):
         last_state = self.state_generator.curr_state
@@ -219,7 +219,7 @@ class InsightBook:
             open_type = features['open_type']
             probs = self.mc.get_prob_from_curr_state(open_type)
             #print(probs)
-            self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}})
+            self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}, 'strength':0})
 
     def pattern_signal(self, pattern, pattern_match_idx):
         """

@@ -141,15 +141,16 @@ class AlgorithmIterface:
         self.last_epoc_minute_data[symbol] = feed
         self.portfolio_manager.option_price_input(feed)
 
-    def place_entry_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ):
-        print('place_entry_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type)
+    def place_entry_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ,cover):
+        print('place_entry_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type,option_flag,cover)
         order_info = {'symbol': symbol,
                       'order_side':order_side,
                       'qty': qty,
                       'strategy_id': strategy_id,
                       'order_id': order_id,
                       'order_type': order_type,
-                      'option_flag':option_flag
+                      'option_flag':option_flag,
+                      'cover': cover
                       }
 
         self.socket.on_oms_entry_order(order_info)

@@ -271,6 +271,7 @@ class BaseStrategy:
         #print('suitable_tpo', suitable_tpo)
         if suitable:
             market_params = self.insight_book.activity_log.get_market_params()
+            #print(market_params)
             d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)

@@ -81,7 +81,7 @@ class BrokerLive:
             "qty": 1
         }
 
-        fyers.modify_order(data)
+        self.fyers_feed.fyers.modify_order(data)
     def cancel_order(self):
         data = {"id": '808058117761'}
         self.fyers_feed.fyers.cancel_order(data)
@@ -130,7 +130,6 @@ class BrokerLive:
         res = {'success': response['code'] == success_code, 'order_id': response['id'], "position_id": order_info["symbol"] + "-" + order_info["productType"], 'qty': order_info["qty"], 'side': order_info['side']}
         res = {'success': response['code'] == success_code, 'order_id': response['id'], "symbol": order_info["symbol"], 'qty': order_info["qty"], 'side': order_info['side']}
         res['traded_price'] = self.get_order_status(response['id']).get('tradedPrice', -9999)
-        print(res)
         return res
 
     def convert_to_valid_entry_order(self, order_details,category):
@@ -184,9 +183,7 @@ class BrokerLive:
         print('broker place_entry order')
         if category == 'MARKET':
             order_details = self.convert_to_valid_entry_order(order_info,category)
-            print(order_details)
             res = self.place_intraday_market_order(order_details)
-            print(res)
             return res
             #return {'success': True}
 

@@ -17,9 +17,11 @@ from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 from research.strategies.state_cap_strategy import StateCapStrategy
 from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
 from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell, FridayCandleBuyFullDay
-from research.strategies.option_heavy_sell import OptionHeavySellStrategy
+from research.strategies.cheap_option_buy import CheapOptionBuy
+from research.strategies.option_sell import OptionSellStrategy
 from dynamics.profile.market_profile import HistMarketProfileService
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
+from infrastructure.arc.data_interface_for_backtest import AlgorithmBacktestIterface
 from infrastructure.arc.insight import InsightBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
@@ -43,10 +45,17 @@ class StartegyBackTester:
             print('=========================================================================================')
 
             processor = HistMarketProfileService()
-            pm = AlgoPortfolioManager()
+
             in_day = day if type(day) == str else day.strftime('%Y-%m-%d')
             story_book = InsightBook(symbol, in_day, record_metric=self.strat_config['record_metric'], candle_sw=self.strat_config['candle_sw'])
+            place_live = False
+            interface = None
+            if self.strat_config.get("send_to_oms", False):
+                interface = AlgorithmBacktestIterface()
+                place_live = True
+            pm = AlgoPortfolioManager(place_live, interface)
             story_book.pm = pm
+
             #story_book.profile_processor = processor
             for s_id in range(len(self.strat_config['strategies'])):
                 print('strategy=====', self.strat_config['strategies'][s_id])

@@ -113,7 +113,7 @@ class OMSPortfolioManager:
         side = get_broker_order_type(np.sign(order_info['qty']))
         inst = order_info['type']
         key = index + "_" + inst
-        instrument = self.atm_options[key]
+        instrument = self.atm_options[key].copy()
         instrument['underlying'] = index
         instrument['strike'] = order_info['strike']
         instrument['type'] = inst
@@ -131,7 +131,7 @@ class OMSPortfolioManager:
 
         (inst,side) = self.get_instr_type(side, strategy_regulation['instruments'])
         key = index + "_" + inst
-        instrument = self.atm_options[key]
+        instrument = self.atm_options[key].copy()
         instrument['underlying'] = index
         instrument['type'] = inst
         instrument['side'] = side
@@ -172,21 +172,68 @@ class OMSPortfolioManager:
 
     def place_entry_order(self, order_info):
         print('place_entry_order inside oms', order_info)
+        if order_info['option_flag'] and order_info['cover'] > 0:
+            return self.place_covered_entry_order(order_info)
+        else:
+            response = {'success': False}
+            strategy = oms_config.get_strategy_name(order_info['strategy_id'])
+            strategy_regulation = oms_config.get_strategy_regulation(strategy)
+            allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
+            for broker in allowed_brokers:
+                optimal_order = self.get_optimal_entry_order_info(order_info, strategy_regulation[broker.id])
+                res = broker.place_entry_order(optimal_order, order_info['order_type'])
+                response = res
+                if res['success']:
+                    t_key = order_info['order_id']
+                    self.strategy_order_map[t_key] = res
+                    """
+                    self.dummy_broker.place_order(order_info['strategy_id'], order_info['order_id'], None, res['symbol'], res['side'], 0, res['qty'],
+                                                  trade_date, order_time)
+                    """
+            return response
+
+    def get_covered_entry_order_info(self, order_info, strategy_regulation):
+        print('get_covered_entry_order_info++++', order_info)
+        [ind, strike, kind] = order_info['symbol'].split("_")
+        index = root_symbol(order_info['symbol'])
+        lot_size = oms_config.get_lot_size(index)
+        side = get_broker_order_type(order_info['order_side'])
+        cover = order_info['cover'] if kind == 'CE' else -1*order_info['cover']
+        key = index + "_" + kind
+        instrument = self.atm_options[key].copy()
+        instrument['strike'] = int(strike)
+        instrument['underlying'] = index
+        instrument['type'] = kind
+        instrument['side'] = side
+        instrument['qty'] = order_info['qty'] * lot_size * strategy_regulation['scale']
+
+        instrument_2 = self.atm_options[key].copy()
+        instrument_2['strike'] = int(strike) + cover
+        instrument_2['underlying'] = index
+        instrument_2['type'] = kind
+        instrument_2['side'] = -1*side
+        instrument_2['qty'] = order_info['qty'] * lot_size * strategy_regulation['scale']
+
+        print('instrument++++++', instrument)
+        print('instrument_2++++++', instrument_2)
+        return [instrument_2, instrument]
+
+
+    def place_covered_entry_order(self, order_info):
+        print('place_covered_entry_order inside oms', order_info)
         response = {'success': False}
         strategy = oms_config.get_strategy_name(order_info['strategy_id'])
         strategy_regulation = oms_config.get_strategy_regulation(strategy)
         allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
         for broker in allowed_brokers:
-            optimal_order = self.get_optimal_entry_order_info(order_info, strategy_regulation[broker.id])
-            res = broker.place_entry_order(optimal_order, order_info['order_type'])
-            response = res
-            if res['success']:
-                t_key = order_info['order_id']
-                self.strategy_order_map[t_key] = res
-                """
-                self.dummy_broker.place_order(order_info['strategy_id'], order_info['order_id'], None, res['symbol'], res['side'], 0, res['qty'],
-                                              trade_date, order_time)
-                """
+            optimal_order = self.get_covered_entry_order_info(order_info, strategy_regulation[broker.id])
+            cover_res = broker.place_entry_order(optimal_order[0], order_info['order_type'])
+            if not cover_res['success']:
+                res = broker.place_entry_order(optimal_order[1], order_info['order_type'])
+                response = res
+                if res['success']:
+                    t_key = order_info['order_id']
+                    self.strategy_order_map[t_key] = res
         return response
 
 

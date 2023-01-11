@@ -1,5 +1,5 @@
 {
-  "strategies":["OptionHeavySellStrategy"],
+  "strategies":["CheapOptionBuy"],
   "strategy_kwargs":[
     {
       "pattern":"OPTION_PRICE_DROP",
@@ -10,18 +10,15 @@
       "target_pct":[0.1,0.2,0.3,0.4],
       "stop_loss_pct":[0.5,0.5,0.5,0.5],
       "criteria" : [
-        {"op": "or", "logical_test": "open_type in ['ABOVE_VA'] and tpo in [7,8,9,10,11] and strength >= 20 and strength <= 40 and kind in ['PE']" },
-        {"op": "or", "logical_test": "open_type in ['BELOW_VA'] and tpo in [1,3,4,5,6] and strength >= 20 and strength <= 50 and kind in ['PE', 'CE']" },
-        {"op": "or", "logical_test": "open_type in ['GAP_DOWN'] and tpo in [3,4,5,6,7,8,9] and money_ness in ['ITM_1', 'ITM_2', 'ITM_3']" },
-        {"op": "or", "logical_test": "open_type in ['GAP_UP'] and tpo in [3] and kind in ['PE', 'CE']" }
+        {"op": "or", "logical_test": "open_type in ['GAP_DOWN'] and tpo in [10,11] and strength >= 80  and kind in ['PE']"}
       ]
     }
   ],
-  "test_days": ["2022-09-28"],
+  "test_days": [],
   "for_past_days": 80,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-30",
   "candle_sw" : 0,
-  "week_days": ["Wednesday"],
+  "week_days": ["Thursday"],
   "record_metric": true
 }

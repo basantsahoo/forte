@@ -96,6 +96,7 @@ class CommonFN:
         #print('self.resistances_to_watch', self.resistances_to_watch)
 
     def set_transition_matrix(self):
+        print('setting transition matrix')
         self.state_generator = DayFullStateGenerator(self.ticker, self.trade_day, self.yday_profile)
         try:
             f = open(cache_dir + 'full_state_' + self.ticker + '.json')
@@ -227,7 +228,7 @@ class CommonFN:
         if pattern == 'TREND':
             print('TREND+++++', pattern, pattern_match_idx)
             self.market_insights = {**self.market_insights, **pattern_match_idx['trend']}
-            self.activity_log.update_trend(pattern_match_idx['trend'])
+            self.activity_log.update_sp_trend(pattern_match_idx['trend'])
             for wave in pattern_match_idx['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
         for strategy in self.strategies:

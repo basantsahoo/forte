@@ -4,6 +4,7 @@ strategy_regulator={
     'CDLHIKKAKE_BUY': {1: {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
     'CDLENGULFING_BUY': {1: {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
     'OPTION_CHEAP': {1: {'scale':1, 'instruments': ['OPT'], 'strike' : 'ATM'}},
+    'OPTION_SELL': {1: {'scale':1, 'instruments': ['OPT'], 'strike' : 'ATM'}},
 }
 
 

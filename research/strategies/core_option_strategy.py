@@ -48,7 +48,8 @@ class BaseOptionStrategy(BaseStrategy):
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
         updated_symbol = self.insight_book.ticker + "_" + triggers[0]['instrument']
-        signal_info = {'symbol': updated_symbol, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
+        cover = triggers[0].get('cover', 0)
+        signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         self.confirm_trigger(sig_key, triggers)
         self.insight_book.pm.strategy_entry_signal(signal_info, option_signal=True)
 
