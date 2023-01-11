@@ -230,6 +230,7 @@ class OMSPortfolioManager:
             cover_res = broker.place_entry_order(optimal_order[0], order_info['order_type'])
             if not cover_res['success']:
                 res = broker.place_entry_order(optimal_order[1], order_info['order_type'])
+                res['cover'] = order_info['cover']
                 response = res
                 if res['success']:
                     t_key = order_info['order_id']
@@ -247,13 +248,22 @@ class OMSPortfolioManager:
             allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
             for broker in allowed_brokers:
                 optimal_order = self.get_optimal_exit_order_info(order_info, strategy_regulation[broker.id])
-                #print(optimal_order)
+                print(optimal_order)
                 if optimal_order:
                     res = broker.place_exit_order(optimal_order, order_info['order_type'])
                     response = res
                     print(response)
                     if res['success']:
                         self.strategy_order_map[t_key]['qty'] += res['qty'] * res['side']
+
+                        if self.strategy_order_map[t_key]['cover'] > 0:
+                            [ind, strike, kind] = order_info['symbol'].split("_")
+                            cover_order = optimal_order.copy()
+                            cover = order_info['cover'] if kind == 'CE' else -1 * self.strategy_order_map[t_key]['cover']
+                            cover_order['strike'] = cover_order['strike'] + cover
+                            cover_order['side'] = get_exit_order_type(cover_order['side'])
+                            res = broker.place_exit_order(cover_order, order_info['order_type'])
+
         #print(self.strategy_order_map)
         return response
 

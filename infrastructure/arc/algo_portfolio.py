@@ -100,6 +100,9 @@ class AlgoPortfolioManager:
 
 
     def strategy_exit_signal(self, signal_info, candle=None, option_signal=False):
+        print('algo port strategy_exit_signal')
+        print(signal_info)
+
         symbol = signal_info['symbol']
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
