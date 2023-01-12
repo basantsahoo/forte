@@ -125,12 +125,12 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
     async def true_data_connect(self):
         print('True data connect +++++++++++++++++++++++++++++++++++')
         self.td_scoket = TDCustom.getInstance()
-        symbols = [helper_utils.get_nse_index_symbol(symbol) for symbol in default_symbols] + ['NIFTY-I', 'BANKNIFTY-I']
+        symbols = [helper_utils.get_nse_index_symbol(symbol) for symbol in default_symbols]
 
         print('Starting Real Time Feed.... ')
         req_ids = self.td_scoket.start_live_data(symbols)
-        all_index_stocks = list(set(nifty_constituents + bank_nifty_constituents))
-        req_id_stocks = self.td_scoket.start_live_data(all_index_stocks)
+        all_index_futs = ['NIFTY-I', 'BANKNIFTY-I']
+        req_id_futs = self.td_scoket.start_live_data(all_index_futs)
         time.sleep(1)
         nifty_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('NIFTY'), expiry_dt, chain_length=20, bid_ask=True)
         bnf_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('BANKNIFTY'), expiry_dt, chain_length=30, bid_ask=True)
@@ -163,13 +163,13 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
                     self.price_received_live(self.td_scoket.live_data[req_id])
             nifty_volumes = []
             bank_nifty_volumes = []
-            for req_id in req_id_stocks:
+            for req_id in req_id_futs:
                 stock_last_tick = self.td_scoket.live_data[req_id].to_dict()
                 turn_over = stock_last_tick['turnover'] if stock_last_tick['turnover'] is not None else 0
-                volume = round(turn_over/stock_last_tick['ltp'])
-                if stock_last_tick['symbol'] in bank_nifty_constituents:
+                volume = stock_last_tick.get('volume',0)
+                if stock_last_tick['symbol'] == 'BANKNIFTY-I':
                     bank_nifty_volumes.append(volume)
-                if stock_last_tick['symbol'] in nifty_constituents:
+                if stock_last_tick['symbol'] == 'NIFTY-I':
                     nifty_volumes.append(volume)
             print('nifty_volumes+++++++', np.mean(nifty_volumes))
             print('bank nifty_volumes+++++++', np.mean(bank_nifty_volumes))

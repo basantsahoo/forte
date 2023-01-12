@@ -57,9 +57,7 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
 
     async def on_get_trade_date(self, sid):
         print("TRADE DATE BY USER")
-        datetime.date.today()
-
-        await self.emit('set_trade_date', date.today(), room=sid)
+        await self.emit('set_trade_date', date.today().strftime('%Y-%m-%d'), room=sid)
 
     """
     Market Insight starts

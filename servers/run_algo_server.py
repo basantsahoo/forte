@@ -20,7 +20,7 @@ def refresh(ns):
     #clean_up = True
     while True:
         now = datetime.now(tz_ist)
-        if (now.hour == 15 and now.minute >= 45) or (now.hour == 8 and now.minute >= 45):
+        if (now.hour == 15 and now.minute >= 45) or (now.hour == 8 and now.minute >= 44):
             #print('refresh 2')
             #clean_up=False
             ns.refresh()

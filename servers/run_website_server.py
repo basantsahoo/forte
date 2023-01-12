@@ -31,10 +31,6 @@ async def refresh(ns):
         if (now.hour == 8 and now.minute >= 45) or (now.hour == 9 and now.minute <= 51):
             ns.refresh()
             ns.processor.refresh()
-            """
-            for broker in ns.portfolio_manager.brokers:
-                broker.refresh()
-            """
             ns.option_processor.refresh()
         await asyncio.sleep(15*60)
         #loop.stop()

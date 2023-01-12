@@ -33,7 +33,7 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
     def __init__(self,namespace=None):
         socketio.AsyncNamespace.__init__(self, namespace)
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = MarketClient('/histfeed', ['NIFTY'])
+        ns = MarketClient('/livefeed', ['NIFTY'])
         self.c_sio.register_namespace(ns)
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
