@@ -24,12 +24,12 @@ class AlgoPortfolioManager:
 
     """required for storing trades in trader db"""
     def set_dummy_broker(self):
-        pass
-        #self.dummy_broker = DummyBroker()
+        #pass
+        self.dummy_broker = DummyBroker()
 
     def set_live(self):
-        pass
-        #self.set_dummy_broker()
+        #pass
+        self.set_dummy_broker()
 
     def price_input(self, input):
         #print('price input', input)

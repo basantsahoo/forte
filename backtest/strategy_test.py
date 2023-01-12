@@ -19,6 +19,7 @@ from research.strategies.opening_trend_bearish import OpeningBearishTrendStrateg
 from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell, FridayCandleBuyFullDay
 from research.strategies.cheap_option_buy import CheapOptionBuy
 from research.strategies.option_sell import OptionSellStrategy
+from live_algo.friday_option_buy import FridayOptionBuy,FridayBelowVA
 from dynamics.profile.market_profile import HistMarketProfileService
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
 from infrastructure.arc.data_interface_for_backtest import AlgorithmBacktestIterface

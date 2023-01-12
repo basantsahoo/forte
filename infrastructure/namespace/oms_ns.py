@@ -33,14 +33,20 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
     def __init__(self,namespace=None):
         socketio.AsyncNamespace.__init__(self, namespace)
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = MarketClient('/livefeed', ['NIFTY'])
+        ns = MarketClient('/histfeed', ['NIFTY'])
         self.c_sio.register_namespace(ns)
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
+        ns.on_set_trade_date = self.on_set_trade_date
+        self.request_data = ns.request_data
         self.market_cache = Cache(cache_dir + 'oms_cache')
         self.portfolio_manager = OMSPortfolioManager(place_live_orders=True, market_cache=self.market_cache)
         self.processor = TickMarketProfileEnablerService(market_cache=self.market_cache)
         self.processor.socket = self
+
+    def on_set_trade_date(self, trade_day):
+        print('oms ns set_trade_day')
+        self.request_data()
 
     def refresh(self):
         pass

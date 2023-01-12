@@ -15,7 +15,7 @@ include_pre_market = False
 regimes = ['2018-12-10', '2019-06-12', '2020-02-20', '2020-04-03', '2020-10-03', '2021-02-15', '2021-07-26', '2021-12-10']
 regime_desc = ['All 1', 'bear & reversal', 'sharp bear', 'bull & correction 1', 'sharp bull', 'All 2', 'bull & correction 2']
 
-back_test_day = '2023-01-04' #'2021-12-09'
+back_test_day = '2023-01-06' #'2021-12-09'
 place_live_orders = True # determines placing of order
 live_feed = True #True  #determines servers tickdata or historical 1 min data
 socket_auth_enabled = True
@@ -24,7 +24,7 @@ rest_api_url = 'http://localhost:8000/'
 order_api = rest_api_url + 'order'
 allowed_apps = ['CALG136148', 'FEEDTD136148', 'FEEDFY136148']
 
-#order_api = 'https://api.niftybull.in/order'
+order_api = 'https://api.niftybull.in/order'
 expiry_dt = datetime(2022, 8, 25)
 future_expiry_dates = ['2022-08-25',  '2022-09-01', '2022-09-08', '2022-09-15', '2022-09-22', '2022-09-29', '2022-10-06', '2022-10-13', '2022-10-20', '2022-10-27', '2022-11-03', '2022-11-10', '2022-11-17', '2022-11-24', '2022-12-01', '2022-12-08', '2022-12-15', '2022-12-22',	'2022-12-29',
                        '2023-01-05', '2023-01-12',	'2023-01-19', '2023-01-25',	'2023-02-02',  '2023-02-09']

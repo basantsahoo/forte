@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     #df = pd.read_csv(reports_dir + 'test1.csv')
-    df = pd.read_csv(reports_dir + 'bkp_cheap_option.csv')
+    df = pd.read_csv(reports_dir + 'friday_option_buy.csv')
     df = df.sort_values(['entry_time', 'signal_id', 'trigger'], ascending=[True,True, True]).reset_index(drop=True)
     #print(df.head().T)
 

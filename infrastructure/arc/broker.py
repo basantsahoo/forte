@@ -11,7 +11,7 @@ success_code = 1101
 
 class BrokerLive:
     def __init__(self,pm):
-        self.id = 1
+        self.id = 'BASANT_FYERS'
         self.fyers_feed = FyersFeed.getInstance()
         self.pm = pm
         self.get_funds()

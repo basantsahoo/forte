@@ -22,17 +22,24 @@ class AlgoClient(socketio.ClientNamespace):
         socketio.ClientNamespace.__init__(self, namespace)
         self.algo_interface = AlgorithmIterface(self)
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = MarketClient('/livefeed', ['NIFTY'])
+        ns = MarketClient('/histfeed', ['NIFTY'])
         self.c_sio.register_namespace(ns)
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
         ns.on_hist = self.on_hist
         ns.on_all_option_data = self.on_option_tick_data
         ns.on_hist_option_data = self.on_hist_option_data
+        ns.on_set_trade_date = self.on_set_trade_date
+        self.request_data = ns.request_data
 
     def refresh(self):
         self.algo_interface.clean()
         self.algo_interface = AlgorithmIterface(self)
+
+    def on_set_trade_date(self, trade_day):
+        print('algo client set_trade_day', trade_day)
+        self.algo_interface.set_trade_date(trade_day)
+        self.request_data()
 
     def on_tick_data(self, feed):
         #print('on_price' , feed)

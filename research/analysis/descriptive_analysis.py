@@ -93,11 +93,13 @@ def add_strategy_details(report, df_i, target,filter={}):
     losing_avg = round(df_i[df_i[target] < 0][target].mean(), 2)
     winning_pct = round(winning_trades.shape[0] / (winning_trades.shape[0] + losing_trades.shape[0]) * 100, 1)
     days_for_scen = round(no_of_days / total_days * 100, 2)
+    print('filter', filter)
     print('winning trade count', df_i[df_i[target] > 0][target].count())
     print('winning trade avg', round(df_i[df_i[target] > 0][target].mean(), 2))
     print('losing trade count', df_i[df_i[target] < 0][target].count())
     print('losing trade avg', round(df_i[df_i[target] < 0][target].mean(), 2))
     print('percentage winning trade', str(winning_pct) + "%")
+    print('No days for scenario', str(no_of_days) )
     print('percentage days for scenario', str(days_for_scen) + "%")
 
     txt_d = 'Details of strategy ' + strategy
@@ -117,7 +119,11 @@ def add_strategy_details(report, df_i, target,filter={}):
     firstPage.text(0.4, 0.4, 'percentage winning trade = ' + str(winning_pct) + "%", transform=firstPage.transFigure, size=15,
                    ha="center")
 
-    firstPage.text(0.4, 0.3, 'percentage days for scenario = ' + str(days_for_scen) + "%", transform=firstPage.transFigure,
+    firstPage.text(0.4, 0.3, 'No days for scenario = ' + str(no_of_days) , transform=firstPage.transFigure,
+                   size=15,
+                   ha="center")
+
+    firstPage.text(0.4, 0.2, 'percentage days for scenario = ' + str(days_for_scen) + "%", transform=firstPage.transFigure,
                    size=15,
                    ha="center")
     report.savefig()
@@ -235,9 +241,9 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 group_wise_summary(report, df_i, target, 'strength')
                 """
                 filter = {}
-                all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind','money_ness', 'strength'], filter=filter)
+                #all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind','money_ness', 'strength'], filter=filter)
 
-                filter = {'week_day': 'Friday'}
+                filter = {'week_day': 'Friday', 'open_type': 'GAP_DOWN', 'kind':'CE'}
                 group_wise_summary(report, df_i, target, 'week_day', filter=filter)
                 group_wise_summary(report, df_i, target, 'open_type', filter=filter)
                 group_wise_summary(report, df_i, target, 'tpo', filter=filter)

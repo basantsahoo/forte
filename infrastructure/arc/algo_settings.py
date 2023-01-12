@@ -10,6 +10,17 @@ algorithm_setup = {
 }
 """
 algorithm_setup = {
-    'NIFTY': {'strategies': ['ThursdayOptionSell']}
+    'NIFTY': {
+        'strategies': ["FridayOptionBuy", "FridayBelowVA", "FridayCandleFirst30Buy", "FridayCandleFirst30Sell"],
+        'strategy_kwargs': [
+            {},
+            {
+              "exit_time": 30
+            },
+            {},
+            {}
+        ]
+    }
+    #'NIFTY': {'strategies': ['ThursdayOptionSell']}
     #'NIFTY': {'strategies': ['FridayCandleBuyFullDay', 'FridayCandleSellFullDay']},
 }

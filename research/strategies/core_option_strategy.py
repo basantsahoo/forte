@@ -30,6 +30,7 @@ class BaseOptionStrategy(BaseStrategy):
                               max_signal,target_pct,stop_loss_pct,weekdays_allowed,criteria)
 
     def get_trades(self, pattern_info, idx=1, neck_point=0):
+        print('get_trades================', pattern_info)
         instrument = pattern_info['instrument']
         last_candle = self.insight_book.option_processor.get_last_tick(instrument)
         close_point = last_candle['close']
@@ -111,15 +112,6 @@ class BaseOptionStrategy(BaseStrategy):
         # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
         #total_quantity = sum([trig['quantity'] for trig in triggers])
         self.trigger_entry(self.order_type, sig_key, triggers)
-
-    def process_signal(self, pattern, pattern_match_idx):
-        #print('process_signal' , pattern)
-        if self.relevant_signal(pattern, pattern_match_idx) and (len(self.tradable_signals.keys()) < self.max_signal):
-            #print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()), "last tick===" , self.insight_book.last_tick['timestamp'])
-            signal_passed = self.evaluate_signal(pattern_match_idx) #len(self.tradable_signals.keys()) < self.max_signals+5  #
-            if signal_passed:
-                sig_key = self.add_tradable_signal(pattern_match_idx)
-                self.initiate_signal_trades(sig_key)
 
     def monitor_sell_positions(self):
         #print(self.tradable_signals)

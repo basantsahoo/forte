@@ -66,6 +66,10 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
             pass
         print('disconnect ', sid)
 
+    async def on_get_trade_date(self, sid):
+        print("TRADE DATE BY USER")
+        await self.emit('set_trade_date', default_back_test_day, room=sid)
+
     async def on_join_tick_feed(self, sid, ticker):
         print("JOIN BY USER", ticker)
         self.enter_room(sid, ticker)
@@ -96,8 +100,8 @@ class BacktestFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         self.option_lst = []
         self.option_lst.append(self.get_option_data(ticker, back_test_date))
 
-        obs = rx.interval(1).pipe(ops.map(lambda i: next(self.get_price())))
-        obs2 = rx.interval(1).pipe(ops.map(lambda i: next(self.get_option_price())))
+        obs = rx.interval(0.2).pipe(ops.map(lambda i: next(self.get_price())))
+        obs2 = rx.interval(0.2).pipe(ops.map(lambda i: next(self.get_option_price())))
         loop = asyncio.get_event_loop()
         self.obs = obs.subscribe(on_next=lambda s:  rx.from_future(loop.create_task(self.on_input_feed(s))), on_error=lambda x: print('error in generator'), scheduler=AsyncIOScheduler(loop))
         self.obs2 = obs2.subscribe(on_next=lambda s: rx.from_future(loop.create_task(self.on_option_input_feed(s))), on_error=lambda x: print('error in generator'), scheduler=AsyncIOScheduler(loop))

@@ -46,6 +46,25 @@ class MarketClient(socketio.ClientNamespace):
 
     def on_connect(self):
         print('Market client  connected')
+        self.emit('get_trade_date')
+
+    def on_set_trade_date(self, trade_day):
+        print('Market on_set_trade_date')
+
+    def request_data(self):
+        for symbol in self.subscribed_symbols:
+            self.emit('get_price_chart_data', symbol)
+            time.sleep(2)
+            self.emit('get_hist_option_data', symbol)
+            time.sleep(2)
+        for symbol in self.subscribed_symbols:
+            self.emit('join_tick_feed', symbol)
+            self.emit('request_data', symbol)
+            self.emit('join_options_feed', symbol)
+        self.emit('join_tick_feed', 'atm_option_room')
+
+    def on_connect_2(self):
+        print('Market client  connected')
         for symbol in self.subscribed_symbols:
             self.emit('get_price_chart_data', symbol)
             time.sleep(12)
@@ -54,11 +73,7 @@ class MarketClient(socketio.ClientNamespace):
         for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
             self.emit('request_data', symbol)
-
-
             self.emit('join_options_feed', symbol)
-
-
         self.emit('join_tick_feed', 'atm_option_room')
 
     def on_disconnect(self):

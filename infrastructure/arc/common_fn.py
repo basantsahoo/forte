@@ -96,7 +96,6 @@ class CommonFN:
         #print('self.resistances_to_watch', self.resistances_to_watch)
 
     def set_transition_matrix(self):
-        print('setting transition matrix')
         self.state_generator = DayFullStateGenerator(self.ticker, self.trade_day, self.yday_profile)
         try:
             f = open(cache_dir + 'full_state_' + self.ticker + '.json')

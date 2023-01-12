@@ -5,6 +5,7 @@ import time
 from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
 #from infrastructure.arc.insight import InsightBook
 from infrastructure.arc.insight_mini import InsightBook
+from infrastructure.arc.dummy_broker import DummyBroker
 from db.market_data import (get_all_days, get_daily_tick_data, prev_day_data, get_prev_week_candle, get_nth_day_profile_data)
 import helper.utils as helper_utils
 #from strategies_bkp.range_break import RangeBreakDownStrategy
@@ -14,6 +15,10 @@ from research.strategies.aggregators import PatternAggregator
 from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 from live_algo.wednesday_option_buy import WednesdayOptionBuy
 from live_algo.thursday_option_sell import ThursdayOptionSell
+from live_algo.friday_option_buy import FridayOptionBuy,FridayBelowVA
+from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy, FridayCandleFirst30Sell
+
+
 class AlgorithmIterface:
     def __init__(self, socket=None):
         self.trade_day = None
@@ -32,10 +37,9 @@ class AlgorithmIterface:
         self.insight_books = []
         self.portfolio_manager = None
 
-    def set_trade_date_from_time(self, epoch_tick_time):
-        print('set_trade_date_from_time+++++++')
+    def set_trade_date(self, trade_day):
+        print('set_trade_date+++++++')
         start_time = datetime.now()
-        trade_day = helper_utils.day_from_epoc_time(epoch_tick_time)
         self.portfolio_manager = AlgoPortfolioManager(place_live_orders=True, data_interface=self)
         for symbol in list(algorithm_setup.keys()):
             insight_book = InsightBook(symbol, trade_day, record_metric=False)
@@ -44,14 +48,29 @@ class AlgorithmIterface:
             self.last_epoc_minute_data[symbol] = {'timestamp': None}
             self.last_epoc_minute_data[symbol+"_O"] = {'timestamp': None}
             self.insight_books.append(insight_book)
+
+            for s_id in range(len(algorithm_setup[symbol]['strategies'])):
+                print('adding strategy=====', algorithm_setup[symbol]['strategies'][s_id])
+                strategy_class = eval(algorithm_setup[symbol]['strategies'][s_id])
+                strategy_kwargs = algorithm_setup[symbol]['strategy_kwargs'][s_id]
+                insight_book.add_strategy(strategy_class, strategy_kwargs)
+            """
             for strategy in algorithm_setup[symbol]['strategies']:
                 print('adding strategy +++++', strategy)
                 insight_book.add_strategy(eval(strategy))
+            """
             print('all strategy added+++++')
         self.trade_day = trade_day
         self.setup_in_progress = False
         end_time = datetime.now()
         print('setup time', (end_time - start_time).total_seconds())
+
+    def set_trade_date_from_time(self, epoch_tick_time):
+        print('set_trade_date_from_time+++++++')
+        start_time = datetime.now()
+        trade_day = helper_utils.day_from_epoc_time(epoch_tick_time)
+        self.set_trade_date(trade_day)
+
 
     def on_hist_price(self, hist_feed):
         print('di +++++ on_hist_price +++++')

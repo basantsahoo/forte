@@ -3,7 +3,7 @@ import pandas as pd
 import json
 import numpy as np
 import math
-from datetime import datetime
+from datetime import datetime, date
 from collections import OrderedDict
 import time
 import pytz
@@ -54,6 +54,12 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
 
     def on_disconnect(self, sid):
         print('disconnect ', sid)
+
+    async def on_get_trade_date(self, sid):
+        print("TRADE DATE BY USER")
+        datetime.date.today()
+
+        await self.emit('set_trade_date', date.today(), room=sid)
 
     """
     Market Insight starts

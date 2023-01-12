@@ -199,6 +199,7 @@ class BaseStrategy:
         self.trigger_entry(self.order_type,sig_key,triggers)
 
     def process_signal(self, pattern, pattern_match_idx):
+        #print('process_signal in core++++++++++++++++++++++++++', pattern, pattern_match_idx)
         if self.relevant_signal(pattern, pattern_match_idx) and (len(self.tradable_signals.keys()) < self.max_signal):
             #print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()), "last tick===" , self.insight_book.last_tick['timestamp'])
             signal_passed = self.evaluate_signal(pattern_match_idx) #len(self.tradable_signals.keys()) < self.max_signals+5  #
@@ -215,7 +216,7 @@ class BaseStrategy:
     def process_custom_signal(self):
         signal_found = self.calculate_custom_signal() #len(self.tradable_signals.keys()) < self.max_signals+5  #
         if signal_found:
-            sig_key = self.add_tradable_signal(pattern_match_idx)
+            sig_key = self.add_tradable_signal({})
             self.initiate_signal_trades(sig_key)
 
     def process_incomplete_signals(self):
@@ -279,8 +280,8 @@ class BaseStrategy:
             open_type = market_params['open_type']
             tpo = market_params['tpo']
             strength = signal.get('strength', 0)
-            kind = signal['kind']
-            money_ness = signal['money_ness']
+            kind = signal.get('kind', "")
+            money_ness = signal.get('money_ness', "")
             flag = not self.criteria
             for condition in self.criteria:
                 flag = flag or eval(condition['logical_test'])
