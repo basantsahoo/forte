@@ -33,7 +33,7 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
     def __init__(self,namespace=None):
         socketio.AsyncNamespace.__init__(self, namespace)
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = MarketClient('/histfeed', ['NIFTY'])
+        ns = MarketClient('/livefeed', ['NIFTY'])
         self.c_sio.register_namespace(ns)
         ns.on_tick_data = self.on_tick_data
         ns.on_atm_option_feed = self.on_atm_option_feed
@@ -95,11 +95,11 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
         print('exit oms successful')
 
     async def on_place_oms_entry_order(self, sid, order_info):
-        print('on_place_oms_order in socket')
+        #print('on_place_oms_order in socket')
         resp = self.portfolio_manager.place_entry_order(order_info)
 
     async def on_place_oms_exit_order(self, sid, order_info):
-        print('on_place_oms_exit_order in socket')
+        #print('on_place_oms_exit_order in socket')
         resp = self.portfolio_manager.place_exit_order(order_info)
         await self.emit('oms_exit_success', resp, room=sid)
 

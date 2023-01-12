@@ -10,6 +10,6 @@ algorithm_setup = {
 }
 """
 algorithm_setup = {
-    'NIFTY': {'strategies': ['WednesdayOptionBuy']}
+    'NIFTY': {'strategies': ['ThursdayOptionSell']}
     #'NIFTY': {'strategies': ['FridayCandleBuyFullDay', 'FridayCandleSellFullDay']},
 }

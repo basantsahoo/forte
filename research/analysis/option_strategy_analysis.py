@@ -4,14 +4,14 @@ from research.analysis import regression_train
 from research.analysis import descriptive_analysis
 import pandas as pd
 import numpy as np
-from settings import reports_dir
+from backtest.settings import reports_dir
 import matplotlib.pyplot as plt
 
 
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     #df = pd.read_csv(reports_dir + 'test1.csv')
-    df = pd.read_csv(reports_dir + 'cheap_option.csv')
+    df = pd.read_csv(reports_dir + 'bkp_cheap_option.csv')
     df = df.sort_values(['entry_time', 'signal_id', 'trigger'], ascending=[True,True, True]).reset_index(drop=True)
     #print(df.head().T)
 
@@ -262,5 +262,5 @@ def run():
     #basic_statistics(df)
     portfolio_performance(df)
     #portfolio_performance(df, filter={'open_type': 'ABOVE_VA', 'week_day': 'Monday'})
-    #analysis(df)
+    analysis(df)
 

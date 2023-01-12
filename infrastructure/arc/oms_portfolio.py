@@ -228,7 +228,7 @@ class OMSPortfolioManager:
         for broker in allowed_brokers:
             optimal_order = self.get_covered_entry_order_info(order_info, strategy_regulation[broker.id])
             cover_res = broker.place_entry_order(optimal_order[0], order_info['order_type'])
-            if not cover_res['success']:
+            if cover_res['success']:
                 res = broker.place_entry_order(optimal_order[1], order_info['order_type'])
                 res['cover'] = order_info['cover']
                 response = res

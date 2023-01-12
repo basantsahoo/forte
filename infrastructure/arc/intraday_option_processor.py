@@ -35,14 +35,15 @@ class IntradayOptionProcessor:
 
 
     def perform_calculations(self):
-        self.calculate_vwap()
+        #self.calculate_vwap()
         self.calculate_price_drop()
 
     def get_inst_details(self, inst):
         strike = int(inst.split("_")[0])
         kind = inst.split("_")[1]
         #print(self.insight_book.last_tick)
-        spot = self.insight_book.last_tick['close']
+        spot = list(self.insight_book.market_data.values())[0]['close']
+        #spot = self.insight_book.last_tick['close']
         dist = round((strike - spot) / 100)
         if kind == 'CE':
             money_ness = ('OTM_' if dist > 0 else 'ITM_' if dist < 0 else 'ATM_') + str(abs(dist))
@@ -56,6 +57,7 @@ class IntradayOptionProcessor:
             if inst not in self.price_drop_book:
                 self.price_drop_book[inst] = {}
             first_ts = list(self.option_data_inst_ts[inst].keys())[0]
+            #print(first_ts)
             first_item = list(self.option_data_inst_ts[inst].values())[0]
             #print('first_item+++++', list(self.option_data_inst_ts[inst].keys())[0])
             (last_ts, last_item) = list(self.option_data_inst_ts[inst].items())[-1]

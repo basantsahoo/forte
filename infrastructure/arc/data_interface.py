@@ -13,7 +13,7 @@ import traceback
 from research.strategies.aggregators import PatternAggregator
 from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 from live_algo.wednesday_option_buy import WednesdayOptionBuy
-
+from live_algo.thursday_option_sell import ThursdayOptionSell
 class AlgorithmIterface:
     def __init__(self, socket=None):
         self.trade_day = None
