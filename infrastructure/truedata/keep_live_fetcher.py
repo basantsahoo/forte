@@ -41,7 +41,6 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
         self.live_data_objs = {}
         self.spot_data = {}
         self.volume_data = {'NIFTY 50': 0, 'NIFTY BANK': 0}
-        self.turn_over_data = {'NIFTY 50': 0, 'NIFTY BANK': 0}
         self.last_spot_time = dt.now()
         self.last_oc_time = dt.now()
     def socket_sending_response(self):
@@ -58,7 +57,7 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
         return resp
 
     def price_received_live(self, feed):
-        #print('spot_received_live')
+        print('spot_received_live',feed)
         self.last_spot_time = dt.now()
         feed_d = feed.to_dict()
         #print(feed_d)
@@ -126,12 +125,12 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
     async def true_data_connect(self):
         print('True data connect +++++++++++++++++++++++++++++++++++')
         self.td_scoket = TDCustom.getInstance()
-        symbols = [helper_utils.get_nse_index_symbol(symbol) for symbol in default_symbols]
+        symbols = [helper_utils.get_nse_index_symbol(symbol) for symbol in default_symbols] + ['NIFTY-I', 'BANKNIFTY-I']
 
         print('Starting Real Time Feed.... ')
         req_ids = self.td_scoket.start_live_data(symbols)
-        all_index_futs = ['NIFTY-I', 'BANKNIFTY-I']
-        req_id_futs = self.td_scoket.start_live_data(all_index_futs)
+        all_index_stocks = list(set(nifty_constituents + bank_nifty_constituents))
+        req_id_stocks = self.td_scoket.start_live_data(all_index_stocks)
         time.sleep(1)
         nifty_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('NIFTY'), expiry_dt, chain_length=20, bid_ask=True)
         bnf_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('BANKNIFTY'), expiry_dt, chain_length=30, bid_ask=True)
@@ -162,21 +161,20 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
                     self.live_data_objs[req_id] = deepcopy(self.td_scoket.live_data[req_id])
                     self.spot_data[self.td_scoket.live_data[req_id].to_dict()['symbol']] = self.td_scoket.live_data[req_id].to_dict()['ltp']
                     self.price_received_live(self.td_scoket.live_data[req_id])
-            for req_id in req_id_futs:
+            nifty_volumes = []
+            bank_nifty_volumes = []
+            for req_id in req_id_stocks:
                 stock_last_tick = self.td_scoket.live_data[req_id].to_dict()
-                if stock_last_tick['symbol'] == 'BANKNIFTY-I':
-                    turn_over = stock_last_tick['turnover'] if stock_last_tick['turnover'] is not None else 0
-                    last_turn_over = self.turn_over_data['NIFTY BANK']
-                    volume_delta = round((turn_over - last_turn_over) / stock_last_tick['ltp'])
-                    self.volume_data['NIFTY BANK'] = self.volume_data['NIFTY BANK'] + volume_delta
-                    self.turn_over_data['NIFTY BANK'] = turn_over
-                if stock_last_tick['symbol'] == 'NIFTY-I':
-                    turn_over = stock_last_tick['turnover'] if stock_last_tick['turnover'] is not None else 0
-                    last_turn_over = self.turn_over_data['NIFTY 50']
-                    volume_delta = round((turn_over - last_turn_over) / stock_last_tick['ltp'])
-                    self.volume_data['NIFTY 50'] = self.volume_data['NIFTY 50'] + volume_delta
-                    self.turn_over_data['NIFTY 50'] = turn_over
-
+                turn_over = stock_last_tick['turnover'] if stock_last_tick['turnover'] is not None else 0
+                volume = round(turn_over/stock_last_tick['ltp'])
+                if stock_last_tick['symbol'] in bank_nifty_constituents:
+                    bank_nifty_volumes.append(volume)
+                if stock_last_tick['symbol'] in nifty_constituents:
+                    nifty_volumes.append(volume)
+            print('nifty_volumes+++++++', np.mean(nifty_volumes))
+            print('bank nifty_volumes+++++++', np.mean(bank_nifty_volumes))
+            self.volume_data['NIFTY 50'] = round(np.mean(nifty_volumes)) if nifty_volumes else self.volume_data['NIFTY']
+            self.volume_data['NIFTY BANK'] = round(np.mean(bank_nifty_volumes)) if nifty_volumes else self.volume_data['BANKNIFTY']
             latest_nifty_chain = nifty_chain.get_option_chain()
             #print('latest_nifty_chain++++++++++++++')
             #print(latest_nifty_chain.to_dict('records'))
@@ -302,3 +300,42 @@ def start():
     while True:
         pass
 
+
+""" These can be removed"""
+from db.market_data import get_daily_tick_data
+import helper.utils as helper_utils
+
+price_lst2 = []
+counter = 0
+def get_data_2(sym, trade_day):
+    tick_df = get_daily_tick_data(sym, trade_day)
+    tick_df['symbol'] = sym
+    converted = tick_df.to_dict("records")
+    print(len(converted))
+    return (x for x in converted)
+
+def get_price():
+    global price_lst2
+    yield [next(pl) for pl in price_lst2 ]
+
+def price_received_local(feed):
+    print('priceReceived+++++++++++++++')
+    print(feed)
+
+    try:
+        sio.emit('input_feed', feed)
+    except Exception as e:
+        print(e)
+        print('Error sending data to server')
+
+def test_run_hist_data():
+    if not live_feed:
+        global price_lst2
+        price_lst2 = []
+        for sym in default_symbols:
+            price_lst2.append(get_data_2(sym, back_test_day))
+        #gen = get_price()
+        obs = rx.interval(1).pipe(ops.map(lambda i: next(get_price())))
+        obs.subscribe(on_next=lambda s: price_received_local(s))
+        while True:
+            pass

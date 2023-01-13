@@ -63,11 +63,12 @@ class FridayBelowVA(CheapOptionBuy):
         Control when a signal is considered for trade
         """
         #print("self.suitable_market_condition======", self.suitable_market_condition(matched_pattern))
-        if self.suitable_market_condition(matched_pattern):
+        if self.suitable_market_condition(matched_pattern) and not self.put_bought:
             self.last_match = matched_pattern
             print('in evaluate_signal,', self.record_metric)
             matched_pattern['candle'] = [0,0,0,0]
             #self.record_params(pattern_match_idx)
+            self.put_bought = 1
             signal_passed = True
         #print('signal_passed====', signal_passed)
         return signal_passed

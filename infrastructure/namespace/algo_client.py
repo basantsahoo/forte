@@ -1,19 +1,13 @@
 import time
-import os
 import socketio
-import asyncio
 from infrastructure.arc.algo_settings import algorithm_setup
 from infrastructure.arc.data_interface import AlgorithmIterface
-import asyncio
 from dynamics.profile.utils import NpEncoder
 import json
-import pytz
 import pandas as pd
-from datetime import datetime
 from infrastructure.namespace.market_client import MarketClient
 from servers.server_settings import feed_socket_service
 enabled_symbols = list(algorithm_setup.keys())
-print(enabled_symbols)
 
 sio = socketio.Client(reconnection_delay=5)
 

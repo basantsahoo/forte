@@ -211,6 +211,7 @@ class TickMarketProfileEnablerService(MarketProfileEnablerService):
             # print(minute_candle)
         """
         self.price_data[self.trade_day][inst['symbol']]['hist'][epoch_minute] = minute_candle
+        print('total data points ====', len(list(self.price_data[self.trade_day][inst['symbol']]['hist'].keys())))
         if first:
             self.price_data[self.trade_day][inst['symbol']].update(minute_candle)
         else:
@@ -225,6 +226,7 @@ class TickMarketProfileEnablerService(MarketProfileEnablerService):
 
             self.price_data[self.trade_day][inst['symbol']]['close'] = inst['ltp']
             self.price_data[self.trade_day][inst['symbol']]['volume'] = self.price_data[self.trade_day][inst['symbol']]['volume'] + inst['min_volume']
+
         self.market_cache.set('price_data', self.price_data[self.trade_day])
         tmp_data = minute_candle.copy()
         tmp_data['timestamp'] = epoch_minute

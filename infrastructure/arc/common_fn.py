@@ -190,14 +190,14 @@ class CommonFN:
             strategy.evaluate()
 
     def option_input_stream(self, option_data):
-        #print('price_input_stream+++++ insight book')
+        print('option price_input_stream+++++ insight book')
         epoch_tick_time = option_data['timestamp']
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
         self.option_processor.process_input_stream(option_data)
 
     def hist_option_feed_input(self, hist_feed):
-        print('hist_option_feed_input++++++++++++++++')
+        print('hist_option_feed_input++++++++++++++++', len(hist_feed))
         for option_data in hist_feed:
             self.option_processor.process_input_stream(option_data, notify=False)
             

@@ -199,7 +199,7 @@ class BaseStrategy:
         self.trigger_entry(self.order_type,sig_key,triggers)
 
     def process_signal(self, pattern, pattern_match_idx):
-        #print('process_signal in core++++++++++++++++++++++++++', pattern, pattern_match_idx)
+        print('process_signal in core++++++++++++++++++++++++++', pattern, pattern_match_idx)
         if self.relevant_signal(pattern, pattern_match_idx) and (len(self.tradable_signals.keys()) < self.max_signal):
             #print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()), "last tick===" , self.insight_book.last_tick['timestamp'])
             signal_passed = self.evaluate_signal(pattern_match_idx) #len(self.tradable_signals.keys()) < self.max_signals+5  #
