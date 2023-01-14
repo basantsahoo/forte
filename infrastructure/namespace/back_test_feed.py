@@ -7,7 +7,6 @@ from rx.scheduler.eventloop import AsyncIOScheduler
 
 from infrastructure.market_profile_enabler import MarketProfileEnablerService
 from infrastructure.namespace.auth_mixin import AuthMixin
-from infrastructure.arc.oms_portfolio import OMSPortfolioManager
 from dynamics.profile.utils import NpEncoder, get_tick_size
 from db.market_data import get_daily_tick_data, get_daily_option_data_2
 import helper.utils as helper_utils

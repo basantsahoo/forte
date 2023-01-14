@@ -1,24 +1,17 @@
 import socketio
 import pandas as pd
 import json
-import numpy as np
 import math
 from datetime import datetime, date
 from collections import OrderedDict
-import time
-import pytz
-import sys
-from infrastructure.market_profile_enabler import MarketProfileEnablerService, TickMarketProfileEnablerService
-from infrastructure.arc.oms_portfolio import OMSPortfolioManager
+from infrastructure.market_profile_enabler import TickMarketProfileEnablerService
 from infrastructure.namespace.auth_mixin import AuthMixin
 from dynamics.profile.options_profile import OptionProfileService
 from dynamics.profile.utils import NpEncoder, get_tick_size
-from db.market_data import get_daily_tick_data
-from config import live_feed, place_live_orders, socket_auth_enabled, allowed_apps
+from config import socket_auth_enabled
 import helper.utils as helper_utils
 from py_vollib_vectorized import price_dataframe
-from config import get_expiry_date, rest_api_url
-import requests
+from config import get_expiry_date
 from servers.server_settings import cache_dir
 from diskcache import Cache
 option_rooms = [helper_utils.get_options_feed_room('NIFTY'), helper_utils.get_options_feed_room('BANKNIFTY')]

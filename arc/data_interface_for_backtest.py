@@ -1,6 +1,6 @@
 from servers.server_settings import cache_dir
 from diskcache import Cache
-from infrastructure.arc.oms_portfolio import OMSPortfolioManager
+from arc.oms_portfolio import OMSPortfolioManager
 
 
 class AlgorithmBacktestIterface:

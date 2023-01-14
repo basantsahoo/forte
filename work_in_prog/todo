@@ -84,3 +84,27 @@ step 4. execute them if you like manually (only button press)
 
 
 # continue from candle pattern strategy evaluate with strength and region
+
+
+
+Change strategy framework
+
+Example : Create a strategy with entry signal of
+price pattern intra day/multi day/hourly: Double top
+candle pattern 5 / 15/ daily: bearish engulfing
+Technical patterns : price blow EMA 5, EMA trend change , MACD negative ,
+option patten daily/weekly: OI compression below 20%,
+volume pattern : high volume in last 3 candles
+Level pattern: Dist from POC / Support/ resistance / last week close
+Trend calculation params : Static ratio/dynamic ratio
+
+
+
+Suitable Day/TPO
+Exact time
+Max signal
+
+Exit Signal
+Time  15 mins, target , stop loss, exit signal with a pattern
+
+Trade instrument

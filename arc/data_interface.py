@@ -1,16 +1,11 @@
-from infrastructure.arc.algo_settings import algorithm_setup
+from arc.algo_settings import algorithm_setup
 import json
 from datetime import datetime
 import time
-from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
+from arc.algo_portfolio import AlgoPortfolioManager
 #from infrastructure.arc.insight import InsightBook
-from infrastructure.arc.insight_mini import InsightBook
-from infrastructure.arc.dummy_broker import DummyBroker
-from db.market_data import (get_all_days, get_daily_tick_data, prev_day_data, get_prev_week_candle, get_nth_day_profile_data)
+from arc.insight_mini import InsightBook
 import helper.utils as helper_utils
-#from strategies_bkp.range_break import RangeBreakDownStrategy
-#from strategies_bkp.sma_cross_over_buy import SMACrossBuy
-import traceback
 from research.strategies.aggregators import PatternAggregator
 from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 from live_algo.wednesday_option_buy import WednesdayOptionBuy

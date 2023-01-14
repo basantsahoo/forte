@@ -8,8 +8,6 @@ import time
 import json
 import traceback
 
-#from strategies.sma_cross_over_buy import SMACrossBuy
-#from strategies_bkp.range_break_low_for_regression import RangeBreakDownStrategy
 
 from backtest.settings import reports_dir
 from research.strategies.aggregators import CandleAggregator, PatternAggregator
@@ -20,10 +18,11 @@ from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayC
 from research.strategies.cheap_option_buy import CheapOptionBuy
 from research.strategies.option_sell import OptionSellStrategy
 from live_algo.friday_option_buy import FridayOptionBuy,FridayBelowVA
+
 from dynamics.profile.market_profile import HistMarketProfileService
-from infrastructure.arc.algo_portfolio import AlgoPortfolioManager
-from infrastructure.arc.data_interface_for_backtest import AlgorithmBacktestIterface
-from infrastructure.arc.insight import InsightBook
+from arc.algo_portfolio import AlgoPortfolioManager
+from arc.data_interface_for_backtest import AlgorithmBacktestIterface
+from arc.insight import InsightBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
 

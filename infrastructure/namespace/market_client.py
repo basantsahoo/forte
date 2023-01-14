@@ -1,18 +1,8 @@
 import time
-import os
 import socketio
+from arc import algorithm_setup
 import asyncio
-import asyncio
-import json
-import pytz
-from datetime import datetime
-from infrastructure.arc.algo_settings import algorithm_setup
-import asyncio
-from dynamics.profile.utils import NpEncoder
-import helper.utils as helper_utils
-import json
-import pytz
-from datetime import datetime
+
 enabled_symbols = list(algorithm_setup.keys())
 
 class MarketClient(socketio.ClientNamespace):
