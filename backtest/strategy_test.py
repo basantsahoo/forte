@@ -80,8 +80,8 @@ class StartegyBackTester:
                     recs = t_df.to_dict('index')
                     pm.option_price_input({'timestamp': ts, 'symbol': symbol, 'records': recs})
                     pm.price_input(price)
-                    story_book.option_input_stream({'timestamp': ts, 'symbol': symbol, 'records': recs})
-                    story_book.price_input_stream(price, iv)
+                    story_book.option_minute_data_stream({'timestamp': ts, 'symbol': symbol, 'records': recs})
+                    story_book.spot_minute_data_stream(price, iv)
                     time.sleep(0.005)
 
                 for strategy, trade_details in pm.position_book.items():

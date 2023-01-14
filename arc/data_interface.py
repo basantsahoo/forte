@@ -84,7 +84,7 @@ class AlgorithmIterface:
             self.portfolio_manager.price_input(hist[-1])
             for insight_book in self.insight_books:
                 if insight_book.ticker == symbol:
-                    insight_book.hist_feed_input(hist)
+                    insight_book.hist_spot_feed(hist)
 
     def on_hist_option_price(self, hist_feed):
         print('di +++++ on_hist_option_price +++++', len(hist_feed['hist']))
@@ -103,7 +103,7 @@ class AlgorithmIterface:
 
             if insight_book.ticker == hist_feed['symbol']:
                 print('sending hist to insight')
-                insight_book.hist_option_feed_input(hist)
+                insight_book.hist_option_feed(hist)
 
 
     def on_tick_price(self, feed):
@@ -128,7 +128,7 @@ class AlgorithmIterface:
             for insight_book in self.insight_books:
                 if insight_book.ticker == symbol:
                     #print('sending from interface')
-                    insight_book.price_input_stream(self.last_epoc_minute_data[symbol])
+                    insight_book.spot_minute_data_stream(self.last_epoc_minute_data[symbol])
         self.last_epoc_minute_data[symbol] = feed
         self.portfolio_manager.price_input(feed)
 
@@ -151,7 +151,7 @@ class AlgorithmIterface:
             for insight_book in self.insight_books:
                 if insight_book.ticker == feed['symbol']:
                     #print('sending from interface')
-                    insight_book.option_input_stream(self.last_epoc_minute_data[symbol])
+                    insight_book.option_minute_data_stream(self.last_epoc_minute_data[symbol])
         self.last_epoc_minute_data[symbol] = feed
         self.portfolio_manager.option_price_input(feed)
 

@@ -19,15 +19,20 @@ from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import MarketActivity
 from arc.intraday_option_processor import IntradayOptionProcessor
+from arc.spot_processor import SpotProcessor
 
 class CommonFN:
     def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
-        self.intraday_trend = IntradayTrendCalculator(self)
-        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw)]
+        self.spot_processor = SpotProcessor(self, ticker)
+        self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.001, spth = 0.001,  callback=None)
+        self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw), CandlePatternDetector(self, period=15, sliding_window=candle_sw)]
         self.option_processor = IntradayOptionProcessor(self, ticker)
-        self.activity_log = MarketActivity(self)
+        self.trend_detector = TrendDetector(self, period=1)
+        self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
-        self.strategy_setup_done = False
+        self.strategy_setup_done = False		
+        self.activity_log = MarketActivity(self)
         self.range = {'low': 99999999, 'high': 0}
         self.trade_day = trade_day
         self.market_data = OrderedDict()
@@ -140,6 +145,7 @@ class CommonFN:
             if not self.day_setup_done:
                 self.set_trade_date_from_time(epoch_tick_time)
             self.market_data[epoch_minute] = feed_small
+            self.spot_processor.process_minute_data(price)
         self.last_tick = feed_small
         self.set_curr_tpo(epoch_minute)
         self.activity_log.update_last_candle()
@@ -163,6 +169,7 @@ class CommonFN:
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
         self.market_data[epoch_minute] = feed_small
+        self.spot_processor.process_minute_data(price)
         self.set_curr_tpo(epoch_minute)
         if len(self.market_data.items()) == 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()
