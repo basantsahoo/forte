@@ -24,10 +24,11 @@ from dynamics.transition.point_to_point_mc import MarkovChainPointToPoint
 from dynamics.transition.empirical import EmpiricalDistribution
 from infrastructure.arc.market_activity import MarketActivity
 from infrastructure.arc.intraday_option_processor import IntradayOptionProcessor
+from infrastructure.arc.spot_processor import SpotProcessor
 
 class InsightBook:
     def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
-        # self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.0005, spth=0.001, callback=None)
+        self.spot_processor = SpotProcessor(self, ticker)
         self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.001, spth = 0.001,  callback=None)
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
        # self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
@@ -148,6 +149,7 @@ class InsightBook:
             if not self.day_setup_done:
                 self.set_trade_date_from_time(epoch_tick_time)
             self.market_data[epoch_minute] = feed_small
+            self.spot_processor.process_minute_data(price)
         self.last_tick = feed_small
         self.set_curr_tpo(epoch_minute)
         self.activity_log.update_last_candle()
@@ -171,6 +173,7 @@ class InsightBook:
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
         self.market_data[epoch_minute] = feed_small
+        self.spot_processor.process_minute_data(price)
         self.set_curr_tpo(epoch_minute)
         if len(self.market_data.items()) == 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()

@@ -1,3 +1,6 @@
+There is a discepancy between epoch ticktime calculation between insight and TickMarketProfileEnablerService
+one is doing + 60 and other one is doing +1 after + 60 we need to sort it out
+
 1. Check static ratio and dynamic ratio using multi day data for option selling
 
 IntradayTrendCalculator calculates quadratic , linear, auc etc

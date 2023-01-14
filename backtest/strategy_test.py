@@ -150,7 +150,7 @@ if __name__ == '__main__':
     elif args:
         strat_config_file = args[0]
     else:
-        strat_config_file = 'scenarios/default.json'
+        strat_config_file = 'default.json'
     strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios/" + strat_config_file
 
     with open(strat_config_path) as bt_config:

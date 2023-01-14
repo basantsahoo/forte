@@ -11,10 +11,11 @@ class CandlePatternDetector:
         self.period = period
         self.last_match_dict = {}
         self.sliding_window = sliding_window
+        self.candles = []
 
-    def check_candle_patterns(self, chunks_ohlc):
+    def check_candle_patterns(self):
         #print('test candle pattern')
-        df = pd.DataFrame(chunks_ohlc)
+        df = pd.DataFrame(self.candles)
         #df.columns = ['open', 'high', 'low', 'close']
         #df = df.iloc[-5:, :]
         op = df['open']
@@ -31,15 +32,14 @@ class CandlePatternDetector:
 
     def evaluate(self, notify=True):
         #print('candle pattern evaluate')
-        price_list = list(self.insight_book.market_data.values())[self.sliding_window::]
+        price_list = list(self.insight_book.spot_processor.spot_ts.values())[self.sliding_window::]
         #print(price_list[0]['timestamp'])
         chunks = [price_list[i:i + self.period] for i in range(0, len(price_list), self.period)]
         chunks = [x for x in chunks if len(x) == self.period]
-        chunks_ohlc = [{'timestamp':x[0]['timestamp'], 'open':x[0]['open'], 'high': max([y['high'] for y in x]), 'low':min([y['low'] for y in x]), 'close':x[-1]['close']} for x in chunks]
-        #print(len(self.insight_book.market_data.values()))
-        #print(chunks_ohlc)
-        if len(chunks_ohlc) > 0:
-            pattern_df = self.check_candle_patterns(chunks_ohlc)
+        self.candles = [{'timestamp':x[0]['timestamp'], 'open':x[0]['open'], 'high': max([y['high'] for y in x]), 'low':min([y['low'] for y in x]), 'close':x[-1]['close']} for x in chunks]
+
+        if len(self.candles) > 0:
+            pattern_df = self.check_candle_patterns()
             for pattern in pattern_names:
                 bullish_match_idx = np.where([pattern_df[pattern] > 0])[1]
                 bearish_match_idx = np.where([pattern_df[pattern] < 0])[1]
