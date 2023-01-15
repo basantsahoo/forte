@@ -5,8 +5,9 @@ from dynamics.trend.technical_patterns import pattern_engine
 from statistics import mean
 import dynamics.patterns.utils as pattern_utils
 from helper.utils import get_broker_order_type
+from arc.signal_queue import SignalQueue
+from dynamics.constants import PRICE_ACTION_INTRA_DAY, CANDLE_5, INDICATOR_DOUBLE_TOP, PATTERN_STATE, STATE_OPEN_TYPE, OPEN_TYPE_ABOVE_VA
 
-#Check 13 May last pattern again why it was not triggered
 class BaseStrategy:
     def __init__(self,
                  insight_book=None,
@@ -46,12 +47,29 @@ class BaseStrategy:
         self.pending_signals = {}
         self.tradable_signals ={}
         self.minimum_quantity = 1
-        self.entry_criteria = {
-            'STATE': [{'open_type':'ABOVE_VA'}],
-            'CANDLE_5': []
-        }
-        self.exit_criteria = {}
-        self.patterns = []
+
+        self.entry_criteria = [
+            {(PATTERN_STATE, STATE_OPEN_TYPE) : ['signal', "==", OPEN_TYPE_ABOVE_VA]},
+            {(CANDLE_5, 'CDLHIKKAKE_BUY'): ['time_lapsed', "<=", 20]},
+            {(CANDLE_5, 'CDLHIKKAKE_BUY'): ['time_lapsed', ">=", 5]},
+            {(PRICE_ACTION_INTRA_DAY, INDICATOR_DOUBLE_TOP) : ['pattern_height', ">=", 20]}
+        ]
+        self.entry_signal_queues = {pattern: SignalQueue(pattern) for pattern in
+                                    [list(set(criteria.keys()))[0] for criteria in self.entry_criteria]}
+        self.exit_criteria_list = [[
+            {(CANDLE_5, 'CDLDOJI_SELL'): ['time_lapsed', ">=", 5]}
+        ]]
+        temp_patterns = []
+        for criteria_list in self.exit_criteria_list:
+            for criteria in criteria_list:
+                temp_patterns.append(list(criteria.keys())[0])
+        temp_patterns = list(set(temp_patterns))
+        self.exit_signal_queues = {pattern: SignalQueue(pattern) for pattern in temp_patterns}
+
+        print('self.entry_signal_queues+++++++++++', self.entry_signal_queues)
+        print('self.exit_signal_queues+++++++++++', self.exit_signal_queues)
+
+
 
     def get_trades(self, pattern_price_info, idx=1, neck_point=0):
         last_candle = self.insight_book.spot_processor.last_tick
@@ -199,8 +217,14 @@ class BaseStrategy:
         self.trigger_entry(self.order_type,sig_key,triggers)
 
     def register_signal(self, signal):
+        """
         if signal['indicator'] != 'TREND':
             print('register+++++++++++', signal)
+        """
+        if (signal['category'], signal['indicator']) in self.entry_signal_queues:
+            self.entry_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
+        if (signal['category'], signal['indicator']) in self.exit_signal_queues:
+            self.exit_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
 
     def process_signal(self, pattern, pattern_match_idx):
         print('process_signal in core++++++++++++++++++++++++++', pattern, pattern_match_idx)
@@ -210,6 +234,18 @@ class BaseStrategy:
             if signal_passed:
                 sig_key = self.add_tradable_signal(pattern_match_idx)
                 self.initiate_signal_trades(sig_key)
+
+    def look_for_trade(self):
+        enough_time = self.insight_book.get_time_to_close() > self.exit_time
+        suitable_tpo = self.valid_tpo()
+        market_criteria_met = self.suitable_market_condition()
+        signal_present = self.relevant_signal()
+        if signal_present and enough_time and suitable_tpo and market_criteria_met:
+            signal_passed = self.evaluate_signal()
+            if signal_passed:
+                sig_key = self.add_tradable_signal()
+                self.initiate_signal_trades(sig_key)
+
 
     def evaluate_signal(self, signal):
         return False
@@ -229,6 +265,7 @@ class BaseStrategy:
     def evaluate(self):
         self.process_incomplete_signals()
         self.monitor_existing_positions()
+        self.look_for_trade()
 
     def monitor_sell_positions(self):
         last_candle = self.insight_book.spot_processor.last_tick
@@ -269,14 +306,9 @@ class BaseStrategy:
             self.monitor_sell_positions()
 
     def suitable_market_condition(self, signal={}):
-        enough_time = self.insight_book.get_time_to_close() > self.exit_time
-        suitable_tpo = self.valid_tpo() #(self.max_tpo >= self.insight_book.curr_tpo) and (self.min_tpo <= self.insight_book.curr_tpo)
-        suitable = enough_time and suitable_tpo
-        #print('enough_time', enough_time)
-        #print('suitable_tpo', suitable_tpo)
-        if suitable:
+        satisfied = not self.criteria
+        if satisfied:
             market_params = self.insight_book.activity_log.get_market_params()
-            #print(market_params)
             d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
@@ -286,11 +318,8 @@ class BaseStrategy:
             strength = signal.get('strength', 0)
             kind = signal.get('kind', "")
             money_ness = signal.get('money_ness', "")
-            flag = not self.criteria
             for condition in self.criteria:
-                flag = flag or eval(condition['logical_test'])
-            suitable = suitable and flag
-        return suitable
-
+                satisfied = satisfied or eval(condition['logical_test'])
+        return satisfied
 
 

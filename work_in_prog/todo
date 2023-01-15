@@ -108,3 +108,13 @@ Exit Signal
 Time  15 mins, target , stop loss, exit signal with a pattern
 
 Trade instrument
+
+
+every entry criteria can have >=1 exit criteria.
+Either case target, stoploss, time is used for exit.
+ If none of them mentioned its exited at day for intraday, at expiry for options, --TBD
+  otherwise at end of holding period for spot -- TBD
+
+  Using this we can develop lot of option sell strategy portfolios
+
+if there are multiple entry criteria, each entry criteria should run as separate strategy and results should be super imposed

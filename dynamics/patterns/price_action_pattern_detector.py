@@ -1,7 +1,7 @@
 import numpy as np
 from statistics import mean
 from dynamics.patterns.technical_patterns import pattern_config
-
+from dynamics.constants import PRICE_ACTION_INTRA_DAY, INDICATOR_DOUBLE_TOP
 dt_between_highs_diff = 0.0006
 dt_height_th = 0.3
 pat_conf = {'len': 4, 'end_infl' : 'SPH'}
@@ -13,9 +13,9 @@ class PriceActionPatternDetector:
         self.insight_book = insight_book
         self.last_match = None
         self.period = period
-        self.enabled_patterns = ['DT']
+        self.enabled_patterns = [INDICATOR_DOUBLE_TOP]
         self.infirm_patterns = []
-        self.pat_conf = pattern_config['DT']
+        self.pat_conf = pattern_config[INDICATOR_DOUBLE_TOP]
 
     def get_suitable_prior_infl(self, df2, base_index, search_infl, base_price, threshold):
         df_infl_ = df2[(df2['SPExt'] == search_infl) & (df2.index < base_index)][['SPExt', 'Close']]
@@ -154,7 +154,7 @@ class PriceActionPatternDetector:
                         elif recent_infl_price >= minima and recent_infl_price < pattern_end_infl_price and last_infl != self.pat_conf['end_infl']:
                             # print('pattern exists?+++++++++++++++++++++++++++++++++++++++++++++', self.infirm_pattern_exists(df2.Time[pattern_end_infl_idx]))
                             if not self.infirm_pattern_exists(df2.Time[pattern_end_infl_idx]):
-                                self.infirm_patterns.append({'pattern':'DT', 'time_list':[df2.Time[first_point_idx], df2.Time[second_point_idx], df2.Time[minima_idx], df2.Time[pattern_end_infl_idx]]})
+                                self.infirm_patterns.append({'pattern':INDICATOR_DOUBLE_TOP, 'time_list':[df2.Time[first_point_idx], df2.Time[second_point_idx], df2.Time[minima_idx], df2.Time[pattern_end_infl_idx]]})
                                 # print(self.infirm_patterns)
 
             if pattern_found:
@@ -169,14 +169,14 @@ class PriceActionPatternDetector:
 
 
     def check_pattern(self, df2, pattern):
-        if pattern == "DT":
+        if pattern == INDICATOR_DOUBLE_TOP:
             return self.check_dt_pattern(df2)
         else:
             return []
 
     def pattern_broken(self, df, pattern_data):
         broken = False
-        if pattern_data['pattern'] == 'DT':
+        if pattern_data['pattern'] == INDICATOR_DOUBLE_TOP:
             last_infl_time = pattern_data['time_list'][3]
             # pattern broken when price moves above previous high
             broken = max(df[df['Time']>last_infl_time]['Close'].to_list()) > df[df['Time'] == last_infl_time]['Close'].tolist()[0]
@@ -186,7 +186,7 @@ class PriceActionPatternDetector:
     def pattern_confirmed(self, df, pattern_data):
         #print('checking confirmation', pattern_data)
         ret_val = []
-        if pattern_data['pattern'] == 'DT':
+        if pattern_data['pattern'] == INDICATOR_DOUBLE_TOP:
             minima_time = pattern_data['time_list'][2]
             last_infl_time = pattern_data['time_list'][3]
             # print(df[df['Time'] > minima_time])
@@ -226,7 +226,9 @@ class PriceActionPatternDetector:
                 matched_pattern = self.pattern_confirmed(pattern_df, infirm_pattern)
                 if len(matched_pattern) > 0:
                     # print('success on reevaluation', matched_pattern)
-                    pat = {'category': 'PRICE_ACTION_INTRA_DAY', 'indicator': infirm_pattern['pattern'], 'signal': 1, 'strength': 0, 'signal_time' : list(pattern_df.Time)[-1],
+                    pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': infirm_pattern['pattern'], 'signal': 1, 'strength': 0,
+                           'signal_time': matched_pattern['time_list'][-1] if 'time_list' in matched_pattern else self.insight_book.spot_processor.last_tick['timestamp'],
+                           'notice_time': self.insight_book.spot_processor.last_tick['timestamp'],
                            'info': matched_pattern}
                     self.insight_book.pattern_signal(pat)
                     #self.insight_book.pattern_signal(infirm_pattern['pattern'], matched_pattern)
@@ -241,8 +243,11 @@ class PriceActionPatternDetector:
             for pattern in self.enabled_patterns:
                 matched_pattern = self.check_pattern(pattern_df, pattern)
                 if matched_pattern:
+                    #print(matched_pattern)
                     #print(list(pattern_df.Time))
-                    pat = {'category': 'PRICE_ACTION_INTRA_DAY', 'indicator': pattern, 'signal': 1, 'strength': 0, 'signal_time' : list(pattern_df.Time)[-1],
+                    pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': pattern, 'signal': 1, 'strength': 0,
+                           'signal_time': matched_pattern['time_list'][-1] if 'time_list' in matched_pattern else self.insight_book.spot_processor.last_tick['timestamp'],
+                           'notice_time': self.insight_book.spot_processor.last_tick['timestamp'],
                            'info': matched_pattern}
                     self.insight_book.pattern_signal(pat)
 

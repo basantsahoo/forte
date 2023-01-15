@@ -218,7 +218,7 @@ class InsightBook:
             probs = self.mc.get_prob_from_curr_state(open_type)
             #print(probs)
             #self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}, 'strength':0})
-            pat = {'category': 'STATE', 'indicator': 'open_type', 'signal': open_type, 'strength':0, 'signal_time': self.spot_processor.last_tick['timestamp'], 'info': {'probs': probs}}
+            pat = {'category': 'STATE', 'indicator': 'open_type', 'signal': open_type, 'strength':0, 'signal_time': self.spot_processor.last_tick['timestamp'], 'notice_time': self.spot_processor.last_tick['timestamp'], 'info': {'probs': probs}}
             self.pattern_signal(pat)
     def pattern_signal(self, signal):
         #print(signal)
