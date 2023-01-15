@@ -143,7 +143,7 @@ class PriceActionPatternDetector:
                             pattern_found = True
                             #print(first_point_idx)
                             ret_val = {'time_list':[df2.Time[first_point_idx], df2.Time[second_point_idx], df2.Time[minima_idx], df2.Time[pattern_end_infl_idx], df2.Time[recent_infl_idx]],
-                                       'price_list':[first_point_price, df2.Close[second_point_idx], minima,  pattern_end_infl_price], 'strength':1}
+                                       'price_list':[first_point_price, df2.Close[second_point_idx], minima,  pattern_end_infl_price]}
                             # print('success first time', ret_val)
                             break
                             # print('total highs found', len(sph_idx_to_check))
@@ -202,7 +202,7 @@ class PriceActionPatternDetector:
                 time_list = pattern_data['time_list'].copy()
                 price_list = df[df.Time.isin(time_list)]['Close'].to_list()
                 time_list.append(recent_infl_time)
-                ret_val = {'time_list': time_list, 'price_list': price_list, 'strength':-1}
+                ret_val = {'time_list': time_list, 'price_list': price_list}
 
 
         return ret_val
@@ -226,7 +226,10 @@ class PriceActionPatternDetector:
                 matched_pattern = self.pattern_confirmed(pattern_df, infirm_pattern)
                 if len(matched_pattern) > 0:
                     # print('success on reevaluation', matched_pattern)
-                    self.insight_book.pattern_signal(infirm_pattern['pattern'], matched_pattern)
+                    pat = {'category': 'PRICE_ACTION_INTRA_DAY', 'indicator': infirm_pattern['pattern'], 'signal': 1, 'strength': 0, 'signal_time' : list(pattern_df.Time)[-1],
+                           'info': matched_pattern}
+                    self.insight_book.pattern_signal(pat)
+                    #self.insight_book.pattern_signal(infirm_pattern['pattern'], matched_pattern)
                     self.infirm_patterns.remove(infirm_pattern)
                     # print('pending patterns after removal', self.infirm_patterns)
 
@@ -238,6 +241,9 @@ class PriceActionPatternDetector:
             for pattern in self.enabled_patterns:
                 matched_pattern = self.check_pattern(pattern_df, pattern)
                 if matched_pattern:
-                    self.insight_book.pattern_signal(pattern, matched_pattern)
+                    #print(list(pattern_df.Time))
+                    pat = {'category': 'PRICE_ACTION_INTRA_DAY', 'indicator': pattern, 'signal': 1, 'strength': 0, 'signal_time' : list(pattern_df.Time)[-1],
+                           'info': matched_pattern}
+                    self.insight_book.pattern_signal(pat)
 
 

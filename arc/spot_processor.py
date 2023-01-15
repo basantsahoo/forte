@@ -5,16 +5,18 @@ class SpotProcessor:
     def __init__(self, insight_book, symbol):
         self.insight_book = insight_book
         self.symbol = symbol
+        self.last_tick = {}
         self.spot_ts = OrderedDict()
         self.candles_5 = []
         self.candles_15 = []
 
     def process_minute_data(self, minute_data, notify=True):
-        print('spot processor+++++')
+        #print('spot processor+++++')
         key_list = ['timestamp', 'open', 'high', "low", "close"]
         feed_small = {key: minute_data[key] for key in key_list}
         epoch_minute = get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
+        self.last_tick = feed_small
 
         if notify and len(list(self.spot_ts.keys())) > 2:
             self.perform_calculations()

@@ -135,7 +135,7 @@ class CommonFN:
             print('strategy setup+++++')
             strategy.set_up()
 
-    def hist_feed_input(self, hist_feed):
+    def hist_spot_feed(self, hist_feed):
         print('hist_feed_input++++++++++++', len(hist_feed))
         for price in hist_feed:
             epoch_tick_time = price['timestamp']
@@ -158,7 +158,7 @@ class CommonFN:
         for candle_detector in self.candle_pattern_detectors:
             candle_detector.evaluate(notify=False)
 
-    def price_input_stream(self, price, iv=None):
+    def spot_minute_data_stream(self, price, iv=None):
         #print('insight price_input_stream+++++ insight book')
         epoch_tick_time = price['timestamp']
         epoch_minute = int(epoch_tick_time // 60 * 60) + 1
@@ -191,15 +191,14 @@ class CommonFN:
             strategy.process_custom_signal()
             strategy.evaluate()
 
-    def option_input_stream(self, option_data):
-        print('option price_input_stream+++++ insight book')
+    def option_minute_data_stream(self, option_data):
+        #print('price_input_stream+++++ insight book')
         epoch_tick_time = option_data['timestamp']
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
         self.option_processor.process_input_stream(option_data)
 
-    def hist_option_feed_input(self, hist_feed):
-        print('hist_option_feed_input++++++++++++++++', len(hist_feed))
+    def hist_option_feed(self, hist_feed):
         for option_data in hist_feed:
             self.option_processor.process_input_stream(option_data, notify=False)
             

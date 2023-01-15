@@ -68,6 +68,9 @@ class PatternAggregatorDelete:
             for strategy in self.individual_strategies:
                 strategy.process_signal(pattern, pattern_match_idx)
 
+    def register_signal(self, signal):
+        for strategy in self.individual_strategies:
+            strategy.register_signal(signal)
 
     def evaluate(self):
         for strategy in self.individual_strategies:

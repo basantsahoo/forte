@@ -53,7 +53,7 @@ class MarketActivity:
         print(retest)
         """
     def determine_day_open(self): ## this is definitive
-        open_candle = next(iter(self.insight_book.market_data.items()))[1]
+        open_candle = next(iter(self.insight_book.spot_processor.spot_ts.items()))[1]
         open_low = open_candle['open']
         open_high = open_candle['open']
         if open_low >= self.insight_book.yday_profile['high']:
@@ -94,7 +94,6 @@ class MarketActivity:
             resp['d_w_' + lvl] = item['values']
         """
         return resp
-
 
     def check_support(self, candle):
         support_ind = 0
@@ -156,6 +155,8 @@ class MarketActivity:
             resp['w_' + lvl] = self.check_level(candle, price)
         return resp
 
+    def register_signal(self, signal):
+        pass
 
     def update_last_candle(self):
         self.lc_features = {}
@@ -172,7 +173,7 @@ class MarketActivity:
         """
 
 
-        last_candle = self.insight_book.last_tick
+        last_candle = self.insight_book.spot_processor.last_tick
         self.range['low'] = min(last_candle['low'], self.range['low'])
         self.range['high'] = max(last_candle['high'], self.range['high'])
 
@@ -188,7 +189,7 @@ class MarketActivity:
         mkt_parms = {}
         mkt_parms['open_type'] = self.open_type
         mkt_parms['tpo'] = self.insight_book.curr_tpo
-        mkt_parms['spot'] = self.insight_book.last_tick['close']
+        mkt_parms['spot'] = self.insight_book.spot_processor.last_tick['close']
         mkt_parms['candles_in_range'] = round(self.insight_book.intraday_trend.candles_in_range, 2)
         mkt_parms = {**mkt_parms, **self.trend_features}
         mkt_parms = {**mkt_parms, **self.lc_features}
@@ -199,7 +200,7 @@ class MarketActivity:
         return mkt_parms
 
     def candle_process(self):
-        price_list = list(self.insight_book.market_data.values())
+        price_list = list(self.insight_book.spot_processor.market_data.values())
         chunks_5 = [price_list[i:i + 5] for i in range(0, len(price_list), 5)]
         chunks_5_ohlc = [[x[0]['open'], max(y['high'] for y in x), min(y['low'] for y in x), x[-1]['close']] for x in chunks_5]
         #self.five_min_trend = self.get_candle_trend(chunks_5_ohlc)[0]

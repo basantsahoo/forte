@@ -98,7 +98,7 @@ class IntradayTrendCalculator:
 
 
     def calculate_measures(self):
-        price_list = list(self.insight_book.market_data.values())
+        price_list = list(self.insight_book.spot_processor.spot_ts.values())
         if len(price_list) < 1:
             return
 
