@@ -22,9 +22,6 @@ class MultiPatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         self.tradable_signals[sig_key]['pattern_height'] = 0
         return sig_key
 
-    def evaluate_signal(self):
-        signal_passed = False
-        return signal_passed
 
 
 

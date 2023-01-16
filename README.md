@@ -266,6 +266,8 @@ conda install -c apple tensorflow-deps
 
 pymc3 3.11.5
 path modelling 
+https://github.com/patrickzib/SFA
+https://stackoverflow.com/questions/59679629/template-matching-for-candlestick-ohlc-data-in-python
 ```
 
 
@@ -287,3 +289,4 @@ python work_in_prog/ml.py
 option data : option_data
 key levels : key_levels
 ```
+

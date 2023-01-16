@@ -7,7 +7,6 @@ import dynamics.patterns.utils as pattern_utils
 from helper.utils import get_broker_order_type
 from arc.signal_queue import SignalQueue
 from dynamics.constants import PRICE_ACTION_INTRA_DAY, CANDLE_5, INDICATOR_DOUBLE_TOP, PATTERN_STATE, STATE_OPEN_TYPE, OPEN_TYPE_ABOVE_VA
-from research.strategies.signal_setup import get_signal_key, get_target_fn
 
 class BaseStrategy:
     def __init__(self,
@@ -50,21 +49,20 @@ class BaseStrategy:
         self.minimum_quantity = 1
 
         self.entry_criteria = [
-            {'OPEN_TYPE' : [-1, 'signal', "==", 'GAP_UP']},
-            {'CANDLE_5_HIKKAKE_BUY': [-1, 'time_lapsed', "<=", 20]},
-            {'CANDLE_5_HIKKAKE_BUY': [-1, 'time_lapsed', ">=", 5]},
-            {'DT': [-1, 'pattern_height', ">=", -100]},
-            {'TREND': [-1, "all_waves[-1]['dist']", ">=", -100]}
+            {(PATTERN_STATE, STATE_OPEN_TYPE) : [-1, 'signal', "==", 'GAP_UP']},
+            {(CANDLE_5, 'CDLHIKKAKE_BUY'): [-1, 'time_lapsed', "<=", 20]},
+            {(CANDLE_5, 'CDLHIKKAKE_BUY'): [-1, 'time_lapsed', ">=", 5]},
+            {(PRICE_ACTION_INTRA_DAY, INDICATOR_DOUBLE_TOP) : [-1, 'pattern_height', ">=", -100]}
         ]
         self.entry_signal_queues = {pattern: SignalQueue(pattern) for pattern in
-                                    [get_signal_key(list(set(criteria.keys()))[0]) for criteria in self.entry_criteria]}
+                                    [list(set(criteria.keys()))[0] for criteria in self.entry_criteria]}
         self.exit_criteria_list = [[
-            {'CANDLE_5_CDLDOJI_SELL': [-1, 'time_lapsed', ">=", 5]}
+            {(CANDLE_5, 'CDLDOJI_SELL'): [-1, 'time_lapsed', ">=", 5]}
         ]]
         temp_patterns = []
         for criteria_list in self.exit_criteria_list:
             for criteria in criteria_list:
-                temp_patterns.append(get_signal_key(list(criteria.keys())[0]))
+                temp_patterns.append(list(criteria.keys())[0])
         temp_patterns = list(set(temp_patterns))
         self.exit_signal_queues = {pattern: SignalQueue(pattern) for pattern in temp_patterns}
 
@@ -261,7 +259,6 @@ class BaseStrategy:
         passed = True
         for list_item in self.entry_criteria:
             pattern_comb, criteria = list(list_item.items())[0]
-            pattern_comb = get_signal_key(pattern_comb)
             queue = self.entry_signal_queues[pattern_comb]
             last_candle = self.insight_book.spot_processor.last_tick
             res = queue.eval_criteria(criteria, last_candle['timestamp'])

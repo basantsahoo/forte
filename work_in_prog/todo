@@ -118,3 +118,7 @@ Either case target, stoploss, time is used for exit.
   Using this we can develop lot of option sell strategy portfolios
 
 if there are multiple entry criteria, each entry criteria should run as separate strategy and results should be super imposed
+
+
+pricing based on backtest credits
+give users options to grid test

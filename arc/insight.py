@@ -23,11 +23,19 @@ from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import MarketActivity
 from arc.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
+from arc.candle_processor import CandleProcessor
 
 class InsightBook:
     def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
         self.spot_processor = SpotProcessor(self, ticker)
         self.option_processor = IntradayOptionProcessor(self, ticker)
+        self.candle_5_processor = CandleProcessor(self, 5, 0)
+        self.candle_15_processor = CandleProcessor(self, 15, 0)
+        # self.candle_5_processor.on_new_candle = self.on_new_5_min_candle
+        #self.candle_15_processor.on_new_candle = self.on_new_15_min_candle
+        #self.candle_5_queue = []
+        #self.candle_15_queue = []
+        self.trend = {}
         self.activity_log = MarketActivity(self)
         self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.001, spth = 0.001,  callback=None)
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
@@ -58,8 +66,13 @@ class InsightBook:
             self.set_key_levels()
             self.set_transition_matrix()
             self.day_setup_done = True
+    """
+    def on_new_5_min_candle(self, candle, notify):
+        self.candle_5_queue.append(candle)
 
-
+    def on_new_15_min_candle(self, candle, notify):
+        self.candle_15_queue.append(candle)
+    """
     def set_trade_date_from_time(self, epoch_tick_time):
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
         trade_day = tick_date_time.strftime('%Y-%m-%d')
@@ -154,6 +167,8 @@ class InsightBook:
             self.update_periodic()
         self.update_state_transition()
         self.set_up_strategies()
+        self.candle_5_processor.create_candles()
+        self.candle_15_processor.create_candles()
         for candle_detector in self.candle_pattern_detectors:
             candle_detector.evaluate(notify=False)
 
@@ -184,6 +199,8 @@ class InsightBook:
         #print('input price', [price['timestamp'], price['close']])
         self.update_state_transition()
         self.trend_detector.evaluate()
+        self.candle_5_processor.create_candles()
+        self.candle_15_processor.create_candles()
         for pattern_detector in self.price_action_pattern_detectors:
             pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
@@ -220,9 +237,14 @@ class InsightBook:
             #self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}, 'strength':0})
             pat = {'category': 'STATE', 'indicator': 'open_type', 'signal': open_type, 'strength':0, 'signal_time': self.spot_processor.last_tick['timestamp'], 'notice_time': self.spot_processor.last_tick['timestamp'], 'info': {'probs': probs}}
             self.pattern_signal(pat)
+
     def pattern_signal(self, signal):
-        #print(signal)
         self.activity_log.register_signal(signal)
+        if signal['indicator'] == 'TREND':
+            #print('TREND+++++', signal)
+            self.activity_log.update_sp_trend(signal['info']['trend'])
+            for wave in signal['info']['all_waves']:
+                self.intraday_waves[wave['wave_end_time']] = wave
         for strategy in self.strategies:
             strategy.register_signal(signal)
 
