@@ -13,15 +13,32 @@ class MultiPatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         #print(self.__class__.__name__)
         self.last_match = None
 
-    def relevant_signal(self):
-        return True
 
-    def add_tradable_signal(self, matched_pattern):
+    def add_tradable_signal_2(self, matched_pattern):
         sig_key = self.add_new_signal_to_journal()
         self.tradable_signals[sig_key]['pattern'] = matched_pattern
         self.tradable_signals[sig_key]['pattern_height'] = 0
         return sig_key
 
+    def evaluate_signal(self):
+        #print('process_pattern_signal candle+++++++++++', self.price_pattern)
+        # looking for overlap in time
+        """
+        determine whether a new signal
+        """
+        last_match_ol = 0 if self.last_match is None else int(matched_pattern['time'] == self.last_match['time'])
+        signal_passed = False
+        #print(last_match_ol)
+        """
+        Control when a signal is considered for trade
+        """
+        #print("self.suitable_market_condition======", self.suitable_market_condition(matched_pattern))
+        if not last_match_ol and self.suitable_market_condition():
+            self.last_match = matched_pattern
+            self.record_params(matched_pattern)
+            signal_passed = True
+        #print('signal_passed====', signal_passed)
+        return signal_passed
 
 
 

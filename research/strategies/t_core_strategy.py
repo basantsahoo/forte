@@ -49,6 +49,9 @@ class BaseStrategy:
         self.tradable_signals ={}
         self.minimum_quantity = 1
 
+        if len(target_pct) < self.triggers_per_signal:
+            raise Exception("Triggers and targets of unequal size")
+
         self.entry_criteria = [
             {'OPEN_TYPE' : [-1, 'signal', "==", 'GAP_UP']},
             {'CANDLE_5_HIKKAKE_BUY': [-1, 'time_lapsed', "<=", 20]},
@@ -56,92 +59,76 @@ class BaseStrategy:
             {'DT': [-1, 'pattern_height', ">=", -100]},
             {'TREND': [-1, "all_waves[-1]['dist']", ">=", -100]}
         ]
-        self.entry_signal_queues = {pattern: SignalQueue(pattern) for pattern in
+        self.entry_signal_queues = {pattern: SignalQueue(self,pattern) for pattern in
                                     [get_signal_key(list(set(criteria.keys()))[0]) for criteria in self.entry_criteria]}
         self.exit_criteria_list = [[
-            {'CANDLE_5_CDLDOJI_SELL': [-1, 'time_lapsed', ">=", 5]}
+            {'CANDLE_5_DOJI_SELL': [-1, 'time_lapsed', ">=", 5]}
         ]]
         temp_patterns = []
         for criteria_list in self.exit_criteria_list:
             for criteria in criteria_list:
                 temp_patterns.append(get_signal_key(list(criteria.keys())[0]))
         temp_patterns = list(set(temp_patterns))
-        self.exit_signal_queues = {pattern: SignalQueue(pattern) for pattern in temp_patterns}
+        self.exit_signal_queues = {pattern: SignalQueue(self,pattern) for pattern in temp_patterns}
 
         print('self.entry_signal_queues+++++++++++', self.entry_signal_queues)
         print('self.exit_signal_queues+++++++++++', self.exit_signal_queues)
+        self.spot_targets = ['DT_HEIGHT_TARGET',  'LAST_N_CANDLE_BODY_TARGET', 'PCT_SPOT']
+        self.inst_targets = []
+        #self.prepare_targets()
+
+    def prepare_targets(self):
+        def calculate(target):
+            target_fn = get_target_fn(target)
+            #print(target_fn)
+            rs = 0
+            if target_fn['category'] == 'signal_queue':
+                queue = self.entry_signal_queues[target_fn['mapped_object']]
+                mapped_fn = target_fn['mapped_fn']
+                kwargs = target_fn.get('kwargs', {})
+                #print('queue.'+ mapped_fn + "()")
+                rs = eval('queue.' + mapped_fn)(**kwargs)
+            elif target_fn['category'] == 'global':
+                obj = target_fn['mapped_object']
+                mapped_fn = target_fn['mapped_fn']
+                kwargs = target_fn.get('kwargs', {})
+                fn_string = 'self.' + ( obj + '.' if obj else '') + mapped_fn #+ '()'
+                #print(fn_string)
+                rs = eval(fn_string)(**kwargs)
+            #print(rs)
+            return rs
+
+        tgt_list = []
+        for target in self.spot_targets:
+            tgt_list.append(calculate(target))
+            #print(tgt_list)
+        return tgt_list
 
 
-
-    def get_trades(self, pattern_price_info, idx=1, neck_point=0):
+    def get_trades(self, idx=1, neck_point=0):
+        targets = self.prepare_targets()
+        #print("targets===============",targets)
         last_candle = self.insight_book.spot_processor.last_tick
         close_point = last_candle['close']
         side = get_broker_order_type(self.order_type)
-        return {'seq': idx, 'target': close_point * (1 + side * self.target_pct[idx-1]), 'stop_loss':close_point * (1 - side * self.stop_loss_pct[idx-1]),'duration': self.exit_time, 'quantity': self.minimum_quantity, 'exit_type':None, 'entry_price':last_candle['close'], 'exit_price':None, 'neck_point': neck_point, 'trigger_time':last_candle['timestamp']}
+        return {
+            'seq': idx,
+            'target': close_point * (1 + side * self.target_pct[idx-1]),
+            'stop_loss':close_point * (1 - side * self.stop_loss_pct[idx-1]),
+            'duration': self.exit_time,
+            'quantity': self.minimum_quantity,
+            'exit_type':None,
+            'entry_price':last_candle['close'],
+            'exit_price':None,
+            'neck_point': neck_point,
+            'trigger_time':last_candle['timestamp']
+        }
 
     def set_up(self):
         week_day_criterion = (not self.weekdays_allowed) or datetime.strptime(self.insight_book.trade_day, '%Y-%m-%d').strftime('%A') in self.weekdays_allowed
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()
-
-    """Deactivate when not required to run in a particular day"""
-    def deactivate(self):
-        self.activated = False
-        self.insight_book.remove_strategy(self)
-
-    def time_lapsed_since_mkt_open(self):
-        time_lapsed = self.insight_book.spot_processor.last_tick['timestamp'] - self.insight_book.ib_periods[0]
-        return time_lapsed
-
-    def time_lapsed_since_trade_begin(self, min, trade_open_time):
-        time_lapsed = self.insight_book.spot_processor.last_tick['timestamp'] - trade_open_time
-        return time_lapsed
-
-    def target_achieved(self, trade_open_price, th):
-        return (1 - self.ltp/trade_open_price) >= th
-
-    def stoploss_reached(self, trade_open_price, th):
-        return (1 - self.ltp/self.trade_open_price) <= -1 *abs(th)
-
-    def pivot_target(self, trade_open_price, th):
-        #print('pivot_target')
-        pivot_pts = list(self.insight_book.pivots.values())
-        #print(pivot_pts)
-
-        if self.side in ['BUY', 'LONG']:
-            #print('in buy')
-            pivot_targets = [x for x in pivot_pts if x > trade_open_price]
-            pivot_targets.sort()
-            #print(pivot_targets)
-            return self.ltp > pivot_targets[th] * (1-0.001)
-        else:
-            #print('in sell')
-            pivot_targets = [x for x in pivot_pts if x < trade_open_price]
-            pivot_targets.sort()
-            #print(pivot_targets)
-            return self.ltp < pivot_targets[th] * (1 + 0.001)
-
-
-    def get_lowest_candle(self):
-        lowest_candle = None
-        for (ts,candle) in reversed(self.insight_book.market_data.items()):
-            #print(candle)
-            if candle['low'] == self.insight_book.range['low']:
-                lowest_candle = candle
-                break
-        return lowest_candle
-
-    def locate_point(self, df, threshold):
-        above = len(np.array(df.index[df.Close > threshold]))
-        below = len(np.array(df.index[df.Close <= threshold]))
-        pct = (1 - above / (above + below)) * 100
-        return pct
-        # array of targets, stoploss and time - when one is triggered target and stoploss is removed and time is removed from last
-
-    def relevant_signal(self, pattern, pattern_match_idx):
-        #print('relevant_signal' , self.price_pattern , pattern)
-        return self.price_pattern == pattern
 
     """ Every strategy should run in valid tpo"""
     def valid_tpo(self):
@@ -151,18 +138,18 @@ class BaseStrategy:
         return min_tpo_met and max_tpo_met
 
     def trigger_entry(self, order_type, sig_key, triggers):
-        #print('trigger_entry',triggers)
-        #print(sig_key, order_type)
-        #print(triggers)
         for trigger in triggers:
             if self.record_metric:
                 mkt_parms = self.insight_book.activity_log.get_market_params()
                 if self.signal_params:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
+                self.signal_params = {}
         signal_info = {'symbol': self.insight_book.ticker, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         self.confirm_trigger(sig_key, triggers)
         self.insight_book.pm.strategy_entry_signal(signal_info)
+        for pattern_queue in self.entry_signal_queues.values():
+            pattern_queue.flush()
 
     def trigger_exit(self, signal_id, trigger_id, exit_type=None):
         #print('trigger_exit+++++++++++++++++++++++++++++', signal_id, trigger_id, exit_type)
@@ -177,10 +164,6 @@ class BaseStrategy:
         self.tradable_signals[signal_id]['triggers'][trigger_id]['exit_price'] = last_candle['close']
         self.insight_book.pm.strategy_exit_signal(signal_info)
 
-    def trigger_exit_at_low(self, signal_id, trigger_id):
-        lowest_candle = self.get_lowest_candle()
-        self.insight_book.pm.strategy_exit_signal(self.insight_book.ticker, self.id, signal_id, trigger_id, lowest_candle)
-
     def add_new_signal_to_journal(self):
         existing_signals = len(self.tradable_signals.keys())
         sig_key = 'SIG_' + str(existing_signals + 1)
@@ -193,11 +176,7 @@ class BaseStrategy:
         self.tradable_signals[sig_key]['max_triggers'] = self.triggers_per_signal
         return sig_key
 
-    """
-    Define custom strategy parameters here
-    add_tradable_signal gives stretegies to define their own parameters to be added signals for record keeping
-    """
-    def add_tradable_signal(self, pattern_match_idx):
+    def add_tradable_signal(self):
         sig_key = self.add_new_signal_to_journal()
         return sig_key
 
@@ -213,10 +192,13 @@ class BaseStrategy:
         #print('initiate_signal_trades+++++', sig_key)
         curr_signal = self.tradable_signals[sig_key]
         next_trigger = len(curr_signal['triggers']) + 1
-        triggers = [self.get_trades(curr_signal['pattern'], trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
+        triggers = [self.get_trades(trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
         # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
         #total_quantity = sum([trig['quantity'] for trig in triggers])
         self.trigger_entry(self.order_type,sig_key,triggers)
+
+    def register_instrument(self):
+        pass
 
     def register_signal(self, signal):
         """
@@ -227,37 +209,38 @@ class BaseStrategy:
             self.entry_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
         if (signal['category'], signal['indicator']) in self.exit_signal_queues:
             self.exit_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
+        self.register_instrument()
 
-    def process_signal(self, pattern, pattern_match_idx):
-        print('process_signal in core++++++++++++++++++++++++++', pattern, pattern_match_idx)
-        if self.relevant_signal(pattern, pattern_match_idx) and (len(self.tradable_signals.keys()) < self.max_signal):
-            #print('process_signal in core++++++++++++++++++++++++++', self.id, "tpo====", self.insight_book.curr_tpo, "minutes past===", len(self.insight_book.market_data.items()), "last tick===" , self.insight_book.spot_processor.last_tick['timestamp'])
-            signal_passed = self.evaluate_signal(pattern_match_idx) #len(self.tradable_signals.keys()) < self.max_signals+5  #
-            if signal_passed:
-                sig_key = self.add_tradable_signal(pattern_match_idx)
-                self.initiate_signal_trades(sig_key)
 
     def look_for_trade(self):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = self.valid_tpo()
         market_criteria_met = self.suitable_market_condition()
         signal_present = self.all_entry_signal()
-        print('+++++++++++++++++++++++++')
+        #print('+++++++++++++++++++++++++')
         #print(enough_time)
         #print(suitable_tpo)
         #print(market_criteria_met)
         #print(signal_present)
         if signal_present and enough_time and suitable_tpo and market_criteria_met:
-            signal_passed = self.evaluate_signal()
+            signal_passed = self.evaluate_entry() and self.custom_evaluation()
             if signal_passed:
+                self.record_params()
                 sig_key = self.add_tradable_signal()
                 self.initiate_signal_trades(sig_key)
 
     def all_entry_signal(self):
+        #print([queue.has_signal() for queue in self.entry_signal_queues.values()])
         return all([queue.has_signal() for queue in self.entry_signal_queues.values()])
 
-    def evaluate_signal(self, signal=None):
-        print('evaluate+++')
+    def custom_evaluation(self):
+        return True
+
+    def process_custom_signal(self):
+        pass
+
+    def evaluate_entry(self, signal=None):
+        print('evaluate entry+++')
         passed = True
         for list_item in self.entry_criteria:
             pattern_comb, criteria = list(list_item.items())[0]
@@ -270,20 +253,29 @@ class BaseStrategy:
                 break
         return passed
 
-    def calculate_custom_signal(self):
-        return False
-    """will be used by strategy which doesnt have a pattern/trend signal"""
-    def process_custom_signal(self):
-        signal_found = self.calculate_custom_signal() #len(self.tradable_signals.keys()) < self.max_signals+5  #
-        if signal_found:
-            sig_key = self.add_tradable_signal({})
-            self.initiate_signal_trades(sig_key)
+    def evaluate_exit(self, signal=None):
+        passed = False
+        for list_of_criteria in self.exit_criteria_list:
+            criteria_list_passed = True
+            for criteria_dict in list_of_criteria: # And condition for all items in list
+                pattern_comb, criteria = list(criteria_dict.items())[0]
+                pattern_comb = get_signal_key(pattern_comb)
+                queue = self.entry_signal_queues[pattern_comb]
+                last_candle = self.insight_book.spot_processor.last_tick
+                res = queue.eval_criteria(criteria, last_candle['timestamp'])
+                if res:
+                    queue.flush()
 
-    def process_incomplete_signals(self):
-        pass
+                criteria_list_passed = res and criteria_list_passed
+                if not criteria_list_passed: #Break if one fails
+                    break
+            passed = passed or criteria_list_passed
+            if passed:
+                break
+        return passed
 
     def evaluate(self):
-        self.process_incomplete_signals()
+        #self.process_incomplete_signals()
         self.monitor_existing_positions()
         self.look_for_trade()
 
@@ -304,6 +296,7 @@ class BaseStrategy:
                         self.trigger_exit(signal_id, trigger_seq, exit_type=0)
 
     def monitor_buy_positions(self):
+        exit_criteria_met = self.evaluate_exit()
         last_candle = self.insight_book.spot_processor.last_tick
         #print(self.tradable_signals)
         for signal_id, signal in self.tradable_signals.items():
@@ -311,9 +304,10 @@ class BaseStrategy:
             for trigger_seq, trigger_details in signal['triggers'].items():
                 if trigger_details['exit_type'] is None:  #Still active
                     #print(trigger_details)
-                    if last_candle['close'] >= trigger_details['target']:
+                    if exit_criteria_met:
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='EC')
+                    elif last_candle['close'] >= trigger_details['target']:
                         self.trigger_exit(signal_id, trigger_seq, exit_type=1)
-                        #print(last_candle, trigger_details['target'])
                     elif last_candle['close'] < trigger_details['stop_loss']:
                         self.trigger_exit(signal_id, trigger_seq, exit_type=-1)
                     elif last_candle['timestamp'] - trigger_details['trigger_time'] >= trigger_details['duration']*60:

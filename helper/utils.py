@@ -213,3 +213,16 @@ def get_epoc_minute(time_stamp):
 def get_epoc_from_iso_format(iso_ts):
     epoch_tick_time = int(datetime.fromisoformat(iso_ts + '+05:30').timestamp())
     return epoch_tick_time
+
+
+def convert_to_candle(lst):
+
+    candle = {'timestamp': lst[0]['timestamp'], 'open': lst[0]['open'], 'high': max([y['high'] for y in lst]),
+      'low': min([y['low'] for y in lst]), 'close': lst[-1]['close']}
+    return candle
+
+def locate_point(df, threshold):
+    above = len(np.array(df.index[df.Close > threshold]))
+    below = len(np.array(df.index[df.Close <= threshold]))
+    pct = (1 - above / (above + below)) * 100
+    return pct

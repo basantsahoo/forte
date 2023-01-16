@@ -22,10 +22,9 @@ class MarketActivity:
 
 
     def process(self):
-        price_list = list(self.insight_book.market_data.values())
+        price_list = list(self.insight_book.spot_processor.spot_ts.values())
         if len(price_list) < 2:
             return
-        self.candle_process()
         #print('process++++++')
         #print(self.insight_book.yday_profile)
 
@@ -137,7 +136,7 @@ class MarketActivity:
 
 
     def locate_price_region(self, mins=15):
-        ticks = list(self.insight_book.market_data.values())[-mins::]
+        ticks = list(self.insight_book.spot_processor.spot_ts.values())[-mins::]
         candle = {'open': ticks[0]['open'], 'high': max([y['high'] for y in ticks]), 'low': min([y['low'] for y in ticks]), 'close': ticks[-1]['close']}
         #print('locate_price_region', candle)
         return self.candle_position_wrt_key_levels(candle)
@@ -199,8 +198,3 @@ class MarketActivity:
         mkt_parms = {**mkt_parms, **self.spx_features}
         return mkt_parms
 
-    def candle_process(self):
-        price_list = list(self.insight_book.spot_processor.market_data.values())
-        chunks_5 = [price_list[i:i + 5] for i in range(0, len(price_list), 5)]
-        chunks_5_ohlc = [[x[0]['open'], max(y['high'] for y in x), min(y['low'] for y in x), x[-1]['close']] for x in chunks_5]
-        #self.five_min_trend = self.get_candle_trend(chunks_5_ohlc)[0]

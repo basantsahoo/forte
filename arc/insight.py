@@ -6,9 +6,9 @@ from collections import OrderedDict
 from talib import stream
 
 from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
-from helper.utils import get_pivot_points
+from helper.utils import get_pivot_points, convert_to_candle
 from dynamics.profile import utils as profile_utils
-
+from dynamics.constants import INDICATOR_TREND
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
@@ -239,8 +239,9 @@ class InsightBook:
             self.pattern_signal(pat)
 
     def pattern_signal(self, signal):
+        #print(signal)
         self.activity_log.register_signal(signal)
-        if signal['indicator'] == 'TREND':
+        if signal['indicator'] == INDICATOR_TREND:
             #print('TREND+++++', signal)
             self.activity_log.update_sp_trend(signal['info']['trend'])
             for wave in signal['info']['all_waves']:
@@ -274,11 +275,31 @@ class InsightBook:
 
         #print('self.intraday_trend')
 
-    def get_prior_wave(self, epoch_minute):
+    def get_prior_wave(self, epoch_minute=None):
         all_waves_end_time = list(self.intraday_waves.keys())
         all_waves_end_time.sort()
-        wave_idx = profile_utils.get_next_lowest_index(all_waves_end_time, epoch_minute)
+        wave_idx = profile_utils.get_next_lowest_index(all_waves_end_time, epoch_minute) if epoch_minute else -1
         return self.intraday_waves[all_waves_end_time[wave_idx]]
+
+    def get_dist_prev_sph(self):
+        last_wave = self.get_prior_wave()
+        return {'level': max(last_wave['start'], last_wave['end'])}
+
+    def get_dist_prev_spl(self):
+        last_wave = self.get_prior_wave()
+        return {'level': min(last_wave['start'], last_wave['end'])}
+
+    def get_dist_last_n_candle_high(self, period=5, n=1):
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        small_candles = candle_processor.get_last_n_candles(n)
+        big_candle = convert_to_candle(small_candles)
+        return big_candle['high']
+
+    def get_dist_last_n_candle_low(self, period=5, n=1):
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        small_candles = candle_processor.get_last_n_candles(n)
+        big_candle = convert_to_candle(small_candles)
+        return big_candle['low']
 
     def set_curr_tpo(self, epoch_minute):
         ts_idx = profile_utils.get_next_lowest_index(self.tpo_brackets, epoch_minute)
