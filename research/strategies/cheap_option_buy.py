@@ -16,10 +16,10 @@ class CheapOptionBuy(BaseOptionStrategy, PatternMetricRecordMixin):
 
     def register_instrument(self, signal):
         if (signal['category'], signal['indicator']) == get_signal_key('OPTION_PRICE_DROP'):
-            self.instrument = signal['instrument']
-    """
+            self.derivative_instruments.append(signal['instrument'])
+
     def process_post_entry(self):
-        self.instrument = None
-    """
+        self.derivative_instruments = []
+
 
 

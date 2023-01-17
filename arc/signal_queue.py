@@ -13,6 +13,8 @@ class SignalQueue:
         #print(self.category)
         if self.category[0] in ['STATE'] or self.category[1] in ['INDICATOR_TREND'] or self.category in [('OPTION', 'PRICE_DROP')]:
             self.queue = [signal] # Always refresh
+        elif self.category in [('OPTION', 'PRICE_DROP')]:
+            self.queue.append(signal)
         else:
             if signal['signal_time'] != self.last_signal_time:
                 self.queue.append(signal)
@@ -56,11 +58,33 @@ class SignalQueue:
         #return pattern_match_prices[ref_point] + factor * height
         return {'dist': height, 'ref' : pattern_match_prices[ref_point]}
 
-    def eval_criteria(self, criteria, curr_ts):
+    def eval_entry_criteria(self, criteria, curr_ts):
         if not criteria:
             return True
         #print(criteria)
-        pattern = self.queue[criteria[0]]
+        try:
+            pattern = self.queue[criteria[0]]
+        except:
+            return False
+        #print(pattern)
+        signal = pattern['signal']
+        time_lapsed = (curr_ts - pattern['notice_time'])/60
+        all_waves = pattern['info'].get('all_waves', [])
+        pattern_height = self.get_pattern_height(criteria[0])
+
+        test = criteria[1] + criteria[2] + repr(criteria[3])
+        res = eval(test)
+        return res
+
+    def eval_exit_criteria(self, criteria, curr_ts):
+        if not criteria:
+            return True
+        #print(criteria)
+        try:
+            pattern = self.queue[criteria[0]]
+        except:
+            return True  # Different from entry
+
         #print(pattern)
         signal = pattern['signal']
         time_lapsed = (curr_ts - pattern['notice_time'])/60

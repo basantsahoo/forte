@@ -14,8 +14,8 @@ class BaseStrategy:
                  insight_book=None,
                  id=None,
                  order_type="BUY",
-                 instrument_type='SPOT',
-                 instrument = None,
+                 spot_instruments = ['SPOT'],
+                 derivative_instruments=[],
                  exit_time=10,
                  min_tpo=1,
                  max_tpo=13,
@@ -34,8 +34,8 @@ class BaseStrategy:
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
         self.insight_book = insight_book
         self.order_type = order_type
-        self.instrument_type = instrument_type
-        self.instrument = instrument
+        self.spot_instruments = spot_instruments
+        self.derivative_instruments = derivative_instruments
         self.exit_time = exit_time
         self.min_tpo = min_tpo
         self.max_tpo = max_tpo
@@ -60,7 +60,8 @@ class BaseStrategy:
         self.pending_signals = {}
         self.tradable_signals ={}
         self.minimum_quantity = 1
-        self.cover = 200 if self.inst_is_option() and self.order_type == 'SELL' else 0
+        self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
+        self.inst_to_trade = []
         if len(target_pct) < self.triggers_per_signal:
             raise Exception("Triggers and targets of unequal size")
         """
@@ -119,39 +120,29 @@ class BaseStrategy:
             #print(tgt_list)
         return tgt_list
 
+    def initiate_signal_trades(self):
+        all_inst = self.spot_instruments + self.derivative_instruments
+        for trade_inst in all_inst:
+            sig_key = self.add_tradable_signal()
+            #print('initiate_signal_trades+++++', sig_key)
+            curr_signal = self.tradable_signals[sig_key]
+            next_trigger = len(curr_signal['triggers']) + 1
+            triggers = [self.get_trades(trade_inst, trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
+            # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
+            #total_quantity = sum([trig['quantity'] for trig in triggers])
+            self.trigger_entry(trade_inst,self.order_type,sig_key,triggers)
+        self.process_post_entry()
 
-    def bkP_get_trades(self, idx=1, neck_point=0):
-        targets = self.prepare_targets()
-        #print("targets===============",targets)
-        last_candle = self.insight_book.spot_processor.last_tick
-        close_point = last_candle['close']
-        side = get_broker_order_type(self.order_type)
-        return {
-            'seq': idx,
-            'target': close_point * (1 + side * self.target_pct[idx-1]),
-            'stop_loss':close_point * (1 - side * self.stop_loss_pct[idx-1]),
-            'duration': self.exit_time,
-            'quantity': self.minimum_quantity,
-            'exit_type':None,
-            'entry_price':last_candle['close'],
-            'exit_price':None,
-            'neck_point': neck_point,
-            'trigger_time':last_candle['timestamp']
-        }
 
-    def get_trades(self, idx=1, neck_point=0):
+    def get_trades(self, instr, idx=1):
         targets = self.prepare_targets()
-        #print("targets===============",targets)
-        if self.inst_is_option():
-            last_candle = self.insight_book.option_processor.get_last_tick(self.instrument)
-        else:
-            last_candle = self.insight_book.spot_processor.last_tick
+        last_candle = self.get_last_tick(instr)
         close_point = last_candle['close']
         side = get_broker_order_type(self.order_type)
 
         return {
             'seq': idx,
-            'instrument': self.instrument if self.inst_is_option() else self.instrument_type,
+            'instrument': instr,
             'cover': self.cover,
             'target': close_point * (1 + side * self.target_pct[idx-1]),
             'stop_loss':close_point * (1 - side * self.stop_loss_pct[idx-1]),
@@ -160,7 +151,6 @@ class BaseStrategy:
             'exit_type':None,
             'entry_price':last_candle['close'],
             'exit_price':None,
-            'neck_point': neck_point,
             'trigger_time':last_candle['timestamp']
         }
 
@@ -177,17 +167,17 @@ class BaseStrategy:
         max_tpo_met = self.max_tpo is None or current_tpo <= self.max_tpo
         return min_tpo_met and max_tpo_met
 
-    def inst_is_option(self):
-        return self.instrument_type == 'OPTION'
+    def inst_is_option(self, inst):
+        return inst not in self.spot_instruments
 
-    def get_last_tick(self, inst=None):
-        if self.inst_is_option():
-            last_candle = self.insight_book.option_processor.get_last_tick(self.instrument if inst is None else inst)
+    def get_last_tick(self, instr='SPOT'):
+        if self.inst_is_option(instr):
+            last_candle = self.insight_book.option_processor.get_last_tick(instr)
         else:
             last_candle = self.insight_book.spot_processor.last_tick
         return last_candle
 
-    def trigger_entry(self, order_type, sig_key, triggers):
+    def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
         for trigger in triggers:
             if self.record_metric:
                 mkt_parms = self.insight_book.activity_log.get_market_params()
@@ -195,11 +185,11 @@ class BaseStrategy:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
                 self.signal_params = {}
-        updated_symbol = self.insight_book.ticker + "_" + self.instrument if self.inst_is_option() else self.insight_book.ticker
+        updated_symbol = self.insight_book.ticker + "_" + trade_inst if self.inst_is_option(trade_inst) else self.insight_book.ticker
         cover = triggers[0].get('cover', 0)
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         self.confirm_trigger(sig_key, triggers)
-        self.insight_book.pm.strategy_entry_signal(signal_info)
+        self.insight_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
         for pattern_queue in self.entry_signal_queues.values():
             pattern_queue.flush()
 
@@ -207,7 +197,7 @@ class BaseStrategy:
         #print('trigger_exit+++++++++++++++++++++++++++++', signal_id, trigger_id, exit_type)
         quantity = self.tradable_signals[signal_id]['triggers'][trigger_id]['quantity']
         instrument = self.tradable_signals[signal_id]['triggers'][trigger_id]['instrument']
-        updated_symbol = self.insight_book.ticker + "_" + instrument if self.inst_is_option() else instrument
+        updated_symbol = self.insight_book.ticker + "_" + instrument if self.inst_is_option(instrument) else self.insight_book.ticker
         signal_info = {'symbol': updated_symbol, 'strategy_id': self.id, 'signal_id': signal_id,
                        'trigger_id': trigger_id,
                        'qty': quantity}
@@ -215,7 +205,7 @@ class BaseStrategy:
         self.tradable_signals[signal_id]['triggers'][trigger_id]['closed'] = True
         self.tradable_signals[signal_id]['triggers'][trigger_id]['exit_type'] = exit_type
         self.tradable_signals[signal_id]['triggers'][trigger_id]['exit_price'] = last_candle['close']
-        self.insight_book.pm.strategy_exit_signal(signal_info)
+        self.insight_book.pm.strategy_exit_signal(signal_info, option_signal=self.inst_is_option(instrument))
 
     def add_new_signal_to_journal(self):
         existing_signals = len(self.tradable_signals.keys())
@@ -241,15 +231,6 @@ class BaseStrategy:
             curr_signal['time_based_exists'].append(trigger['duration'])
             curr_signal['triggers'][trigger['seq']] = trigger
 
-    def initiate_signal_trades(self, sig_key):
-        #print('initiate_signal_trades+++++', sig_key)
-        curr_signal = self.tradable_signals[sig_key]
-        next_trigger = len(curr_signal['triggers']) + 1
-        triggers = [self.get_trades(trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
-        # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
-        #total_quantity = sum([trig['quantity'] for trig in triggers])
-        self.trigger_entry(self.order_type,sig_key,triggers)
-        self.process_post_entry()
 
     def register_instrument(self, signal):
         pass
@@ -278,12 +259,11 @@ class BaseStrategy:
         #print(suitable_tpo)
         #print(market_criteria_met)
         #print(signal_present)
-        if signal_present and enough_time and suitable_tpo and filter_criteria_met:
+        if enough_time and suitable_tpo and signal_present and filter_criteria_met:
             signal_passed = self.evaluate_entry() and self.custom_evaluation()
             if signal_passed:
                 self.record_params()
-                sig_key = self.add_tradable_signal()
-                self.initiate_signal_trades(sig_key)
+                self.initiate_signal_trades()
 
     def all_entry_signal(self):
         #print([queue.has_signal() for queue in self.entry_signal_queues.values()])
@@ -302,8 +282,8 @@ class BaseStrategy:
             pattern_comb, criteria = list(list_item.items())[0]
             pattern_comb = get_signal_key(pattern_comb)
             queue = self.entry_signal_queues[pattern_comb]
-            last_candle = self.get_last_tick()
-            res = queue.eval_criteria(criteria, last_candle['timestamp'])
+            last_spot_candle = self.insight_book.spot_processor.last_tick
+            res = queue.eval_entry_criteria(criteria, last_spot_candle['timestamp'])
             passed = res and passed
             if not passed:
                 break
@@ -316,9 +296,10 @@ class BaseStrategy:
             for criteria_dict in list_of_criteria: # And condition for all items in list
                 pattern_comb, criteria = list(criteria_dict.items())[0]
                 pattern_comb = get_signal_key(pattern_comb)
-                queue = self.entry_signal_queues[pattern_comb]
-                last_candle = self.get_last_tick()
-                res = queue.eval_criteria(criteria, last_candle['timestamp'])
+                queue = self.exit_signal_queues[pattern_comb]
+                print(queue.category)
+                last_spot_candle = self.insight_book.spot_processor.last_tick
+                res = queue.eval_exit_criteria(criteria, last_spot_candle['timestamp'])
                 if res:
                     queue.flush()
 

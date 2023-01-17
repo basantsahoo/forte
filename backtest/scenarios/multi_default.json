@@ -4,6 +4,8 @@
     {
       "id": "multi_id",
       "order_type":"SELL",
+      "spot_instruments":["SPOT"],
+      "derivative_instruments":[],
       "exit_time":60,
       "min_tpo":1,
       "max_tpo":13,
@@ -13,7 +15,7 @@
       ]
     }
   ],
-  "test_days": ["2022-12-21"],
+  "test_days": ["2022-06-21"],
   "for_past_days": 80,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-30",
