@@ -2,18 +2,15 @@
   "strategies":["CheapOptionBuy"],
   "strategy_kwargs":[
     {
-      "pattern":"OPTION_PRICE_DROP",
-      "order_type":"BUY",
+      "id":"OPTION_PRICE_DROP",
       "exit_time":60,
-      "min_tpo":1,
-      "max_tpo":13,
       "target_pct":[0.1,0.2,0.3,0.4],
       "stop_loss_pct":[0.5,0.5,0.5,0.5],
-      "criteria" : [
+      "filter_conditions" : [
       ]
     }
   ],
-  "test_days": [],
+  "test_days": ["2022-12-29"],
   "for_past_days": 80,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-30",

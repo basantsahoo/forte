@@ -11,7 +11,7 @@ class SignalQueue:
         """
     def receive_signal(self, signal):
         #print(self.category)
-        if self.category[0] in ['STATE'] or self.category[1] in ['INDICATOR_TREND']:
+        if self.category[0] in ['STATE'] or self.category[1] in ['INDICATOR_TREND'] or self.category in [('OPTION', 'PRICE_DROP')]:
             self.queue = [signal] # Always refresh
         else:
             if signal['signal_time'] != self.last_signal_time:
@@ -26,11 +26,11 @@ class SignalQueue:
         return len(self.queue) > 0
 
     def flush(self):
-        if 'CANDLE' in self.category[0] or 'PRICE_ACTION' in self.category[0]:
+        if 'CANDLE' in self.category[0] or 'PRICE_ACTION' in self.category[0] or self.category in [('OPTION', 'PRICE_DROP')]:
             self.queue = []
 
     def remove_last(self):
-        if 'CANDLE' in self.category[0] or 'PRICE_ACTION' in self.category[0]:
+        if 'CANDLE' in self.category[0] or 'PRICE_ACTION' in self.category[0] or self.category in [('OPTION', 'PRICE_DROP')]:
             del self.queue[-1]
 
     def has_signal(self):
@@ -57,6 +57,8 @@ class SignalQueue:
         return {'dist': height, 'ref' : pattern_match_prices[ref_point]}
 
     def eval_criteria(self, criteria, curr_ts):
+        if not criteria:
+            return True
         #print(criteria)
         pattern = self.queue[criteria[0]]
         #print(pattern)
@@ -94,5 +96,7 @@ class SignalQueue:
             pattern_df = self.strategy.insight_book.get_inflex_pattern_df().dfstock_3
             pattern_location = locate_point(pattern_df, max(res['pattern_price']))
             res['pattern_location'] = pattern_location
+        if pattern['info'].get('price_list', None) is not None:
+            res['pattern_height'] = self.get_pattern_height()
         res['strength'] = pattern['strength']
         return res

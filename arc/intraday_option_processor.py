@@ -42,7 +42,7 @@ class IntradayOptionProcessor:
         strike = int(inst.split("_")[0])
         kind = inst.split("_")[1]
         #print(self.insight_book.last_tick)
-        spot = list(self.insight_book.market_data.values())[0]['close']
+        spot = list(self.insight_book.spot_processor.spot_ts.values())[0]['close']
         #spot = self.insight_book.last_tick['close']
         dist = round((strike - spot) / 100)
         if kind == 'CE':
@@ -71,8 +71,9 @@ class IntradayOptionProcessor:
                         self.price_drop_book[inst]['drop_'+ str(pct)] = last_ts
                         inst_details = self.get_inst_details(inst)
                         if inst_details['dist'] <= 10:
-                            matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
-                            self.insight_book.pattern_signal('OPTION_PRICE_DROP', matched_pattern)
+                            #matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
+                            pat = {'category':'OPTION', 'indicator': 'PRICE_DROP', 'strength': pct, 'signal_time': last_ts, 'notice_time': last_ts, 'instrument': inst, 'info': inst_details}
+                            self.insight_book.pattern_signal(pat)
                 else:
                     self.price_drop_book[inst]['drop_' + str(pct)] = None
 
