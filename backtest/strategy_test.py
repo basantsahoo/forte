@@ -11,9 +11,9 @@ import traceback
 
 from backtest.settings import reports_dir
 from research.strategies.aggregators import CandleAggregator, PatternAggregator
-from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
-from research.strategies.state_cap_strategy import StateCapStrategy
-from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
+#from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
+#from research.strategies.state_cap_strategy import StateCapStrategy
+#from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
 from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell, FridayCandleBuyFullDay
 from research.strategies.cheap_option_buy import CheapOptionBuy
 from research.strategies.option_sell import OptionSellStrategy

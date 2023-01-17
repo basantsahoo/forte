@@ -1,14 +1,7 @@
-import numpy as np
 from research.strategies.candle_pattern_strategy import CandlePatternStrategy
 from research.strategies.double_top_strategy import DoubleTopStrategy
-from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
-from research.strategies.trend_strategy import TrendStrategy
 
-from helper.utils import get_exit_order_type
 import talib
-import pandas as pd
-from itertools import compress
-from dynamics.trend.candle_rank import candle_rankings
 candle_names = talib.get_function_groups()['Pattern Recognition']
 
 
@@ -23,14 +16,9 @@ class StrategyAggregator:
         for strategy in self.individual_strategies:
             strategy.set_up()
 
-    def relevant_signal(self):
-        return True
-
-    def process_signal(self, pattern, pattern_match_idx):
-        if self.relevant_signal():
-            for strategy in self.individual_strategies:
-                #if strategy.price_pattern == pattern and strategy.order_type == pattern_match_idx['direction'] and strategy.period == pattern_match_idx['period']:
-                strategy.process_signal(pattern, pattern_match_idx)
+    def register_signal(self, signal):
+        for strategy in self.individual_strategies:
+            strategy.register_signal(signal)
 
     def evaluate(self):
         for strategy in self.individual_strategies:
