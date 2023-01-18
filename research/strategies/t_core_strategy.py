@@ -31,11 +31,12 @@ class BaseStrategy:
                  spot_targets = [],
                  inst_targets = []
                  ):
+        print('BaseStrategy', derivative_instruments)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
         self.insight_book = insight_book
         self.order_type = order_type
-        self.spot_instruments = spot_instruments
-        self.derivative_instruments = derivative_instruments
+        self.spot_instruments = spot_instruments if spot_instruments else []
+        self.derivative_instruments = derivative_instruments if derivative_instruments else []
         self.exit_time = exit_time
         self.min_tpo = min_tpo
         self.max_tpo = max_tpo
@@ -61,7 +62,6 @@ class BaseStrategy:
         self.tradable_signals ={}
         self.minimum_quantity = 1
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
-        self.inst_to_trade = []
         if len(target_pct) < self.triggers_per_signal:
             raise Exception("Triggers and targets of unequal size")
         """
@@ -91,6 +91,9 @@ class BaseStrategy:
         #self.spot_targets = ['DT_HEIGHT_TARGET',  'LAST_N_CANDLE_BODY_TARGET', 'PCT_SPOT']
         #self.inst_targets = []
         #self.prepare_targets()
+        if True:#self.insight_book.trade_day == '2022-11-25':
+            print(self.spot_instruments)
+            print(self.derivative_instruments)
 
 
     def prepare_targets(self):
@@ -122,6 +125,9 @@ class BaseStrategy:
 
     def initiate_signal_trades(self):
         all_inst = self.spot_instruments + self.derivative_instruments
+        if self.insight_book.trade_day == '2022-11-25':
+            print(all_inst)
+
         for trade_inst in all_inst:
             sig_key = self.add_tradable_signal()
             #print('initiate_signal_trades+++++', sig_key)
@@ -160,6 +166,10 @@ class BaseStrategy:
         if not activation_criterion:
             self.deactivate()
 
+    """Deactivate when not required to run in a particular day"""
+    def deactivate(self):
+        self.activated = False
+        self.insight_book.remove_strategy(self)
     """ Every strategy should run in valid tpo"""
     def valid_tpo(self):
         current_tpo = self.insight_book.curr_tpo
@@ -244,7 +254,8 @@ class BaseStrategy:
             #print('register+++++++++++', signal)
             pass
         if signal['indicator'] == 'PRICE_DROP':
-            print('register+++++++++++', signal)
+            pass
+            #print('register+++++++++++', signal)
 
         if (signal['category'], signal['indicator']) in self.entry_signal_queues:
             if self.evaluate_signal_filter(signal):
@@ -282,7 +293,7 @@ class BaseStrategy:
         pass
 
     def evaluate_entry(self, signal=None):
-        print('evaluate entry+++')
+        #print('evaluate entry+++')
         passed = True
         for list_item in self.entry_criteria:
             pattern_comb, criteria = list(list_item.items())[0]
@@ -303,7 +314,7 @@ class BaseStrategy:
                 pattern_comb, criteria = list(criteria_dict.items())[0]
                 pattern_comb = get_signal_key(pattern_comb)
                 queue = self.exit_signal_queues[pattern_comb]
-                print(queue.category)
+                #print(queue.category)
                 last_spot_candle = self.insight_book.spot_processor.last_tick
                 res = queue.eval_exit_criteria(criteria, last_spot_candle['timestamp'])
                 if res:
@@ -383,7 +394,17 @@ class BaseStrategy:
             for condition in self.signal_filter_conditions:
                 #print(condition['logical_test'])
                 satisfied = satisfied or eval(condition['logical_test'])
-            print(satisfied)
+            #print(satisfied)
         return satisfied
 
 
+    def record_params(self):
+        #print('inside record_params', matched_pattern)
+        #print(self.insight_book.activity_log.locate_price_region())
+        if self.record_metric:
+            price_region = self.insight_book.activity_log.locate_price_region()
+            for key, val in price_region.items():
+                self.signal_params['pat_' + key] = val
+            for pattern_queue in self.entry_signal_queues.values():
+                pattern_attr = pattern_queue.get_atrributes()
+                self.signal_params = {**self.signal_params, **pattern_attr}

@@ -7,7 +7,7 @@ from research.strategies.strat_mixin import PatternMetricRecordMixin
 from research.strategies.signal_setup import get_signal_key, get_target_fn
 from arc.signal_queue import SignalQueue
 
-class MultiPatternStrategy(BaseStrategy, PatternMetricRecordMixin):
+class MultiPatternStrategy(BaseStrategy):
     def __init__(self, insight_book, id, order_type, spot_instruments, derivative_instruments, exit_time, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, target_pct=[0.002,0.003, 0.004, 0.005], stop_loss_pct=[0.001,0.002, 0.002,0.002], weekdays_allowed=[], filter_conditions=[]):
         BaseStrategy.__init__(self, insight_book, id, order_type, spot_instruments, derivative_instruments, exit_time, min_tpo, max_tpo, record_metric, triggers_per_signal, max_signal, target_pct, stop_loss_pct, weekdays_allowed, filter_conditions)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
@@ -38,10 +38,4 @@ class MultiPatternStrategy(BaseStrategy, PatternMetricRecordMixin):
         self.spot_targets = ['DT_HEIGHT_TARGET',  'LAST_N_CANDLE_BODY_TARGET', 'PCT_SPOT']
         self.inst_targets = []
 
-
-    def add_tradable_signal_2(self, matched_pattern):
-        sig_key = self.add_new_signal_to_journal()
-        self.tradable_signals[sig_key]['pattern'] = matched_pattern
-        self.tradable_signals[sig_key]['pattern_height'] = 0
-        return sig_key
 
