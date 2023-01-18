@@ -27,7 +27,7 @@ class BaseStrategy:
                  weekdays_allowed=[],
                  entry_criteria = [],
                  exit_criteria_list = [],
-                 filter_conditions=[],
+                 signal_filter_conditions=[],
                  spot_targets = [],
                  inst_targets = []
                  ):
@@ -45,7 +45,7 @@ class BaseStrategy:
         self.target_pct = target_pct
         self.stop_loss_pct = stop_loss_pct
         self.entry_criteria = entry_criteria
-        self.filter_conditions = filter_conditions
+        self.signal_filter_conditions = signal_filter_conditions
         self.exit_criteria_list = exit_criteria_list
         self.spot_targets = spot_targets
         self.inst_targets = inst_targets
@@ -241,25 +241,31 @@ class BaseStrategy:
 
     def register_signal(self, signal):
         if signal['indicator'] != 'INDICATOR_TREND':
+            #print('register+++++++++++', signal)
+            pass
+        if signal['indicator'] == 'PRICE_DROP':
             print('register+++++++++++', signal)
+
         if (signal['category'], signal['indicator']) in self.entry_signal_queues:
-            self.entry_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
+            if self.evaluate_signal_filter(signal):
+                self.entry_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
+                self.register_instrument(signal)
         if (signal['category'], signal['indicator']) in self.exit_signal_queues:
             self.exit_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
-        self.register_instrument(signal)
+
 
 
     def look_for_trade(self):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = self.valid_tpo()
-        filter_criteria_met = self.evaluate_filter_condition()
+        #filter_criteria_met = self.evaluate_signal_filter()
         signal_present = self.all_entry_signal()
         #print('+++++++++++++++++++++++++')
         #print(enough_time)
         #print(suitable_tpo)
         #print(market_criteria_met)
         #print(signal_present)
-        if enough_time and suitable_tpo and signal_present and filter_criteria_met:
+        if enough_time and suitable_tpo and signal_present: #and filter_criteria_met:
             signal_passed = self.evaluate_entry() and self.custom_evaluation()
             if signal_passed:
                 self.record_params()
@@ -357,21 +363,27 @@ class BaseStrategy:
         elif self.order_type == 'SELL':
             self.monitor_sell_positions()
 
-    def evaluate_filter_condition(self, signal={}):
-        satisfied = not self.filter_conditions
+    def evaluate_signal_filter(self, signal={}):
+        satisfied = not self.signal_filter_conditions
         if not satisfied:
             market_params = self.insight_book.activity_log.get_market_params()
+            #print(market_params)
             d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']
+
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params['d2_cd_new_business_pressure']
+            category = (signal['category'] , signal['indicator'])
             open_type = market_params['open_type']
             tpo = market_params['tpo']
             strength = signal.get('strength', 0)
-            kind = signal.get('kind', "")
-            money_ness = signal.get('money_ness', "")
-            for condition in self.filter_conditions:
+            kind = signal['info'].get('kind', "")
+            money_ness = signal['info'].get('money_ness', "")
+            #print('inside +++++', open_type, tpo, strength, kind, money_ness)
+            for condition in self.signal_filter_conditions:
+                #print(condition['logical_test'])
                 satisfied = satisfied or eval(condition['logical_test'])
+            print(satisfied)
         return satisfied
 
 

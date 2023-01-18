@@ -26,10 +26,10 @@ class BaseOptionStrategy(BaseStrategy):
                  weekdays_allowed=[],
                  entry_criteria=[],
                  exit_criteria_list=[],
-                 filter_conditions=[],
+                 signal_filter_conditions=[],
                  spot_targets=[],
                  inst_targets=[]
                  ):
         BaseStrategy.__init__(self, insight_book, id, order_type,spot_instruments, derivative_instruments, exit_time, min_tpo, max_tpo, record_metric, triggers_per_signal,
-                              max_signal, target_pct, stop_loss_pct, weekdays_allowed, entry_criteria,exit_criteria_list, filter_conditions,spot_targets,inst_targets)
+                              max_signal, target_pct, stop_loss_pct, weekdays_allowed, entry_criteria,exit_criteria_list, signal_filter_conditions,spot_targets,inst_targets)
 
