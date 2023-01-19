@@ -19,7 +19,7 @@ from research.strategies.cheap_option_buy import CheapOptionBuy
 from research.strategies.option_sell import OptionSellStrategy
 from live_algo.friday_option_buy import FridayOptionBuy,FridayBelowVA
 from research.strategies.multi_pattern_strategy import MultiPatternStrategy
-
+from research.strategies.dt_buy_put_strategy import DTBuyPut
 from dynamics.profile.market_profile import HistMarketProfileService
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface

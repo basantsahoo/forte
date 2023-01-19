@@ -173,7 +173,7 @@ class InsightBook:
             candle_detector.evaluate(notify=False)
 
     def spot_minute_data_stream(self, price, iv=None):
-        #print('insight price_input_stream+++++ insight book')
+        #print('insight price_input_stream++++++++++++++++++++++++++++++++++++ insight book')
         epoch_tick_time = price['timestamp']
         epoch_minute = int(epoch_tick_time // 60 * 60) + 1
         key_list = ['timestamp','open', 'high', "low", "close"]
@@ -202,6 +202,7 @@ class InsightBook:
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()
         for pattern_detector in self.price_action_pattern_detectors:
+            #print('pattern_detector.evaluate')
             pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
             candle_detector.evaluate()
@@ -213,7 +214,7 @@ class InsightBook:
             strategy.evaluate()
 
     def option_minute_data_stream(self, option_data):
-        #print('price_input_stream+++++ insight book')
+        #print('option price_input_stream+++++++++++++++++++++++++++++++++++++++++++++++++++++++++ insight book')
         epoch_tick_time = option_data['timestamp']
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
@@ -240,6 +241,9 @@ class InsightBook:
 
     def pattern_signal(self, signal):
         #print(signal)
+        if signal['indicator'] == 'INDICATOR_DT':
+            #print('pattern_signal+++++++++++')
+            pass
         self.activity_log.register_signal(signal)
         if signal['indicator'] == INDICATOR_TREND:
             #print('TREND+++++', signal)

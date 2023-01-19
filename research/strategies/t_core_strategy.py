@@ -33,7 +33,7 @@ class BaseStrategy:
                  instr_stop_losses = [-0.001,-0.002, -0.002,-0.002]
 
     ):
-        print('BaseStrategy', derivative_instruments)
+
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
         self.insight_book = insight_book
         self.order_type = order_type
@@ -110,7 +110,7 @@ class BaseStrategy:
                 target = close_point * (1 + side * target_level)
                 levels.append(target)
             else:
-                print(target_level[0])
+                #print(target_level[0])
                 target_fn = get_target_fn(target_level[0])
                 mapped_fn = target_fn['mapped_fn']
                 kwargs = target_fn.get('kwargs', {})
@@ -154,8 +154,8 @@ class BaseStrategy:
 
     def get_trades(self, instr, idx=1):
         exit_levels = self.get_exit_levels(instr)
-        print(exit_levels)
-        print(instr, idx)
+        #print(exit_levels)
+        #print(instr, idx)
         last_candle = self.get_last_tick(instr)
 
         return {
@@ -264,11 +264,16 @@ class BaseStrategy:
         if signal['indicator'] == 'PRICE_DROP':
             pass
             #print('register+++++++++++', signal)
+        if signal['indicator'] == 'INDICATOR_DT':
+            #print('register+++++++++++', signal)
+            pass
 
         if (signal['category'], signal['indicator']) in self.entry_signal_queues:
             if self.evaluate_signal_filter(signal):
-                self.entry_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
-                self.register_instrument(signal)
+                new_signal = self.entry_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
+                if new_signal:
+                    print(signal)
+                    self.register_instrument(signal)
         if (signal['category'], signal['indicator']) in self.exit_signal_queues:
             self.exit_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
 
@@ -315,8 +320,10 @@ class BaseStrategy:
         return passed
 
     def evaluate_exit(self, signal=None):
+        #print('evaluate_exit')
         passed = False
         for list_of_criteria in self.exit_criteria_list:
+            #print(list_of_criteria)
             criteria_list_passed = True
             for criteria_dict in list_of_criteria: # And condition for all items in list
                 pattern_comb, criteria = list(criteria_dict.items())[0]
@@ -325,13 +332,16 @@ class BaseStrategy:
                 #print(queue.category)
                 last_spot_candle = self.insight_book.spot_processor.last_tick
                 res = queue.eval_exit_criteria(criteria, last_spot_candle['timestamp'])
+                #print('res++++++++++++', res)
                 if res:
                     queue.flush()
 
                 criteria_list_passed = res and criteria_list_passed
+                #print('criteria_list_passed ++++++++++++', criteria_list_passed)
                 if not criteria_list_passed: #Break if one fails
                     break
             passed = passed or criteria_list_passed
+            #print('passed', passed)
             if passed:
                 break
         return passed
@@ -358,6 +368,7 @@ class BaseStrategy:
                     elif trigger_details['instr_stop_loss'] and last_instr_candle['close'] > trigger_details['instr_stop_loss']:
                         self.trigger_exit(signal_id, trigger_seq, exit_type='IS')
                     elif trigger_details['spot_target'] and last_spot_candle['close'] < trigger_details['spot_target']:
+                        print('inside sell')
                         self.trigger_exit(signal_id, trigger_seq, exit_type='ST')
                         #print(last_candle, trigger_details['target'])
                     elif trigger_details['spot_stop_loss'] and last_spot_candle['close'] >= trigger_details['spot_stop_loss']:
@@ -381,6 +392,7 @@ class BaseStrategy:
                     elif trigger_details['instr_stop_loss'] and last_instr_candle['close'] < trigger_details['instr_stop_loss']:
                         self.trigger_exit(signal_id, trigger_seq, exit_type='IS')
                     elif trigger_details['spot_target'] and last_spot_candle['close'] >= trigger_details['spot_target']:
+                        print('inside buy')
                         self.trigger_exit(signal_id, trigger_seq, exit_type='ST')
                     elif trigger_details['spot_target'] and last_spot_candle['close'] < trigger_details['spot_target']:
                         self.trigger_exit(signal_id, trigger_seq, exit_type='SS')

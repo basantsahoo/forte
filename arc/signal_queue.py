@@ -11,14 +11,19 @@ class SignalQueue:
         """
     def receive_signal(self, signal):
         #print(self.category)
+        new_signal = False
         if self.category[0] in ['STATE'] or self.category[1] in ['INDICATOR_TREND'] or self.category in [('OPTION', 'PRICE_DROP')]:
             self.queue = [signal] # Always refresh
+            new_signal = True
         elif self.category in [('OPTION', 'PRICE_DROP')]:
             self.queue.append(signal)
+            new_signal = True
         else:
             if signal['signal_time'] != self.last_signal_time:
                 self.queue.append(signal)
+                new_signal = True
         self.last_signal_time = signal['signal_time']
+        return new_signal
         #print(self.category, len(self.queue))
 
     def get_signal(self, pos=-1):
@@ -77,13 +82,14 @@ class SignalQueue:
         return res
 
     def eval_exit_criteria(self, criteria, curr_ts):
+        #print('eval_exit_criteria', criteria)
         if not criteria:
             return True
         #print(criteria)
         try:
             pattern = self.queue[criteria[0]]
         except:
-            return True  # Different from entry
+            return False  # Different from entry
 
         #print(pattern)
         signal = pattern['signal']

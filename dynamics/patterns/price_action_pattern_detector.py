@@ -227,9 +227,10 @@ class PriceActionPatternDetector:
                 if len(matched_pattern) > 0:
                     # print('success on reevaluation', matched_pattern)
                     pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': 'INDICATOR_' + infirm_pattern['pattern'], 'signal': 1, 'strength': 0,
-                           'signal_time': matched_pattern['time_list'][-1] if 'time_list' in matched_pattern else self.insight_book.spot_processor.last_tick['timestamp'],
+                           'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.insight_book.spot_processor.last_tick['timestamp'],
                            'notice_time': self.insight_book.spot_processor.last_tick['timestamp'],
                            'info': matched_pattern}
+                    #print('re evaluate 1++++')
                     self.insight_book.pattern_signal(pat)
                     #self.insight_book.pattern_signal(infirm_pattern['pattern'], matched_pattern)
                     self.infirm_patterns.remove(infirm_pattern)
@@ -245,8 +246,9 @@ class PriceActionPatternDetector:
                 if matched_pattern:
                     #print(matched_pattern)
                     #print(list(pattern_df.Time))
+                    #print('evaluate 1++++')
                     pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': 'INDICATOR_' + pattern, 'signal': 1, 'strength': 0,
-                           'signal_time': matched_pattern['time_list'][-1] if 'time_list' in matched_pattern else self.insight_book.spot_processor.last_tick['timestamp'],
+                           'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.insight_book.spot_processor.last_tick['timestamp'],
                            'notice_time': self.insight_book.spot_processor.last_tick['timestamp'],
                            'info': matched_pattern}
                     self.insight_book.pattern_signal(pat)
