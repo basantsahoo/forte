@@ -55,8 +55,8 @@ class SignalQueue:
         height = self.get_pattern_height(pos)
         pattern = self.queue[pos]
         pattern_match_prices = pattern['info']['price_list'] if ('INDICATOR_' in pattern['indicator'] and 'TREND' not in pattern['indicator']) else [0, 0, 0, 0]
-        #return pattern_match_prices[ref_point] + factor * height
-        return {'dist': height, 'ref' : pattern_match_prices[ref_point]}
+        return pattern_match_prices[ref_point] + factor * height
+        #return {'dist': height, 'ref' : pattern_match_prices[ref_point]}
 
     def eval_entry_criteria(self, criteria, curr_ts):
         if not criteria:

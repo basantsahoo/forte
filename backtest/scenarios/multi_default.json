@@ -9,9 +9,9 @@
       "exit_time":60,
       "min_tpo":1,
       "max_tpo":13,
-      "target_pct":[0.002,0.002,0.003,0.004],
-      "stop_loss_pct":[0.001,0.001,0.001,0.001],
-      "filter_conditions" : [
+      "spot_targets":[0.002,0.002,0.003,0.004],
+      "spot_stop_losses":[0.001,0.001,0.001,0.001],
+      "signal_filter_conditions" : [
       ]
     }
   ],

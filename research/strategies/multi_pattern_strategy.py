@@ -8,8 +8,8 @@ from research.strategies.signal_setup import get_signal_key, get_target_fn
 from arc.signal_queue import SignalQueue
 
 class MultiPatternStrategy(BaseStrategy):
-    def __init__(self, insight_book, id, order_type, spot_instruments, derivative_instruments, exit_time, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, target_pct=[0.002,0.003, 0.004, 0.005], stop_loss_pct=[0.001,0.002, 0.002,0.002], weekdays_allowed=[], filter_conditions=[]):
-        BaseStrategy.__init__(self, insight_book, id, order_type, spot_instruments, derivative_instruments, exit_time, min_tpo, max_tpo, record_metric, triggers_per_signal, max_signal, target_pct, stop_loss_pct, weekdays_allowed, filter_conditions)
+    def __init__(self, insight_book, id, order_type, spot_instruments, derivative_instruments, exit_time, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, spot_targets=[0.002,0.003, 0.004, 0.005], spot_stop_losses=[0.001,0.002, 0.002,0.002], weekdays_allowed=[], signal_filter_conditions=[]):
+        BaseStrategy.__init__(self, insight_book=insight_book, id=id, order_type=order_type, spot_instruments=spot_instruments, derivative_instruments=derivative_instruments, exit_time=exit_time, min_tpo=min_tpo, max_tpo=max_tpo, record_metric=record_metric, triggers_per_signal=triggers_per_signal, max_signal=max_signal, spot_targets=spot_targets, spot_stop_losses=spot_stop_losses, weekdays_allowed=weekdays_allowed, signal_filter_conditions=signal_filter_conditions)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
         #print('multi pattern init')
         #print(self.__class__.__name__)
@@ -35,7 +35,7 @@ class MultiPatternStrategy(BaseStrategy):
 
         print('self.entry_signal_queues+++++++++++', self.entry_signal_queues)
         print('self.exit_signal_queues+++++++++++', self.exit_signal_queues)
-        self.spot_targets = ['DT_HEIGHT_TARGET',  'LAST_N_CANDLE_BODY_TARGET', 'PCT_SPOT']
+        #self.spot_targets = ['DT_HEIGHT_TARGET',  'LAST_N_CANDLE_BODY_TARGET', 'PCT_SPOT']
         self.inst_targets = []
 
 

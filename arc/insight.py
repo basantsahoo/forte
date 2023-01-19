@@ -275,27 +275,79 @@ class InsightBook:
 
         #print('self.intraday_trend')
 
+
+    def get_signal_generator_from_id(self, strat_id):
+        strategy_signal_generator = None
+        for strategy in self.strategies:
+            if strategy.is_aggregator:
+                strategy_signal_generator = strategy.get_signal_generator_from_id(strat_id)
+            elif strategy.id == strat_id:
+                    strategy_signal_generator = strategy
+            if strategy_signal_generator is not None:
+                break
+        return strategy_signal_generator
+
+
+    def clean(self):
+        self.inflex_detector = None
+        for detector in self.price_action_pattern_detectors:
+            detector.insight_book = None
+        for detector in self.candle_pattern_detectors:
+            detector.insight_book = None
+        self.price_action_pattern_detectors = []
+        self.candle_pattern_detectors = []
+
+        self.trend_detector.insight_book = None
+        self.trend_detector = None
+        self.intraday_trend.insight_book = None
+        self.intraday_trend = None
+        self.market_data = None
+        self.pm = None
+        self.profile_processor = None
+        self.strategies = []
+        self.state_generator = None
+        self.transition_data = {}
+        self.mc = None
+        self.state_prob_calculator = None
+
+
     def get_prior_wave(self, epoch_minute=None):
         all_waves_end_time = list(self.intraday_waves.keys())
         all_waves_end_time.sort()
         wave_idx = profile_utils.get_next_lowest_index(all_waves_end_time, epoch_minute) if epoch_minute else -1
         return self.intraday_waves[all_waves_end_time[wave_idx]]
 
-    def get_dist_prev_sph(self):
+    def get_prev_sph(self):
         last_wave = self.get_prior_wave()
-        return {'level': max(last_wave['start'], last_wave['end'])}
+        #return {'level': max(last_wave['start'], last_wave['end'])}
+        return max(last_wave['start'], last_wave['end'])
 
-    def get_dist_prev_spl(self):
+    def get_prev_spl(self):
         last_wave = self.get_prior_wave()
-        return {'level': min(last_wave['start'], last_wave['end'])}
+        #return {'level': min(last_wave['start'], last_wave['end'])}
+        return min(last_wave['start'], last_wave['end'])
 
-    def get_dist_last_n_candle_high(self, period=5, n=1):
+    def get_n_candle_body_target_up(self, period=5, n=1):
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        small_candles = candle_processor.get_last_n_candles(n)
+        big_candle = convert_to_candle(small_candles)
+        body = big_candle['high'] - big_candle['low']
+        return big_candle['high'] + body
+
+    def get_n_candle_body_target_down(self, period=5, n=1):
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        small_candles = candle_processor.get_last_n_candles(n)
+        big_candle = convert_to_candle(small_candles)
+        body = big_candle['high'] - big_candle['low']
+        return big_candle['low'] - body
+
+    def get_last_n_candle_high(self, period=5, n=1):
         candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         return big_candle['high']
 
-    def get_dist_last_n_candle_low(self, period=5, n=1):
+    def get_last_n_candle_low(self, period=5, n=1):
         candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
@@ -322,17 +374,6 @@ class InsightBook:
         output = stream.SMA(close, timeperiod=period)
         return output
 
-    def get_signal_generator_from_id(self, strat_id):
-        strategy_signal_generator = None
-        for strategy in self.strategies:
-            if strategy.is_aggregator:
-                strategy_signal_generator = strategy.get_signal_generator_from_id(strat_id)
-            elif strategy.id == strat_id:
-                    strategy_signal_generator = strategy
-            if strategy_signal_generator is not None:
-                break
-        return strategy_signal_generator
-
     def get_inflex_pattern_df(self, period=None):
         return self.inflex_detector
 
@@ -342,25 +383,3 @@ class InsightBook:
 
     def get_time_since_market_open(self):
         return (self.spot_processor.last_tick['timestamp'] - self.market_start_ts) / 60
-
-    def clean(self):
-        self.inflex_detector = None
-        for detector in self.price_action_pattern_detectors:
-            detector.insight_book = None
-        for detector in self.candle_pattern_detectors:
-            detector.insight_book = None
-        self.price_action_pattern_detectors = []
-        self.candle_pattern_detectors = []
-
-        self.trend_detector.insight_book = None
-        self.trend_detector = None
-        self.intraday_trend.insight_book = None
-        self.intraday_trend = None
-        self.market_data = None
-        self.pm = None
-        self.profile_processor = None
-        self.strategies = []
-        self.state_generator = None
-        self.transition_data = {}
-        self.mc = None
-        self.state_prob_calculator = None
