@@ -1,15 +1,15 @@
-import numpy as np
-from datetime import datetime
-import helper.utils as helper_utils
-from dynamics.trend.technical_patterns import pattern_engine
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
-from helper.utils import get_broker_order_type
-from research.strategies.core_strategy import BaseStrategy
 from research.strategies.core_option_strategy import BaseOptionStrategy
-from research.strategies.strat_mixin import PatternMetricRecordMixin
+from research.strategies.signal_setup import get_signal_key
 
 
-class OptionSellStrategy(BaseOptionStrategy, PatternMetricRecordMixin):
-    def test(self):
-        pass
+class OptionSellStrategy(BaseOptionStrategy):
+    def __init__(self, insight_book, id="OPTION_CHEAP_BUY", order_type="SELL",spot_instruments=[], exit_time=60,  max_signal = 10000000, instr_targets=[0.1,0.2, 0.3, 0.5], instr_stop_losses=[0.5,0.5, 0.5,0.5], signal_filter_conditions=[], weekdays_allowed=[]):
+        entry_criteria = [{'OPTION_PRICE_DROP': []}]
+        BaseOptionStrategy.__init__(self, insight_book, id=id, order_type=order_type, spot_instruments=spot_instruments, exit_time=exit_time, max_signal=max_signal, instr_targets=instr_targets, instr_stop_losses=instr_stop_losses, signal_filter_conditions=signal_filter_conditions, weekdays_allowed=weekdays_allowed, entry_criteria = entry_criteria)
+
+    def register_instrument(self, signal):
+        if (signal['category'], signal['indicator']) == get_signal_key('OPTION_PRICE_DROP'):
+            self.derivative_instruments.append(signal['instrument'])
+
+    def process_post_entry(self):
+        self.derivative_instruments = []

@@ -1,10 +1,3 @@
-import numpy as np
-from datetime import datetime
-import helper.utils as helper_utils
-from dynamics.trend.technical_patterns import pattern_engine
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
-from helper.utils import get_broker_order_type
 from research.strategies.t_core_strategy import BaseStrategy
 
 
@@ -21,18 +14,19 @@ class BaseOptionStrategy(BaseStrategy):
                  record_metric=True,
                  triggers_per_signal=1,
                  max_signal=1,
-                 target_pct=[0.002, 0.003, 0.004, 0.005],
-                 stop_loss_pct=[0.001, 0.002, 0.002, 0.002],
                  weekdays_allowed=[],
                  entry_criteria=[],
                  exit_criteria_list=[],
                  signal_filter_conditions=[],
                  spot_targets=[],
-                 inst_targets=[]
-                 ):
+                 instr_targets=[],
+                 spot_stop_losses = [],
+                 instr_stop_losses = []
+
+    ):
         print('BaseOptionStrategy init', derivative_instruments)
         BaseStrategy.__init__(self, insight_book, id, order_type,spot_instruments, derivative_instruments, exit_time, min_tpo, max_tpo, record_metric, triggers_per_signal,
-                              max_signal, target_pct, stop_loss_pct, weekdays_allowed, entry_criteria,exit_criteria_list, signal_filter_conditions,spot_targets,inst_targets)
+                              max_signal, weekdays_allowed, entry_criteria,exit_criteria_list, signal_filter_conditions, spot_targets, instr_targets, spot_stop_losses, instr_stop_losses)
 
     def test_base(self):
         print('test base', self.derivative_instruments)

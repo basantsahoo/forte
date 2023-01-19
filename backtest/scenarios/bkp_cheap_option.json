@@ -4,9 +4,9 @@
     {
       "id":"OPTION_PRICE_DROP",
       "exit_time":60,
-      "target_pct":[0.1,0.2,0.3,0.4],
-      "stop_loss_pct":[0.5,0.5,0.5,0.5],
-      "filter_conditions" : [
+      "instr_targets":[0.1],
+      "instr_stop_losses":[-0.5],
+      "signal_filter_conditions" : [
       ]
     }
   ],

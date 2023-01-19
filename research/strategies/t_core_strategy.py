@@ -9,6 +9,7 @@ from arc.signal_queue import SignalQueue
 from dynamics.constants import PRICE_ACTION_INTRA_DAY, CANDLE_5, INDICATOR_DOUBLE_TOP, PATTERN_STATE, STATE_OPEN_TYPE, OPEN_TYPE_ABOVE_VA
 from research.strategies.signal_setup import get_signal_key, get_target_fn
 
+known_spot_instruments = ['SPOT']
 class BaseStrategy:
     def __init__(self,
                  insight_book=None,
@@ -29,7 +30,7 @@ class BaseStrategy:
                  spot_targets = [0.002,0.003, 0.004, 0.005],
                  instr_targets = [0.002,0.003, 0.004, 0.005],
                  spot_stop_losses = [-0.001,-0.002, -0.002,-0.002],
-                 inst_stop_losses = [-0.001,-0.002, -0.002,-0.002]
+                 instr_stop_losses = [-0.001,-0.002, -0.002,-0.002]
 
     ):
         print('BaseStrategy', derivative_instruments)
@@ -50,7 +51,7 @@ class BaseStrategy:
         self.spot_targets = spot_targets
         self.instr_targets = instr_targets
         self.spot_stop_losses = spot_stop_losses
-        self.inst_stop_losses = inst_stop_losses
+        self.instr_stop_losses = instr_stop_losses
 
         self.weekdays_allowed = weekdays_allowed
 
@@ -64,7 +65,7 @@ class BaseStrategy:
         self.tradable_signals ={}
         self.minimum_quantity = 1
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
-        if len(spot_targets) < self.triggers_per_signal:
+        if (len(spot_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
         """
         self.entry_criteria = [
@@ -90,10 +91,12 @@ class BaseStrategy:
 
         print('self.entry_signal_queues+++++++++++', self.entry_signal_queues)
         print('self.exit_signal_queues+++++++++++', self.exit_signal_queues)
+        """
         self.spot_targets = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
         self.spot_stop_loss = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
         self.instr_targets = [0.1, 0.2, 0.3, 0.4]
         self.instr_stop_loss = [-0.1, -0.2, -0.3, -0.4]
+        """
         #self.prepare_targets()
 
     def calculate_target(self, instr, target_level_list):
@@ -130,9 +133,9 @@ class BaseStrategy:
     def get_exit_levels(self, instr):
         res = {}
         res['spot_targets'] = self.calculate_target(instr, self.spot_targets)
-        res['spot_stop_losses'] = self.calculate_target(instr, self.spot_stop_loss)
+        res['spot_stop_losses'] = self.calculate_target(instr, self.spot_stop_losses)
         res['instr_targets'] = self.calculate_target(instr, self.instr_targets)
-        res['instr_stop_losses'] = self.calculate_target(instr, self.instr_stop_loss)
+        res['instr_stop_losses'] = self.calculate_target(instr, self.instr_stop_losses)
         return res
 
     def initiate_signal_trades(self):
@@ -152,16 +155,17 @@ class BaseStrategy:
     def get_trades(self, instr, idx=1):
         exit_levels = self.get_exit_levels(instr)
         print(exit_levels)
+        print(instr, idx)
         last_candle = self.get_last_tick(instr)
 
         return {
             'seq': idx,
             'instrument': instr,
             'cover': self.cover,
-            'spot_target': exit_levels['spot_targets'][idx] if exit_levels['spot_targets'] else None,
-            'spot_stop_loss': exit_levels['spot_stop_losses'][idx] if exit_levels['spot_stop_losses'] else None,
-            'instr_target': exit_levels['instr_targets'][idx] if exit_levels['instr_targets'] else None,
-            'instr_stop_loss': exit_levels['instr_stop_losses'][idx] if exit_levels['instr_stop_losses'] else None,
+            'spot_target': exit_levels['spot_targets'][idx-1] if exit_levels['spot_targets'] else None,
+            'spot_stop_loss': exit_levels['spot_stop_losses'][idx-1] if exit_levels['spot_stop_losses'] else None,
+            'instr_target': exit_levels['instr_targets'][idx-1] if exit_levels['instr_targets'] else None,
+            'instr_stop_loss': exit_levels['instr_stop_losses'][idx-1] if exit_levels['instr_stop_losses'] else None,
             'duration': self.exit_time,
             'quantity': self.minimum_quantity,
             'exit_type':None,
@@ -188,7 +192,7 @@ class BaseStrategy:
         return min_tpo_met and max_tpo_met
 
     def inst_is_option(self, inst):
-        return inst not in self.spot_instruments
+        return inst not in known_spot_instruments
 
     def get_last_tick(self, instr='SPOT'):
         if self.inst_is_option(instr):
