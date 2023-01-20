@@ -290,7 +290,7 @@ class BaseStrategy:
         #print(market_criteria_met)
         #print(signal_present)
         if enough_time and suitable_tpo and signal_present: #and filter_criteria_met:
-            signal_passed = self.evaluate_entry() and self.custom_evaluation()
+            signal_passed = self.evaluate_entry_signals() and self.custom_evaluation()
             if signal_passed:
                 self.record_params()
                 self.initiate_signal_trades()
@@ -305,7 +305,7 @@ class BaseStrategy:
     def process_custom_signal(self):
         pass
 
-    def evaluate_entry(self, signal=None):
+    def evaluate_entry_signals(self):
         #print('evaluate entry+++')
         passed = True
         for list_item in self.entry_criteria:
@@ -319,8 +319,7 @@ class BaseStrategy:
                 break
         return passed
 
-    def evaluate_exit(self, signal=None):
-        #print('evaluate_exit')
+    def evaluate_exit_signals(self, signal=None):
         passed = False
         for list_of_criteria in self.exit_criteria_list:
             #print(list_of_criteria)
@@ -352,7 +351,7 @@ class BaseStrategy:
         self.look_for_trade()
 
     def monitor_sell_positions(self):
-        exit_criteria_met = self.evaluate_exit()
+        exit_criteria_met = self.evaluate_exit_signals()
         #print(self.tradable_signals)
         for signal_id, signal in self.tradable_signals.items():
             #print(signal)
@@ -377,7 +376,7 @@ class BaseStrategy:
                         self.trigger_exit(signal_id, trigger_seq, exit_type='TC')
 
     def monitor_buy_positions(self):
-        exit_criteria_met = self.evaluate_exit()
+        exit_criteria_met = self.evaluate_exit_signals()
         for signal_id, signal in self.tradable_signals.items():
             #print(signal)
             for trigger_seq, trigger_details in signal['triggers'].items():
@@ -404,6 +403,34 @@ class BaseStrategy:
             self.monitor_buy_positions()
         elif self.order_type == 'SELL':
             self.monitor_sell_positions()
+
+    def monitor_triggers(self):
+        pass
+    def monitor_existing_positions_2(self):
+        exit_criteria_met = self.evaluate_exit_signals()
+        for signal_id, signal in self.tradable_signals.items():
+            #print(signal)
+            for trigger_seq, trigger_details in signal['triggers'].items():
+                if trigger_details['exit_type'] is None:  #Still active
+                    last_instr_candle = self.get_last_tick(trigger_details['instrument'])
+                    last_spot_candle = self.get_last_tick('SPOT')
+                    #print(trigger_details)
+                    if exit_criteria_met:
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='EC')
+
+                    market_pos = ''
+                    if trigger_details['instr_target'] and last_instr_candle['close'] >= trigger_details['instr_target']:
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='IT')
+                    elif trigger_details['instr_stop_loss'] and last_instr_candle['close'] < trigger_details['instr_stop_loss']:
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='IS')
+                    elif trigger_details['spot_target'] and last_spot_candle['close'] >= trigger_details['spot_target']:
+                        print('inside buy')
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='ST')
+                    elif trigger_details['spot_target'] and last_spot_candle['close'] < trigger_details['spot_target']:
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='SS')
+                    elif last_spot_candle['timestamp'] - trigger_details['trigger_time'] >= trigger_details['duration']*60:
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='TC')
+
 
     def evaluate_signal_filter(self, signal={}):
         satisfied = not self.signal_filter_conditions
