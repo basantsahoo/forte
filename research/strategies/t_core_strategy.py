@@ -10,13 +10,19 @@ from dynamics.constants import PRICE_ACTION_INTRA_DAY, CANDLE_5, INDICATOR_DOUBL
 from research.strategies.signal_setup import get_signal_key, get_target_fn
 
 known_spot_instruments = ['SPOT']
+market_view_dict = {'SPOT_BUY': 'LONG',
+                    'SPOT_SELL': 'SHORT',
+                    'CE_BUY': 'LONG',
+                    'CE_SELL': 'SHORT',
+                    'PE_BUY': 'SHORT',
+                    'PE_SELL': 'LONG'}
 class BaseStrategy:
     def __init__(self,
                  insight_book=None,
                  id=None,
-                 order_type="BUY",
-                 spot_instruments = ['SPOT'],
-                 derivative_instruments=[],
+                 order_type="BUY",  # order type of the instrument, can take only one value
+                 spot_instruments = ['SPOT'], # Instruments that should be traded as linear can include FUT in future
+                 derivative_instruments=[], # Instruments that should be traded as non options
                  exit_time=10,
                  min_tpo=1,
                  max_tpo=13,
@@ -24,14 +30,15 @@ class BaseStrategy:
                  triggers_per_signal=1,
                  max_signal=1,
                  weekdays_allowed=[],
-                 entry_criteria = [],
-                 exit_criteria_list = [],
-                 signal_filter_conditions=[],
-                 spot_targets = [0.002,0.003, 0.004, 0.005],
+                 entry_criteria = [], #Used for signals to be evaluated to enter a trade
+                 exit_criteria_list = [], #Used for signals to be evaluated to exit a trade
+                 signal_filter_conditions=[], #Signals that should be filtered out before sending to queue
+                 spot_long_targets = [0.002,0.003, 0.004, 0.005],
+                 spot_long_stop_losses=[-0.001, -0.002, -0.002, -0.002],
+                 spot_short_targets=[-0.002, -0.003, -0.004, -0.005],
+                 spot_short_stop_losses=[0.001, 0.002, 0.002, 0.002],
                  instr_targets = [0.002,0.003, 0.004, 0.005],
-                 spot_stop_losses = [-0.001,-0.002, -0.002,-0.002],
                  instr_stop_losses = [-0.001,-0.002, -0.002,-0.002]
-
     ):
 
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
@@ -48,10 +55,13 @@ class BaseStrategy:
         self.entry_criteria = entry_criteria
         self.signal_filter_conditions = signal_filter_conditions
         self.exit_criteria_list = exit_criteria_list
-        self.spot_targets = spot_targets
-        self.instr_targets = instr_targets
-        self.spot_stop_losses = spot_stop_losses
-        self.instr_stop_losses = instr_stop_losses
+        self.spot_long_targets = [abs(x) if isinstance(x, (int, float)) else x for x in spot_long_targets]
+        self.spot_long_stop_losses = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_long_stop_losses]
+        self.spot_short_targets = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_short_targets]
+        self.spot_short_stop_losses = [abs(x) if isinstance(x, (int, float)) else x for x in spot_short_stop_losses]
+        side = get_broker_order_type(self.order_type)
+        self.instr_targets = [side * abs(x) for x in instr_targets]
+        self.instr_stop_losses = [-1 * side * abs(x) for x in instr_stop_losses]
 
         self.weekdays_allowed = weekdays_allowed
 
@@ -65,7 +75,7 @@ class BaseStrategy:
         self.tradable_signals ={}
         self.minimum_quantity = 1
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
-        if (len(spot_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
+        if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
         """
         self.entry_criteria = [
@@ -102,12 +112,11 @@ class BaseStrategy:
     def calculate_target(self, instr, target_level_list):
         levels = []
         last_candle = self.get_last_tick(instr)
-        side = get_broker_order_type(self.order_type)
         close_point = last_candle['close']
 
         for target_level in target_level_list:
             if isinstance(target_level, (int, float)):
-                target = close_point * (1 + side * target_level)
+                target = close_point * (1 +  target_level)
                 levels.append(target)
             else:
                 #print(target_level[0])
@@ -130,42 +139,32 @@ class BaseStrategy:
                     levels.append(rs)
         return levels
 
-    def get_exit_levels(self, instr):
-        res = {}
-        res['spot_targets'] = self.calculate_target(instr, self.spot_targets)
-        res['spot_stop_losses'] = self.calculate_target(instr, self.spot_stop_losses)
-        res['instr_targets'] = self.calculate_target(instr, self.instr_targets)
-        res['instr_stop_losses'] = self.calculate_target(instr, self.instr_stop_losses)
-        return res
-
-    def initiate_signal_trades(self):
-        all_inst = self.spot_instruments + self.derivative_instruments
-        for trade_inst in all_inst:
-            sig_key = self.add_tradable_signal()
-            #print('initiate_signal_trades+++++', sig_key)
-            curr_signal = self.tradable_signals[sig_key]
-            next_trigger = len(curr_signal['triggers']) + 1
-            triggers = [self.get_trades(trade_inst, trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
-            # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
-            #total_quantity = sum([trig['quantity'] for trig in triggers])
-            self.trigger_entry(trade_inst,self.order_type,sig_key,triggers)
-        self.process_post_entry()
-
+    def get_market_view(self, instr):
+        view_dict = {'SPOT_BUY': 'LONG', 'SPOT_SELL': 'SHORT', 'CE_BUY': 'LONG', 'CE_SELL': 'SHORT', 'PE_BUY': 'SHORT', 'PE_SELL': 'LONG'}
+        if not self.inst_is_option(instr):
+            d_key = instr + "_" + self.order_type
+        else:
+            d_key = instr[-2::] + "_" + self.order_type
+        return view_dict[d_key]
 
     def get_trades(self, instr, idx=1):
-        exit_levels = self.get_exit_levels(instr)
-        #print(exit_levels)
-        #print(instr, idx)
+        market_view = self.get_market_view(instr)
         last_candle = self.get_last_tick(instr)
-
+        spot_targets = self.calculate_target(instr, self.spot_long_targets) if market_view == 'LONG' else self.calculate_target(instr, self.spot_short_targets)
+        spot_stop_losses = self.calculate_target(instr, self.spot_long_stop_losses) if market_view == 'LONG' else self.calculate_target(instr, self.spot_short_stop_losses)
+        instr_targets = self.calculate_target(instr, self.instr_targets)
+        instr_stop_losses = self.calculate_target(instr, self.instr_stop_losses)
+        #print('self.instr_targets', self.instr_targets, instr_targets)
+        #print('self.spot_short_stop_losses', self.spot_short_stop_losses, spot_stop_losses)
         return {
             'seq': idx,
             'instrument': instr,
             'cover': self.cover,
-            'spot_target': exit_levels['spot_targets'][idx-1] if exit_levels['spot_targets'] else None,
-            'spot_stop_loss': exit_levels['spot_stop_losses'][idx-1] if exit_levels['spot_stop_losses'] else None,
-            'instr_target': exit_levels['instr_targets'][idx-1] if exit_levels['instr_targets'] else None,
-            'instr_stop_loss': exit_levels['instr_stop_losses'][idx-1] if exit_levels['instr_stop_losses'] else None,
+            'market_view': market_view,
+            'spot_target': spot_targets[idx-1] if spot_targets else None,
+            'spot_stop_loss': spot_stop_losses[idx-1] if spot_stop_losses else None,
+            'instr_target': instr_targets[idx-1] if instr_targets else None,
+            'instr_stop_loss': instr_stop_losses[idx-1] if instr_stop_losses else None,
             'duration': self.exit_time,
             'quantity': self.minimum_quantity,
             'exit_type':None,
@@ -179,6 +178,19 @@ class BaseStrategy:
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()
+
+    def initiate_signal_trades(self):
+        all_inst = self.spot_instruments + self.derivative_instruments
+        for trade_inst in all_inst:
+            sig_key = self.add_tradable_signal()
+            #print('initiate_signal_trades+++++', sig_key)
+            curr_signal = self.tradable_signals[sig_key]
+            next_trigger = len(curr_signal['triggers']) + 1
+            triggers = [self.get_trades(trade_inst, trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
+            # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
+            #total_quantity = sum([trig['quantity'] for trig in triggers])
+            self.trigger_entry(trade_inst,self.order_type,sig_key,triggers)
+        self.process_post_entry()
 
     """Deactivate when not required to run in a particular day"""
     def deactivate(self):
@@ -272,7 +284,7 @@ class BaseStrategy:
             if self.evaluate_signal_filter(signal):
                 new_signal = self.entry_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
                 if new_signal:
-                    print(signal)
+                    #print(signal)
                     self.register_instrument(signal)
         if (signal['category'], signal['indicator']) in self.exit_signal_queues:
             self.exit_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
@@ -399,37 +411,55 @@ class BaseStrategy:
                         self.trigger_exit(signal_id, trigger_seq, exit_type='TC')
 
     def monitor_existing_positions(self):
-        if self.order_type == 'BUY':
-            self.monitor_buy_positions()
-        elif self.order_type == 'SELL':
-            self.monitor_sell_positions()
+        self.close_on_exit_signal()
+        self.close_on_instr_tg_sl_tm()
+        self.close_on_spot_tg_sl()
 
-    def monitor_triggers(self):
-        pass
-    def monitor_existing_positions_2(self):
+    def close_on_exit_signal(self):
         exit_criteria_met = self.evaluate_exit_signals()
+        if exit_criteria_met:
+            for signal_id, signal in self.tradable_signals.items():
+                for trigger_seq, trigger_details in signal['triggers'].items():
+                    if trigger_details['exit_type'] is None:  #Still active
+                        self.trigger_exit(signal_id, trigger_seq, exit_type='EC')
+
+    def close_on_instr_tg_sl_tm(self):
+        last_spot_candle = self.get_last_tick('SPOT')
         for signal_id, signal in self.tradable_signals.items():
-            #print(signal)
             for trigger_seq, trigger_details in signal['triggers'].items():
                 if trigger_details['exit_type'] is None:  #Still active
                     last_instr_candle = self.get_last_tick(trigger_details['instrument'])
-                    last_spot_candle = self.get_last_tick('SPOT')
-                    #print(trigger_details)
-                    if exit_criteria_met:
-                        self.trigger_exit(signal_id, trigger_seq, exit_type='EC')
-
-                    market_pos = ''
-                    if trigger_details['instr_target'] and last_instr_candle['close'] >= trigger_details['instr_target']:
-                        self.trigger_exit(signal_id, trigger_seq, exit_type='IT')
-                    elif trigger_details['instr_stop_loss'] and last_instr_candle['close'] < trigger_details['instr_stop_loss']:
-                        self.trigger_exit(signal_id, trigger_seq, exit_type='IS')
-                    elif trigger_details['spot_target'] and last_spot_candle['close'] >= trigger_details['spot_target']:
-                        print('inside buy')
-                        self.trigger_exit(signal_id, trigger_seq, exit_type='ST')
-                    elif trigger_details['spot_target'] and last_spot_candle['close'] < trigger_details['spot_target']:
-                        self.trigger_exit(signal_id, trigger_seq, exit_type='SS')
-                    elif last_spot_candle['timestamp'] - trigger_details['trigger_time'] >= trigger_details['duration']*60:
+                    if last_spot_candle['timestamp'] - trigger_details['trigger_time'] >= trigger_details['duration']*60:
                         self.trigger_exit(signal_id, trigger_seq, exit_type='TC')
+                    elif self.order_type == 'BUY':
+                        if trigger_details['instr_target'] and last_instr_candle['close'] >= trigger_details['instr_target']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='IT')
+                        elif trigger_details['instr_stop_loss'] and last_instr_candle['close'] < trigger_details['instr_stop_loss']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='IS')
+                    elif self.order_type == 'SELL':
+                        if trigger_details['instr_target'] and last_instr_candle['close'] <= trigger_details['instr_target']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='IT')
+                            #print(last_candle, trigger_details['target'])
+                        elif trigger_details['instr_stop_loss'] and last_instr_candle['close'] > trigger_details['instr_stop_loss']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='IS')
+
+    def close_on_spot_tg_sl(self):
+        last_spot_candle = self.get_last_tick('SPOT')
+        for signal_id, signal in self.tradable_signals.items():
+            for trigger_seq, trigger_details in signal['triggers'].items():
+                if trigger_details['exit_type'] is None:  #Still active
+                    market_view = trigger_details['market_view']
+                    if market_view == 'LONG':
+                        if trigger_details['spot_target'] and last_spot_candle['close'] >= trigger_details['spot_target']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='ST')
+                        elif trigger_details['spot_stop_loss'] and last_spot_candle['close'] < trigger_details['spot_stop_loss']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='SS')
+                    elif market_view == 'SHORT':
+                        if trigger_details['spot_target'] and last_spot_candle['close'] <= trigger_details['spot_target']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='ST')
+                            # print(last_candle, trigger_details['target'])
+                        elif trigger_details['spot_stop_loss'] and last_spot_candle['close'] > trigger_details['spot_stop_loss']:
+                            self.trigger_exit(signal_id, trigger_seq, exit_type='SS')
 
 
     def evaluate_signal_filter(self, signal={}):
