@@ -207,7 +207,7 @@ def is_time_between(begin_time, end_time, check_time=None):
 
 def get_epoc_minute(time_stamp):
     epoch_tick_time = time_stamp
-    epoch_minute = int(epoch_tick_time // 60 * 60) + 1
+    epoch_minute = int(epoch_tick_time / 60) * 60
     return epoch_minute
 
 def get_epoc_from_iso_format(iso_ts):

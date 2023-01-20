@@ -6,7 +6,7 @@ from itertools import compress
 from dynamics.profile import utils
 
 from config import va_pct, include_pre_market
-
+from helper.utils import get_pivot_points, get_epoc_minute
 
 class MarketProfileService:
     def __init__(self, trade_day=None, market_cache=None):
@@ -17,7 +17,7 @@ class MarketProfileService:
         self.socket = None
         self.market_cache = market_cache
         self.waiting_for_data = True
-        #self.load_from_cache()
+        self.load_from_cache()
 
         if trade_day is None: #Default to today
             self.trade_day = time.strftime('%Y-%m-%d')
@@ -26,7 +26,12 @@ class MarketProfileService:
             start_ts = int(time.mktime(time.strptime(start_str, "%m/%d/%Y %H:%M:%S")))
             end_ts = int(time.mktime(time.strptime(end_str, "%m/%d/%Y %H:%M:%S")))
             self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
-        self.tpo_letters = list(map(chr, range(65, 91)))[0:len(self.tpo_brackets)]
+
+    def load_from_cache(self):
+        pass
+
+    def set_trade_day(self, trade_day):
+        self.trade_day = trade_day
 
     def set_trade_date_from_time(self, epoch_tick_time):
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
@@ -51,7 +56,7 @@ class MarketProfileService:
         if self.waiting_for_data:
             self.set_trade_date_from_time(epoch_tick_time)
             self.waiting_for_data = False
-        epoch_minute = int(epoch_tick_time // 60 * 60) + 60
+        epoch_minute = get_epoc_minute(epoch_tick_time)
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
         mm = tick_date_time.minute
         ss = tick_date_time.second
@@ -62,8 +67,6 @@ class MarketProfileService:
 
         processed_data = []
         for inst in lst:
-            if not include_pre_market and epoch_minute < min(self.tpo_brackets):
-                continue
             first = False
             if inst['symbol'] not in self.price_data[self.trade_day]:
                 self.price_data[self.trade_day][inst['symbol']] = {'reset_pb': True, 'hist': {}, 'tick_size': utils.get_tick_size(inst['high'])}
@@ -93,7 +96,7 @@ class MarketProfileService:
             else:
                 if minute_candle['high'] > self.price_data[self.trade_day][inst['symbol']]['high'] or minute_candle[
                     'low'] < self.price_data[self.trade_day][inst['symbol']]['low']:
-                    self.price_data[trade_day][inst['symbol']]['reset_pb'] = True
+                    self.price_data[self.trade_day][inst['symbol']]['reset_pb'] = True
                 self.price_data[self.trade_day][inst['symbol']]['high'] = max(inst['ltp'],
                                                                               self.price_data[self.trade_day][
                                                                                   inst['symbol']]['high'])
@@ -196,7 +199,7 @@ class TickMarketProfileService(MarketProfileService):
         if self.trade_day not in self.price_data:
             self.price_data[self.trade_day] = {}
 
-        epoch_minute = int(epoch_tick_time // 60 * 60)
+        epoch_minute = get_epoc_minute(epoch_tick_time)
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
         mm = tick_date_time.minute
         ss = tick_date_time.second
@@ -271,7 +274,7 @@ class HistMarketProfileService(MarketProfileService):
             self.price_data[self.trade_day] = {}
         for inst in lst:
             epoch_tick_time = inst['timestamp']
-            epoch_minute = int(epoch_tick_time // 60 * 60)
+            epoch_minute = get_epoc_minute(epoch_tick_time)
             """
             if not include_pre_market and epoch_minute < min(self.tpo_brackets) + 60:
                 continue
