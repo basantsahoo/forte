@@ -3,7 +3,7 @@ from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 from datetime import datetime, date
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-from settings import reports_dir
+from servers.server_settings import reports_dir
 import pandas as pd
 import datetime as dt
 from reporting.charts import plot_profile_chart

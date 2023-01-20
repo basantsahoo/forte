@@ -2,7 +2,6 @@ import time
 from dynamics.profile.market_profile import HistMarketProfileService
 import numpy as np
 from itertools import compress
-from settings import market_profile_db
 from config import exclued_days
 import pandas as pd
 import sqlite3

@@ -278,6 +278,10 @@ python servers/run_oms_server.py
 python servers/run_website_server.py
 python servers/run_test_fetcher.py
 
+python market/manage.py runserver --norealod
+or cd forte/market
+python manage.py runserver --noreload
+
 ```
 
 ### Backtest
