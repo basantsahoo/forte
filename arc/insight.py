@@ -160,12 +160,12 @@ class InsightBook:
             self.spot_processor.process_minute_data(price)
         #self.last_tick = feed_small
         self.set_curr_tpo(epoch_minute)
+        self.update_state_transition()
         self.activity_log.update_last_candle()
         self.activity_log.determine_level_break(epoch_tick_time)
         if self.last_periodic_update is None:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
-        self.update_state_transition()
         self.set_up_strategies()
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()
@@ -185,7 +185,8 @@ class InsightBook:
         #self.market_data[epoch_minute] = feed_small
         self.spot_processor.process_minute_data(price)
         self.set_curr_tpo(epoch_minute)
-        if len(self.spot_processor.spot_ts.items()) == 2 : #and self.open_type is None:
+        self.update_state_transition()
+        if len(self.spot_processor.spot_ts.items()): #== 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()
             self.set_up_strategies()
         self.activity_log.update_last_candle()
@@ -197,7 +198,7 @@ class InsightBook:
             self.update_periodic()
         self.inflex_detector.on_price_update([price['timestamp'], price['close']])
         #print('input price', [price['timestamp'], price['close']])
-        self.update_state_transition()
+
         self.trend_detector.evaluate()
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()

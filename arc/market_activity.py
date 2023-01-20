@@ -20,14 +20,6 @@ class MarketActivity:
         self.day_before_level_breaks = {'high': {'value': False, 'time': -1}, 'low': {'value': False, 'time': -1}, 'poc_price': {'value': False, 'time': -1}, 'va_h_p': {'value': False, 'time': -1}, 'va_l_p': {'value': False, 'time': -1}}
         self.weekly_level_breaks = {'high': {'value': False, 'time':-1}, 'low': {'value': False, 'time':-1}, 'Pivot': {'value': False, 'time':-1}, 'S1': {'value': False, 'time':-1}, 'S2': {'value': False, 'time':-1}, 'S3': {'value': False, 'time':-1}, 'S4': {'value': False, 'time':-1}, 'R1': {'value': False, 'time':-1}, 'R2': {'value': False, 'time':-1},  'R3': {'value': False, 'time':-1}, 'R4': {'value': False, 'time':-1}}
 
-
-    def process(self):
-        price_list = list(self.insight_book.spot_processor.spot_ts.values())
-        if len(price_list) < 2:
-            return
-        #print('process++++++')
-        #print(self.insight_book.yday_profile)
-
     def set_up(self):
         self.determine_day_open()
         #self.candle_stats = get_candle_body_size(self.insight_book.ticker, self.insight_book.trade_day)
