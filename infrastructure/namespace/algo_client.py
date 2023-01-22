@@ -1,7 +1,7 @@
 import time
 import socketio
-from arc import algorithm_setup
-from arc import AlgorithmIterface
+from arc.algo_settings import algorithm_setup
+from arc.data_interface import AlgorithmIterface
 from dynamics.profile.utils import NpEncoder
 import json
 import pandas as pd

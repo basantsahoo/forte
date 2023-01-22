@@ -1,6 +1,6 @@
 import time
 import socketio
-from arc import algorithm_setup
+from arc.algo_settings import algorithm_setup
 import asyncio
 
 enabled_symbols = list(algorithm_setup.keys())

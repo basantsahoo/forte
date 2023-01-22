@@ -226,3 +226,12 @@ def locate_point(df, threshold):
     below = len(np.array(df.index[df.Close <= threshold]))
     pct = (1 - above / (above + below)) * 100
     return pct
+
+
+def get_option_strike(ltp, money_ness, level, kind):
+    atm_strike = round(ltp / 100) * 100
+    level = -100 * level if kind == 'PE' else level * 100
+    otm_strike = atm_strike + level
+    itm_strike = atm_strike - level
+    strike = otm_strike if money_ness == 'OTM' else itm_strike if money_ness == 'ITM' else atm_strike
+    return strike

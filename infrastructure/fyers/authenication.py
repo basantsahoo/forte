@@ -63,10 +63,10 @@ def genereate_token():
         digit4.click()
         digit4.send_keys(int(pin[3]))
         print('completed 1')
-        time.sleep(4)
-        #browser.find_element(By.ID, "verifyPinSubmit").click()
-        #print('completed 2')
-        #time.sleep(3)
+        time.sleep(2)
+        browser.find_element(By.ID, "verifyPinSubmit").click()
+        print('completed 2')
+        time.sleep(3)
         # Now get auth_code
         auth_code = browser.current_url.split('auth_code=')[1].split('&state')[0]
         print('completed 3')
