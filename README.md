@@ -246,6 +246,8 @@ pip install pyotp
 
 ```
 
+
+
 ### Simulate live environment 
 
 ```
@@ -294,3 +296,9 @@ option data : option_data
 key levels : key_levels
 ```
 
+
+## technical indictors 
+```
+pip install talipp
+
+```

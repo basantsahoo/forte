@@ -53,7 +53,7 @@ class FridayCandleFirst30Buy(BaseStrategy):
                               instr_targets=instr_targets,
                               instr_stop_losses=instr_stop_losses)
         self.weekdays_allowed = ['Friday']
-        self.inst_to_trade = [["OTM", 1, "CE"]]
+        self.instr_to_trade = [["OTM", 1, "CE"]]
 
     def suitable_market_condition(self):
         return super().suitable_market_condition() and self.insight_book.get_time_since_market_open() <= 30
@@ -119,7 +119,7 @@ class FridayCandleFirst30Sell(BaseStrategy):
                               instr_targets=instr_targets,
                               instr_stop_losses=instr_stop_losses)
         self.weekdays_allowed = ['Friday']
-        self.inst_to_trade = [["OTM", 1, "PE"]]
+        self.instr_to_trade = [["OTM", 1, "PE"]]
 
     def suitable_market_condition(self):
         return super().suitable_market_condition() and self.insight_book.get_time_since_market_open() <= 30

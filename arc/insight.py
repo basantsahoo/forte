@@ -206,6 +206,7 @@ class InsightBook:
             #print('pattern_detector.evaluate')
             pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
+            #print('candle patterns=====')
             candle_detector.evaluate()
 
         #self.activity_log.process()
@@ -241,9 +242,9 @@ class InsightBook:
             self.pattern_signal(pat)
 
     def pattern_signal(self, signal):
-        #print(signal)
-        if signal['indicator'] == 'INDICATOR_DT':
-            #print('pattern_signal+++++++++++')
+        #print(signal['category'])
+        if signal['category'] == 'TECHNICAL':
+            #print('pattern_signal+++++++++++', signal)
             pass
         self.activity_log.register_signal(signal)
         if signal['indicator'] == INDICATOR_TREND:
@@ -362,16 +363,6 @@ class InsightBook:
         ts_idx = profile_utils.get_next_lowest_index(self.tpo_brackets, epoch_minute)
         ts_idx = 13 if ts_idx < 0 else ts_idx + 1
         self.curr_tpo = ts_idx
-        """
-        market_profile =  self.profile_processor.get_profile_data_for_day_sym(self.ticker)
-        if market_profile is not None:
-            price_bin_counts = list(np.sum(market_profile['print_matrix'], axis=1).A1)
-            idx = None
-            try:
-                idx = price_bin_counts.index(0)
-            except:
-                idx = 13
-        """
 
     def get_sma(self, period=5):
         price_list = list(self.market_data.values())

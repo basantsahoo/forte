@@ -14,12 +14,13 @@ from research.strategies.aggregators import CandleAggregator, PatternAggregator
 #from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 #from research.strategies.state_cap_strategy import StateCapStrategy
 #from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
-from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell, FridayCandleBuyFullDay
+from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell #, #FridayCandleBuyFullDay
 from research.strategies.cheap_option_buy import CheapOptionBuy
 from research.strategies.option_sell import OptionSellStrategy
 from live_algo.friday_option_buy import FridayOptionBuy,FridayBelowVA
 from research.strategies.multi_pattern_strategy import MultiPatternStrategy
 from research.strategies.dt_buy_put_strategy import DTBuyPut
+from research.technical_strategies.price_below_ema import PriceBreakEMADownward
 from dynamics.profile.market_profile import HistMarketProfileService
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
@@ -150,6 +151,24 @@ class StartegyBackTester:
             final_result.extend(result)
         return final_result
 
+def print_lines_of_code():
+    from os import listdir
+    from os.path import isfile, isdir, join
+
+    def item_line_count(path):
+        if isdir(path):
+            return dir_line_count(path)
+        elif isfile(path):
+            return len(open(path, 'rb').readlines())
+        else:
+            return 0
+
+
+    def dir_line_count(dir):
+        return sum(map(lambda item: item_line_count(join(dir, item)), listdir(dir)))
+
+    ln = item_line_count('./')
+    print(ln)
 
 if __name__ == '__main__':
     argv = sys.argv[1:]

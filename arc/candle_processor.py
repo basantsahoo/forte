@@ -19,5 +19,8 @@ class CandleProcessor:
     def on_new_candle(self, candle, notify):
         pass
 
-    def get_last_n_candles(self, n):
+    def get_last_n_candles(self, n=1):
         return self.candles[-1*min(n, len(self.candles))::]
+
+    def get_candle_count(self):
+        return len(self.candles)

@@ -1,11 +1,5 @@
-import numpy as np
 from research.strategies.t_core_strategy  import BaseStrategy
-from helper.utils import  get_overlap
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
-from research.strategies.strat_mixin import PatternMetricRecordMixin
-from research.strategies.signal_setup import get_signal_key, get_target_fn
-from arc.signal_queue import SignalQueue
+
 
 class MultiPatternStrategy(BaseStrategy):
     def __init__(self, insight_book, id, order_type, spot_instruments, derivative_instruments, exit_time, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, spot_short_targets=[0.002,0.003, 0.004, 0.005], spot_short_stop_losses=[0.001,0.002, 0.002,0.002], weekdays_allowed=[], signal_filter_conditions=[]):

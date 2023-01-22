@@ -1,25 +1,20 @@
 {
-  "strategies":["FridayCandleBuyFullDay"],
+  "strategies":["PriceBreakEMADownward"],
   "strategy_kwargs":[
     {
-      "pattern":"CDLHIKKAKE",
-      "order_type":"BUY",
-      "exit_time":15,
-      "period":5,
-      "trend":null,
-      "min_tpo":1,
-      "max_tpo":13,
-      "record_metric":true,
-      "triggers_per_signal":1,
-      "target_pct":0.002,
-      "stop_loss_pct":0.001
+      "id":"PriceBreakEMADownward",
+      "exit_time":60,
+      "instr_targets":[0.1],
+      "instr_stop_losses":[-0.5],
+      "signal_filter_conditions" : [
+      ]
     }
   ],
-  "test_days": [],
-  "for_past_days": 180,
+  "test_days": ["2022-12-29"],
+  "for_past_days": 80,
   "symbols": ["NIFTY"],
-  "to_date": "2022-04-01",
+  "to_date": "2022-12-30",
   "candle_sw" : 0,
-  "week_days": ["Friday"],
+  "week_days": [],
   "record_metric": true
 }

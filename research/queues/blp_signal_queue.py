@@ -1,4 +1,9 @@
 from helper.utils import locate_point
+
+def get_queue(strategy, cat):
+    return SignalQueue(strategy, cat)
+
+
 class SignalQueue:
     def __init__(self, strategy, cat):
         self.category = cat

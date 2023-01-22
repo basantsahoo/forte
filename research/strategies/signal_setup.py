@@ -7,7 +7,9 @@ human_machine_signal_map = {
     'CANDLE_5_DOJI_SELL':(CANDLE_5, 'CDLDOJI_SELL'),
     'CANDLE_15_HIKKAKE_BUY': (CANDLE_15, 'CDLHIKKAKE_BUY'),
     'CANDLE_15_DOJI_SELL': (CANDLE_15, 'CDLDOJI_SELL'),
-    'OPTION_PRICE_DROP': ('OPTION', 'PRICE_DROP')
+    'OPTION_PRICE_DROP': ('OPTION', 'PRICE_DROP'),
+    'TECH_CDL_5_ABOVE_EMA_5': ('TECHNICAL', 'CDL_5_ABOVE_EMA_5'),
+    'TECH_PRICE_BELOW_EMA_5': ('TECHNICAL', 'PRICE_BELOW_EMA_5')
 }
 
 human_machine_target_map = {
@@ -30,3 +32,13 @@ def get_signal_key(human_lang):
 
 def get_target_fn(human_lang):
     return human_machine_target_map.get(human_lang.upper(), None)
+
+def get_startegy_args(id=None, order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=30, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[], entry_criteria=[], exit_criteria_list = [], signal_filter_conditions = [], spot_long_targets = [], spot_long_stop_losses = [], spot_short_targets=[], spot_short_stop_losses=[],  instr_targets = [], instr_stop_losses = []):
+    args = {}
+    arg_list = ["id", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed","entry_criteria", "exit_criteria_list", "signal_filter_conditions", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses"]
+    for arg_ in arg_list:
+        #if eval(arg_):
+        args[arg_] = eval(arg_)
+    return args
+
+
