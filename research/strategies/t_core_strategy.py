@@ -182,13 +182,13 @@ class BaseStrategy:
         """
         for trade_inst in all_inst:
             sig_key = self.add_tradable_signal()
-            #print('initiate_signal_trades+++++', sig_key)
             curr_signal = self.tradable_signals[sig_key]
             next_trigger = len(curr_signal['triggers']) + 1
             triggers = [self.get_trades(trade_inst, trd_idx) for trd_idx in range(next_trigger, next_trigger+self.triggers_per_signal)]
             # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
             #total_quantity = sum([trig['quantity'] for trig in triggers])
             self.trigger_entry(trade_inst,self.order_type,sig_key,triggers)
+        self.flush_queues()
         self.process_post_entry()
 
     """Deactivate when not required to run in a particular day"""
@@ -212,6 +212,10 @@ class BaseStrategy:
             last_candle = self.insight_book.spot_processor.last_tick
         return last_candle
 
+    def flush_queues(self):
+        for pattern_queue in self.entry_signal_queues.values():
+            pattern_queue.flush()
+
     def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
         for trigger in triggers:
             if self.record_metric:
@@ -225,8 +229,6 @@ class BaseStrategy:
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         self.confirm_trigger(sig_key, triggers)
         self.insight_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
-        for pattern_queue in self.entry_signal_queues.values():
-            pattern_queue.flush()
 
     def trigger_exit(self, signal_id, trigger_id, exit_type=None):
         #print('trigger_exit+++++++++++++++++++++++++++++', signal_id, trigger_id, exit_type)
@@ -307,7 +309,6 @@ class BaseStrategy:
                 self.initiate_signal_trades()
 
     def all_entry_signal(self):
-        #print([queue.has_signal() for queue in self.entry_signal_queues.values()])
         return self.entry_signal_queues and all([queue.has_signal() for queue in self.entry_signal_queues.values()])
 
     def custom_evaluation(self):

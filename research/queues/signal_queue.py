@@ -1,31 +1,32 @@
 from helper.utils import locate_point
 
 
-def get_queue(strategy, category):
+def get_queue(strategy, category, flush_hist=True):
     if category[0] in ['STATE']:
-        return StateSignalQueue(strategy, category)
+        return StateSignalQueue(strategy, category, flush_hist)
     elif category[1] in ['INDICATOR_TREND']:
-        return TrendSignalQueue(strategy, category)
+        return TrendSignalQueue(strategy, category, flush_hist)
     elif category in [('OPTION', 'PRICE_DROP')]:
-        return OptionPriceDropQueue(strategy, category)
+        return OptionPriceDropQueue(strategy, category, flush_hist)
     elif 'PRICE_ACTION' in category[0]:
-        return PriceActionQueue(strategy, category)
+        return PriceActionQueue(strategy, category, flush_hist)
     elif 'CANDLE' in category[0]:
-        return CandleSignalQueue(strategy, category)
+        return CandleSignalQueue(strategy, category, flush_hist)
     elif 'TECHNICAL' in category[0]:
-        return TechnicalSignalQueue(strategy, category)
+        return TechnicalSignalQueue(strategy, category, flush_hist)
     else:
         raise Exception("Signal Queue is not defined")
 
 
 class SignalQueue:
-    def __init__(self, strategy, cat):
+    def __init__(self, strategy, cat, flush_hist=True):
         self.category = cat
         self.queue = []
         self.last_signal_time = None
         self.strategy = strategy
         self.dependent_on_queues = []
         self.pending_evaluation = False
+        self.flush_hist = flush_hist
 
     def receive_signal(self, signal):
         return False
@@ -35,7 +36,8 @@ class SignalQueue:
         return self.queue[pos]
 
     def flush(self):
-        self.queue = []
+        if self.flush_hist:
+            self.queue = []
 
     def remove_last(self):
         del self.queue[-1]
