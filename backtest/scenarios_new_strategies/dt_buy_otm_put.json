@@ -1,0 +1,28 @@
+{
+  "strategies":["DTBuyPut"],
+  "strategy_kwargs":[
+    {
+      "id": "dt_buy_put",
+      "order_type":"BUY",
+      "spot_instruments":[],
+      "derivative_instruments":[["OTM", 1, "PE"]],
+      "exit_time":60,
+      "spot_short_targets":[["DT_HEIGHT_TARGET", {"ref_point":-2, "factor":-3}]],
+      "spot_short_stop_losses":[["DT_HEIGHT_TARGET", {"ref_point":-2, "factor":1}]],
+      "instr_targets":[0.1,0.2,0.3,0.4],
+      "instr_stop_losses":[-0.5,-0.5,-0.5,-0.5],
+      "entry_criteria": [{"DT": [-1, "pattern_height", ">=", -100]}],
+      "exit_criteria_list": [[{"CANDLE_5_HIKKAKE_BUY": [-1, "time_lapsed", ">=", 205]}]],
+      "signal_filter_conditions" : [
+      ]
+    }
+  ],
+  "test_days": ["2022-12-30"],
+  "for_past_days": 80,
+  "symbols": ["NIFTY"],
+  "to_date": "2022-12-30",
+  "candle_sw" : 0,
+  "week_days": [],
+  "record_metric": true,
+  "send_to_oms": false
+}

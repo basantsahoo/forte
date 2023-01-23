@@ -1,20 +1,16 @@
 {
-  "strategies":["CheapOptionBuy"],
+  "strategies":["PriceBreakEMADownward"],
   "strategy_kwargs":[
     {
-      "id":"OPTION_PRICE_DROP",
+      "id":"PriceBreakEMADownward",
       "exit_time":60,
-      "spot_long_targets":[],
-      "spot_long_stop_losses":[],
-      "spot_short_targets":[],
-      "spot_short_stop_losses":[],
       "instr_targets":[0.1],
-      "instr_stop_losses":[-0.5],
+      "instr_stop_losses":[-0.3],
       "signal_filter_conditions" : [
       ]
     }
   ],
-  "test_days": ["2022-12-29"],
+  "test_days": [],
   "for_past_days": 80,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-30",

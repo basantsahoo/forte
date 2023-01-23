@@ -15,7 +15,7 @@ class BaseStrategy:
                  insight_book=None,
                  id=None,
                  order_type="BUY",  # order type of the instrument, can take only one value
-                 spot_instruments = [], # Instruments that should be traded as linear can include FUT in future
+                 spot_instruments = ['SPOT'], # Instruments that should be traded as linear can include FUT in future
                  derivative_instruments=[], # Instruments that should be traded as non options
                  exit_time=10,
                  min_tpo=1,

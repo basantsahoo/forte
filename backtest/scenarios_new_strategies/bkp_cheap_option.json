@@ -4,10 +4,6 @@
     {
       "id":"OPTION_PRICE_DROP",
       "exit_time":60,
-      "spot_long_targets":[],
-      "spot_long_stop_losses":[],
-      "spot_short_targets":[],
-      "spot_short_stop_losses":[],
       "instr_targets":[0.1],
       "instr_stop_losses":[-0.5],
       "signal_filter_conditions" : [
