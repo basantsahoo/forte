@@ -1,9 +1,4 @@
-import numpy as np
-from research.strategies.core_strategy import BaseStrategy
 from research.strategies.double_top_strategy import DoubleTopStrategy
-from helper.utils import  get_overlap
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
 
 
 class DoubleTopBreakStrategy(DoubleTopStrategy):

@@ -1,12 +1,5 @@
-import numpy as np
-from research.strategies.core_option_strategy import BaseOptionStrategy
-from helper.utils import  get_overlap
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
-from research.strategies.strat_mixin import PatternMetricRecordMixin
 from research.strategies.cheap_option_buy import CheapOptionBuy
-from helper.utils import get_option_strike
-from research.strategies.signal_setup import get_signal_key
+
 
 class TuesdayOptionBuy(CheapOptionBuy):
     def __init__(self, insight_book, id="OPTION_CHEAP_BUY_TUE", exit_time=60, max_signal = 10, instr_targets=[0.1,0.2, 0.3, 0.5], instr_stop_losses=[0.5,0.5, 0.5,0.5]):

@@ -1,4 +1,4 @@
-from research.strategies.t_core_strategy import BaseStrategy
+from research.core_strategies.t_core_strategy import BaseStrategy
 
 
 class BaseOptionStrategy(BaseStrategy):

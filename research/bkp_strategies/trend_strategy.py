@@ -1,10 +1,7 @@
 import numpy as np
-from research.strategies.core_strategy import BaseStrategy
-from helper.utils import get_exit_order_type, pattern_param_match
-from helper.utils import pattern_param_match, get_overlap
-from dynamics.trend.technical_patterns import pattern_engine
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
+from research.core_strategies.core_strategy import BaseStrategy
+from helper.utils import get_overlap
+
 
 #Check 13 May last pattern again why it was not triggered
 # This strategy required through analysis as many methods are overwritten

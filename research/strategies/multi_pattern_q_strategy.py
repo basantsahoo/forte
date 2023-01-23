@@ -1,5 +1,4 @@
-from research.strategies.t_core_strategy  import BaseStrategy
-from research.strategies.pipe_strategy import PipeStrategy
+from research.core_strategies.pipe_strategy import PipeStrategy
 from research.queues.q_network import QNetwork
 
 class MultiPatternQueueStrategy(PipeStrategy):

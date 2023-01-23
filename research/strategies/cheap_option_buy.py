@@ -1,4 +1,4 @@
-from research.strategies.core_option_strategy import BaseOptionStrategy
+from research.core_strategies.core_option_strategy import BaseOptionStrategy
 from research.strategies.signal_setup import get_signal_key
 
 

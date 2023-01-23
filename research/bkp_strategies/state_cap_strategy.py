@@ -1,9 +1,4 @@
-import numpy as np
-from research.strategies.core_strategy import BaseStrategy
-from helper.utils import  get_overlap
-from dynamics.profile.utils import get_next_highest_index
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
+from research.core_strategies.core_strategy import BaseStrategy
 from helper.utils import get_broker_order_type
 
 

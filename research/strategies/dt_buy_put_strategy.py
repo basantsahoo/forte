@@ -1,4 +1,4 @@
-from research.strategies.t_core_strategy  import BaseStrategy
+from research.core_strategies.t_core_strategy import BaseStrategy
 from research.strategies.signal_setup import get_signal_key
 from helper.utils import get_option_strike
 

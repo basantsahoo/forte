@@ -1,9 +1,3 @@
-import numpy as np
-from research.strategies.core_option_strategy import BaseOptionStrategy
-from helper.utils import  get_overlap
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
-from research.strategies.strat_mixin import PatternMetricRecordMixin
 from research.strategies.cheap_option_buy import CheapOptionBuy
 
 class WednesdayOptionBuy(CheapOptionBuy):

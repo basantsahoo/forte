@@ -1,8 +1,3 @@
-from research.strategies.core_strategy import BaseStrategy
-from helper.utils import pattern_param_match, get_broker_order_type, get_overlap
-from statistics import mean
-import math
-from db.market_data import get_candle_body_size
 from helper.utils import get_overlap, compare_day_activity
 import helper.utils as helper_utils
 

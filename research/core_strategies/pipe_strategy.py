@@ -1,8 +1,4 @@
-from datetime import datetime
-from helper.utils import get_broker_order_type
-from research.queues.signal_queue import get_queue
-from research.strategies.signal_setup import get_signal_key, get_target_fn
-from research.strategies.t_core_strategy import BaseStrategy
+from research.core_strategies.t_core_strategy import BaseStrategy
 
 class PipeStrategy(BaseStrategy):
     def __init__(self,insight_book, **kwargs):

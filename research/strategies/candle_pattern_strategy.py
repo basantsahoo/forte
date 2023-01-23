@@ -1,8 +1,5 @@
-import numpy as np
-from research.strategies.t_core_strategy  import BaseStrategy
-from helper.utils import  get_overlap
-from statistics import mean
-import dynamics.patterns.utils as pattern_utils
+from research.core_strategies.t_core_strategy import BaseStrategy
+
 
 class CandlePatternStrategy(BaseStrategy):
     def __init__(self,
