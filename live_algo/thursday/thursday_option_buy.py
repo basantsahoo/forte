@@ -15,7 +15,7 @@ class ThursdayOptionBuy(CheapOptionBuy):
         self.criteria = [
             {"op": "or", "logical_test": "open_type in ['GAP_DOWN'] and tpo in [10,11] and strength >= 80  and kind in ['PE'] and money_ness in ['OTM_1' , 'OTM_2' , 'OTM_3']"},
         ]
-        print('WednesdayOptionBuy init')
+        print('ThursdayOptionBuy init')
 
     def evaluate_signal(self, matched_pattern):
         print('process_pattern_signal wednesday+++++++++++', matched_pattern)

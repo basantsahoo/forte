@@ -424,6 +424,7 @@ class BaseStrategy:
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params['d2_cd_new_business_pressure']
             category = (signal['category'] , signal['indicator'])
+            week_day = datetime.strptime(self.insight_book.trade_day, '%Y-%m-%d').strftime('%A')
             open_type = market_params['open_type']
             tpo = market_params['tpo']
             strength = signal.get('strength', 0)

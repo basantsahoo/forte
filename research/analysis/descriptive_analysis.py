@@ -3,7 +3,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
-from settings import reports_dir
+from servers.server_settings import reports_dir
 from sklearn.linear_model import LinearRegression
 
 
@@ -71,7 +71,8 @@ def group_wise_summary(report, df_i,target, grp, filter={}):
 
     aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
     aggregate_df = aggregate_df.reset_index().round(2)
-    #print('aggregate_df+++++++++++++++++')
+    print('aggregate_df+++++++++++++++++')
+    print(aggregate_df)
     aggr_values = list(aggregate_df.iloc[0])
     aggr_values[0] = 'Total'
     day_wise_df.loc[len(day_wise_df.index)] = aggr_values
@@ -232,6 +233,7 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 txt = 'Analysis of  strategy ' + strategy
                 add_text_page(report, txt)
                 df_i = data_set[data_set['strategy'] == strategy]
+                #print(df_i)
                 """
                 group_wise_summary(report, df_i, target, 'week_day')
                 group_wise_summary(report, df_i, target, 'open_type')
@@ -241,15 +243,15 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 group_wise_summary(report, df_i, target, 'strength')
                 """
                 filter = {}
-                #all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind','money_ness', 'strength'], filter=filter)
+                all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind'], filter=filter)
 
-                filter = {'week_day': 'Friday', 'open_type': 'GAP_DOWN', 'kind':'CE'}
+                #filter = {'week_day': 'Friday', 'open_type': 'GAP_DOWN', 'kind':'CE'}
                 group_wise_summary(report, df_i, target, 'week_day', filter=filter)
                 group_wise_summary(report, df_i, target, 'open_type', filter=filter)
                 group_wise_summary(report, df_i, target, 'tpo', filter=filter)
                 group_wise_summary(report, df_i, target, 'kind', filter=filter)
-                group_wise_summary(report, df_i, target, 'money_ness', filter=filter)
-                group_wise_summary(report, df_i, target, 'strength', filter=filter)
+                #group_wise_summary(report, df_i, target, 'money_ness', filter=filter)
+                #group_wise_summary(report, df_i, target, 'strength', filter=filter)
 
                 add_strategy_details(report,df_i,target,filter=filter)
                 """

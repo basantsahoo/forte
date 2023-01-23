@@ -3,17 +3,18 @@
   "strategy_kwargs":[
     {
       "id":"PriceBreakEMADownward",
-      "exit_time":60,
+      "exit_time":30,
       "instr_targets":[0.1],
-      "instr_stop_losses":[-0.3],
+      "instr_stop_losses":[-0.2],
       "signal_filter_conditions" : [
+        {"op": "or", "logical_test": "not(open_type in ['INSIDE_VA'] and week_day in ['Thursday']) and tpo in [10, 11]"}
       ]
     }
   ],
   "test_days": [],
-  "for_past_days": 80,
+  "for_past_days": 17,
   "symbols": ["NIFTY"],
-  "to_date": "2022-12-30",
+  "to_date": "2023-01-23",
   "candle_sw" : 0,
   "week_days": [],
   "record_metric": true

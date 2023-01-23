@@ -6,12 +6,7 @@ from arc.algo_portfolio import AlgoPortfolioManager
 #from infrastructure.arc.insight import InsightBook
 from arc.insight import InsightBook
 import helper.utils as helper_utils
-from research.strategies.aggregators import PatternAggregator
 #from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
-from live_algo.wednesday_option_buy import WednesdayOptionBuy
-from live_algo.thursday_option_sell import ThursdayOptionSell
-from live_algo.friday_option_buy import FridayOptionBuy,FridayBelowVA
-from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy, FridayCandleFirst30Sell
 
 
 class AlgorithmIterface:

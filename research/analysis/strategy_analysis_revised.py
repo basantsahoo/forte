@@ -1,12 +1,10 @@
-from research.strategies_bkp.sma_cross_over_buy import SMACrossBuy
-from research.strategies_bkp.range_break import RangeBreakDownStrategy
 #from backtest import strategy_back_tester
 from research.analysis import classifier_train
 from research.analysis import regression_train
 from research.analysis import descriptive_analysis
 import pandas as pd
 import numpy as np
-from settings import reports_dir
+from servers.server_settings import reports_dir
 import matplotlib.pyplot as plt
 
 """

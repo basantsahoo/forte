@@ -14,10 +14,11 @@ from research.strategies.aggregators import CandleAggregator, PatternAggregator
 #from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
 #from research.strategies.state_cap_strategy import StateCapStrategy
 #from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
-from live_algo.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell #, #FridayCandleBuyFullDay
+from live_algo.friday.friday_candle_first_30_mins import FridayCandleFirst30Buy,FridayCandleFirst30Sell #, #FridayCandleBuyFullDay
 from research.strategies.cheap_option_buy import CheapOptionBuy
 from research.strategies.option_sell import OptionSellStrategy
-from live_algo.friday_option_buy import FridayOptionBuy,FridayBelowVA
+from live_algo.friday.friday_option_buy import FridayOptionBuy,FridayBelowVA
+from live_algo.tuesday.tuesday_option_buy import TuesdayOptionBuy
 from research.strategies.multi_pattern_strategy import MultiPatternStrategy
 from research.strategies.dt_buy_put_strategy import DTBuyPut
 from research.technical_strategies.price_below_ema import PriceBreakEMADownward

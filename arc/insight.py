@@ -243,8 +243,8 @@ class InsightBook:
 
     def pattern_signal(self, signal):
         #print(signal['category'])
-        if signal['category'] == 'TECHNICAL':
-            #print('pattern_signal+++++++++++', signal)
+        if signal['category'] == 'STATE':
+            print('pattern_signal+++++++++++', signal)
             pass
         self.activity_log.register_signal(signal)
         if signal['indicator'] == INDICATOR_TREND:
