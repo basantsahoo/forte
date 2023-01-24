@@ -10,12 +10,17 @@ class QNetwork:
             self.add_queue(signal_queue)
 
     def add_queue(self, q_entry):
+        print('add_que======', q_entry)
         if q_entry['id'] not in self.queue_dict:
             q_signal_key = get_signal_key(q_entry['signal_type'])
-            self.queue_dict[q_entry['id']] = {'queue': get_queue(self, q_signal_key, q_entry['flush_hist']), 'eval_criteria': q_entry['eval_criteria'], 'dependent_on': q_entry['dependent_on']}
+            self.queue_dict[q_entry['id']] = {'queue': get_queue(self.strategy, q_signal_key, q_entry['flush_hist']), 'eval_criteria': q_entry['eval_criteria'], 'dependent_on': q_entry['dependent_on']}
 
     def register_signal(self, signal):
-        if self.strategy.evaluate_signal_filter(signal):
+        if signal['category'] in ['STATE']:
+            proceed = True
+        else:
+            proceed = self.strategy.evaluate_signal_filter(signal)
+        if proceed:
             for q_id, queue_item in self.queue_dict.items():
                 if (signal['category'], signal['indicator']) == queue_item['queue'].category:
                     dependent_on_queues = [self.queue_dict[q_id]['queue'] for q_id in queue_item['dependent_on']]
@@ -44,7 +49,7 @@ class QNetwork:
         for queue_item in self.queue_dict.values():
             queue = queue_item['queue']
             eval_criteria = queue_item['eval_criteria']
-            last_spot_candle = self.insight_book.spot_processor.last_tick
+            last_spot_candle = self.strategy.insight_book.spot_processor.last_tick
             res = queue.eval_exit_criteria(eval_criteria, last_spot_candle['timestamp'])
             if res:
                 queue.flush()

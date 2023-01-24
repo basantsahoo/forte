@@ -4,8 +4,12 @@
     {
       "id":"PriceBreakEMADownward",
       "exit_time":30,
+      "order_type":"BUY",
+      "spot_short_targets": [0.002,0.003, 0.004, 0.005],
+      "spot_short_stop_losses":[0.001,0.002, 0.002,0.002],
       "instr_targets":[0.1],
       "instr_stop_losses":[-0.2],
+      "instr_to_trade" : [["ATM", 0, "PE"]],
       "signal_filter_conditions" : [
         {"op": "or", "logical_test": "not(open_type in ['INSIDE_VA'] and week_day in ['Thursday']) and tpo in [10, 11]"}
       ]
@@ -14,7 +18,7 @@
   "test_days": [],
   "for_past_days": 17,
   "symbols": ["NIFTY"],
-  "to_date": "2023-01-23",
+  "to_date": "2023-01-22",
   "candle_sw" : 0,
   "week_days": [],
   "record_metric": true

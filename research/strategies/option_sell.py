@@ -1,11 +1,12 @@
-from research.core_strategies.core_option_strategy import BaseOptionStrategy
+from research.core_strategies.t_core_strategy import BaseStrategy
 from research.strategies.signal_setup import get_signal_key
 
 
-class OptionSellStrategy(BaseOptionStrategy):
-    def __init__(self, insight_book, id="OPTION_CHEAP_BUY", order_type="SELL",spot_instruments=[], exit_time=60,  max_signal = 10000000, instr_targets=[0.1,0.2, 0.3, 0.5], instr_stop_losses=[0.5,0.5, 0.5,0.5], signal_filter_conditions=[], weekdays_allowed=[]):
-        entry_criteria = [{'OPTION_PRICE_DROP': []}]
-        BaseOptionStrategy.__init__(self, insight_book, id=id, order_type=order_type, spot_instruments=spot_instruments, exit_time=exit_time, max_signal=max_signal, instr_targets=instr_targets, instr_stop_losses=instr_stop_losses, signal_filter_conditions=signal_filter_conditions, weekdays_allowed=weekdays_allowed, entry_criteria = entry_criteria)
+class OptionSellStrategy(BaseStrategy):
+    def __init__(self, insight_book, **kwargs):
+        kwargs['entry_signal_queues'] = [{'signal_type': 'OPTION_PRICE_DROP', 'eval_criteria': [], 'flush_hist': True, 'id': 0, 'dependent_on': []}]
+        kwargs['order_type'] = "SELL"
+        BaseStrategy.__init__(self, insight_book, **kwargs)
 
     def register_instrument(self, signal):
         if (signal['category'], signal['indicator']) == get_signal_key('OPTION_PRICE_DROP'):

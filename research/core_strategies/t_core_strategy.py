@@ -33,7 +33,8 @@ class BaseStrategy:
                  spot_short_targets=[], #[-0.002, -0.003, -0.004, -0.005],
                  spot_short_stop_losses=[], #[0.001, 0.002, 0.002, 0.002],
                  instr_targets = [], #[0.002,0.003, 0.004, 0.005],
-                 instr_stop_losses = [] #[-0.001,-0.002, -0.002,-0.002]
+                 instr_stop_losses = [], #[-0.001,-0.002, -0.002,-0.002]
+                 instr_to_trade = []
     ):
 
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
@@ -57,6 +58,7 @@ class BaseStrategy:
         side = get_broker_order_type(self.order_type)
         self.instr_targets = [side * abs(x) for x in instr_targets]
         self.instr_stop_losses = [-1 * side * abs(x) for x in instr_stop_losses]
+        self.instr_to_trade = instr_to_trade
         self.weekdays_allowed = weekdays_allowed
         self.activated = True
         self.is_aggregator = False
@@ -333,11 +335,11 @@ class BaseStrategy:
         if not satisfied:
             market_params = self.insight_book.activity_log.get_market_params()
             #print(market_params)
-            d2_ad_resistance_pressure = market_params['d2_ad_resistance_pressure']
+            d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure',0)
 
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
-            d2_cd_new_business_pressure = market_params['d2_cd_new_business_pressure']
+            d2_cd_new_business_pressure = market_params.get('d2_cd_new_business_pressure',0)
             category = (signal['category'] , signal['indicator'])
             week_day = datetime.strptime(self.insight_book.trade_day, '%Y-%m-%d').strftime('%A')
             open_type = market_params['open_type']

@@ -17,7 +17,7 @@ class FridayCandleFirst30Buy(BaseStrategy):
                  triggers_per_signal=1,
                  max_signal=1,
                  weekdays_allowed=[],
-                 entry_criteria=[],
+                 entry_signal_queues=[],
                  exit_criteria_list=[],
                  signal_filter_conditions=[],
                  spot_long_targets=[0.002,0.003, 0.004, 0.005],
@@ -28,7 +28,9 @@ class FridayCandleFirst30Buy(BaseStrategy):
                  instr_stop_losses=[0.5, 0.5, 0.5, 0.5]
 
                  ):
-        entry_criteria = [{'CANDLE_5_HIKKAKE_BUY': []}]
+
+        entry_signal_queues = [{"signal_type": "CANDLE_5_HIKKAKE_BUY", "eval_criteria": [], "flush_hist": True, "id": 0,
+         "dependent_on": []}]
         BaseStrategy.__init__(self,
                               insight_book=insight_book,
                               id=id,
@@ -42,7 +44,7 @@ class FridayCandleFirst30Buy(BaseStrategy):
                               triggers_per_signal=triggers_per_signal,
                               max_signal=max_signal,
                               weekdays_allowed=weekdays_allowed,
-                              entry_criteria=entry_criteria,
+                              entry_signal_queues=entry_signal_queues,
                               exit_criteria_list=exit_criteria_list,
                               signal_filter_conditions=signal_filter_conditions,
                               spot_long_targets=spot_long_targets,
@@ -84,7 +86,7 @@ class FridayCandleFirst30Sell(BaseStrategy):
                  triggers_per_signal=1,
                  max_signal=1,
                  weekdays_allowed=[],
-                 entry_criteria=[],
+                 entry_signal_queues=[],
                  exit_criteria_list=[],
                  signal_filter_conditions=[],
                  spot_long_targets=[],
@@ -94,7 +96,8 @@ class FridayCandleFirst30Sell(BaseStrategy):
                  instr_targets=[0.1, 0.2, 0.3, 0.5],
                  instr_stop_losses=[0.5, 0.5, 0.5, 0.5]
                  ):
-        entry_criteria = [{'CANDLE_5_HIKKAKE_SELL': []}]
+        entry_signal_queues = [{"signal_type": "CANDLE_5_HIKKAKE_SELL", "eval_criteria": [], "flush_hist": True, "id": 0,
+                                "dependent_on": []}]
         BaseStrategy.__init__(self,
                               insight_book=insight_book,
                               id=id,
@@ -108,7 +111,7 @@ class FridayCandleFirst30Sell(BaseStrategy):
                               triggers_per_signal=triggers_per_signal,
                               max_signal=max_signal,
                               weekdays_allowed=weekdays_allowed,
-                              entry_criteria=entry_criteria,
+                              entry_signal_queues=entry_signal_queues,
                               exit_criteria_list=exit_criteria_list,
                               signal_filter_conditions=signal_filter_conditions,
                               spot_long_targets=spot_long_targets,
