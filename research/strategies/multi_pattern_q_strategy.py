@@ -13,9 +13,12 @@ class MultiPatternQueueStrategy(PipeStrategy):
             {'signal_type': 'TREND', 'eval_criteria': [-1, "all_waves[-1]['dist']", ">=", -100], 'flush_hist':True, 'id': 4,
              'dependent_on': [0]}
         ]
+        exit_criteria_list = [{'signal_type':'CANDLE_5_DOJI_SELL','eval_criteria': [-1, 'time_lapsed', ">=", 5], 'flush_hist':True, 'id':0, 'dependent_on':[]}],
+        """
         exit_criteria_list = [[
             {'CANDLE_5_DOJI_SELL': [-1, 'time_lapsed', ">=", 5]}
         ]]
+        """
         kwargs['exit_criteria_list'] = exit_criteria_list
         PipeStrategy.__init__(self, insight_book, **kwargs)
         self.signal_pipeline = QNetwork(self, entry_signal_queues)

@@ -25,6 +25,7 @@ class QNetwork:
                         if new_signal:
                             self.strategy.register_instrument(signal)
 
+    # Entry signal is and
     def evaluate_entry_signals(self):
         passed = True
         for queue_item in self.queue_dict.values():
@@ -37,6 +38,21 @@ class QNetwork:
                 break
         return passed
 
+    # Exit signal is or
+    def evaluate_exit_signals(self):
+        passed = False
+        for queue_item in self.queue_dict.values():
+            queue = queue_item['queue']
+            eval_criteria = queue_item['eval_criteria']
+            last_spot_candle = self.insight_book.spot_processor.last_tick
+            res = queue.eval_exit_criteria(eval_criteria, last_spot_candle['timestamp'])
+            if res:
+                queue.flush()
+            passed = passed or res
+            if passed:
+                break
+        return passed
+
     def all_entry_signal(self):
         return self.queue_dict and all([queue_item['queue'].has_signal() for queue_item in self.queue_dict.values()])
 
@@ -44,3 +60,7 @@ class QNetwork:
         for queue_item in self.queue_dict.values():
             queue_item['queue'].flush()
 
+    def get_que_by_category(self, category):
+        for q_id, queue_item in self.queue_dict.items():
+            if category == queue_item['queue'].category:
+                return queue_item['queue']

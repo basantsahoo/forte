@@ -3,17 +3,17 @@ from helper.utils import locate_point
 
 def get_queue(strategy, category, flush_hist=True):
     if category[0] in ['STATE']:
-        return StateSignalQueue(strategy, category, flush_hist)
+        return FreshOnlyNoFlushSignalQueue(strategy, category, flush_hist)
     elif category[1] in ['INDICATOR_TREND']:
-        return TrendSignalQueue(strategy, category, flush_hist)
+        return FreshOnlySignalQueue(strategy, category, flush_hist)
     elif category in [('OPTION', 'PRICE_DROP')]:
-        return OptionPriceDropQueue(strategy, category, flush_hist)
+        return FreshOnlySignalQueue(strategy, category, flush_hist)
     elif 'PRICE_ACTION' in category[0]:
         return PriceActionQueue(strategy, category, flush_hist)
     elif 'CANDLE' in category[0]:
-        return CandleSignalQueue(strategy, category, flush_hist)
+        return AccumulateNoDuplicateSignalQueue(strategy, category, flush_hist)
     elif 'TECHNICAL' in category[0]:
-        return TechnicalSignalQueue(strategy, category, flush_hist)
+        return NonEvaluatedFreshSignalOnlyQueue(strategy, category, flush_hist)
     else:
         raise Exception("Signal Queue is not defined")
 
@@ -127,7 +127,34 @@ class SignalQueue:
         return res
 
 
-class PriceActionQueue(SignalQueue):
+class FreshOnlySignalQueue(SignalQueue):
+    """Always keeps the last signal"""
+    def receive_signal(self, signal):
+        self.queue = [signal]
+        self.last_signal_time = signal['signal_time']
+        self.pending_evaluation = True
+        return True
+
+
+class FreshOnlyNoFlushSignalQueue(SignalQueue):
+    """Always keeps the last signal and never flushes"""
+    def receive_signal(self, signal):
+        self.queue = [signal]
+        self.last_signal_time = signal['signal_time']
+        self.pending_evaluation = True
+        return True
+
+    def flush(self):
+        pass
+
+    def remove_last(self):
+        pass
+
+
+class AccumulateNoDuplicateSignalQueue(SignalQueue):
+    """
+    Accumulates all fresh signals which are not duplicate
+    """
     def receive_signal(self, signal):
         new_signal = False
         if signal['signal_time'] != self.last_signal_time:
@@ -137,6 +164,22 @@ class PriceActionQueue(SignalQueue):
         self.last_signal_time = signal['signal_time']
         return new_signal
 
+
+class NonEvaluatedFreshSignalOnlyQueue(SignalQueue):
+    """
+    Keeps only latest signals and allows evaluation for signals which are not evaluated earlier
+    """
+    def receive_signal(self, signal):
+        self.queue = [signal]
+        self.last_signal_time = signal['signal_time']
+        self.pending_evaluation = True
+        return True
+
+    def has_signal(self):
+        return bool(self.queue) and self.pending_evaluation
+
+
+class PriceActionQueue(AccumulateNoDuplicateSignalQueue):
     def get_pattern_height(self, pos=-1):
         #print('execute+++++++get_pattern_height')
         pattern = self.queue[pos]
@@ -156,57 +199,3 @@ class PriceActionQueue(SignalQueue):
         pattern_match_prices = pattern['info']['price_list'] if ('INDICATOR_' in pattern['indicator'] and 'TREND' not in pattern['indicator']) else [0, 0, 0, 0]
         return pattern_match_prices[ref_point] + factor * height
         #return {'dist': height, 'ref' : pattern_match_prices[ref_point]}
-
-
-class OptionPriceDropQueue(SignalQueue):
-    def receive_signal(self, signal):
-        self.queue.append(signal)
-        self.last_signal_time = signal['signal_time']
-        self.pending_evaluation = True
-        return True
-
-
-class TrendSignalQueue(SignalQueue):
-    def receive_signal(self, signal):
-        self.queue = [signal]
-        self.last_signal_time = signal['signal_time']
-        self.pending_evaluation = True
-        return True
-
-
-class StateSignalQueue(SignalQueue):
-    def receive_signal(self, signal):
-        self.queue = [signal]
-        self.last_signal_time = signal['signal_time']
-        self.pending_evaluation = True
-        return True
-
-    def flush(self):
-        pass
-
-    def remove_last(self):
-        pass
-
-
-class CandleSignalQueue(SignalQueue):
-    def receive_signal(self, signal):
-        new_signal = False
-        if signal['signal_time'] != self.last_signal_time:
-            self.queue.append(signal)
-            new_signal = True
-            self.pending_evaluation = True
-        self.last_signal_time = signal['signal_time']
-        return new_signal
-
-
-class TechnicalSignalQueue(SignalQueue):
-    def receive_signal(self, signal):
-        self.queue = [signal]
-        self.last_signal_time = signal['signal_time']
-        self.pending_evaluation = True
-        return True
-
-    def has_signal(self):
-        return bool(self.queue) and self.pending_evaluation
-
-

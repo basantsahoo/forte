@@ -25,15 +25,16 @@ class BaseStrategy:
                  triggers_per_signal=1,
                  max_signal=1,
                  weekdays_allowed=[],
-                 entry_signal_queues = [], #Used for signals to be evaluated to enter a trade
+                 entry_criteria = [], #Used for signals to be evaluated to enter a trade
                  exit_criteria_list = [], #Used for signals to be evaluated to exit a trade
                  signal_filter_conditions=[], #Signals that should be filtered out before sending to queue
-                 spot_long_targets = [], #[0.002,0.003, 0.004, 0.005],
-                 spot_long_stop_losses=[], #[-0.001, -0.002, -0.002, -0.002],
-                 spot_short_targets=[], #[-0.002, -0.003, -0.004, -0.005],
-                 spot_short_stop_losses=[], #[0.001, 0.002, 0.002, 0.002],
-                 instr_targets = [], #[0.002,0.003, 0.004, 0.005],
-                 instr_stop_losses = [] #[-0.001,-0.002, -0.002,-0.002]
+                 spot_long_targets = [0.002,0.003, 0.004, 0.005],
+                 spot_long_stop_losses=[-0.001, -0.002, -0.002, -0.002],
+                 spot_short_targets=[-0.002, -0.003, -0.004, -0.005],
+                 spot_short_stop_losses=[0.001, 0.002, 0.002, 0.002],
+                 instr_targets = [0.002,0.003, 0.004, 0.005],
+                 instr_stop_losses = [-0.001,-0.002, -0.002,-0.002],
+                 use_q_network = False
     ):
 
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(exit_time) if id is None else id
@@ -60,6 +61,7 @@ class BaseStrategy:
         self.weekdays_allowed = weekdays_allowed
         self.activated = True
         self.is_aggregator = False
+        self.use_q_network = use_q_network
         self.params_repo = {}
         self.signal_params = {} #self.strategy_params = {}
         self.last_match = None
@@ -70,11 +72,20 @@ class BaseStrategy:
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
 
-        self.entry_signal_pipeline = QNetwork(self, entry_signal_queues)
-        self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
+        self.entry_signal_queues = {}
+        if self.use_q_network:
+            self.signal_pipeline = QNetwork(self, entry_criteria)
+        else:
+            self.add_queues(entry_criteria)
+        temp_patterns = []
+        for criteria_list in self.exit_criteria_list:
+            for criteria in criteria_list:
+                temp_patterns.append(get_signal_key(list(criteria.keys())[0]))
+        temp_patterns = list(set(temp_patterns))
+        self.exit_signal_queues = {pattern: get_queue(self, pattern) for pattern in temp_patterns}
 
-        print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
-        print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
+        print('self.entry_signal_queues+++++++++++', self.entry_signal_queues)
+        print('self.exit_signal_queues+++++++++++', self.exit_signal_queues)
         """
         self.spot_targets = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
         self.spot_stop_loss = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
@@ -82,6 +93,17 @@ class BaseStrategy:
         self.instr_stop_loss = [-0.1, -0.2, -0.3, -0.4]
         """
         #self.prepare_targets()
+    def get_que_by_category(self, category):
+        for q_id, queue_item in self.entry_signal_queues.items():
+            if category == queue_item['queue'].category:
+                return queue_item['queue']
+
+    def add_queues(self, entry_criteria):
+        for q_entry in entry_criteria:
+            if q_entry['id'] not in self.entry_signal_queues:
+                q_signal_key = get_signal_key(q_entry['signal_type'])
+                self.entry_signal_queues[q_entry['id']] = {'queue': get_queue(self, q_signal_key, q_entry['flush_hist']), 'eval_criteria': q_entry['eval_criteria'], 'dependent_on': q_entry['dependent_on']}
+
 
     def calculate_target(self, instr, target_level_list):
         levels = []
@@ -90,7 +112,7 @@ class BaseStrategy:
 
         for target_level in target_level_list:
             if isinstance(target_level, (int, float)):
-                target = close_point * (1 + target_level)
+                target = close_point * (1 +  target_level)
                 levels.append(target)
             else:
                 #print(target_level[0])
@@ -101,7 +123,7 @@ class BaseStrategy:
                 # print(target_fn)
                 rs = 0
                 if target_fn['category'] == 'signal_queue':
-                    queue = self.entry_signal_pipeline.get_que_by_category(target_fn['mapped_object'])#self.entry_signal_queues[target_fn['mapped_object']]
+                    queue = self.get_que_by_category(target_fn['mapped_object'])#self.entry_signal_queues[target_fn['mapped_object']]
                     # print('queue.'+ mapped_fn + "()")
                     rs = eval('queue.' + mapped_fn)(**kwargs)
                 elif target_fn['category'] == 'global':
@@ -168,7 +190,7 @@ class BaseStrategy:
             # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
             #total_quantity = sum([trig['quantity'] for trig in triggers])
             self.trigger_entry(trade_inst,self.order_type,sig_key,triggers)
-        self.entry_signal_pipeline.flush_queues()
+        self.flush_queues()
         self.process_post_entry()
 
     """Deactivate when not required to run in a particular day"""
@@ -191,6 +213,10 @@ class BaseStrategy:
         else:
             last_candle = self.insight_book.spot_processor.last_tick
         return last_candle
+
+    def flush_queues(self):
+        for pattern_queue in self.entry_signal_queues.values():
+            pattern_queue['queue'].flush()
 
     def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
         for trigger in triggers:
@@ -245,22 +271,47 @@ class BaseStrategy:
     def process_post_entry(self):
         pass
 
-    def register_signal(self, signal):
-        self.entry_signal_pipeline.register_signal(signal)
-        self.exit_signal_pipeline.register_signal(signal)
 
-    def evaluate_entry_signals(self):
-        return self.entry_signal_pipeline.evaluate_entry_signals()
+    def register_signal(self, signal):
+        if signal['indicator'] != 'INDICATOR_TREND':
+            #print('register+++++++++++', signal)
+            pass
+        if signal['indicator'] == 'PRICE_DROP':
+            pass
+            #print('register+++++++++++', signal)
+        if signal['indicator'] == 'INDICATOR_DT':
+            #print('register+++++++++++', signal)
+            pass
+        if self.evaluate_signal_filter(signal):
+            for q_id, queue_item in self.entry_signal_queues.items():
+                if (signal['category'], signal['indicator']) == queue_item['queue'].category:
+                    new_signal = queue_item['queue'].receive_signal(signal)
+                    if new_signal:
+                        self.register_instrument(signal)
+
+        if (signal['category'], signal['indicator']) in self.exit_signal_queues:
+            self.exit_signal_queues[(signal['category'], signal['indicator'])].receive_signal(signal)
+
+
 
     def look_for_trade(self):
         enough_time = self.insight_book.get_time_to_close() > self.exit_time
         suitable_tpo = self.valid_tpo()
-        signal_present = self.entry_signal_pipeline.all_entry_signal()
+        #filter_criteria_met = self.evaluate_signal_filter()
+        signal_present = self.all_entry_signal()
+        #print('+++++++++++++++++++++++++')
+        #print(enough_time)
+        #print(suitable_tpo)
+        #print(market_criteria_met)
+        #print(signal_present)
         if enough_time and suitable_tpo and signal_present: #and filter_criteria_met:
             signal_passed = self.evaluate_entry_signals() and self.custom_evaluation()
             if signal_passed:
                 self.record_params()
                 self.initiate_signal_trades()
+
+    def all_entry_signal(self):
+        return self.entry_signal_queues and all([queue.has_signal() for queue in self.entry_signal_queues.values()])
 
     def custom_evaluation(self):
         return True
@@ -268,8 +319,45 @@ class BaseStrategy:
     def process_custom_signal(self):
         pass
 
-    def evaluate_exit_signals(self):
-        return self.exit_signal_pipeline.evaluate_exit_signals()
+    def evaluate_entry_signals(self):
+        #print('evaluate entry+++')
+        passed = True
+        for list_item in self.entry_criteria:
+            pattern_comb, criteria = list(list_item.items())[0]
+            pattern_comb = get_signal_key(pattern_comb)
+            queue = self.entry_signal_queues[pattern_comb]
+            last_spot_candle = self.insight_book.spot_processor.last_tick
+            res = queue.eval_entry_criteria(criteria, last_spot_candle['timestamp'])
+            passed = res and passed
+            if not passed:
+                break
+        return passed
+
+    def evaluate_exit_signals(self, signal=None):
+        passed = False
+        for list_of_criteria in self.exit_criteria_list:
+            #print(list_of_criteria)
+            criteria_list_passed = True
+            for criteria_dict in list_of_criteria: # And condition for all items in list
+                pattern_comb, criteria = list(criteria_dict.items())[0]
+                pattern_comb = get_signal_key(pattern_comb)
+                queue = self.exit_signal_queues[pattern_comb]
+                #print(queue.category)
+                last_spot_candle = self.insight_book.spot_processor.last_tick
+                res = queue.eval_exit_criteria(criteria, last_spot_candle['timestamp'])
+                #print('res++++++++++++', res)
+                if res:
+                    queue.flush()
+
+                criteria_list_passed = res and criteria_list_passed
+                #print('criteria_list_passed ++++++++++++', criteria_list_passed)
+                if not criteria_list_passed: #Break if one fails
+                    break
+            passed = passed or criteria_list_passed
+            #print('passed', passed)
+            if passed:
+                break
+        return passed
 
     def evaluate(self):
         #self.process_incomplete_signals()
@@ -360,7 +448,6 @@ class BaseStrategy:
             price_region = self.insight_book.activity_log.locate_price_region()
             for key, val in price_region.items():
                 self.signal_params['pat_' + key] = val
-            for pattern_queue_item in self.entry_signal_pipeline.queue_dict.values():
-                pattern_queue = pattern_queue_item['queue']
+            for pattern_queue in self.entry_signal_queues.values():
                 pattern_attr = pattern_queue.get_atrributes()
                 self.signal_params = {**self.signal_params, **pattern_attr}
