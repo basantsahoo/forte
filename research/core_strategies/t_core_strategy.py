@@ -71,8 +71,9 @@ class BaseStrategy:
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
-
+        print('Add entry queue')
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues)
+        print('Add exit queue')
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
 
         print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)

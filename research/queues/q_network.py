@@ -3,14 +3,13 @@ from research.strategies.signal_setup import get_signal_key, get_target_fn
 
 
 class QNetwork:
-    def __init__(self, strategy, entry_signal_queues):
+    def __init__(self, strategy, signal_queues):
         self.queue_dict = {}
         self.strategy = strategy
-        for signal_queue in entry_signal_queues:
+        for signal_queue in signal_queues:
             self.add_queue(signal_queue)
 
     def add_queue(self, q_entry):
-        print('add_que======', q_entry)
         if q_entry['id'] not in self.queue_dict:
             q_signal_key = get_signal_key(q_entry['signal_type'])
             self.queue_dict[q_entry['id']] = {'queue': get_queue(self.strategy, q_signal_key, q_entry['flush_hist']), 'eval_criteria': q_entry['eval_criteria'], 'dependent_on': q_entry['dependent_on']}

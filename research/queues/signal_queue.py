@@ -180,6 +180,7 @@ class NonEvaluatedFreshSignalOnlyQueue(SignalQueue):
 
 
 class PriceActionQueue(AccumulateNoDuplicateSignalQueue):
+    # get_overlap([matched_pattern['time_list'][1], matched_pattern['time_list'][2]], [self.last_match['time_list'][1], self.last_match['time_list'][2]])
     def get_pattern_height(self, pos=-1):
         #print('execute+++++++get_pattern_height')
         pattern = self.queue[pos]

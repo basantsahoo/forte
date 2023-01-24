@@ -7,7 +7,7 @@ from research.strategies.cheap_option_buy import CheapOptionBuy
 from research.strategies.option_sell import OptionSellStrategy
 from live_algo.friday.friday_option_buy import FridayOptionBuy,FridayBelowVA
 from live_algo.tuesday.tuesday_option_buy import TuesdayOptionBuy
-from research.strategies.multi_pattern_strategy import MultiPatternStrategy
+from research.strategies.double_top_strategy import DoubleTopStrategy
 from research.strategies.multi_pattern_q_strategy import MultiPatternQueueStrategy
 from research.strategies.dt_buy_put_strategy import DTBuyPut
 from research.technical_strategies.price_below_ema import PriceBreakEMADownward
