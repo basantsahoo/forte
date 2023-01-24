@@ -2,7 +2,7 @@ from research.strategies.option_sell import OptionSellStrategy
 from helper.utils import get_broker_order_type
 
 class ThursdayOptionSell(OptionSellStrategy):
-    def __init__(self, insight_book, id="OPTION_SELL_THURS", order_type="SELL", exit_time=60, min_tpo=1, max_tpo=13,  max_signal = 5, target_pct=[0.5,0.5, 0.5, 0.5], stop_loss_pct=[0.4,0.4, 0.4,0.5]):
+    def __init__(self, insight_book, id="OPTION_SELL_THURS", order_type="SELL", exit_time=[60], min_tpo=1, max_tpo=13,  max_signal = 5, target_pct=[0.5,0.5, 0.5, 0.5], stop_loss_pct=[0.4,0.4, 0.4,0.5]):
         OptionSellStrategy.__init__(self, insight_book, id=id, order_type=order_type, exit_time=exit_time, min_tpo=min_tpo, max_tpo=max_tpo, max_signal=max_signal, target_pct=target_pct, stop_loss_pct=stop_loss_pct)
         self.last_match = None
         self.weekdays_allowed = ['Thursday']

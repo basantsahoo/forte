@@ -7,7 +7,7 @@
       "spot_instruments":["SPOT"],
       "derivative_instruments":[],
       "instr_to_trade": [],
-      "exit_time":45,
+      "exit_time":[45,60],
       "max_signal": 50,
       "triggers_per_signal": 2,
       "spot_short_targets":[["DT_HEIGHT_TARGET", {"ref_point":-2, "factor":-1}], ["DT_HEIGHT_TARGET", {"ref_point":-2, "factor":-2}]],

@@ -3,7 +3,7 @@
   "strategy_kwargs":[
     {
       "id":"OPTION_PRICE_DROP",
-      "exit_time":60,
+      "exit_time":[60],
       "spot_long_targets":[],
       "spot_long_stop_losses":[],
       "spot_short_targets":[],

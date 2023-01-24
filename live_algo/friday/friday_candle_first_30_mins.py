@@ -1,4 +1,4 @@
-from research.core_strategies.t_core_strategy import BaseStrategy
+from research.core_strategies.core_strategy import BaseStrategy
 from research.strategies.signal_setup import get_signal_key
 from helper.utils import get_option_strike
 
@@ -10,7 +10,7 @@ class FridayCandleFirst30Buy(BaseStrategy):
                  order_type="BUY",
                  spot_instruments=[],
                  derivative_instruments=[],
-                 exit_time=30,
+                 exit_time=[30],
                  min_tpo=1,
                  max_tpo=13,
                  record_metric=True,
@@ -79,7 +79,7 @@ class FridayCandleFirst30Sell(BaseStrategy):
                  order_type="BUY",
                  spot_instruments=[],
                  derivative_instruments=[],
-                 exit_time=30,
+                 exit_time=[30],
                  min_tpo=1,
                  max_tpo=13,
                  record_metric=True,

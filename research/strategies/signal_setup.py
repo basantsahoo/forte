@@ -34,7 +34,7 @@ def get_signal_key(human_lang):
 def get_target_fn(human_lang):
     return human_machine_target_map.get(human_lang.upper(), None)
 
-def get_startegy_args(id=None, order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=30, min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[], entry_signal_queues=[], exit_criteria_list = [], signal_filter_conditions = [], spot_long_targets = [], spot_long_stop_losses = [], spot_short_targets=[], spot_short_stop_losses=[],  instr_targets = [], instr_stop_losses = [], instr_to_trade=[]):
+def get_startegy_args(id=None, order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=[30], min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[], entry_signal_queues=[], exit_criteria_list = [], signal_filter_conditions = [], spot_long_targets = [], spot_long_stop_losses = [], spot_short_targets=[], spot_short_stop_losses=[],  instr_targets = [], instr_stop_losses = [], instr_to_trade=[]):
     args = {}
     arg_list = ["id", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed","entry_signal_queues", "exit_criteria_list", "signal_filter_conditions", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade"]
     for arg_ in arg_list:

@@ -7,7 +7,7 @@
       "spot_instruments":[],
       "derivative_instruments":[],
       "instr_to_trade": [["OTM", 1, "PE"]],
-      "exit_time":60,
+      "exit_time":[60],
       "spot_short_targets":[["DT_HEIGHT_TARGET", {"ref_point":-2, "factor":-3}]],
       "spot_short_stop_losses":[["DT_HEIGHT_TARGET", {"ref_point":-2, "factor":1}]],
       "instr_targets":[0.1,0.2,0.3,0.4],

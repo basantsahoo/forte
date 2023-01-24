@@ -3,7 +3,7 @@
   "strategy_kwargs":[
     {
       "id":"PriceBreakEMADownward",
-      "exit_time":60,
+      "exit_time":[60],
       "instr_targets":[0.1],
       "instr_stop_losses":[-0.3],
       "signal_filter_conditions" : [

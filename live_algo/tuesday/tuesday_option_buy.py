@@ -2,7 +2,7 @@ from research.strategies.cheap_option_buy import CheapOptionBuy
 
 
 class TuesdayOptionBuy(CheapOptionBuy):
-    def __init__(self, insight_book, id="OPTION_CHEAP_BUY_TUE", exit_time=60, max_signal = 10, instr_targets=[0.1,0.2, 0.3, 0.5], instr_stop_losses=[0.5,0.5, 0.5,0.5]):
+    def __init__(self, insight_book, id="OPTION_CHEAP_BUY_TUE", exit_time=[60], max_signal = 10, instr_targets=[0.1,0.2, 0.3, 0.5], instr_stop_losses=[0.5,0.5, 0.5,0.5]):
         CheapOptionBuy.__init__(self, insight_book, id=id,  exit_time=exit_time, max_signal=max_signal, instr_targets=instr_targets, instr_stop_losses=instr_stop_losses)
         self.weekdays_allowed = ['Friday']
         self.signal_filter_conditions = [
@@ -22,7 +22,7 @@ class TuesdayOptionBuy(CheapOptionBuy):
 
 # Notes : Tuesday inside VA not good for selling
 class TuesdayOptionSell(CheapOptionBuy):
-    def __init__(self, insight_book, id="OPTION_CHEAP_BUY_TUE", exit_time=60, max_signal = 10, instr_targets=[0.1,0.2, 0.3, 0.5], instr_stop_losses=[0.5,0.5, 0.5,0.5]):
+    def __init__(self, insight_book, id="OPTION_CHEAP_BUY_TUE", exit_time=[60], max_signal = 10, instr_targets=[0.1,0.2, 0.3, 0.5], instr_stop_losses=[0.5,0.5, 0.5,0.5]):
         CheapOptionBuy.__init__(self, insight_book, id=id,  exit_time=exit_time, max_signal=max_signal, instr_targets=instr_targets, instr_stop_losses=instr_stop_losses)
         self.weekdays_allowed = ['Friday']
         self.signal_filter_conditions = [

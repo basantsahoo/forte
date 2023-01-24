@@ -3,7 +3,7 @@
   "strategy_kwargs":[
     {},
     {
-      "exit_time":30
+      "exit_time":[30]
     },
     {},
     {}

@@ -3,7 +3,7 @@
   "strategy_kwargs":[
     {
       "id":"FRIDAY_CHEAP_OPTION",
-      "exit_time":60,
+      "exit_time":[60],
       "instr_targets":[0.1,0.2,0.3,0.4],
       "instr_stop_losses":[0.5,0.5,0.5,0.5],
       "weekdays_allowed": ["Friday"],
