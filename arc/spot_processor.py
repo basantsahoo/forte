@@ -33,8 +33,8 @@ class SpotProcessor:
             candle_5 = self.insight_book.candle_5_processor.get_last_n_candles(1)[0]
             self.ema_5.add_input_value(candle_5['close'])
             if self.ema_5:
-                #print('ema_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), self.ema_5[-1])
-                #print('price=======', datetime.fromtimestamp(self.last_tick['timestamp']), candle_5)
+                print('ema_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), self.ema_5[-1])
+                print('candle_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), candle_5)
                 candle_low = candle_5['low']
                 if candle_low > self.ema_5[-1]:
                     pat = {'category': 'TECHNICAL', 'indicator': 'CDL_5_ABOVE_EMA_5', 'strength': 1,
@@ -42,10 +42,14 @@ class SpotProcessor:
                            'info': {}}
                     self.insight_book.pattern_signal(pat)
                 price_below_ema = int(candle_5['close'] < self.ema_5[-1])
-
-                pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_BELOW_EMA_5', 'strength': price_below_ema,
-                       'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
-                       'info': {}}
+                if price_below_ema:
+                    pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_BELOW_EMA_5', 'strength': 1,
+                           'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
+                           'info': {}}
+                else:
+                    pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_ABOVE_EMA_5', 'strength': 1,
+                           'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
+                           'info': {}}
                 self.insight_book.pattern_signal(pat)
 
     def perform_calculations(self):
@@ -66,12 +70,3 @@ class SpotProcessor:
                 pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_BELOW_EMA_5', 'strength': 1, 'signal_time': self.last_tick['timestamp'], 'notice_time':self.last_tick['timestamp'], 'info': {}}
                 self.insight_book.pattern_signal(pat)
         """
-    def perform_calculations_2(self):
-        price_list = list(self.spot_ts.values())
-        chunks_5 = [price_list[i:i + 5] for i in range(0, len(price_list), 5)]
-        chunks_5 = [x for x in chunks_5 if len(x) == 5]
-        chunks_15 = [price_list[i:i + 15] for i in range(0, len(price_list), 15)]
-        chunks_15 = [x for x in chunks_15 if len(x) == 15]
-
-        self.candles_5 = [{'timestamp':x[0]['timestamp'], 'open':x[0]['open'], 'high': max([y['high'] for y in x]), 'low':min([y['low'] for y in x]), 'close':x[-1]['close']} for x in chunks_5]
-        self.candles_15 = [{'timestamp':x[0]['timestamp'], 'open':x[0]['open'], 'high': max([y['high'] for y in x]), 'low':min([y['low'] for y in x]), 'close':x[-1]['close']} for x in chunks_15]

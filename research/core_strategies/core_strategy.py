@@ -1,8 +1,7 @@
 from datetime import datetime
 from helper.utils import get_broker_order_type
-from research.queues.signal_queue import get_queue
-from research.strategies.signal_setup import get_signal_key, get_target_fn
-from research.queues.q_network import QNetwork
+from research.strategies.signal_setup import get_target_fn
+from research.queues.neuron_network import QNetwork
 
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
@@ -27,7 +26,7 @@ class BaseStrategy:
                  weekdays_allowed=[],
                  entry_signal_queues = [], #Used for signals to be evaluated to enter a trade
                  exit_criteria_list = [], #Used for signals to be evaluated to exit a trade
-                 signal_filter_conditions=[], #Signals that should be filtered out before sending to queue
+                 signal_filters=[], #Signals that should be filtered out before sending to queue
                  spot_long_targets = [], #[0.002,0.003, 0.004, 0.005],
                  spot_long_stop_losses=[], #[-0.001, -0.002, -0.002, -0.002],
                  spot_short_targets=[], #[-0.002, -0.003, -0.004, -0.005],
@@ -49,7 +48,7 @@ class BaseStrategy:
         self.triggers_per_signal = min(4, triggers_per_signal) #Dont go past 4
         self.max_signal = max_signal
         #self.entry_criteria = entry_criteria
-        self.signal_filter_conditions = signal_filter_conditions
+        self.signal_filters = signal_filters
         self.exit_criteria_list = exit_criteria_list
         self.spot_long_targets = [abs(x) if isinstance(x, (int, float)) else x for x in spot_long_targets]
         self.spot_long_stop_losses = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_long_stop_losses]
@@ -149,7 +148,7 @@ class BaseStrategy:
             'exit_price':None,
             'trigger_time':last_candle['timestamp']
         }
-        print('get_trades===', idx, trade_info['duration'])
+        #print('get_trades===', idx, trade_info['duration'])
         return trade_info
 
     def set_up(self):
@@ -335,8 +334,8 @@ class BaseStrategy:
                             self.trigger_exit(signal_id, trigger_seq, exit_type='SS')
 
 
-    def evaluate_signal_filter(self, signal={}):
-        satisfied = not self.signal_filter_conditions
+    def pre_signal_filter(self, signal={}):
+        satisfied = not self.signal_filters
         if not satisfied:
             market_params = self.insight_book.activity_log.get_market_params()
             #print(market_params)
@@ -353,7 +352,7 @@ class BaseStrategy:
             kind = signal['info'].get('kind', "")
             money_ness = signal['info'].get('money_ness', "")
             #print('inside +++++', open_type, tpo, strength, kind, money_ness)
-            for condition in self.signal_filter_conditions:
+            for condition in self.signal_filters:
                 #print(condition['logical_test'])
                 satisfied = satisfied or eval(condition['logical_test'])
             #print(satisfied)

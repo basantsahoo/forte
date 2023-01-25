@@ -1,5 +1,5 @@
 from research.core_strategies.core_strategy import BaseStrategy
-from research.queues.q_network import QNetwork
+from research.queues.neuron_network import QNetwork
 
 class MultiPatternQueueStrategy(BaseStrategy):
     def __init__(self, insight_book, **kwargs):

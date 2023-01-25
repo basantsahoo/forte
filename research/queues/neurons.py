@@ -1,6 +1,19 @@
 from helper.utils import locate_point
 
 
+def get_neuron(neuron_type=None, strategy=None, neuron_id=0,  signal_type=None, min_activation_strength=1, trade_eval=[], signal_subscriptions=[], activation_subscriptions=[], validity_period=60, flush_hist=True, register_instr=False):
+    if neuron_type in ['FixedForLifeNeuron']:
+        return FixedForLifeNeuron(strategy, neuron_id, signal_type, min_activation_strength, trade_eval, signal_subscriptions, activation_subscriptions, validity_period, flush_hist, register_instr)
+    elif neuron_type in ['CurrentMemoryPurgeableNeuron']:
+        return CurrentMemoryPurgeableNeuron(strategy, neuron_id, signal_type, trade_eval, min_activation_strength, validity_period, flush_hist)
+    elif neuron_type in ['PriceAction']:
+        return PriceAction(strategy, neuron_id, signal_type, trade_eval, min_activation_strength, validity_period, flush_hist)
+    elif neuron_type in ['UniqueHistPurgeableNeuron']:
+        return UniqueHistPurgeableNeuron(strategy, neuron_id, signal_type, trade_eval, min_activation_strength, validity_period, flush_hist)
+    else:
+        raise Exception("Signal Queue is not defined")
+
+"""
 def get_queue(strategy, category, flush_hist=True):
     if category[0] in ['STATE']:
         return FreshOnlyNoFlushSignalQueue(strategy, category, flush_hist)
@@ -16,47 +29,50 @@ def get_queue(strategy, category, flush_hist=True):
         return NonEvaluatedFreshSignalOnlyQueue(strategy, category, flush_hist)
     else:
         raise Exception("Signal Queue is not defined")
+"""
 
 
-class SignalQueue:
-    def __init__(self, strategy, cat, flush_hist=True):
-        self.category = cat
-        self.queue = []
+class Neuron:
+    def __init__(self, strategy, neuron_id, signal_type, min_activation_strength, trade_eval, signal_subscriptions, activation_subscriptions, validity_period, flush_hist, register_instr):
+        self.id = neuron_id
+        self.signal_type = signal_type
+        self.signals = []
         self.last_signal_time = None
         self.strategy = strategy
-        self.dependent_on_queues = []
+        self.signal_forward_channels = []
+        self.activation_forward_channels = []
+        self.active = False
         self.pending_evaluation = False
+        self.validity_period = validity_period
         self.flush_hist = flush_hist
+        self.min_strength = 0
 
     def receive_signal(self, signal):
         return False
         #print(self.category, len(self.queue))
 
     def get_signal(self, pos=-1):
-        return self.queue[pos]
+        return self.signals[pos]
 
     def flush(self):
         if self.flush_hist:
-            self.queue = []
+            self.signals = []
 
     def remove_last(self):
-        del self.queue[-1]
+        del self.signals[-1]
 
     def has_signal(self):
-        return bool(self.queue)
+        return bool(self.signals)
 
     def get_pattern_height(self, pos=-1):
         return 0
-
-    def add_dependency(self, queue):
-        self.dependent_on_queues.append(queue)
 
     def eval_entry_criteria(self, test_criteria, curr_ts):
         if not test_criteria:
             return True
         #print(criteria)
         try:
-            pattern = self.queue[test_criteria[0]]
+            pattern = self.signals[test_criteria[0]]
         except:
             return False
         #print(pattern)
@@ -82,7 +98,7 @@ class SignalQueue:
             return True
         #print(criteria)
         try:
-            pattern = self.queue[criteria[0]]
+            pattern = self.signals[criteria[0]]
         except:
             return False  # Different from entry
 
@@ -96,9 +112,13 @@ class SignalQueue:
         res = eval(test)
         return res
 
-    def get_atrributes(self, pos=-1):
+    def check_validity(self):
+        last_tick_time = self.strategy.insight_book.spot_processor.last_tick['timestamp']
+        self.signals = [signal for signal in self.signals if last_tick_time - signal['signal_time'] >= self.validity_period * 60]
+
+    def get_attributes(self, pos=-1):
         res = {}
-        pattern = self.queue[pos]
+        pattern = self.signals[pos]
         if pattern['info'].get('price_list', None) is not None:
             res['pattern_price'] = pattern['info']['price_list']
         if pattern['info'].get('time_list', None) is not None:
@@ -126,17 +146,66 @@ class SignalQueue:
         res['strength'] = pattern['strength']
         return res
 
+    def forward_signal(self, info={}):
+        for channel in self.signal_forward_channels:
+            channel(info)
 
-class FreshOnlySignalQueue(SignalQueue):
+    def forward_activation(self, info={}):
+        for channel in self.activation_forward_channels:
+            channel(info)
+
+    def add_activation_forward_channel(self, channel):
+        self.activation_forward_channels.append(channel)
+
+    def add_signal_forward_channel(self, channel):
+        self.signal_forward_channels.append(channel)
+
+    def remove_activation_forward_channel(self, channel):
+        self.activation_forward_channels.remove(channel)
+
+    def remove_signal_forward_channel(self, channel):
+        self.signal_forward_channels.remove(channel)
+
+    def receive_communication(self):
+        pass
+
+    def send_communication(self):
+        pass
+
+class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron)
     """Always keeps the last signal"""
     def receive_signal(self, signal):
-        self.queue = [signal]
+        print('FreshNoHist+++++++++++', 'id==',repr(self.id), signal)
+        self.signals = [signal]
         self.last_signal_time = signal['signal_time']
         self.pending_evaluation = True
-        return True
+        self.active = True
+        self.forward_signal()
+        self.forward_activation()
 
 
-class FreshOnlyNoFlushSignalQueue(SignalQueue):
+class FixedForLifeNeuron(Neuron): #BinaryCurrentOrHistory
+    """Always keeps the last signal"""
+    def receive_signal(self, signal):
+        if not self.signals:
+            self.queue = [signal]
+            self.last_signal_time = signal['signal_time']
+            self.pending_evaluation = True
+            self.active = True
+            self.forward_signal()
+            self.forward_activation()
+
+    def flush(self):
+        pass
+
+    def check_validity(self):
+        pass
+
+    def remove_last(self):
+        pass
+
+
+class CurrentMemoryNonPurgeableNeuron(Neuron): #FreshOnlyNoFlushSignalQueue
     """Always keeps the last signal and never flushes"""
     def receive_signal(self, signal):
         self.queue = [signal]
@@ -147,15 +216,19 @@ class FreshOnlyNoFlushSignalQueue(SignalQueue):
     def flush(self):
         pass
 
+    def check_validty(self):
+        pass
+
     def remove_last(self):
         pass
 
 
-class AccumulateNoDuplicateSignalQueue(SignalQueue):
+class UniqueHistPurgeableNeuron(Neuron): #NoDuplicateSeries
     """
     Accumulates all fresh signals which are not duplicate
     """
     def receive_signal(self, signal):
+        print('No duplicate++++', 'id==',repr(self.s_id), signal)
         new_signal = False
         if signal['signal_time'] != self.last_signal_time:
             self.queue.append(signal)
@@ -165,7 +238,7 @@ class AccumulateNoDuplicateSignalQueue(SignalQueue):
         return new_signal
 
 
-class NonEvaluatedFreshSignalOnlyQueue(SignalQueue):
+class NonEvaluatedFreshSignalOnlyQueue(Neuron):
     """
     Keeps only latest signals and allows evaluation for signals which are not evaluated earlier
     """
@@ -179,7 +252,7 @@ class NonEvaluatedFreshSignalOnlyQueue(SignalQueue):
         return bool(self.queue) and self.pending_evaluation
 
 
-class PriceActionQueue(AccumulateNoDuplicateSignalQueue):
+class PriceAction(UniqueHistPurgeableNeuron):
     # get_overlap([matched_pattern['time_list'][1], matched_pattern['time_list'][2]], [self.last_match['time_list'][1], self.last_match['time_list'][2]])
     def get_pattern_height(self, pos=-1):
         #print('execute+++++++get_pattern_height')
