@@ -21,38 +21,38 @@
             "signal_type": "TECH_CDL_5_ABOVE_EMA_5",
             "trade_eval": [],
             "min_activation_strength": 1,
-            "signal_subscriptions": [],
             "activation_subscriptions": [],
             "validity_period":60,
             "flush_hist": true,
             "register_instr": false,
-            "apply_pre_filter": false
+            "apply_pre_filter": false,
+            "reversal_subscriptions": []
         },
         {
             "neuron_type": "UniqueHistPurgeableNeuron",
             "id": 1,
             "signal_type": "TECH_PRICE_BELOW_EMA_5",
             "trade_eval": [],
-            "min_activation_strength": 1,
-            "signal_subscriptions": [],
+            "min_activation_strength": 2,
             "activation_subscriptions": [0],
             "validity_period":60,
             "flush_hist": true,
             "register_instr": false,
-            "apply_pre_filter": false
+            "apply_pre_filter": false,
+            "reversal_subscriptions": []
         },
         {
             "neuron_type": "UniqueHistPurgeableNeuron",
             "id": 2,
             "signal_type": "TECH_PRICE_ABOVE_EMA_5",
             "trade_eval": [],
-            "min_activation_strength": 1,
-            "signal_subscriptions": [1],
+            "min_activation_strength": 3,
             "activation_subscriptions": [1],
             "validity_period":60,
             "flush_hist": true,
             "register_instr": false,
-            "apply_pre_filter": false
+            "apply_pre_filter": false,
+            "reversal_subscriptions": [1]
         },
         {
             "neuron_type": "UniqueHistPurgeableNeuron",
@@ -60,12 +60,12 @@
             "signal_type": "TECH_PRICE_BELOW_EMA_5",
             "trade_eval": [],
             "min_activation_strength": 1,
-            "signal_subscriptions": [],
             "activation_subscriptions": [2],
             "validity_period":60,
             "flush_hist": true,
-            "register_instr": false,
-            "apply_pre_filter": false
+            "register_instr": true,
+            "apply_pre_filter": false,
+            "reversal_subscriptions": [2]
         }
       ],
       "signal_filters" : [

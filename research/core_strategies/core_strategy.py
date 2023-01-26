@@ -70,13 +70,13 @@ class BaseStrategy:
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
-        print('Add entry queue')
+        #print('Add entry queue')
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues)
-        print('Add exit queue')
+        #print('Add exit queue')
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
 
-        print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
-        print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
+        #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
+        #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
         """
         self.spot_targets = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
         self.spot_stop_loss = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
@@ -128,8 +128,8 @@ class BaseStrategy:
         last_candle = self.get_last_tick(instr)
         spot_targets = self.calculate_target('SPOT', self.spot_long_targets) if market_view == 'LONG' else self.calculate_target('SPOT', self.spot_short_targets)
         spot_stop_losses = self.calculate_target('SPOT', self.spot_long_stop_losses) if market_view == 'LONG' else self.calculate_target('SPOT', self.spot_short_stop_losses)
-        instr_targets = self.calculate_target(instr, self.instr_targets)
-        instr_stop_losses = self.calculate_target(instr, self.instr_stop_losses)
+        instr_targets = self.calculate_target(instr, self.instr_targets) if instr != 'SPOT' else spot_targets
+        instr_stop_losses = self.calculate_target(instr, self.instr_stop_losses) if instr != 'SPOT' else spot_stop_losses
         #print('self.instr_targets', self.instr_targets, instr_targets)
         #print('self.spot_short_stop_losses', self.spot_short_stop_losses, spot_stop_losses)
         trade_info = {
@@ -205,7 +205,7 @@ class BaseStrategy:
                 if self.signal_params:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
-                self.signal_params = {}
+        self.signal_params = {}
         updated_symbol = self.insight_book.ticker + "_" + trade_inst if self.inst_is_option(trade_inst) else self.insight_book.ticker
         cover = triggers[0].get('cover', 0)
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
@@ -276,6 +276,12 @@ class BaseStrategy:
 
     def evaluate_exit_signals(self):
         return self.exit_signal_pipeline.evaluate_exit_signals()
+
+    def check_neuron_validity(self):
+        for pattern_queue_item in self.entry_signal_pipeline.neuron_dict.values():
+            pattern_queue_item['neuron'].check_validity()
+        for pattern_queue_item in self.exit_signal_pipeline.neuron_dict.values():
+            pattern_queue_item['neuron'].check_validity()
 
     def evaluate(self):
         #self.process_incomplete_signals()
@@ -366,7 +372,7 @@ class BaseStrategy:
             price_region = self.insight_book.activity_log.locate_price_region()
             for key, val in price_region.items():
                 self.signal_params['pat_' + key] = val
-            for pattern_queue_item in self.entry_signal_pipeline.queue_dict.values():
-                pattern_queue = pattern_queue_item['queue']
-                pattern_attr = pattern_queue.get_atrributes()
+            for pattern_queue_item in self.entry_signal_pipeline.neuron_dict.values():
+                pattern_queue = pattern_queue_item['neuron']
+                pattern_attr = pattern_queue.get_attributes()
                 self.signal_params = {**self.signal_params, **pattern_attr}
