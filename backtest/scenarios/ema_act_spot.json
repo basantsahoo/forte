@@ -9,8 +9,8 @@
       "derivative_instruments":[],
       "max_signal": 5,
       "triggers_per_signal": 2,
-      "spot_short_targets": [0.002,0.003, 0.004, 0.005],
-      "spot_short_stop_losses":[0.001,0.002, 0.002,0.002],
+      "spot_short_targets": [0.003,0.004, 0.004, 0.005],
+      "spot_short_stop_losses":[["SPIKE_CANDLE_HIGH"],0.002, 0.002,0.002],
       "instr_targets":[0.002,0.003, 0.004, 0.005],
       "instr_stop_losses":[0.001,0.002, 0.002,0.002],
       "instr_to_trade" : [],
@@ -72,8 +72,8 @@
       ]
     }
   ],
-  "test_days": ["2023-01-24"],
-  "for_past_days": 10,
+  "test_days": [],
+  "for_past_days": 30,
   "symbols": ["NIFTY"],
   "to_date": "2023-01-24",
   "candle_sw" : 0,

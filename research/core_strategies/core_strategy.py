@@ -99,7 +99,7 @@ class BaseStrategy:
                 target_fn = get_target_fn(target_level[0])
                 mapped_fn = target_fn['mapped_fn']
                 kwargs = target_fn.get('kwargs', {})
-                kwargs = {**kwargs, **target_level[1]}
+                kwargs = {**kwargs, **target_level[1]} if len(target_level) > 1 else kwargs
                 # print(target_fn)
                 rs = 0
                 if target_fn['category'] == 'signal_queue':

@@ -16,6 +16,7 @@ human_machine_signal_map = {
 
 human_machine_target_map = {
     'DT_HEIGHT_TARGET': {'category':'signal_queue', 'mapped_object': (PRICE_ACTION_INTRA_DAY, INDICATOR_DOUBLE_TOP), 'mapped_fn':'get_pattern_target', 'kwargs':{'ref_point':-2, 'factor':-1}},
+    'SPIKE_CANDLE_HIGH': {'category':'signal_queue', 'mapped_object': ('TECHNICAL', 'CDL_5_ABOVE_EMA_5'), 'mapped_fn':'get_signal_high', 'kwargs':{}},
     'PREV_SPH': {'category':'global', 'mapped_object': 'insight_book', 'mapped_fn':'get_prev_sph'},
     'PREV_SPL': {'category':'global', 'mapped_object': 'insight_book', 'mapped_fn':'get_prev_spl'},
     'LAST_N_CANDLE_BODY_TARGET_UP': {'category':'global', 'mapped_object': 'insight_book', 'mapped_fn':'get_n_candle_body_target_up', 'kwargs':{'period':5, 'n':3}},

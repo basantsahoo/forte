@@ -40,7 +40,7 @@ class SpotProcessor:
                     print('+++++++++++++++++++++++++++++++++++++++candle signal+++++++++++++++++++++++++++++++++++++++')
                     pat = {'category': 'TECHNICAL', 'indicator': 'CDL_5_ABOVE_EMA_5', 'strength': 1,
                            'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
-                           'info': {}}
+                           'info': candle_5}
                     self.insight_book.pattern_signal(pat)
 
                 price_below_ema = int(candle_5['close'] < self.ema_5[-1])

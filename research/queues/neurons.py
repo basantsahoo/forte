@@ -240,6 +240,9 @@ class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron)
             self.forward_signal()
             self.check_activation()
 
+    def get_signal_high(self):
+        signal = self.get_signal(-1)
+        return signal['info']['high']
 
 class FixedForLifeNeuron(Neuron): #BinaryCurrentOrHistory
     """Always keeps the last signal"""

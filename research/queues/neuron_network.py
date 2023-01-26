@@ -97,5 +97,5 @@ class QNetwork:
 
     def get_que_by_category(self, category):
         for q_id, queue_item in self.neuron_dict.items():
-            if category == queue_item['neuron'].category:
+            if category == queue_item['neuron'].signal_type:
                 return queue_item['neuron']
