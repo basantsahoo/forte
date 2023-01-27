@@ -42,7 +42,7 @@ class HighBreach:
             self.destroy()
 
     def forward_activation(self, status):
-        info = {'code': 'activation', 'n_id' : self.id, 'status':status}
+        info = {'code': 'watcher_signal', 'n_id' : self.id, 'status':status}
         for channel in self.activation_forward_channels:
             channel(info)
 

@@ -12,6 +12,7 @@ class QNetwork:
         for signal_neuron in signal_neurons_info:
             self.add_neuron(signal_neuron)
         self.watcher_dict = OrderedDict()
+        self.watcher_map = {}
 
     def get_neuron_info_from_id(self, n_id):
         for signal_neuron in self.signal_neurons_info:
@@ -40,16 +41,29 @@ class QNetwork:
             }
 
     def start_watcher(self, neuron_id, watcher_info, signal_info):
+        q_signal_key = get_signal_key(watcher_info['signal_type'])
+        watcher_info['signal_type'] = q_signal_key
         watcher_id = len(self.watcher_dict.keys())
         if watcher_info['type'] in ['HighBreach']:
             threshold = signal_info['high']
         self.watcher_dict[watcher_id] = get_watcher(self, watcher_id, watcher_info, threshold)
+        self.watcher_map[neuron_id] = watcher_id
         self.create_watcher_link(neuron_id,watcher_id)
 
     def stop_watcher(self, watcher_id):
         self.watcher_dict[watcher_id].activation_forward_channels = []
         del self.watcher_dict[watcher_id]
+        t_watcher_map = self.watcher_map.copy()
+        for t_neuron_id, t_watcher_id in t_watcher_map.items():
+            if t_watcher_id == watcher_id:
+                del self.watcher_map[t_neuron_id]
         print('watcher id ', watcher_id, ' removed')
+
+    def stop_watcher_from_neuron(self, neuron_id):
+        watcher_id = self.watcher_map.get(neuron_id, None)
+        if watcher_id is not None:
+            #self.watcher_dict[watcher_id].destroy()
+            self.stop_watcher(watcher_id)
 
     def create_watcher_link(self, neuron_id, watcher_id):
         curr_neuron = self.neuron_dict[neuron_id]['neuron']
@@ -76,6 +90,10 @@ class QNetwork:
             self.create_backward_link(neuron['id'], back_neuron_id, "activation")
 
     def register_signal(self, signal):
+        for watcher_id, watcher in self.watcher_dict.items():
+            if (signal['category'], signal['indicator']) == watcher.signal_type:
+                watcher.receive_signal(signal)
+
         for q_id, queue_item in self.neuron_dict.items():
             if (signal['category'], signal['indicator']) == queue_item['neuron'].signal_type:
                 if signal['category'] in ['STATE']:

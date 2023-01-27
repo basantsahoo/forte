@@ -286,6 +286,7 @@ class BaseStrategy:
             pattern_queue_item['neuron'].check_validity()
 
     def evaluate(self):
+        #print(self.insight_book.spot_processor.last_tick)
         #self.process_incomplete_signals()
         self.monitor_existing_positions()
         self.check_neuron_validity()

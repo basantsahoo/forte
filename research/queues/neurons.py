@@ -45,6 +45,8 @@ class Neuron:
     def flush(self):
         if self.flush_hist:
             self.signals = []
+            if self.watcher_info:
+                self.manager.stop_watcher_from_neuron(self.id)
             self.check_activation()
 
     def remove_last(self):
@@ -182,6 +184,10 @@ class Neuron:
             self.signals = []
         self.check_activation()
 
+    def watcher_signal_received(self):
+        del self.signals[-1]
+        self.check_activation()
+
     def receive_communication(self, info={}):
         self.communication_log(info)
         if info['code'] == 'activation':
@@ -190,7 +196,7 @@ class Neuron:
         if info['code'] == 'signal':
             self.reverse_signal_received()
         if info['code'] == 'watcher_signal':
-            self.reverse_signal_received()
+            self.watcher_signal_received()
             #print('receive_communication reverse signal', self.id, info)
 
 
@@ -204,12 +210,17 @@ class Neuron:
         print('Neuron id==', repr(self.id), "POST LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.get_activation_dependency(), 'current count ==', len(self.signals))
 
     def communication_log(self, info):
-        print('Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+        if info['code'] != 'watcher_signal':
+            print('Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+        else:
+            print('Neuron id==', repr(self.id), "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
     def switch_watcher(self, new_status):
         if self.watcher_info:
             if new_status:
                 self.manager.start_watcher(self.id, self.watcher_info, self.signals[-1]['info'])
+
+
 
     def check_activation(self):
         if len(self.signals) >= self.min_activation_strength:
