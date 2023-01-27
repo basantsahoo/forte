@@ -16,13 +16,14 @@ class SpotProcessor:
 
 
     def process_minute_data(self, minute_data, notify=True):
-        #print('spot processor+++++')
+        #print('spot process_minute_data+++++', datetime.fromtimestamp(minute_data['timestamp']))
         key_list = ['timestamp', 'open', 'high', "low", "close"]
         feed_small = {key: minute_data[key] for key in key_list}
         epoch_minute = get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
         self.last_tick = feed_small
 
+    def process_spot_signals(self, notify=True):
         if notify and len(list(self.spot_ts.keys())) > 1:
             self.perform_calculations()
 
@@ -31,6 +32,7 @@ class SpotProcessor:
         if candle_count != self.last_candle_5_count:
             self.last_candle_5_count = candle_count
             candle_5 = self.insight_book.candle_5_processor.get_last_n_candles(1)[0]
+            print('new candle start time===', datetime.fromtimestamp(candle_5['timestamp']))
             self.ema_5.add_input_value(candle_5['close'])
             if self.ema_5:
                 #print('ema_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), self.ema_5[-1])

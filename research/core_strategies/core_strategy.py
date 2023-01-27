@@ -142,7 +142,7 @@ class BaseStrategy:
             'spot_stop_loss': spot_stop_losses[idx-1] if spot_stop_losses else None,
             'instr_target': instr_targets[idx-1] if instr_targets else None,
             'instr_stop_loss': instr_stop_losses[idx-1] if instr_stop_losses else None,
-            'duration': min(self.exit_time[idx-1], self.insight_book.get_time_to_close()),
+            'duration': min(self.exit_time[idx-1], self.insight_book.get_time_to_close()-1),
             'quantity': self.minimum_quantity,
             'exit_type':None,
             'entry_price':last_candle['close'],
@@ -261,7 +261,7 @@ class BaseStrategy:
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
-        enough_time = self.insight_book.get_time_to_close() > min(self.exit_time)
+        enough_time = True #self.insight_book.get_time_to_close() > min(self.exit_time)
         suitable_tpo = self.valid_tpo()
         signal_present = self.entry_signal_pipeline.all_entry_signal()
         if enough_time and suitable_tpo and signal_present: #and filter_criteria_met:

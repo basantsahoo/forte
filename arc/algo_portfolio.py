@@ -30,7 +30,7 @@ class AlgoPortfolioManager:
         self.set_dummy_broker()
 
     def price_input(self, input):
-        #print('price input', input)
+        #print('price input', datetime.fromtimestamp(input['timestamp']), "======", input)
         self.ltps[input['symbol']] = input['close']
         self.last_times[input['symbol']] = input['timestamp']
         self.evaluate_risk()

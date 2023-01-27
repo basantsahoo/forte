@@ -1,18 +1,40 @@
 from helper.utils import locate_point
 
 
-def get_neuron(neuron_type=None, manager=None, neuron_id=0,  signal_type=None, min_activation_strength=1, trade_eval=[],  activation_subscriptions=[], validity_period=60, flush_hist=True, register_instr=False, watcher_info=None):
-    if neuron_type in ['CurrentMemoryPurgeableNeuron']:
-        return CurrentMemoryPurgeableNeuron(manager, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, watcher_info)
+def get_neuron(neuron_type=None, strategy=None, neuron_id=0,  signal_type=None, min_activation_strength=1, trade_eval=[],  activation_subscriptions=[], validity_period=60, flush_hist=True, register_instr=False, reversal_subscriptions=[]):
+    if neuron_type in ['FixedForLifeNeuron']:
+        return FixedForLifeNeuron(strategy, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, reversal_subscriptions)
+    elif neuron_type in ['CurrentMemoryPurgeableNeuron']:
+        return CurrentMemoryPurgeableNeuron(strategy, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, reversal_subscriptions)
+    elif neuron_type in ['PriceAction']:
+        return PriceAction(strategy, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, reversal_subscriptions)
     elif neuron_type in ['UniqueHistPurgeableNeuron']:
-        return UniqueHistPurgeableNeuron(manager, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, watcher_info)
+        return UniqueHistPurgeableNeuron(strategy, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, reversal_subscriptions)
     else:
         raise Exception("Signal Queue is not defined")
 
+"""
+def get_queue(strategy, category, flush_hist=True):
+    if category[0] in ['STATE']:
+        return FreshOnlyNoFlushSignalQueue(strategy, category, flush_hist)
+    elif category[1] in ['INDICATOR_TREND']:
+        return FreshOnlySignalQueue(strategy, category, flush_hist)
+    elif category in [('OPTION', 'PRICE_DROP')]:
+        return FreshOnlySignalQueue(strategy, category, flush_hist)
+    elif 'PRICE_ACTION' in category[0]:
+        return PriceActionQueue(strategy, category, flush_hist)
+    elif 'CANDLE' in category[0]:
+        return AccumulateNoDuplicateSignalQueue(strategy, category, flush_hist)
+    elif 'TECHNICAL' in category[0]:
+        return NonEvaluatedFreshSignalOnlyQueue(strategy, category, flush_hist)
+    else:
+        raise Exception("Signal Queue is not defined")
+"""
+
 
 class Neuron:
-    def __init__(self, manager, neuron_id, signal_type, min_activation_strength, trade_eval, activation_subscriptions, validity_period, flush_hist, register_instr, watcher_info):
-        self.manager = manager
+    def __init__(self, strategy, neuron_id, signal_type, min_activation_strength, trade_eval, activation_subscriptions, validity_period, flush_hist, register_instr, reversal_subscriptions):
+        self.strategy = strategy
         self.id = neuron_id
         self.signal_type = signal_type
         self.min_activation_strength = min_activation_strength
@@ -22,7 +44,6 @@ class Neuron:
         self.validity_period = validity_period
         self.flush_hist = flush_hist
         self.register_instr = register_instr
-        self.watcher_info = watcher_info
         #self.reversal_subscriptions = reversal_subscriptions
         self.signals = []
         self.last_signal_time = None
@@ -58,7 +79,7 @@ class Neuron:
 
     def eval_entry_criteria(self):
         test_criteria = self.trade_eval
-        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        curr_ts = self.strategy.insight_book.spot_processor.last_tick['timestamp']
         if not test_criteria:
             return True
         #print(criteria)
@@ -85,7 +106,7 @@ class Neuron:
 
     def eval_exit_criteria(self):
         criteria = self.trade_eval
-        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        curr_ts = self.strategy.insight_book.spot_processor.last_tick['timestamp']
         #print('eval_exit_criteria', criteria)
         if not criteria:
             return True
@@ -106,7 +127,7 @@ class Neuron:
         return res
 
     def check_validity(self):
-        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.strategy.insight_book.spot_processor.last_tick['timestamp']
         if self.id == 0:
             for signal in self.signals:
                 pass
@@ -140,7 +161,7 @@ class Neuron:
             res['money_ness'] = pattern['money_ness']
 
         if res.get('pattern_price', None):
-            pattern_df = self.manager.strategy.insight_book.get_inflex_pattern_df().dfstock_3
+            pattern_df = self.strategy.insight_book.get_inflex_pattern_df().dfstock_3
             pattern_location = locate_point(pattern_df, max(res['pattern_price']))
             res['pattern_location'] = pattern_location
         if pattern['info'].get('price_list', None) is not None:
@@ -189,8 +210,6 @@ class Neuron:
             #print('receive_communication activation', self.id, info)
         if info['code'] == 'signal':
             self.reverse_signal_received()
-        if info['code'] == 'watcher_signal':
-            self.reverse_signal_received()
             #print('receive_communication reverse signal', self.id, info)
 
 
@@ -204,32 +223,26 @@ class Neuron:
         print('Neuron id==', repr(self.id), "POST LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.get_activation_dependency(), 'current count ==', len(self.signals))
 
     def communication_log(self, info):
-        print('Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
-
-    def switch_watcher(self, new_status):
-        if self.watcher_info:
-            if new_status:
-                self.manager.start_watcher(self.id, self.watcher_info, self.signals[-1]['info'])
+        print('Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "code==", info['code'], "status==",info.get('status', None))
 
     def check_activation(self):
         if len(self.signals) >= self.min_activation_strength:
             new_status = True
             if self.register_instr:
-                self.manager.strategy.register_instrument(self.signals[-1])
+                self.strategy.register_instrument(self.signals[-1])
         else:
             new_status = False
         if new_status != self.active:
-            self.switch_watcher(new_status)
             print("status change id ========", self.id, "new stats=====", new_status)
             self.active = new_status
             self.forward_activation(new_status)
             self.post_log()
 
-class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron) #Changed to fixed for life for test
+class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron)
     """Always keeps the last signal"""
     def receive_signal(self, signal):
-        #self.pre_log()
-        if self.get_activation_dependency() and not self.signals:
+        self.pre_log()
+        if self.get_activation_dependency():
             self.signals = [signal]
             self.last_signal_time = signal['signal_time']
             self.pending_trade_eval = True
@@ -241,12 +254,56 @@ class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron) #Changed to f
         print(signal)
         return signal['info']['high']
 
+class FixedForLifeNeuron(Neuron): #BinaryCurrentOrHistory
+    """Always keeps the last signal"""
+    def receive_signal(self, signal):
+        if not self.signals:
+            self.signals = [signal]
+            self.last_signal_time = signal['signal_time']
+            self.pending_trade_eval = True
+            self.active = True
+            self.forward_signal()
+            self.forward_activation(True)
+
+    def flush(self):
+        pass
+
+    def check_validity(self):
+        pass
+
+    def remove_last(self):
+        pass
+
+
+class CurrentMemoryNonPurgeableNeuron(Neuron): #FreshOnlyNoFlushSignalQueue
+    """Always keeps the last signal and never flushes"""
+    def receive_signal(self, signal):
+        if self.get_activation_dependency():
+            self.signals = [signal]
+            self.last_signal_time = signal['signal_time']
+            self.pending_trade_eval = True
+            self.forward_signal()
+            if len(self.signals) >= self.min_activation_strength:
+                self.active = True
+                self.forward_activation(True)
+
+
+    def flush(self):
+        pass
+
+    def check_validty(self):
+        pass
+
+    def remove_last(self):
+        pass
+
+
 class UniqueHistPurgeableNeuron(Neuron): #NoDuplicateSeries
     """
     Accumulates all fresh signals which are not duplicate
     """
     def receive_signal(self, signal):
-        #self.pre_log()
+        self.pre_log()
         if self.get_activation_dependency():
             if signal['signal_time'] != self.last_signal_time:
                 self.signals.append(signal)
@@ -254,3 +311,41 @@ class UniqueHistPurgeableNeuron(Neuron): #NoDuplicateSeries
                 self.pending_trade_eval = True
                 self.forward_signal()
                 self.check_activation()
+                self.post_log()
+
+class NonEvaluatedFreshSignalOnlyQueue(Neuron):
+    """
+    Keeps only latest signals and allows evaluation for signals which are not evaluated earlier
+    """
+    def receive_signal(self, signal):
+        print('NonEvaluatedFreshSignalOnlyQueue+++++++++++ receive', 'id==',repr(self.id), "cat==", self.signal_type, signal)
+        self.signals = [signal]
+        self.last_signal_time = signal['signal_time']
+        self.pending_trade_eval = True
+        return True
+
+    def has_signal(self):
+        return bool(self.signals) and self.pending_trade_eval
+
+
+class PriceAction(UniqueHistPurgeableNeuron):
+    # get_overlap([matched_pattern['time_list'][1], matched_pattern['time_list'][2]], [self.last_match['time_list'][1], self.last_match['time_list'][2]])
+    def get_pattern_height(self, pos=-1):
+        #print('execute+++++++get_pattern_height')
+        pattern = self.signals[pos]
+        #print(pattern)
+        pattern_match_prices = pattern['info']['price_list'] if ('INDICATOR_' in pattern['indicator'] and 'TREND' not in pattern['indicator']) else [0, 0, 0, 0]
+        #print(pattern_match_prices)
+        highest_high_point = max(pattern_match_prices[1], pattern_match_prices[3])
+        lowest_high_point = min(pattern_match_prices[1], pattern_match_prices[3])
+        neck_point = pattern_match_prices[2]
+        pattern_height = lowest_high_point - neck_point
+        return pattern_height
+
+    # Should solve for all patterns. we should check
+    def get_pattern_target(self, pos=-1, ref_point= -1, factor=1):
+        height = self.get_pattern_height(pos)
+        pattern = self.signals[pos]
+        pattern_match_prices = pattern['info']['price_list'] if ('INDICATOR_' in pattern['indicator'] and 'TREND' not in pattern['indicator']) else [0, 0, 0, 0]
+        return pattern_match_prices[ref_point] + factor * height
+        #return {'dist': height, 'ref' : pattern_match_prices[ref_point]}

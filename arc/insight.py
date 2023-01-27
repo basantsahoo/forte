@@ -171,6 +171,7 @@ class InsightBook:
         self.candle_15_processor.create_candles()
         for candle_detector in self.candle_pattern_detectors:
             candle_detector.evaluate(notify=False)
+        self.spot_processor.process_spot_signals(notify=False)
 
     def spot_minute_data_stream(self, price, iv=None):
         #print('insight price_input_stream++++++++++++++++++++++++++++++++++++ insight book')
@@ -208,7 +209,7 @@ class InsightBook:
         for candle_detector in self.candle_pattern_detectors:
             #print('candle patterns=====')
             candle_detector.evaluate()
-
+        self.spot_processor.process_spot_signals()
         #self.activity_log.process()
 
         for strategy in self.strategies:
