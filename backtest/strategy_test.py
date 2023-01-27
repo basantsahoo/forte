@@ -181,6 +181,7 @@ if __name__ == '__main__':
     results = pd.DataFrame(results)
     part_results = results  # [['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
     part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))
+    part_results['exit_time_read'] = part_results['exit_time'].apply(lambda x: datetime.fromtimestamp(x))
     search_days = results['day'].to_list()
     file_name = strat_config_file.split('.')[0]
     print('total P&L', part_results['realized_pnl'].sum())

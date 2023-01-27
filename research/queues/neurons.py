@@ -128,7 +128,15 @@ class Neuron:
 
     def check_validity(self):
         last_tick_time = self.strategy.insight_book.spot_processor.last_tick['timestamp']
-        self.signals = [signal for signal in self.signals if last_tick_time - signal['signal_time'] >= self.validity_period * 60]
+        if self.id == 0:
+            for signal in self.signals:
+                pass
+                #print('time lapsed ======', (last_tick_time - signal['signal_time'])/60)
+
+        self.signals = [signal for signal in self.signals if last_tick_time - signal['signal_time'] < self.validity_period * 60]
+        if self.id == 0:
+            pass
+            #print(self.signals)
         self.check_activation()
 
     def get_attributes(self, pos=-1):
@@ -225,6 +233,7 @@ class Neuron:
         else:
             new_status = False
         if new_status != self.active:
+            print("status change id ========", self.id, "new stats=====", new_status)
             self.active = new_status
             self.forward_activation(new_status)
             self.post_log()
@@ -242,6 +251,7 @@ class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron)
 
     def get_signal_high(self):
         signal = self.get_signal(-1)
+        print(signal)
         return signal['info']['high']
 
 class FixedForLifeNeuron(Neuron): #BinaryCurrentOrHistory
@@ -301,6 +311,7 @@ class UniqueHistPurgeableNeuron(Neuron): #NoDuplicateSeries
                 self.pending_trade_eval = True
                 self.forward_signal()
                 self.check_activation()
+                self.post_log()
 
 class NonEvaluatedFreshSignalOnlyQueue(Neuron):
     """

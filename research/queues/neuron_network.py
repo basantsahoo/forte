@@ -67,9 +67,10 @@ class QNetwork:
     # Entry signal is and
     def evaluate_entry_signals(self):
         passed = True
-        for queue_item in self.neuron_dict.values():
+        for q_id, queue_item in self.neuron_dict.items():
             queue = queue_item['neuron']
             res = queue.eval_entry_criteria()
+            print('trade eval status of neuron==== id===', q_id, "status====", res)
             passed = res and passed
             if not passed:
                 break

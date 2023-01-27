@@ -106,6 +106,7 @@ class BaseStrategy:
                     queue = self.entry_signal_pipeline.get_que_by_category(target_fn['mapped_object'])#self.entry_signal_queues[target_fn['mapped_object']]
                     # print('queue.'+ mapped_fn + "()")
                     rs = eval('queue.' + mapped_fn)(**kwargs)
+                    print('inside target fn +++++++++', rs)
                 elif target_fn['category'] == 'global':
                     obj = target_fn['mapped_object']
                     fn_string = 'self.' + (obj + '.' if obj else '') + mapped_fn  # + '()'
@@ -210,6 +211,7 @@ class BaseStrategy:
         cover = triggers[0].get('cover', 0)
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'triggers': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         self.confirm_trigger(sig_key, triggers)
+        print('placing entry order at================', datetime.fromtimestamp(self.insight_book.spot_processor.last_tick['timestamp']))
         self.insight_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
 
     def trigger_exit(self, signal_id, trigger_id, exit_type=None):
@@ -286,6 +288,7 @@ class BaseStrategy:
     def evaluate(self):
         #self.process_incomplete_signals()
         self.monitor_existing_positions()
+        self.check_neuron_validity()
         self.look_for_trade()
 
     def monitor_existing_positions(self):

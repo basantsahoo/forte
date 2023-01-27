@@ -37,7 +37,7 @@ class SpotProcessor:
                 #print('candle_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), candle_5)
                 candle_low = candle_5['low']
                 if candle_low > self.ema_5[-1]:
-                    print('+++++++++++++++++++++++++++++++++++++++candle signal+++++++++++++++++++++++++++++++++++++++')
+                    print('+++++++++++++++++++++++++++++++++++++++candle signal+++++++++++++++++++++++++++++++++++++++',datetime.fromtimestamp(self.last_tick['timestamp']))
                     pat = {'category': 'TECHNICAL', 'indicator': 'CDL_5_ABOVE_EMA_5', 'strength': 1,
                            'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
                            'info': candle_5}
@@ -45,13 +45,13 @@ class SpotProcessor:
 
                 price_below_ema = int(candle_5['close'] < self.ema_5[-1])
                 if price_below_ema:
-                    print('+++++++++++++++++++++++++++++++++++++++price_below_ema signal+++++++++++++++++++++++++++++++++++++++')
+                    print('+++++++++++++++++++++++++++++++++++++++price_below_ema signal+++++++++++++++++++++++++++++++++++++++',datetime.fromtimestamp(self.last_tick['timestamp']))
                     pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_BELOW_EMA_5', 'strength': 1,
                            'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
                            'info': {}}
 
                 else:
-                    print('+++++++++++++++++++++++++++++++++++++++price_above_ema signal+++++++++++++++++++++++++++++++++++++++')
+                    print('+++++++++++++++++++++++++++++++++++++++price_above_ema signal+++++++++++++++++++++++++++++++++++++++',datetime.fromtimestamp(self.last_tick['timestamp']))
                     pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_ABOVE_EMA_5', 'strength': 1,
                            'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
                            'info': {}}
