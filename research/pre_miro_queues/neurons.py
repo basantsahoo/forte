@@ -10,80 +10,6 @@ def get_neuron(neuron_type=None, manager=None, neuron_id=0,  signal_type=None, m
         raise Exception("Signal Queue is not defined")
 
 
-#neuron_type="fifo/fixed",stream_size=1/1000,
-class Neuron:
-    def __init__(self, strategy, neuron_id, neuron_type, stream_size, signal_type, min_activation_strength, trade_eval, activation_subscriptions, validity_period, flush_hist, register_instr):
-        self.strategy = strategy
-        self.id = neuron_id
-        self.type = neuron_type
-        self.stream_size = stream_size
-        self.signal_type = signal_type
-        self.min_activation_strength = min_activation_strength
-        self.max_activation_strength = min_activation_strength
-        self.trade_eval = trade_eval
-        self.validity_period = validity_period
-        self.flush_hist = flush_hist
-        self.register_instr = register_instr
-        #self.reversal_subscriptions = reversal_subscriptions
-        self.signals = []
-        self.last_signal_time = None
-
-        self.signal_forward_channels = []
-        self.activation_forward_channels = []
-        self.active = False
-        self.pending_trade_eval = False
-        self.activation_dependency = {}
-        for back_neuron_id in activation_subscriptions:
-            self.activation_dependency[back_neuron_id] = False
-
-    def receive_signal(self, signal):
-        return False
-        #print(self.category, len(self.queue))
-
-    def check_dependency(self):
-        pass
-
-    def add_to_signal_queue(self):
-        pass
-
-    def check_activation(self):
-        pass
-
-    def start_watcher(self):
-        pass
-
-    def add_watcher_to_manager_queue(self):
-        pass
-
-    def forward_state_change(self):
-        pass
-
-    def receive_watcher_update_signal(self):
-        pass
-
-    def receive_watcher_reset_signal(self):
-        pass
-
-    def stop_watcher(self):
-        pass
-
-    def remove_watcher_from_manager_queue(self):
-        pass
-
-    def update_feature_from_watcher_update_signal(self):
-        pass
-
-    def back_neuron_signal(self):
-        pass
-
-    def reset(self):
-        pass
-
-    def flush(self):
-        pass
-
-
-
 class Neuron:
     def __init__(self, manager, neuron_id, signal_type, min_activation_strength, trade_eval, activation_subscriptions, validity_period, flush_hist, register_instr, watcher_info):
         self.manager = manager
@@ -109,14 +35,9 @@ class Neuron:
         for back_neuron_id in activation_subscriptions:
             self.activation_dependency[back_neuron_id] = False
 
-        self.pending_signal_for_evaluation = False
-
-
-
     def receive_signal(self, signal):
         return False
         #print(self.category, len(self.queue))
-
 
     def get_signal(self, pos=-1):
         return self.signals[pos]
