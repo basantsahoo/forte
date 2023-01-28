@@ -182,6 +182,9 @@ class Neuron:
         #print('Neuron id==', repr(self.id), "REVERSE  LOG")
         if self.signals and len(self.signals) < self.min_activation_strength:
             self.signals = []
+            if self.watcher_info:
+                self.manager.stop_watcher_from_neuron(self.id)
+
         self.check_activation()
 
     def watcher_signal_received(self):

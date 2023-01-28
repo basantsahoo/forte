@@ -20,7 +20,7 @@
             "id": 0,
             "signal_type": "TECH_PRICE_ABOVE_EMA_5",
             "trade_eval": [],
-            "min_activation_strength": 2,
+            "min_activation_strength": 4,
             "activation_subscriptions": [],
             "validity_period":40,
             "flush_hist": false,
@@ -42,7 +42,7 @@
             "reversal_subscriptions": [],
             "watcher_info": {
               "type": "HighBreach",
-              "signal_type": "TECH_CDL_5_ABOVE_EMA_5",
+              "signal_type": "TICK_PRICE_SIGNAL",
               "min_activation_strength": 1,
               "life_span": 30
             }
@@ -65,7 +65,7 @@
       ]
     }
   ],
-  "test_days": [],
+  "test_days": ["2023-01-23"],
   "for_past_days": 30,
   "symbols": ["NIFTY"],
   "to_date": "2023-01-24",

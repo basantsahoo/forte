@@ -22,6 +22,10 @@ class SpotProcessor:
         epoch_minute = get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
         self.last_tick = feed_small
+        pat = {'category': 'PRICE', 'indicator': 'TICK_PRICE', 'strength': 1,
+               'signal_time': self.last_tick['timestamp'], 'notice_time': self.last_tick['timestamp'],
+               'info': self.last_tick}
+        self.insight_book.pattern_signal(pat)
 
     def process_spot_signals(self, notify=True):
         if notify and len(list(self.spot_ts.keys())) > 1:
