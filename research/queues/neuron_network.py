@@ -73,7 +73,7 @@ class QNetwork:
             for watcher in queue_item['neuron'].watcher_list:
                 if (signal['category'], signal['indicator']) == watcher.signal_type:
                     watcher.receive_signal(signal)
-            print(queue_item['neuron'].signal_type)
+            #print(queue_item['neuron'].signal_type)
             if (signal['category'], signal['indicator']) == queue_item['neuron'].signal_type:
                 if signal['category'] in ['STATE']:
                     proceed = True

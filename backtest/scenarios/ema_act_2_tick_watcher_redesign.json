@@ -22,7 +22,7 @@
               "q_type": "stream",
               "size": 1000,
               "unique_only": true,
-              "validity": 40
+              "validity_period": 40
             },
             "signal_type": "TECH_PRICE_ABOVE_EMA_5",
             "trade_eval": [],
@@ -44,7 +44,7 @@
               "q_type": "fixed",
               "size": 1,
               "unique_only": true,
-              "validity": 375
+              "validity_period": 375
             },
             "signal_type": "TECH_CDL_5_ABOVE_EMA_5",
             "trade_eval": [],
@@ -71,7 +71,7 @@
               "q_type": "stream",
               "size": 1,
               "unique_only": true,
-              "validity": 375
+              "validity_period": 375
             },
             "signal_type": "TECH_PRICE_BELOW_EMA_5",
             "trade_eval": [],

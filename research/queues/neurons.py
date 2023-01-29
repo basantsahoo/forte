@@ -15,7 +15,7 @@ class Neuron:
         self.trade_eval = kwargs['trade_eval']
         self.flush_hist = kwargs['flush_hist']
         self.register_instr = kwargs['register_instr']
-        self.signal_queue = SignalQueue(kwargs['signal_queue_info'])
+        self.signal_queue = SignalQueue(**kwargs['signal_queue_info'])
         self.update_watcher_info = kwargs['update_watcher_info']
         self.reset_watcher_info = kwargs['reset_watcher_info']
         self.signal_forward_channels = []
@@ -29,7 +29,7 @@ class Neuron:
             self.activation_dependency[back_neuron_id] = False
 
     def receive_signal(self, signal):
-        print('receive_signal  ', self.id)
+        #print('receive_signal  ', self.id)
         if self.dependency_satisfied():
             self.add_to_signal_queue(signal)
 
@@ -151,10 +151,10 @@ class Neuron:
         return self.active
 
     def pre_log(self):
-        print('Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.get_activation_dependency(), 'current count ==', len(self.signals))
+        print('Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
 
     def post_log(self):
-        print('Neuron id==', repr(self.id), "POST LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.get_activation_dependency(), 'current count ==', len(self.signals))
+        print('Neuron id==', repr(self.id), "POST LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
 
     def communication_log(self, info):
         if info['code'] != 'watcher_signal':
@@ -243,6 +243,12 @@ class Neuron:
         test = criteria[1] + criteria[2] + repr(criteria[3])
         res = eval(test)
         return res
+
+    def get_signal_high(self):
+        return self.get_watcher_threshold('high')
+        #signal = self.signal_queue.get_signal(-1)
+        #return signal['info']['high']
+
 
 class CurrentMemoryPurgeableNeuron2(Neuron):   #FreshNoHist(Neuron) #Changed to fixed for life for test
     """Always keeps the last signal"""
