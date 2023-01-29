@@ -1,289 +1,149 @@
 from helper.utils import locate_point
-
-
-def get_neuron(neuron_type=None, manager=None, neuron_id=0,  signal_type=None, min_activation_strength=1, trade_eval=[],  activation_subscriptions=[], validity_period=60, flush_hist=True, register_instr=False, watcher_info=None):
-    if neuron_type in ['CurrentMemoryPurgeableNeuron']:
-        return CurrentMemoryPurgeableNeuron(manager, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, watcher_info)
-    elif neuron_type in ['UniqueHistPurgeableNeuron']:
-        return UniqueHistPurgeableNeuron(manager, neuron_id, signal_type, min_activation_strength, trade_eval,  activation_subscriptions, validity_period, flush_hist, register_instr, watcher_info)
-    else:
-        raise Exception("Signal Queue is not defined")
+from research.queues.signal_queue import SignalQueue
+from research.strategies.signal_setup import get_signal_key
+from research.queues.watchers import get_watcher
 
 
 #neuron_type="fifo/fixed",stream_size=1/1000,
 class Neuron:
-    def __init__(self, strategy, neuron_id, neuron_type, stream_size, signal_type, min_activation_strength, trade_eval, activation_subscriptions, validity_period, flush_hist, register_instr):
-        self.strategy = strategy
-        self.id = neuron_id
-        self.type = neuron_type
-        self.stream_size = stream_size
-        self.signal_type = signal_type
-        self.min_activation_strength = min_activation_strength
-        self.max_activation_strength = min_activation_strength
-        self.trade_eval = trade_eval
-        self.validity_period = validity_period
-        self.flush_hist = flush_hist
-        self.register_instr = register_instr
-        #self.reversal_subscriptions = reversal_subscriptions
-        self.signals = []
-        self.last_signal_time = None
-
-        self.signal_forward_channels = []
-        self.activation_forward_channels = []
-        self.active = False
-        self.pending_trade_eval = False
-        self.activation_dependency = {}
-        for back_neuron_id in activation_subscriptions:
-            self.activation_dependency[back_neuron_id] = False
-
-    def receive_signal(self, signal):
-        return False
-        #print(self.category, len(self.queue))
-
-    def check_dependency(self):
-        pass
-
-    def add_to_signal_queue(self):
-        pass
-
-    def check_activation(self):
-        pass
-
-    def start_watcher(self):
-        pass
-
-    def add_watcher_to_manager_queue(self):
-        pass
-
-    def forward_state_change(self):
-        pass
-
-    def receive_watcher_update_signal(self):
-        pass
-
-    def receive_watcher_reset_signal(self):
-        pass
-
-    def stop_watcher(self):
-        pass
-
-    def remove_watcher_from_manager_queue(self):
-        pass
-
-    def update_feature_from_watcher_update_signal(self):
-        pass
-
-    def back_neuron_signal(self):
-        pass
-
-    def reset(self):
-        pass
-
-    def flush(self):
-        pass
-
-
-
-class Neuron:
-    def __init__(self, manager, neuron_id, signal_type, min_activation_strength, trade_eval, activation_subscriptions, validity_period, flush_hist, register_instr, watcher_info):
+    def __init__(self, manager, **kwargs):
         self.manager = manager
-        self.id = neuron_id
-        self.signal_type = signal_type
-        self.min_activation_strength = min_activation_strength
-        self.trade_eval = trade_eval
-        self.signal_type = signal_type
-        self.min_activation_strength = min_activation_strength
-        self.validity_period = validity_period
-        self.flush_hist = flush_hist
-        self.register_instr = register_instr
-        self.watcher_info = watcher_info
-        #self.reversal_subscriptions = reversal_subscriptions
-        self.signals = []
-        self.last_signal_time = None
-
+        self.id = kwargs['id']
+        self.signal_type = kwargs['signal_type']
+        self.min_activation_strength = kwargs['min_activation_strength']
+        self.max_activation_strength = kwargs['max_activation_strength']
+        self.trade_eval = kwargs['trade_eval']
+        self.flush_hist = kwargs['flush_hist']
+        self.register_instr = kwargs['register_instr']
+        self.signal_queue = SignalQueue(kwargs['signal_queue_info'])
+        self.update_watcher_info = kwargs['update_watcher_info']
+        self.reset_watcher_info = kwargs['reset_watcher_info']
         self.signal_forward_channels = []
         self.activation_forward_channels = []
         self.active = False
         self.pending_trade_eval = False
         self.activation_dependency = {}
-        for back_neuron_id in activation_subscriptions:
+        self.watcher_list = []
+        self.watcher_thresholds = {'high': None, 'low': None, 'close':None}
+        for back_neuron_id in kwargs['activation_subscriptions']:
             self.activation_dependency[back_neuron_id] = False
 
-        self.pending_signal_for_evaluation = False
-
-
-
     def receive_signal(self, signal):
-        return False
-        #print(self.category, len(self.queue))
+        if self.dependency_satisfied():
+            self.add_to_signal_queue(signal)
 
-
-    def get_signal(self, pos=-1):
-        return self.signals[pos]
-
-    def flush(self):
-        if self.flush_hist:
-            self.signals = []
-            if self.watcher_info:
-                self.manager.stop_watcher_from_neuron(self.id)
-            self.check_activation()
-
-    def remove_last(self):
-        del self.signals[-1]
-
-    def has_signal(self):
-        return bool(self.signals)
-
-    def get_pattern_height(self, pos=-1):
-        return 0
-
-    def eval_entry_criteria(self):
-        test_criteria = self.trade_eval
-        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
-        if not test_criteria:
-            return True
-        #print(criteria)
-        try:
-            pattern = self.signals[test_criteria[0]]
-        except:
-            return False
-        #print(pattern)
-        strength = pattern['strength']
-        signal = pattern.get('signal', "")
-        time_lapsed = (curr_ts - pattern['notice_time'])/60
-        all_waves = pattern['info'].get('all_waves', [])
-        pattern_height = self.get_pattern_height(test_criteria[0])
-
-        test = test_criteria[1] + test_criteria[2] + repr(test_criteria[3])
-        """
-        print(self.category)
-        print(test)
-        print(strength)
-        """
-        res = eval(test)
-        self.pending_evaluation = False
-        return res
-
-    def eval_exit_criteria(self):
-        criteria = self.trade_eval
-        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
-        #print('eval_exit_criteria', criteria)
-        if not criteria:
-            return True
-        #print(criteria)
-        try:
-            pattern = self.signals[criteria[0]]
-        except:
-            return False  # Different from entry
-
-        #print(pattern)
-        signal = pattern['signal']
-        time_lapsed = (curr_ts - pattern['notice_time'])/60
-        all_waves = pattern['info'].get('all_waves', [])
-        pattern_height = self.get_pattern_height(criteria[0])
-
-        test = criteria[1] + criteria[2] + repr(criteria[3])
-        res = eval(test)
-        return res
-
-    def check_validity(self):
-        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
-        if self.id == 0:
-            for signal in self.signals:
-                pass
-                #print('time lapsed ======', (last_tick_time - signal['signal_time'])/60)
-
-        self.signals = [signal for signal in self.signals if last_tick_time - signal['signal_time'] < self.validity_period * 60]
-        if self.id == 0:
-            pass
-            #print(self.signals)
-        self.check_activation()
-
-    def get_attributes(self, pos=-1):
-        res = {}
-        pattern = self.signals[pos]
-        if pattern['info'].get('price_list', None) is not None:
-            res['pattern_price'] = pattern['info']['price_list']
-        if pattern['info'].get('time_list', None) is not None:
-            res['pattern_time'] = pattern['info']['time_list']
-        if pattern['info'].get('time', None) is not None:
-            res['pattern_time'] = pattern['info']['time']
-        if pattern['info'].get('candle', None) is not None:
-            res['pattern_price'] = pattern['info']['candle']
-        if pattern['info'].get('time_list', None) is not None:
-            res['pattern_time'] = pattern['info']['time_list']
-
-        if 'strike' in pattern:
-            res['strike'] = pattern['strike']
-        if 'kind' in pattern:
-            res['kind'] = pattern['kind']
-        if 'money_ness' in pattern:
-            res['money_ness'] = pattern['money_ness']
-
-        if res.get('pattern_price', None):
-            pattern_df = self.manager.strategy.insight_book.get_inflex_pattern_df().dfstock_3
-            pattern_location = locate_point(pattern_df, max(res['pattern_price']))
-            res['pattern_location'] = pattern_location
-        if pattern['info'].get('price_list', None) is not None:
-            res['pattern_height'] = self.get_pattern_height()
-        res['strength'] = pattern['strength']
-        return res
-
-    def get_activation_dependency(self):
+    def dependency_satisfied(self):
         status = True
         for st in self.activation_dependency.values():
             status = status and st
         return status
+
+    def add_to_signal_queue(self, signal):
+        new_signal = self.signal_queue.new_signal(signal)
+        if new_signal:
+            self.pending_trade_eval = True
+            self.forward_signal()
+            self.check_activation_status_change()
 
     def forward_signal(self, info={}):
         info = {'code': 'signal', 'n_id': self.id}
         for channel in self.signal_forward_channels:
             channel(info)
 
-    def forward_activation(self, status):
-        info = {'code': 'activation', 'n_id' : self.id, 'status':status}
+    def check_activation_status_change(self):
+        if (len(self.signal_queue.signals) >= self.min_activation_strength) and (len(self.signal_queue.signals) <= self.max_activation_strength):
+            new_status = True
+        else:
+            new_status = False
+        if new_status != self.active:
+            print("Neuron id ========", self.id, "status changed. new activation stats=====", new_status)
+            if new_status:
+                if self.register_instr:
+                    self.manager.strategy.register_instrument(self.signals[-1])
+                self.create_watchers()
+            else:
+                self.remove_watchers()
+            self.active = new_status
+            self.forward_state_change(new_status) #Inform only when changed
+            self.post_log()
+
+    def create_watchers(self):
+        if self.update_watcher_info:
+            self.new_watcher('watcher_update_signal')
+        if self.reset_watcher_info:
+            self.new_watcher('watcher_reset_signal')
+
+    def new_watcher(self, code='watcher_update_signal'):
+        watcher_info = self.update_watcher_info.copy() if code == 'watcher_update_signal' else self.reset_watcher_info.copy()
+        q_signal_key = get_signal_key(watcher_info['signal_type'])
+        watcher_info['signal_type'] = q_signal_key
+        watcher_id = len(self.watcher_list)
+        if watcher_info['type'] in ['HighBreach']:
+            threshold = self.get_watcher_threshold('high')
+        else:
+            threshold = self.get_watcher_threshold('close')
+        watcher = get_watcher(self, watcher_id, watcher_info, threshold)
+        watcher.code = code
+        watcher.activation_forward_channels.append(self.receive_communication)
+        self.watcher_list.append(watcher)
+
+    def get_watcher_threshold(self, th_type):
+        th = self.watcher_thresholds[th_type]
+        if th is None:
+            th = self.signal_queue.get_signal(-1)['info'][th_type]
+        return th
+
+    def remove_watchers(self, watcher_id=None):
+        if watcher_id is None:
+            for watcher in self.watcher_list:
+                print('watcher id ', watcher.id, ' removed')
+                watcher.activation_forward_channels = []
+            self.watcher_list = []
+        else:
+            for w in range(len(self.watcher_list)):
+                if self.watcher_list[w].id == watcher_id:
+                    del self.watcher_list[w]
+                    break
+
+    def forward_state_change(self, status):
+        info = {'code': 'activation', 'n_id': self.id, 'status':status}
         for channel in self.activation_forward_channels:
             channel(info)
 
-    def add_activation_forward_channel(self, channel):
-        self.activation_forward_channels.append(channel)
-
-    def add_signal_forward_channel(self, channel):
-        self.signal_forward_channels.append(channel)
-
-    def remove_activation_forward_channel(self, channel):
-        self.activation_forward_channels.remove(channel)
-
-    def remove_signal_forward_channel(self, channel):
-        self.signal_forward_channels.remove(channel)
-
-    def reverse_signal_received(self):
-        #print('Neuron id==', repr(self.id), "REVERSE  LOG")
-        if self.signals and len(self.signals) < self.min_activation_strength:
-            self.signals = []
-            if self.watcher_info:
-                self.manager.stop_watcher_from_neuron(self.id)
-
-        self.check_activation()
-
-    def watcher_signal_received(self):
-        del self.signals[-1]
-        self.check_activation()
+    def flush(self):
+        if self.flush_hist:
+            self.reset()
 
     def receive_communication(self, info={}):
         self.communication_log(info)
         if info['code'] == 'activation':
             self.activation_dependency[info['n_id']] = info['status']
             #print('receive_communication activation', self.id, info)
-        if info['code'] == 'signal':
-            self.reverse_signal_received()
-        if info['code'] == 'watcher_signal':
-            self.watcher_signal_received()
-            #print('receive_communication reverse signal', self.id, info)
+        elif info['code'] == 'signal':
+            self.reset_neuron_signal()
+        elif info['code'] == 'watcher_update_signal':
+            self.watcher_thresholds[info['threshold_type']] = info['threshold']
+            self.remove_watchers()
+            self.create_watchers()
+        elif info['code'] == 'watcher_reset_signal':
+            self.reset()
 
+    def reset_neuron_signal(self):
+        #print('Neuron id==', repr(self.id), "REVERSE  LOG")
+        if not self.active:
+            self.reset()
 
-    def send_communication(self):
-        pass
+    def reset(self):
+        self.signal_queue.reset()
+        self.remove_watchers()
+        self.check_activation()
+
+    def check_validity(self):
+        self.signal_queue.check_validity()
+        self.check_activation()
+        for watcher in self.watcher_list:
+            if watcher.life_span_complete():
+                del watcher
 
     def pre_log(self):
         print('Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.get_activation_dependency(), 'current count ==', len(self.signals))
@@ -297,28 +157,9 @@ class Neuron:
         else:
             print('Neuron id==', repr(self.id), "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
-    def switch_watcher(self, new_status):
-        if self.watcher_info:
-            if new_status:
-                self.manager.start_watcher(self.id, self.watcher_info, self.signals[-1]['info'])
 
 
-
-    def check_activation(self):
-        if len(self.signals) >= self.min_activation_strength:
-            new_status = True
-            if self.register_instr:
-                self.manager.strategy.register_instrument(self.signals[-1])
-        else:
-            new_status = False
-        if new_status != self.active:
-            self.switch_watcher(new_status)
-            print("status change id ========", self.id, "new stats=====", new_status)
-            self.active = new_status
-            self.forward_activation(new_status)
-            self.post_log()
-
-class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron) #Changed to fixed for life for test
+class CurrentMemoryPurgeableNeuron2(Neuron):   #FreshNoHist(Neuron) #Changed to fixed for life for test
     """Always keeps the last signal"""
     def receive_signal(self, signal):
         #self.pre_log()
@@ -334,7 +175,7 @@ class CurrentMemoryPurgeableNeuron(Neuron):   #FreshNoHist(Neuron) #Changed to f
         print(signal)
         return signal['info']['high']
 
-class UniqueHistPurgeableNeuron(Neuron): #NoDuplicateSeries
+class UniqueHistPurgeableNeuron2(Neuron): #NoDuplicateSeries
     """
     Accumulates all fresh signals which are not duplicate
     """

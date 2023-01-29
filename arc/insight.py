@@ -214,7 +214,7 @@ class InsightBook:
 
         for strategy in self.strategies:
             strategy.process_custom_signal()
-            strategy.evaluate()
+            strategy.on_minute_data()
 
     def option_minute_data_stream(self, option_data):
         #print('option price_input_stream+++++++++++++++++++++++++++++++++++++++++++++++++++++++++ insight book')

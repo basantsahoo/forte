@@ -280,17 +280,20 @@ class BaseStrategy:
         return self.exit_signal_pipeline.evaluate_exit_signals()
 
     def check_neuron_validity(self):
+        self.entry_signal_pipeline.check_validity()
+        self.exit_signal_pipeline.check_validity()
         for pattern_queue_item in self.entry_signal_pipeline.neuron_dict.values():
             pattern_queue_item['neuron'].check_validity()
         for pattern_queue_item in self.exit_signal_pipeline.neuron_dict.values():
             pattern_queue_item['neuron'].check_validity()
 
-    def evaluate(self):
-        #print(self.insight_book.spot_processor.last_tick)
-        #self.process_incomplete_signals()
-        self.monitor_existing_positions()
+    def on_minute_data(self):
+        self.on_tick_data()
         self.check_neuron_validity()
         self.look_for_trade()
+
+    def on_tick_data(self):
+        self.monitor_existing_positions()
 
     def monitor_existing_positions(self):
         self.close_on_exit_signal()
