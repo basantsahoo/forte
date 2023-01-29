@@ -73,7 +73,7 @@ class QNetwork:
             for watcher in queue_item['neuron'].watcher_list:
                 if (signal['category'], signal['indicator']) == watcher.signal_type:
                     watcher.receive_signal(signal)
-
+            print(queue_item['neuron'].signal_type)
             if (signal['category'], signal['indicator']) == queue_item['neuron'].signal_type:
                 if signal['category'] in ['STATE']:
                     proceed = True
@@ -121,5 +121,5 @@ class QNetwork:
                 return queue_item['neuron']
 
     def check_validity(self):
-        for neuron_item in self.entry_signal_pipeline.neuron_dict.values():
+        for neuron_item in self.neuron_dict.values():
             neuron_item['neuron'].check_validity()

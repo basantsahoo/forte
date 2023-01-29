@@ -30,7 +30,6 @@ class SignalQueue:
                 return False
 
     def check_validity(self, last_tick_time):
-        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
         self.signals = [signal for signal in self.signals if last_tick_time - signal['signal_time'] < self.validity_period * 60]
 
 

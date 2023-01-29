@@ -9,7 +9,7 @@ class Neuron:
     def __init__(self, manager, **kwargs):
         self.manager = manager
         self.id = kwargs['id']
-        self.signal_type = kwargs['signal_type']
+        self.signal_type = get_signal_key(kwargs['signal_type'])
         self.min_activation_strength = kwargs['min_activation_strength']
         self.max_activation_strength = kwargs['max_activation_strength']
         self.trade_eval = kwargs['trade_eval']
@@ -29,6 +29,7 @@ class Neuron:
             self.activation_dependency[back_neuron_id] = False
 
     def receive_signal(self, signal):
+        print('receive_signal  ', self.id)
         if self.dependency_satisfied():
             self.add_to_signal_queue(signal)
 
@@ -136,14 +137,18 @@ class Neuron:
     def reset(self):
         self.signal_queue.reset()
         self.remove_watchers()
-        self.check_activation()
+        self.check_activation_status_change()
 
     def check_validity(self):
-        self.signal_queue.check_validity()
-        self.check_activation()
+        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        self.signal_queue.check_validity(last_tick_time)
+        self.check_activation_status_change()
         for watcher in self.watcher_list:
             if watcher.life_span_complete():
                 del watcher
+
+    def has_signal(self):
+        return self.active
 
     def pre_log(self):
         print('Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.get_activation_dependency(), 'current count ==', len(self.signals))
@@ -157,7 +162,87 @@ class Neuron:
         else:
             print('Neuron id==', repr(self.id), "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
+    def get_attributes(self, pos=-1):
+        res = {}
+        pattern = self.signal_queue.get_signal(pos)
+        if pattern['info'].get('price_list', None) is not None:
+            res['pattern_price'] = pattern['info']['price_list']
+        if pattern['info'].get('time_list', None) is not None:
+            res['pattern_time'] = pattern['info']['time_list']
+        if pattern['info'].get('time', None) is not None:
+            res['pattern_time'] = pattern['info']['time']
+        if pattern['info'].get('candle', None) is not None:
+            res['pattern_price'] = pattern['info']['candle']
+        if pattern['info'].get('time_list', None) is not None:
+            res['pattern_time'] = pattern['info']['time_list']
 
+        if 'strike' in pattern:
+            res['strike'] = pattern['strike']
+        if 'kind' in pattern:
+            res['kind'] = pattern['kind']
+        if 'money_ness' in pattern:
+            res['money_ness'] = pattern['money_ness']
+
+        if res.get('pattern_price', None):
+            pattern_df = self.manager.strategy.insight_book.get_inflex_pattern_df().dfstock_3
+            pattern_location = locate_point(pattern_df, max(res['pattern_price']))
+            res['pattern_location'] = pattern_location
+        if pattern['info'].get('price_list', None) is not None:
+            res['pattern_height'] = self.get_pattern_height()
+        res['strength'] = pattern['strength']
+        return res
+
+    def get_pattern_height(self, pos=-1):
+        return 0
+
+    def eval_entry_criteria(self):
+        test_criteria = self.trade_eval
+        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        if not test_criteria:
+            return True
+        #print(criteria)
+        try:
+            pattern = self.signals[test_criteria[0]]
+        except:
+            return False
+        #print(pattern)
+        strength = pattern['strength']
+        signal = pattern.get('signal', "")
+        time_lapsed = (curr_ts - pattern['notice_time'])/60
+        all_waves = pattern['info'].get('all_waves', [])
+        pattern_height = self.get_pattern_height(test_criteria[0])
+
+        test = test_criteria[1] + test_criteria[2] + repr(test_criteria[3])
+        """
+        print(self.category)
+        print(test)
+        print(strength)
+        """
+        res = eval(test)
+        self.pending_evaluation = False
+        return res
+
+    def eval_exit_criteria(self):
+        criteria = self.trade_eval
+        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        #print('eval_exit_criteria', criteria)
+        if not criteria:
+            return True
+        #print(criteria)
+        try:
+            pattern = self.signals[criteria[0]]
+        except:
+            return False  # Different from entry
+
+        #print(pattern)
+        signal = pattern['signal']
+        time_lapsed = (curr_ts - pattern['notice_time'])/60
+        all_waves = pattern['info'].get('all_waves', [])
+        pattern_height = self.get_pattern_height(criteria[0])
+
+        test = criteria[1] + criteria[2] + repr(criteria[3])
+        res = eval(test)
+        return res
 
 class CurrentMemoryPurgeableNeuron2(Neuron):   #FreshNoHist(Neuron) #Changed to fixed for life for test
     """Always keeps the last signal"""
