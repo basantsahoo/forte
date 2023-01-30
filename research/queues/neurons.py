@@ -87,6 +87,7 @@ class Neuron:
         watcher.code = code
         watcher.activation_forward_channels.append(self.receive_communication)
         self.watcher_list.append(watcher)
+        print("Watcher id",watcher_id, " created for Neuron id====", self.id)
 
     def get_watcher_threshold(self, th_type):
         th = self.watcher_thresholds[th_type]
@@ -97,7 +98,7 @@ class Neuron:
     def remove_watchers(self, watcher_id=None):
         if watcher_id is None:
             for watcher in self.watcher_list:
-                print('watcher id ', watcher.id, ' removed')
+                print('watcher id ', watcher.id, ' removed from Neuron id====', self.id)
                 watcher.activation_forward_channels = []
             self.watcher_list = []
         else:
@@ -123,7 +124,7 @@ class Neuron:
         elif info['code'] == 'signal':
             self.reset_neuron_signal()
         elif info['code'] == 'watcher_update_signal':
-            self.watcher_thresholds[info['threshold_type']] = info['threshold']
+            self.watcher_thresholds[info['threshold_type']] = info['new_threshold']
             self.remove_watchers()
             self.create_watchers()
         elif info['code'] == 'watcher_reset_signal':
@@ -137,6 +138,7 @@ class Neuron:
     def reset(self):
         self.signal_queue.reset()
         self.remove_watchers()
+        self.watcher_thresholds = {'high': None, 'low': None, 'close': None}
         self.check_activation_status_change()
 
     def check_validity(self):
@@ -151,16 +153,18 @@ class Neuron:
         return self.active
 
     def pre_log(self):
-        print('Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
+        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        print(last_tick_time, ' Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
 
     def post_log(self):
         print('Neuron id==', repr(self.id), "POST LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
 
     def communication_log(self, info):
-        if info['code'] != 'watcher_signal':
-            print('Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        if info['code'] not in ['watcher_update_signal', 'watcher_reset_signal']:
+            print(last_tick_time, ' Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
         else:
-            print('Neuron id==', repr(self.id), "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+            print(last_tick_time, ' Neuron id==', repr(self.id), "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
     def get_attributes(self, pos=-1):
         res = {}

@@ -54,13 +54,13 @@
             "activation_subscriptions": [0],
             "reversal_subscriptions": [],
             "register_instr": false,
-            "reset_watcher_info": {
+            "update_watcher_info": {
               "type": "HighBreach",
               "signal_type": "TICK_PRICE_SIGNAL",
               "min_activation_strength": 1,
               "life_span": 30
             },
-            "update_watcher_info": {}
+            "reset_watcher_info": {}
           },
           "apply_pre_filter": false
         },
@@ -88,10 +88,29 @@
         }
       ],
       "signal_filters" : [
-      ]
+      ],
+      "stop_loss_adjuster": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1000,
+              "unique_only": true,
+              "validity_period": 40
+            },
+            "signal_type": "TECH_PRICE_ABOVE_EMA_5",
+            "trade_eval": [],
+            "min_activation_strength": 4,
+            "max_activation_strength": 8,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {}
+          }
     }
   ],
-  "test_days": ["2023-01-23"],
+  "test_days": [],
   "for_past_days": 30,
   "symbols": ["NIFTY"],
   "to_date": "2023-01-24",

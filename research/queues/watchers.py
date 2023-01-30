@@ -45,9 +45,11 @@ class HighBreach:
             channel(info)
 
     def pre_log(self):
-        print('Watcher id==',  repr(self.id), "PRE  LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
+        last_tick_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        print(last_tick_time, ' Watcher id==',  repr(self.id), "PRE  LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
 
     def post_log(self):
-        print('Watcher id==', repr(self.id), "POST LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type,  'current count ==', len(self.signals))
+        last_tick_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        print(last_tick_time, ' Watcher id==', repr(self.id), "POST LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type,  'current count ==', len(self.signals))
 
 

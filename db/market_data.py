@@ -349,9 +349,21 @@ def get_daily_option_data(symbol, trade_day):
 def get_daily_option_data_2(symbol, trade_day):
     symbol = helper_utils.get_nse_index_symbol(symbol)
     stmt_1 = "select timestamp,option_symbol, CONCAT(strike,'_', kind) AS instrument, strike, kind, oi, volume,open,high,low,close  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc"
+    print(stmt_1.format(symbol, trade_day))
+    start = datetime.now()
     conn = engine.connect()
+    end = datetime.now()
+    print('connection open took', (end - start).total_seconds())
+
+    start = datetime.now()
     df = pd.read_sql_query(stmt_1.format(symbol, trade_day), conn)
+    end = datetime.now()
+    print('result fetch took', (end - start).total_seconds())
+
+    start = datetime.now()
     conn.close()
+    end = datetime.now()
+    print('conn close took', (end - start).total_seconds())
     return df
 
 

@@ -186,6 +186,8 @@ class InsightBook:
         #self.market_data[epoch_minute] = feed_small
         self.spot_processor.process_minute_data(price)
         self.set_curr_tpo(epoch_minute)
+        for strategy in self.strategies:
+            strategy.on_minute_data_pre()
         self.update_state_transition()
         if len(self.spot_processor.spot_ts.items()): #== 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()
@@ -214,7 +216,7 @@ class InsightBook:
 
         for strategy in self.strategies:
             strategy.process_custom_signal()
-            strategy.on_minute_data()
+            strategy.on_minute_data_post()
 
     def option_minute_data_stream(self, option_data):
         #print('option price_input_stream+++++++++++++++++++++++++++++++++++++++++++++++++++++++++ insight book')

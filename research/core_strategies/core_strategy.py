@@ -282,14 +282,12 @@ class BaseStrategy:
     def check_neuron_validity(self):
         self.entry_signal_pipeline.check_validity()
         self.exit_signal_pipeline.check_validity()
-        for pattern_queue_item in self.entry_signal_pipeline.neuron_dict.values():
-            pattern_queue_item['neuron'].check_validity()
-        for pattern_queue_item in self.exit_signal_pipeline.neuron_dict.values():
-            pattern_queue_item['neuron'].check_validity()
 
-    def on_minute_data(self):
+    def on_minute_data_pre(self):
         self.on_tick_data()
         self.check_neuron_validity()
+
+    def on_minute_data_post(self):
         self.look_for_trade()
 
     def on_tick_data(self):
