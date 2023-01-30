@@ -99,24 +99,25 @@ class StartegyBackTester:
                     story_book.spot_minute_data_stream(price)
                     time.sleep(0.005)
 
-                for strategy, trade_details in pm.position_book.items():
+                for strategy_tuple, trade_details in pm.position_book.items():
                     #print(strategy)
                     position = trade_details['position']
-                    strategy_signal_generator = story_book.get_signal_generator_from_id(strategy[1])
-                    for trigger_id, trade in position.items():
-                        #print(trigger_id)
-                        #print(trade)
-                        _tmp = {'day': day, 'symbol': strategy[0], 'strategy': strategy[1], 'signal_id':  strategy[2], 'trigger': trigger_id, 'side': trade['side'], 'entry_time': trade['entry_time'], 'exit_time': trade['exit_time'], 'entry_price': trade['entry_price'], 'exit_price': trade['exit_price'] , 'realized_pnl': round(trade['realized_pnl'], 2), 'un_realized_pnl': round(trade['un_realized_pnl'], 2)}
+                    strategy_id = strategy_tuple[1]
+                    symbol = strategy_tuple[0]
+                    trade_id = strategy_tuple[2]
+                    strategy_signal_generator = story_book.get_signal_generator_from_id(strategy_id)
+                    for leg_id, leg_info in position.items():
+                        _tmp = {'day': day, 'symbol': symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                         _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
-                        trigger_details = strategy_signal_generator.tradable_signals[strategy[2]]['triggers'][trigger_id]
+                        trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
                         _tmp = {**_tmp, **trigger_details}
-                        signal_details = strategy_signal_generator.tradable_signals[strategy[2]]
+                        signal_custom_details = strategy_signal_generator.tradable_signals[trade_id].custom_features
                         signal_params = ['pattern_height']
                         for signal_param in signal_params:
-                            if signal_param in signal_details:
-                                _tmp[signal_param] = signal_details[signal_param]
+                            if signal_param in signal_custom_details:
+                                _tmp[signal_param] = signal_custom_details[signal_param]
                         if story_book.record_metric:
-                            params = strategy_signal_generator.params_repo.get((strategy[2], trigger_id), {})
+                            params = strategy_signal_generator.params_repo.get((trade_id, leg_id), {})
                             #print('params====', params)
                             _tmp = {**_tmp, **params}
                         results.append(_tmp)

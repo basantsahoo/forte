@@ -71,7 +71,7 @@ class AlgoPortfolioManager:
         signal_id = signal_info['signal_id']
         order_type = signal_info['order_type']
         cover = signal_info.get('cover',0)
-        total_quantity = sum([trig['qty'] for trig in signal_info['triggers']])
+        total_quantity = sum([trig['qty'] for trig in signal_info['legs']])
         self.executed_orders += 1
         order_id = 'AL' + str(self.executed_orders)
         side = get_broker_order_type(order_type)
@@ -85,7 +85,7 @@ class AlgoPortfolioManager:
             self.position_book[(symbol, strategy_id, signal_id)] = {}
             self.position_book[(symbol, strategy_id, signal_id)]['order_book'] = []
             self.position_book[(symbol, strategy_id, signal_id)]['position'] = {}
-        for trigger in signal_info['triggers']:
+        for trigger in signal_info['legs']:
             trigger_seq = trigger['seq']
             qty = abs(trigger['qty'])
             if trigger_seq not in self.position_book[(symbol, strategy_id, signal_id)]['position']:
@@ -104,7 +104,7 @@ class AlgoPortfolioManager:
         symbol = signal_info['symbol']
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
-        trigger_seq = signal_info['trigger_id']
+        trigger_seq = signal_info['leg_seq']
         qty = signal_info['qty']
 
         #print('strategy exit signal', qty)
