@@ -12,6 +12,7 @@ class Trade:
         self.custom_features = {}
         self.controllers = self.strategy.trade_controllers
         self.controller_list = []
+        self.con_seq = 0
 
     def trigger_entry(self):
         legs = self.get_trade_legs()
@@ -21,7 +22,8 @@ class Trade:
             controller_info = self.strategy.trade_controllers[min(leg_no, total_controllers-1)]
             q_signal_key = get_signal_key(controller_info['signal_type'])
             controller_info['signal_type'] = q_signal_key
-            controller_id = len(self.controller_list)
+            controller_id = self.con_seq #len(self.controller_list)
+            self.con_seq += 1
             controller = get_controller(controller_id, leg['seq'], leg['entry_price'], leg['spot_stop_loss_rolling'], leg['market_view'], controller_info)
             controller.activation_forward_channels.append(self.receive_communication)
             self.controller_list.append(controller)
@@ -146,7 +148,17 @@ class Trade:
         self.legs[leg_seq]['closed'] = True
         self.legs[leg_seq]['exit_type'] = exit_type
         self.legs[leg_seq]['exit_price'] = last_candle['close']
+        self.remove_controller(leg_seq)
         self.strategy.trigger_exit(signal_info)
+
+    def remove_controller(self, leg_seq):
+        print('remove_controller test++++++++')
+        for c_c in range(len(self.controller_list)):
+            if self.controller_list[c_c].id == leg_seq:
+                print('removing controller ', self.controller_list[c_c].id)
+                self.controller_list[c_c].activation_forward_channels = []
+                del self.controller_list[c_c]
+
 
     def register_signal(self, signal):
         for controller in self.controller_list:

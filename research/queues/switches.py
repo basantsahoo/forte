@@ -1,5 +1,4 @@
 def get_switch(switch_info):
-    print(switch_info)
     switch_type = switch_info['type']
     if switch_type in ['DistToSL']:
         return DistToSL(**switch_info)

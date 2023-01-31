@@ -63,7 +63,7 @@ class AlgoPortfolioManager:
 
 
     def strategy_entry_signal(self, signal_info, option_signal=False):
-        print('algo port strategy_entry_signal')
+        print('########################################## algo port strategy_entry_signal')
         print(signal_info)
 
         symbol = signal_info['symbol']
@@ -98,7 +98,7 @@ class AlgoPortfolioManager:
 
 
     def strategy_exit_signal(self, signal_info, candle=None, option_signal=False):
-        print('algo port strategy_exit_signal')
+        print('##########################################algo port strategy_exit_signal')
         print(signal_info)
 
         symbol = signal_info['symbol']
