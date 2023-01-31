@@ -37,6 +37,10 @@ class SpotProcessor:
             self.last_candle_5_count = candle_count
             candle_5 = self.insight_book.candle_5_processor.get_last_n_candles(1)[0]
             print('new candle start time===', datetime.fromtimestamp(candle_5['timestamp']))
+            pat = {'category': 'PRICE', 'indicator': 'CANDLE', 'strength': 1,
+                   'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
+                   'info': candle_5}
+            self.insight_book.pattern_signal(pat)
             self.ema_5.add_input_value(candle_5['close'])
             if self.ema_5:
                 #print('ema_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), self.ema_5[-1])

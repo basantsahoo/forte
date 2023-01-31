@@ -1,5 +1,5 @@
-from research.strategies.signal_setup import get_target_fn
-
+from research.strategies.signal_setup import get_signal_key,get_target_fn
+from research.queues.controllers import get_controller
 
 class Trade:
     def __init__(self, strategy, t_id, trade_inst):
@@ -10,6 +10,22 @@ class Trade:
         self.legs = {}
         self.trade_inst = trade_inst
         self.custom_features = {}
+        self.controllers = self.strategy.trade_controllers
+        self.controller_list = []
+
+    def trigger_entry(self):
+        legs = self.get_trade_legs()
+        for leg_no in range(len(legs)):
+            leg = legs[leg_no]
+            total_controllers = len(self.strategy.trade_controllers)
+            controller_info = self.strategy.trade_controllers[min(leg_no, total_controllers-1)]
+            q_signal_key = get_signal_key(controller_info['signal_type'])
+            controller_info['signal_type'] = q_signal_key
+            controller_id = len(self.controller_list)
+            controller = get_controller(controller_id, leg['seq'], leg['entry_price'], leg['spot_stop_loss_rolling'], leg['market_view'], controller_info)
+            controller.activation_forward_channels.append(self.receive_communication)
+            self.controller_list.append(controller)
+        self.strategy.trigger_entry(self.trade_inst, self.strategy.order_type, self.id, legs)
 
     def get_trade_legs(self):
         next_trigger = len(self.legs) + 1
@@ -33,9 +49,10 @@ class Trade:
             'market_view': market_view,
             'spot_target': spot_targets[idx-1] if spot_targets else None,
             'spot_stop_loss': spot_stop_losses[idx-1] if spot_stop_losses else None,
+            'spot_stop_loss_rolling': spot_stop_losses[idx - 1] if spot_stop_losses else None,
             'instr_target': instr_targets[idx-1] if instr_targets else None,
             'instr_stop_loss': instr_stop_losses[idx-1] if instr_stop_losses else None,
-            'duration': min(self.strategy.exit_time[idx-1], self.strategy.insight_book.get_time_to_close()-1),
+            'duration': min(self.strategy.exit_time[idx-1], self.strategy.insight_book.get_time_to_close()-2),
             'quantity': self.strategy.minimum_quantity,
             'exit_type':None,
             'entry_price':last_candle['close'],
@@ -108,13 +125,13 @@ class Trade:
                 if market_view == 'LONG':
                     if trigger_details['spot_target'] and last_spot_candle['close'] >= trigger_details['spot_target']:
                         self.trigger_exit(trigger_seq, exit_type='ST')
-                    elif trigger_details['spot_stop_loss'] and last_spot_candle['close'] < trigger_details['spot_stop_loss']:
+                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] < trigger_details['spot_stop_loss_rolling']:
                         self.trigger_exit( trigger_seq, exit_type='SS')
                 elif market_view == 'SHORT':
                     if trigger_details['spot_target'] and last_spot_candle['close'] <= trigger_details['spot_target']:
                         self.trigger_exit(trigger_seq, exit_type='ST')
                         # print(last_candle, trigger_details['target'])
-                    elif trigger_details['spot_stop_loss'] and last_spot_candle['close'] > trigger_details['spot_stop_loss']:
+                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] > trigger_details['spot_stop_loss_rolling']:
                         self.trigger_exit(trigger_seq, exit_type='SS')
 
     def trigger_exit(self, leg_seq, exit_type=None):
@@ -130,3 +147,22 @@ class Trade:
         self.legs[leg_seq]['exit_type'] = exit_type
         self.legs[leg_seq]['exit_price'] = last_candle['close']
         self.strategy.trigger_exit(signal_info)
+
+    def register_signal(self, signal):
+        for controller in self.controller_list:
+            if (signal['category'], signal['indicator']) == controller.signal_type:
+                print('signal', signal)
+                controller.receive_signal(signal)
+
+    def receive_communication(self, info={}):
+        self.communication_log(info)
+        if info['code'] == 'revise_stop_loss':
+            leg = self.legs[info['target_leg']]
+            leg['spot_stop_loss_rolling'] = info['new_threshold']
+
+    def communication_log(self, info):
+        #last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        if info['code'] not in ['watcher_update_signal', 'watcher_reset_signal']:
+            print(' Trade Manager id==', repr(self.id), "COM  LOG", 'From Controller id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+        else:
+            print(' Trade Manager id==', repr(self.id), "COM  LOG", 'From Controller id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))

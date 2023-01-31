@@ -34,9 +34,10 @@ class BaseStrategy:
                  spot_short_stop_losses=[], #[0.001, 0.002, 0.002, 0.002],
                  instr_targets = [], #[0.002,0.003, 0.004, 0.005],
                  instr_stop_losses = [], #[-0.001,-0.002, -0.002,-0.002]
-                 instr_to_trade = []
+                 instr_to_trade=[],
+                 trade_controllers=[],
+                 entry_switch={}
     ):
-
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.insight_book = insight_book
         self.order_type = order_type
@@ -68,11 +69,12 @@ class BaseStrategy:
         self.pending_signals = {}
         self.tradable_signals ={}
         self.minimum_quantity = 1
+        self.trade_controllers = trade_controllers
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
         #print('Add entry queue')
-        self.entry_signal_pipeline = QNetwork(self, entry_signal_queues)
+        self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)
         #print('Add exit queue')
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
 
@@ -106,11 +108,12 @@ class BaseStrategy:
         for trade_inst in all_inst:
             trd_key = self.add_tradable_signal(trade_inst)
             curr_trade = self.tradable_signals[trd_key]
-            legs = curr_trade.get_trade_legs()
+            curr_trade.trigger_entry()
+            # legs = curr_trade.get_trade_legs()
             # Filter out triggers which doesn't contain data as a result of not enough time
             # triggers = [leg for leg in legs if leg]
             # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
-            self.trigger_entry(trade_inst, self.order_type, trd_key, legs)
+            # self.trigger_entry(trade_inst, self.order_type, trd_key, legs)
         self.entry_signal_pipeline.flush_queues()
         self.process_post_entry()
 
@@ -172,6 +175,8 @@ class BaseStrategy:
     def register_signal(self, signal):
         self.entry_signal_pipeline.register_signal(signal)
         self.exit_signal_pipeline.register_signal(signal)
+        for trade in self.tradable_signals.values():
+            trade.register_signal(signal)
 
     def evaluate_entry_signals(self):
         return self.entry_signal_pipeline.evaluate_entry_signals()

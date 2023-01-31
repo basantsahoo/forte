@@ -20,6 +20,7 @@ class Neuron:
         self.reset_watcher_info = kwargs['reset_watcher_info']
         self.signal_forward_channels = []
         self.activation_forward_channels = []
+        self.threshold_forward_channels = []
         self.active = False
         self.pending_trade_eval = False
         self.activation_dependency = {}
@@ -44,6 +45,7 @@ class Neuron:
         if new_signal:
             self.pending_trade_eval = True
             self.forward_signal()
+            self.forward_threshold_change()
             self.check_activation_status_change()
 
     def forward_signal(self, info={}):
@@ -92,7 +94,7 @@ class Neuron:
     def get_watcher_threshold(self, th_type):
         th = self.watcher_thresholds[th_type]
         if th is None:
-            th = self.signal_queue.get_signal(-1)['info'][th_type]
+            th = self.signal_queue.get_signal(-1)['info'][th_type] if self.signal_queue.signals else None
         return th
 
     def remove_watchers(self, watcher_id=None):
@@ -108,9 +110,17 @@ class Neuron:
                     break
 
     def forward_state_change(self, status):
+
         info = {'code': 'activation', 'n_id': self.id, 'status':status}
         for channel in self.activation_forward_channels:
             channel(info)
+
+    def forward_threshold_change(self):
+        for channel in self.threshold_forward_channels:
+            th_type = channel['th_type']
+            comm_fn = channel['comm_fn']
+            th = self.get_watcher_threshold(th_type)
+            comm_fn(th_type, th)
 
     def flush(self):
         if self.flush_hist:
@@ -125,6 +135,7 @@ class Neuron:
             self.reset_neuron_signal()
         elif info['code'] == 'watcher_update_signal':
             self.watcher_thresholds[info['threshold_type']] = info['new_threshold']
+            self.forward_threshold_change()
             self.remove_watchers()
             self.create_watchers()
         elif info['code'] == 'watcher_reset_signal':
@@ -136,6 +147,7 @@ class Neuron:
             self.reset()
 
     def reset(self):
+        self.forward_threshold_change()
         self.signal_queue.reset()
         self.remove_watchers()
         self.watcher_thresholds = {'high': None, 'low': None, 'close': None}

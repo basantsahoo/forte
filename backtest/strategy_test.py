@@ -7,7 +7,7 @@ from datetime import datetime
 import time
 import json
 import traceback
-
+import math
 
 from backtest.settings import reports_dir
 from backtest.bt_strategies import *
@@ -193,10 +193,12 @@ if __name__ == '__main__':
     results = back_tester.run()
     results = pd.DataFrame(results)
     part_results = results  # [['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
+    print('total P&L', part_results['realized_pnl'].sum())
     part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))
-    #part_results['exit_time_read'] = part_results['exit_time'].apply(lambda x: datetime.fromtimestamp(x))
+    part_results['exit_time_read'] = part_results['exit_time'].apply(lambda x: datetime.fromtimestamp(x) if not math.isnan(x) else x)
     search_days = results['day'].to_list()
     file_name = strat_config_file.split('.')[0]
-    print('total P&L', part_results['realized_pnl'].sum())
-    print('saving result to file', reports_dir + file_name + '.csv')
-    part_results.to_csv(reports_dir + file_name + '.csv', index=False)
+    file_path = reports_dir + file_name + '.csv'
+
+    print('saving result to file', file_path)
+    part_results.to_csv(file_path, index=False)
