@@ -1,39 +1,41 @@
-from research.queues.neurons import get_neuron
-from research.strategies.signal_setup import get_signal_key, get_target_fn
+from research.queues.neurons import Neuron
+from research.strategies.signal_setup import get_signal_key
 from collections import OrderedDict
+from research.queues.switches import get_switch
 
 
 class QNetwork:
-    def __init__(self, strategy, signal_neurons_info):
+    def __init__(self, strategy, signal_neurons_info, switch_info={}):
         self.neuron_dict = OrderedDict()
         self.strategy = strategy
         self.signal_neurons_info = signal_neurons_info
-        for signal_neuron in signal_neurons_info:
-            self.add_neuron(signal_neuron)
+        self.switch_info = switch_info
+        for signal_neuron_item in signal_neurons_info:
+            self.add_neuron(signal_neuron_item)
+        if switch_info:
+            self.switch = get_switch(switch_info)
+            for subscription in switch_info['que_subscriptions']:
+                from_id = subscription[0]
+                th_type = subscription[1]
+                fn = subscription[2]
+                back_neuron = self.neuron_dict[from_id]['neuron']
+                comm_fn = eval("self.switch." + fn)
+                back_neuron.threshold_forward_channels.append({"th_type": th_type, "comm_fn" : comm_fn})
 
     def get_neuron_info_from_id(self, n_id):
         for signal_neuron in self.signal_neurons_info:
-            if signal_neuron['id'] == n_id:
+            if signal_neuron['neuron_info']['id'] == n_id:
                 return signal_neuron
 
-    def create_if_not_exists(self, neuron):
-        if neuron['id'] not in self.neuron_dict:
-            q_signal_key = get_signal_key(neuron['signal_type'])
-            self.neuron_dict[neuron['id']] = {
-                'neuron': get_neuron(
-                    neuron_type=neuron['neuron_type'],
-                    strategy=self.strategy,
-                    neuron_id=neuron['id'],
-                    signal_type=q_signal_key,
-                    min_activation_strength=neuron['min_activation_strength'],
-                    trade_eval=neuron['trade_eval'],
-                    activation_subscriptions=neuron['activation_subscriptions'],
-                    validity_period=neuron.get('validity_period', None),
-                    flush_hist=neuron['flush_hist'],
-                    register_instr=neuron['register_instr'],
-                    reversal_subscriptions=neuron['reversal_subscriptions']),
-                'register_instr': neuron['register_instr'],
-                'apply_pre_filter': neuron['apply_pre_filter']
+
+    def create_if_not_exists(self, signal_neuron_item):
+        if signal_neuron_item['neuron_info']['id'] not in self.neuron_dict:
+            self.neuron_dict[signal_neuron_item['neuron_info']['id']] = {
+                'neuron': Neuron(
+                    manager=self,
+                    **signal_neuron_item['neuron_info']
+                ),
+                'apply_pre_filter': signal_neuron_item['apply_pre_filter']
             }
 
     def create_backward_link(self, from_id, to_id, link_type="signal"):
@@ -47,15 +49,19 @@ class QNetwork:
         elif link_type == "activation":
             linked_neuron.activation_forward_channels.append(curr_neuron.receive_communication)
 
-    def add_neuron(self, neuron):
-        self.create_if_not_exists(neuron)
-        for back_neuron_id in neuron['reversal_subscriptions']:
-            self.create_backward_link(neuron['id'], back_neuron_id,"signal")
-        for back_neuron_id in neuron['activation_subscriptions']:
-            self.create_backward_link(neuron['id'], back_neuron_id, "activation")
+    def add_neuron(self, signal_neuron_item):
+        self.create_if_not_exists(signal_neuron_item)
+        for back_neuron_id in signal_neuron_item['neuron_info']['reversal_subscriptions']:
+            self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "signal")
+        for back_neuron_id in signal_neuron_item['neuron_info']['activation_subscriptions']:
+            self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "activation")
 
     def register_signal(self, signal):
         for q_id, queue_item in self.neuron_dict.items():
+            for watcher in queue_item['neuron'].watcher_list:
+                if (signal['category'], signal['indicator']) == watcher.signal_type:
+                    watcher.receive_signal(signal)
+            #print(queue_item['neuron'].signal_type)
             if (signal['category'], signal['indicator']) == queue_item['neuron'].signal_type:
                 if signal['category'] in ['STATE']:
                     proceed = True
@@ -74,7 +80,14 @@ class QNetwork:
             passed = res and passed
             if not passed:
                 break
-        return passed
+        if passed:
+            res = self.switch.evaluate() if self.switch else True
+            if not res:
+                self.flush_queues()
+            return res
+        else:
+            return False
+
 
     # Exit signal is or
     def evaluate_exit_signals(self):
@@ -90,13 +103,20 @@ class QNetwork:
         return passed
 
     def all_entry_signal(self):
+        #print('all entry signal', [queue_item['neuron'].has_signal() for queue_item in self.neuron_dict.values()])
         return self.neuron_dict and all([queue_item['neuron'].has_signal() for queue_item in self.neuron_dict.values()])
 
     def flush_queues(self):
         for queue_item in self.neuron_dict.values():
             queue_item['neuron'].flush()
+        if self.switch:
+            self.switch.flush()
 
     def get_que_by_category(self, category):
         for q_id, queue_item in self.neuron_dict.items():
             if category == queue_item['neuron'].signal_type:
                 return queue_item['neuron']
+
+    def check_validity(self):
+        for neuron_item in self.neuron_dict.values():
+            neuron_item['neuron'].check_validity()

@@ -3,13 +3,13 @@
   "strategy_kwargs":[
     {
       "id":"PriceBreakEMADownward",
-      "exit_time":[300, 300],
+      "exit_time":[60, 75],
       "order_type":"SELL",
       "spot_instruments":["SPOT"],
       "derivative_instruments":[],
       "max_signal": 5,
       "triggers_per_signal": 1,
-      "spot_short_targets": [0.03,0.04, 0.04, 0.05],
+      "spot_short_targets": [0.003,0.004, 0.004, 0.005],
       "spot_short_stop_losses":[["SPIKE_CANDLE_HIGH"],0.002, 0.002,0.002],
       "instr_targets":[0.002,0.003, 0.004, 0.005],
       "instr_stop_losses":[0.001,0.002, 0.002,0.002],
@@ -88,26 +88,16 @@
         }
       ],
       "trade_controllers": [
-        {
-          "type": "DownController",
-          "signal_type": "CANDLE_SIGNAL",
-          "roll_factor": 0.0005
-        }
+
       ],
-      "entry_switch": {
-          "id": 0,
-          "type": "DistToSL",
-          "switch_eval": "(high - close)/close < 0.002",
-          "que_subscriptions": [[1 ,"high","set_threshold"],[2, "close","set_threshold"]]
-        },
       "signal_filters" : [
       ]
     }
   ],
-  "test_days": ["2022-11-01"],
-  "for_past_days": 90,
+  "test_days": [],
+  "for_past_days": 30,
   "symbols": ["NIFTY"],
-  "to_date": "2022-12-14",
+  "to_date": "2023-01-24",
   "candle_sw" : 0,
   "week_days": [],
   "record_metric": true,
