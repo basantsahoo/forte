@@ -1,5 +1,4 @@
 def get_switch(switch_info):
-    print(switch_info)
     switch_type = switch_info['type']
     if switch_type in ['DistToSL']:
         return DistToSL(**switch_info)
@@ -14,8 +13,8 @@ class DistToSL:
         self.thresholds = {'high': None, 'low': None, 'open': None, 'close': None, 'entry': None}
 
     def set_threshold(self, th_type, th):
+        print('Switch id==', repr(self.id), "THRESHOLD  LOG", "Switch class==", self.__class__.__name__, "threshold type==", th_type, 'value ==', th, 'old value ', self.thresholds[th_type])
         self.thresholds[th_type] = th
-        print(' Switch id==', repr(self.id), "THRESHOLD  LOG", "Switch class==", self.__class__.__name__, "threshold type==", th_type, 'value ==', th)
 
     def evaluate(self):
         high = self.thresholds['high']

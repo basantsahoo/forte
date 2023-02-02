@@ -12,19 +12,22 @@ class Trade:
         self.custom_features = {}
         self.controllers = self.strategy.trade_controllers
         self.controller_list = []
+        self.con_seq = 0
 
     def trigger_entry(self):
         legs = self.get_trade_legs()
-        for leg_no in range(len(legs)):
-            leg = legs[leg_no]
-            total_controllers = len(self.strategy.trade_controllers)
-            controller_info = self.strategy.trade_controllers[min(leg_no, total_controllers-1)]
-            q_signal_key = get_signal_key(controller_info['signal_type'])
-            controller_info['signal_type'] = q_signal_key
-            controller_id = len(self.controller_list)
-            controller = get_controller(controller_id, leg['seq'], leg['entry_price'], leg['spot_stop_loss_rolling'], leg['market_view'], controller_info)
-            controller.activation_forward_channels.append(self.receive_communication)
-            self.controller_list.append(controller)
+        if self.controllers:
+            for leg_no in range(len(legs)):
+                leg = legs[leg_no]
+                total_controllers = len(self.strategy.trade_controllers)
+                controller_info = self.strategy.trade_controllers[min(leg_no, total_controllers-1)]
+                q_signal_key = get_signal_key(controller_info['signal_type'])
+                controller_info['signal_type'] = q_signal_key
+                controller_id = self.con_seq #len(self.controller_list)
+                self.con_seq += 1
+                controller = get_controller(self.id +"_"+ repr(controller_id), leg['seq'], leg['entry_price'], leg['spot_stop_loss_rolling'], leg['market_view'], controller_info)
+                controller.activation_forward_channels.append(self.receive_communication)
+                self.controller_list.append(controller)
         self.strategy.trigger_entry(self.trade_inst, self.strategy.order_type, self.id, legs)
 
     def get_trade_legs(self):
@@ -125,14 +128,18 @@ class Trade:
                 if market_view == 'LONG':
                     if trigger_details['spot_target'] and last_spot_candle['close'] >= trigger_details['spot_target']:
                         self.trigger_exit(trigger_seq, exit_type='ST')
-                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] < trigger_details['spot_stop_loss_rolling']:
+                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] < trigger_details['spot_stop_loss']:
                         self.trigger_exit( trigger_seq, exit_type='SS')
+                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] < trigger_details['spot_stop_loss_rolling']:
+                        self.trigger_exit( trigger_seq, exit_type='SRS')
                 elif market_view == 'SHORT':
                     if trigger_details['spot_target'] and last_spot_candle['close'] <= trigger_details['spot_target']:
                         self.trigger_exit(trigger_seq, exit_type='ST')
                         # print(last_candle, trigger_details['target'])
-                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] > trigger_details['spot_stop_loss_rolling']:
+                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] > trigger_details['spot_stop_loss']:
                         self.trigger_exit(trigger_seq, exit_type='SS')
+                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] > trigger_details['spot_stop_loss_rolling']:
+                        self.trigger_exit(trigger_seq, exit_type='SRS')
 
     def trigger_exit(self, leg_seq, exit_type=None):
         #print('trigger_exit+++++++++++++++++++++++++++++', signal_id, trigger_id, exit_type)
@@ -147,11 +154,22 @@ class Trade:
         self.legs[leg_seq]['exit_type'] = exit_type
         self.legs[leg_seq]['exit_price'] = last_candle['close']
         self.strategy.trigger_exit(signal_info)
+        print(self.legs[leg_seq])
+        self.remove_controller(leg_seq)
+
+    def remove_controller(self, leg_seq):
+        print('remove_controller test for leg seq++++++++', leg_seq)
+        for c_c in range(len(self.controller_list)):
+            if self.controller_list[c_c].leg_seq == leg_seq:
+                print('removing controller ', self.controller_list[c_c].id)
+                self.controller_list[c_c].activation_forward_channels = []
+                del self.controller_list[c_c]
+
 
     def register_signal(self, signal):
         for controller in self.controller_list:
             if (signal['category'], signal['indicator']) == controller.signal_type:
-                print('signal', signal)
+                #print('signal', signal)
                 controller.receive_signal(signal)
 
     def receive_communication(self, info={}):
@@ -159,10 +177,8 @@ class Trade:
         if info['code'] == 'revise_stop_loss':
             leg = self.legs[info['target_leg']]
             leg['spot_stop_loss_rolling'] = info['new_threshold']
+            print(self.id, "new stop loss for leg ", info['target_leg'], 'is ', leg['spot_stop_loss_rolling'])
 
     def communication_log(self, info):
         #last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
-        if info['code'] not in ['watcher_update_signal', 'watcher_reset_signal']:
-            print(' Trade Manager id==', repr(self.id), "COM  LOG", 'From Controller id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
-        else:
-            print(' Trade Manager id==', repr(self.id), "COM  LOG", 'From Controller id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+        print('Trade Manager id==', repr(self.id), "COM  LOG", 'From Controller id==', info['n_id'], "sent code==", info['code'], "==")

@@ -88,11 +88,7 @@
         }
       ],
       "trade_controllers": [
-        {
-          "type": "DownController",
-          "signal_type": "CANDLE_SIGNAL",
-          "roll_factor": 0.0005
-        }
+
       ],
       "entry_switch": {
           "id": 0,

@@ -10,6 +10,7 @@ class QNetwork:
         self.strategy = strategy
         self.signal_neurons_info = signal_neurons_info
         self.switch_info = switch_info
+        self.switch = None
         for signal_neuron_item in signal_neurons_info:
             self.add_neuron(signal_neuron_item)
         if switch_info:
