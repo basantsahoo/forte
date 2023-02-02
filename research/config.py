@@ -1,1 +1,0 @@
-neuron_log = True

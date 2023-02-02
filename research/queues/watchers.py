@@ -1,4 +1,3 @@
-from datetime import datetime
 def get_watcher(neuron=None, watcher_id=0, watcher_info={}, threshold=0):
     watcher_type = watcher_info['type']
     if watcher_type in ['HighBreach']:
@@ -23,7 +22,7 @@ class HighBreach:
         self.creation_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
 
     def receive_signal(self, signal):
-        #self.pre_log()
+        self.pre_log()
         if signal['info']['high'] > self.threshold and not self.active:
             self.signals = [signal]
         self.check_activation()
@@ -46,7 +45,7 @@ class HighBreach:
             channel(info)
 
     def pre_log(self):
-        last_tick_time = datetime.fromtimestamp(self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp'])
+        last_tick_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
         print(last_tick_time, ' Watcher id==',  repr(self.id), "PRE  LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
 
     def post_log(self):
