@@ -1,5 +1,5 @@
 import pandas as pd
-from backtest.settings import reports_dir
+from settings import reports_dir
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -8,10 +8,21 @@ from dynamics.trend.technical_patterns import pattern_engine
 from matplotlib.backends.backend_pdf import PdfPages
 import helper.utils as helper_utils
 import numpy as np
+from db.market_data import (
+	#get_daily_data,
+	get_daily_profile_data,
+	get_daily_tick_data,
+	get_nth_day_hist_data,
+	get_nth_day_profile_data,
+	get_uk_opening_time,
+	convert_to_n_period_candles,
+	get_filtered_days,
+	get_prev_week_candle,
+	get_pending_profile_dates)
 
 
 def load_back_test_results():
-    df = pd.read_csv(reports_dir + 'ema_act_2_tick_watcher_redesign.csv', converters={'pattern_time': pd.eval})
+    df = pd.read_csv(reports_dir + 'double_top_nifty.csv', converters={'pattern_time': pd.eval})
     return df
 
 
@@ -68,6 +79,37 @@ def plot_patterns_ext(report, dfsub,Symbol,day=None,all_trades=[]):
     report.savefig()
     plt.close()
     #plt.show()
+
+
+def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
+	today_df = get_daily_tick_data(ticker, day)
+	prev_week_data = get_pivot_points(get_prev_week_candle(ticker, day))
+
+	today_df['timestamp'] = pd.to_datetime(today_df['timestamp'], unit='s', utc=True).dt.tz_convert('Asia/Kolkata')
+	today_df = today_df.set_index('timestamp')
+	today_df = convert_to_n_period_candles(today_df, period)
+	today_df = today_df.reset_index()
+	final_df = today_df
+
+	final_df["timestamp"] = final_df["timestamp"].apply(lambda x: x.strftime('%d-%m') + " " + x.strftime('%H:%M'))
+	fig = go.Figure(data=[
+		go.Candlestick(x=final_df['timestamp'], open=final_df['open'], high=final_df['high'], low=final_df['low'],
+					   close=final_df['close'], name=day,  text=day)])
+
+	# fig.layout = dict(xaxis=dict(type="category", categoryorder='category ascending'), yaxis=dict(tickformat=".1f"))
+	fig.layout = dict(xaxis=dict(type="category"), yaxis=dict(tickformat=".1f"))
+	fig.layout['xaxis']['rangeslider'] = {'visible': False}
+	fig.update_layout(
+		title_text=day + "_intraday      " + calendar.day_name[dt.datetime.strptime(day, '%Y-%m-%d').weekday()],
+		paper_bgcolor='rgba(0,0,0,0)',
+		plot_bgcolor='rgba(0,0,0,0)'
+	)
+	if show:
+		fig.show()
+	else:
+		plotly.io.write_image(fig, reports_dir + ticker + "/" + day + '_intraday.pdf', format='pdf')
+
+
 
 def run():
     df = load_back_test_results()

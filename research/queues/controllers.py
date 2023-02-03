@@ -35,7 +35,7 @@ class DownController:
         factor = -1 if self.market_view == 'SHORT' else 1
         pnl = factor * (ltp - self.entry_price)
         print('pnl of controller', self.id,  '+++++++', pnl, self.roll_factor * self.entry_price, self.entry_price)
-        if pnl > self.roll_factor * self.entry_price:
+        if pnl > self.roll_factor * 2 * self.entry_price:
             print('rolling controller ++++++', self.id)
             self.forward_activation()
 
