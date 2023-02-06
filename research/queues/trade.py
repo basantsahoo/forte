@@ -41,6 +41,7 @@ class Trade:
         instr = self.trade_inst
         market_view = self.strategy.get_market_view(instr)
         last_candle = self.strategy.get_last_tick(instr)
+        last_spot_candle = self.strategy.get_last_tick('SPOT')
         spot_targets = self.calculate_target('SPOT', self.strategy.spot_long_targets) if market_view == 'LONG' else self.calculate_target('SPOT', self.strategy.spot_short_targets)
         spot_stop_losses = self.calculate_target('SPOT', self.strategy.spot_long_stop_losses) if market_view == 'LONG' else self.calculate_target('SPOT', self.strategy.spot_short_stop_losses)
         instr_targets = self.calculate_target(instr, self.strategy.instr_targets) if instr != 'SPOT' else spot_targets
@@ -60,6 +61,8 @@ class Trade:
             'exit_type':None,
             'entry_price':last_candle['close'],
             'exit_price':None,
+            'spot_entry_price': last_spot_candle['close'],
+            'spot_exit_price': None,
             'trigger_time':last_candle['timestamp']
         }
         return trade_info
@@ -101,6 +104,12 @@ class Trade:
                 #self.strategy.trigger_exit(self.id, leg_seq, exit_type='EC')
                 self.trigger_exit(leg_seq, exit_type='EC')
 
+    def force_close(self):
+        for leg_seq, leg_details in self.legs.items():
+            if leg_details['exit_type'] is None:  #Still active
+                #self.strategy.trigger_exit(self.id, leg_seq, exit_type='EC')
+                self.trigger_exit(leg_seq, exit_type='FC', manage_risk=False)
+
     def close_on_instr_tg_sl_tm(self):
         last_spot_candle = self.strategy.get_last_tick('SPOT')
         for trigger_seq, trigger_details in self.legs.items():
@@ -141,7 +150,7 @@ class Trade:
                     elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] > trigger_details['spot_stop_loss_rolling']:
                         self.trigger_exit(trigger_seq, exit_type='SRS')
 
-    def trigger_exit(self, leg_seq, exit_type=None):
+    def trigger_exit(self, leg_seq, exit_type=None, manage_risk=True):
         #print('trigger_exit+++++++++++++++++++++++++++++', signal_id, trigger_id, exit_type)
         quantity = self.legs[leg_seq]['quantity']
         instrument = self.legs[leg_seq]['instrument']
@@ -150,12 +159,20 @@ class Trade:
                        'leg_seq': leg_seq,
                        'qty': quantity}
         last_candle = self.strategy.get_last_tick(instrument)
-        self.legs[leg_seq]['closed'] = True
+        last_spot_candle = self.strategy.get_last_tick('SPOT')
         self.legs[leg_seq]['exit_type'] = exit_type
         self.legs[leg_seq]['exit_price'] = last_candle['close']
+        self.legs[leg_seq]['spot_exit_price'] = last_spot_candle['close']
         self.strategy.trigger_exit(signal_info)
-        print(self.legs[leg_seq])
         self.remove_controller(leg_seq)
+        if self.trade_complete() and manage_risk:
+            self.strategy.manage_risk()
+
+    def trade_complete(self):
+        all_legs_complete = True
+        for leg in self.legs.values():
+            all_legs_complete = all_legs_complete and leg['exit_type'] is not None
+        return all_legs_complete
 
     def remove_controller(self, leg_seq):
         print('remove_controller test for leg seq++++++++', leg_seq)

@@ -3,7 +3,7 @@ from helper.utils import get_broker_order_type
 from research.strategies.signal_setup import get_target_fn
 from research.queues.neuron_network import QNetwork
 from research.queues.trade import Trade
-
+import functools
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
                     'SPOT_SELL': 'SHORT',
@@ -11,6 +11,11 @@ market_view_dict = {'SPOT_BUY': 'LONG',
                     'CE_SELL': 'SHORT',
                     'PE_BUY': 'SHORT',
                     'PE_SELL': 'LONG'}
+
+
+
+
+
 class BaseStrategy:
     def __init__(self,
                  insight_book=None,
@@ -36,7 +41,8 @@ class BaseStrategy:
                  instr_stop_losses = [], #[-0.001,-0.002, -0.002,-0.002]
                  instr_to_trade=[],
                  trade_controllers=[],
-                 entry_switch={}
+                 entry_switch={},
+                 risk_limits=[]
     ):
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.insight_book = insight_book
@@ -70,6 +76,7 @@ class BaseStrategy:
         self.tradable_signals ={}
         self.minimum_quantity = 1
         self.trade_controllers = trade_controllers
+        self.risk_limits = risk_limits
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
@@ -127,7 +134,9 @@ class BaseStrategy:
     """Deactivate when not required to run in a particular day"""
     def deactivate(self):
         self.activated = False
-        self.insight_book.remove_strategy(self)
+        #self.insight_book.remove_strategy(self)
+        print('############################################# Deactivated')
+
     """ Every strategy should run in valid tpo"""
     def valid_tpo(self):
         current_tpo = self.insight_book.curr_tpo
@@ -166,12 +175,43 @@ class BaseStrategy:
         signal_info['symbol'] = updated_symbol
         self.insight_book.pm.strategy_exit_signal(signal_info, option_signal=self.inst_is_option(instrument))
 
+    def manage_risk(self):
+        spot_movements = []
+        for trade in self.tradable_signals.values():
+            for leg in trade.legs.values():
+                if leg['spot_exit_price'] is not None:
+                    factor = -1 if leg['market_view'] == 'SHORT' else 1
+                    spot_movements.append(factor * (leg['spot_exit_price'] - leg['spot_entry_price']))
+        max_movement = max(spot_movements)
+        total_losses = sum([x for x in spot_movements if x < 0])
+        risk_limit_crossed = False
+        for risk_limit in self.risk_limits:
+            risk_limit_crossed = risk_limit_crossed or eval(risk_limit)
+            if risk_limit_crossed:
+                for trade in self.tradable_signals.values():
+                    trade.force_close()
+                self.deactivate()
+                break
+
+
     def register_instrument(self, signal):
         pass
 
     def process_post_entry(self):
         pass
 
+    def while_active(function):
+        @functools.wraps(function)
+        def wrapper(self, *args, **kwargs):
+            if self.activated:
+                func = function(self, *args, **kwargs)
+                return func
+            else:
+                return None
+        return wrapper
+
+
+    @while_active
     def register_signal(self, signal):
         self.entry_signal_pipeline.register_signal(signal)
         self.exit_signal_pipeline.register_signal(signal)
@@ -204,13 +244,16 @@ class BaseStrategy:
         self.entry_signal_pipeline.check_validity()
         self.exit_signal_pipeline.check_validity()
 
+    @while_active
     def on_minute_data_pre(self):
         self.on_tick_data()
         self.check_neuron_validity()
 
+    @while_active
     def on_minute_data_post(self):
         self.look_for_trade()
 
+    @while_active
     def on_tick_data(self):
         self.monitor_existing_positions()
 

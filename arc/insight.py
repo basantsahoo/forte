@@ -130,11 +130,13 @@ class InsightBook:
         self.strategies.append(strategy)
 
     def remove_strategy(self, strategy_to_remove):
+        print('remove_strategy', len(self.strategies))
         for strategy in self.strategies:
             if strategy.id == strategy_to_remove.id:
-                strategy.insight_book = None
+                #strategy.insight_book = None
                 self.strategies.remove(strategy)
                 break
+        print('remove_strategy', len(self.strategies))
 
     def update_periodic(self):
         #print('update periodic')
@@ -246,8 +248,8 @@ class InsightBook:
 
     def pattern_signal(self, signal):
         #print(signal['category'])
-        if signal['category'] == 'STATE':
-            #print('pattern_signal+++++++++++', signal)
+        if signal['category'] == 'STRAT':
+            print('pattern_signal+++++++++++', signal)
             pass
         self.activity_log.register_signal(signal)
         if signal['indicator'] == INDICATOR_TREND:

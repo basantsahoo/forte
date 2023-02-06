@@ -82,10 +82,19 @@ class QNetwork:
             if not passed:
                 break
         if passed:
-            res = self.switch.evaluate() if self.switch else True
-            if not res:
+            switch_val = True
+            if self.switch:
+                switch_val = self.switch.evaluate()
+                if switch_val:
+                    signal = self.switch.get_signal()
+                    if signal:
+                        last_spot_tick = self.strategy.get_last_tick('SPOT')
+                        signal['signal_time'] = last_spot_tick['timestamp']
+                        signal['notice_time'] = last_spot_tick['timestamp']
+                        self.strategy.insight_book.pattern_signal(signal)
+            if not switch_val:
                 self.flush_queues()
-            return res
+            return switch_val
         else:
             return False
 

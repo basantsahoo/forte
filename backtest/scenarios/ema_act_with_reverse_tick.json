@@ -1,5 +1,5 @@
 {
-  "strategies":["PriceBreakEMADownward"],
+  "strategies":["PriceBreakEMADownward", "PriceReverseBreakDownEMA"],
   "strategy_kwargs":[
     {
       "id":"PriceBreakEMADownward",
@@ -104,9 +104,81 @@
       "signal_filters" : [
       ],
       "risk_limits": ["max_movement > 50", "total_losses < -25"]
+    },
+     {
+      "id":"PriceReverseBreakDownEMA",
+      "exit_time":[300, 300],
+      "order_type":"BUY",
+      "spot_instruments":["SPOT"],
+      "derivative_instruments":[],
+      "max_signal": 1,
+      "triggers_per_signal": 1,
+      "spot_short_targets": [0.003,0.04, 0.04, 0.05],
+      "spot_short_stop_losses":[["SPIKE_CANDLE_HIGH"],0.002, 0.002,0.002],
+      "instr_targets":[0.002,0.003, 0.004, 0.005],
+      "instr_stop_losses":[0.001,0.002, 0.002,0.002],
+      "instr_to_trade" : [],
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 30
+            },
+            "signal_type": "STRAT_EMA_BREAK_DOWN_5",
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": true,
+            "activation_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {
+            },
+            "reset_watcher_info": {}
+          },
+          "apply_pre_filter": false
+        },
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1000,
+              "unique_only": true,
+              "validity_period": 40
+            },
+            "signal_type": "TECH_PRICE_ABOVE_EMA_5",
+            "trade_eval": [],
+            "min_activation_strength": 4,
+            "max_activation_strength": 8,
+            "flush_hist": false,
+            "activation_subscriptions": [0],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {}
+          },
+          "apply_pre_filter": false
+        }
+      ],
+      "trade_controllers": [
+      ],
+      "entry_switch": {
+          "id": 0,
+          "type": "DistToSL",
+          "switch_eval": "(close - high) > 1",
+          "que_subscriptions": [[0 ,"high","set_threshold"],[1, "close","set_threshold"]]
+        },
+      "signal_filters" : [
+      ],
+      "risk_limits": ["max_movement > 50", "total_losses < -25"]
     }
   ],
-  "test_days": ["2022-12-14"],
+  "test_days": ["2022-08-08"],
   "for_past_days": 90,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-14",
