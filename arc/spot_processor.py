@@ -11,7 +11,7 @@ class SpotProcessor:
         self.spot_ts = OrderedDict()
         self.candles_5 = []
         self.candles_15 = []
-        self.ema_5 = EMA(period=5)
+        self.ema_5 = EMA(period=2) #Eventually converts candle 5
         self.last_candle_5_count = 0
 
 
@@ -41,7 +41,10 @@ class SpotProcessor:
                    'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
                    'info': candle_5}
             self.insight_book.pattern_signal(pat)
-            self.ema_5.add_input_value(candle_5['close'])
+            if candle_count > 2 and candle_count<6:
+                self.ema_5 = EMA(period=candle_count, input_values=[candle['close'] for candle in self.insight_book.candle_5_processor.candles])
+            else:
+                self.ema_5.add_input_value(candle_5['close'])
             if self.ema_5:
                 #print('ema_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), self.ema_5[-1])
                 #print('candle_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), candle_5)

@@ -13,7 +13,8 @@ human_machine_signal_map = {
     'TECH_PRICE_BELOW_EMA_5': ('TECHNICAL', 'PRICE_BELOW_EMA_5'),
     'TECH_PRICE_ABOVE_EMA_5': ('TECHNICAL', 'PRICE_ABOVE_EMA_5'),
     'TICK_PRICE_SIGNAL': ('PRICE', 'TICK_PRICE'),
-    'CANDLE_SIGNAL': ('PRICE', 'CANDLE')
+    'CANDLE_SIGNAL': ('PRICE', 'CANDLE'),
+    'STRAT_EMA_BREAK_DOWN_5': ('STRAT', 'EMA_BREAK_DOWN_5_ENTRY')
 }
 
 human_machine_target_map = {
@@ -25,6 +26,7 @@ human_machine_target_map = {
     'LAST_N_CANDLE_BODY_TARGET_DOwN': {'category':'global', 'mapped_object': 'insight_book', 'mapped_fn':'get_n_candle_body_target_down', 'kwargs':{'period':5, 'n':3}},
     'LAST_N_CANDLE_HIGH': {'category': 'global', 'mapped_object': 'insight_book', 'mapped_fn': 'get_last_n_candle_high', 'kwargs': {'period': 5, 'n': 3}},
     'LAST_N_CANDLE_LOW': {'category':'global', 'mapped_object': 'insight_book', 'mapped_fn':'get_last_n_candle_low', 'kwargs':{'period':5, 'n':3}},
+
 }
 
 

@@ -204,24 +204,24 @@ class Neuron:
     def pre_log(self):
         if neuron_log:
             last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
-            print(last_tick_time, ' Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
+            print(last_tick_time, self.manager.strategy.id, 'Neuron id==',  repr(self.id), "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
 
     def post_log(self):
-        print('***Neuron id==', repr(self.id), "POST LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
+        print('*** ',  self.manager.strategy.id, 'Neuron id==', repr(self.id), "POST LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
 
     def reset_log(self):
-        print('***Neuron id==', repr(self.id), "RESET LOG")
+        print('*** ',  self.manager.strategy.id, 'Neuron id==', repr(self.id), "RESET LOG")
 
     def feed_forward_log(self):
-        print('***Neuron id==', repr(self.id), "FEED FORWARD LOG")
+        print('*** ',  self.manager.strategy.id, 'Neuron id==', repr(self.id), "FEED FORWARD LOG")
 
     def communication_log(self, info):
         if neuron_log:
             last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
             if info['code'] not in ['watcher_update_signal', 'watcher_reset_signal']:
-                print('***', last_tick_time, ' Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+                print('***', last_tick_time, self.manager.strategy.id, 'Neuron id==', repr(self.id), "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
             else:
-                print('***', last_tick_time, ' Neuron id==', repr(self.id), "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
+                print('***', last_tick_time, self.manager.strategy.id, 'Neuron id==', repr(self.id), "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
     def get_attributes(self, pos=-1):
         res = {}

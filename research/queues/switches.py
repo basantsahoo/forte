@@ -24,6 +24,7 @@ class DistToSL:
             return {}
 
     def evaluate(self):
+        print(self.switch_eval)
         high = self.thresholds['high']
         low = self.thresholds['low']
         open = self.thresholds['open']

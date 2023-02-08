@@ -16,6 +16,7 @@ class DownController:
         self.market_view = market_view
         self.signal_type = controller_info['signal_type']
         self.roll_factor = controller_info['roll_factor']
+        self.pnl_multiplier = controller_info.get('pnl_multiplier', 1)
         self.activation_forward_channels = []
         self.signals = []
         self.code = 'revise_stop_loss'
@@ -34,15 +35,15 @@ class DownController:
         ltp = self.signals[-1]['close']
         factor = -1 if self.market_view == 'SHORT' else 1
         pnl = factor * (ltp - self.entry_price)
-        print('pnl of controller', self.id,  '+++++++', pnl, self.roll_factor * self.entry_price, self.entry_price)
-        if pnl > self.roll_factor * 2 * self.entry_price:
-            print('rolling controller ++++++', self.id)
+        #print('pnl of controller', self.id,  '+++++++', pnl, self.roll_factor * self.entry_price, self.entry_price)
+        if pnl > self.roll_factor * self.pnl_multiplier * self.entry_price:
+            #print('rolling controller ++++++', self.id)
             self.forward_activation()
 
     def forward_activation(self):
         next_high = self.spot_stop_loss_rolling - self.roll_factor * self.entry_price #self.get_next_high()
         next_entry = self.entry_price - self.roll_factor * self.entry_price  # self.get_next_high()
-        print('Controller id==',  repr(self.id), "ROLL  LOG", "Controller class==", self.__class__.__name__, "prev sl==", self.spot_stop_loss_rolling, 'current sl ==', next_high)
+        #print('Controller id==',  repr(self.id), "ROLL  LOG", "Controller class==", self.__class__.__name__, "prev sl==", self.spot_stop_loss_rolling, 'current sl ==', next_high)
         self.spot_stop_loss_rolling = next_high
         self.entry_price = next_entry
         info = {'code': self.code, 'n_id': self.id, 'target_leg': self.leg_seq, 'new_threshold':next_high}
@@ -51,6 +52,7 @@ class DownController:
 
     def pre_log(self):
         #last_tick_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
-        print('Controller id==',  repr(self.id), "for leg===", self.leg_seq, "PRE  LOG", "Controller class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
+        pass
+        #print('Controller id==',  repr(self.id), "for leg===", self.leg_seq, "PRE  LOG", "Controller class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
 
 

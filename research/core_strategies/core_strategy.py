@@ -144,6 +144,9 @@ class BaseStrategy:
         max_tpo_met = self.max_tpo is None or current_tpo <= self.max_tpo
         return min_tpo_met and max_tpo_met
 
+    def trade_limit_not_reached(self):
+        return len(self.tradable_signals) < self.max_signal
+
     def inst_is_option(self, inst):
         return inst not in known_spot_instruments
 

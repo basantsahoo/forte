@@ -11,7 +11,8 @@ import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 
 def load_back_test_results():
-    df = pd.read_csv(reports_dir + 'ema_act_2_tick_watcher_redesign.csv', converters={'pattern_time': pd.eval})
+    df = pd.read_csv(reports_dir + 'ema_act_with_reverse_tick.csv', converters={'pattern_time': pd.eval})
+    #df = df[df['strategy'] == 'PriceReverseBreakDownEMA'] #PriceReverseBreakDownEMA # PriceBreakEMADownward43
     return df
 
 def plot_intraday_chart(report, ticker, day, period, entry_points, exit_points, entry_prices, exit_prices):
