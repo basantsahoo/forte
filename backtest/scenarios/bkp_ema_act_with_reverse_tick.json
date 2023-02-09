@@ -104,10 +104,10 @@
         },
       "signal_filters" : [
       ],
-      "risk_limits": ["max_movement > 80", "total_losses < -35"]
+      "risk_limits": ["max_movement > 80", "total_losses < -25"]
     },
     {
-      "id":"HedgeEMADownward",
+      "id":"PriceReverseBreakDownEMA",
       "exit_time":[60, 75],
       "order_type":"BUY",
       "spot_instruments":["SPOT"],
@@ -127,7 +127,7 @@
               "q_type": "fixed",
               "size": 1,
               "unique_only": true,
-              "validity_period": 90
+              "validity_period": 60
             },
             "signal_type": "STRAT_EMA_BREAK_DOWN_5",
             "trade_eval": [],
@@ -179,7 +179,7 @@
       "risk_limits": ["max_movement > 50", "total_losses < -25"]
     }
   ],
-  "test_days": ["2022-12-05"],
+  "test_days": [],
   "for_past_days": 90,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-14",

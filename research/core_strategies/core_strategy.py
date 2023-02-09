@@ -144,8 +144,8 @@ class BaseStrategy:
         max_tpo_met = self.max_tpo is None or current_tpo <= self.max_tpo
         return min_tpo_met and max_tpo_met
 
-    def trade_limit_not_reached(self):
-        return len(self.tradable_signals) < self.max_signal
+    def trade_limit_reached(self):
+        return len(self.tradable_signals) >= self.max_signal
 
     def inst_is_option(self, inst):
         return inst not in known_spot_instruments
@@ -191,6 +191,7 @@ class BaseStrategy:
         for risk_limit in self.risk_limits:
             risk_limit_crossed = risk_limit_crossed or eval(risk_limit)
             if risk_limit_crossed:
+                print("^^^^^^^^^^^Risk limit crossed", " max movement=====", max_movement, "total_losses", total_losses)
                 for trade in self.tradable_signals.values():
                     trade.force_close()
                 self.deactivate()
@@ -228,7 +229,8 @@ class BaseStrategy:
         enough_time = True #self.insight_book.get_time_to_close() > min(self.exit_time)
         suitable_tpo = self.valid_tpo()
         signal_present = self.entry_signal_pipeline.all_entry_signal()
-        if enough_time and suitable_tpo and signal_present: #and filter_criteria_met:
+        trade_limit_not_reached = not self.trade_limit_reached()
+        if trade_limit_not_reached and enough_time and suitable_tpo and signal_present: #and filter_criteria_met:
             signal_passed = self.evaluate_entry_signals() and self.custom_evaluation()
             if signal_passed:
                 self.record_params()

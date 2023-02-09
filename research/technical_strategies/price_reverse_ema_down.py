@@ -8,6 +8,7 @@ class PriceReverseBreakDownEMA(BaseStrategy):
         args = get_startegy_args(**kwargs)
         BaseStrategy.__init__(self, insight_book=insight_book, **args)
 
+
     def register_instrument(self, signal):
         if (signal['category'], signal['indicator']) == get_signal_key('TECH_PRICE_BELOW_EMA_5'):
             self.derivative_instruments = []

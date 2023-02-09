@@ -1,3 +1,4 @@
+from research.queues.process_logger import ProcessLoggerMixin
 def get_switch(switch_info):
     switch_type = switch_info['type']
     if switch_type in ['DistToSL']:
@@ -6,14 +7,15 @@ def get_switch(switch_info):
         raise Exception("Switch is not defined")
 
 
-class DistToSL:
+class DistToSL(ProcessLoggerMixin):
     def __init__(self, **kwargs):
         self.id = kwargs['id']
         self.switch_eval = kwargs['switch_eval']
         self.thresholds = {'high': None, 'low': None, 'open': None, 'close': None, 'entry': None}
         self.dispatch_signal = kwargs.get("dispatch_signal", {})
+        self.display_id = 'Switch id== ' + repr(self.id)
     def set_threshold(self, th_type, th):
-        print('Switch id==', repr(self.id), "THRESHOLD  LOG", "Switch class==", self.__class__.__name__, "threshold type==", th_type, 'value ==', th, 'old value ', self.thresholds[th_type])
+        self.log("THRESHOLD  LOG", "Switch class==", self.__class__.__name__, "threshold type==", th_type, 'value ==', th, 'old value ', self.thresholds[th_type])
         self.thresholds[th_type] = th
 
     def get_signal(self):

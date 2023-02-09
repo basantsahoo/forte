@@ -1,1 +1,1 @@
-neuron_log = True
+process_log = True
