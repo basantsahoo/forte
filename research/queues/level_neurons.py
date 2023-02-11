@@ -20,7 +20,6 @@ class Neuron(ProcessLoggerMixin):
         self.signal_queue = SignalQueue(**kwargs['signal_queue_info'])
         self.update_watcher_info = kwargs['update_watcher_info']
         self.reset_watcher_info = kwargs['reset_watcher_info']
-        self.reset_on_new_signal_channels = []
         self.signal_forward_channels = []
         self.activation_forward_channels = []
         self.threshold_forward_channels = []
@@ -54,18 +53,15 @@ class Neuron(ProcessLoggerMixin):
         new_signal = self.signal_queue.new_signal(signal)
         if new_signal:
             self.pending_trade_eval = True
+            self.forward_queue.append([self.forward_signal, {}])
             self.check_activation_status_change()
-            self.forward_queue.append([self.forward_signal, signal])
             self.forward_queue.append([self.notify_threshold_change, {}])
             self.feed_forward('new signal')
 
-    def forward_signal(self, signal={}):
-        reset_info = {'code': 'reset_signal', 'n_id': self.id}
-        for channel in self.reset_on_new_signal_channels:
-            channel(reset_info)
-        signal_info = {'code': 'queue_signal', 'n_id': self.id, "signal": signal}
+    def forward_signal(self, info={}):
+        info = {'code': 'signal', 'n_id': self.id}
         for channel in self.signal_forward_channels:
-            channel(signal_info)
+            channel(info)
 
     def check_activation_status_change(self):
         if (len(self.signal_queue.signals) >= self.min_activation_strength) and (len(self.signal_queue.signals) <= self.max_activation_strength):
@@ -81,7 +77,8 @@ class Neuron(ProcessLoggerMixin):
             else:
                 self.remove_watchers()
             self.active = new_status
-            self.forward_queue.append([self.forward_activation_status_change, new_status])
+            self.forward_queue.append([self.forward_state_change, new_status])
+            #self.forward_state_change(new_status) #Inform only when changed
             self.post_log()
 
     def create_watchers(self):
@@ -126,7 +123,7 @@ class Neuron(ProcessLoggerMixin):
                     del self.watcher_list[w]
                     break
 
-    def forward_activation_status_change(self, status):
+    def forward_state_change(self, status):
 
         info = {'code': 'activation', 'n_id': self.id, 'status':status}
         for channel in self.activation_forward_channels:
@@ -157,41 +154,6 @@ class Neuron(ProcessLoggerMixin):
         elif info['code'] == 'watcher_reset_signal':
             self.reset()
             self.feed_forward()
-
-    def receive_activation_communication(self, info={}):
-        self.communication_log(info)
-        if info['code'] == 'activation':
-            self.activation_dependency[info['n_id']] = info['status']
-            self.check_activation_status_change()
-            self.feed_forward()
-
-    def receive_reset_communication(self, info={}):
-        self.communication_log(info)
-        if info['code'] == 'reset_signal':
-            self.reset_neuron_signal()
-
-    def receive_signal_communication(self, info={}):
-        self.communication_log(info)
-        if info['code'] == 'queue_signal':
-            #self.reset_neuron_signal()
-            pass
-
-    def receive_watcher_communication(self, info={}):
-        self.communication_log(info)
-        if info['code'] == 'watcher_update_signal' or info['code'] == 'watcher_reset_signal':
-            self.watcher_action(info)
-
-
-    def receive_activation_communication(self, info={}):
-        self.communication_log(info)
-        if info['code'] == 'activation':
-            self.activation_dependency[info['n_id']] = info['status']
-            self.check_activation_status_change()
-            self.feed_forward()
-        elif info['code'] == 'reset_signal':
-            self.reset_neuron_signal()
-        elif info['code'] == 'watcher_update_signal' or info['code'] == 'watcher_reset_signal':
-            self.watcher_action(info)
 
     def receive_communication(self, info={}):
         self.communication_log(info)

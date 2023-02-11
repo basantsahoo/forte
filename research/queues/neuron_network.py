@@ -49,13 +49,17 @@ class QNetwork:
             linked_neuron.signal_forward_channels.append(curr_neuron.receive_communication)
         elif link_type == "activation":
             linked_neuron.activation_forward_channels.append(curr_neuron.receive_communication)
+        elif link_type == "reversal":
+            linked_neuron.reset_on_new_signal_channels.append(curr_neuron.receive_communication)
 
     def add_neuron(self, signal_neuron_item):
         self.create_if_not_exists(signal_neuron_item)
         for back_neuron_id in signal_neuron_item['neuron_info']['reversal_subscriptions']:
-            self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "signal")
+            self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "reversal")
         for back_neuron_id in signal_neuron_item['neuron_info']['activation_subscriptions']:
             self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "activation")
+        for back_neuron_id in signal_neuron_item['neuron_info']['signal_subscriptions']:
+            self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "signal")
 
     def register_signal(self, signal):
         for q_id, queue_item in self.neuron_dict.items():
