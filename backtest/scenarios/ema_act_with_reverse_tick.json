@@ -111,7 +111,7 @@
     },
     {
       "id":"HedgeEMADownward",
-      "exit_time":[60, 75],
+      "exit_time":[90, 90],
       "order_type":"BUY",
       "spot_instruments":["SPOT"],
       "derivative_instruments":[],
@@ -158,11 +158,11 @@
             },
             "signal_type": "TECH_PRICE_ABOVE_EMA_5",
             "trade_eval": [],
-            "min_activation_strength": 4,
+            "min_activation_strength": 1,
             "max_activation_strength": 8,
             "flush_hist": true,
             "activation_subscriptions": [0],
-            "signal_subscriptions": [],
+            "signal_subscriptions": [0],
             "reversal_subscriptions": [],
             "register_instr": false,
             "update_watcher_info": {},
@@ -184,7 +184,7 @@
       "risk_limits": ["max_movement > 50", "total_losses < -25"]
     }
   ],
-  "test_days": ["2022-12-05"],
+  "test_days": ["2022-09-30"],
   "for_past_days": 90,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-14",

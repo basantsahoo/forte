@@ -1,11 +1,11 @@
-from helper.utils import locate_point
-from research.queues.signal_queue import SignalQueue
-from research.strategies.signal_setup import get_signal_key
-from research.queues.watchers import get_watcher
-from research.queues.process_logger import ProcessLoggerMixin
-
-
-class SenderNeuron(ProcessLoggerMixin):
+class SenderNeuron:
+    def forward_signal(self, signal={}):
+        reset_info = {'code': 'reset_signal', 'n_id': self.id}
+        for channel in self.reset_on_new_signal_channels:
+            channel(reset_info)
+        signal_info = {'code': 'queue_signal', 'n_id': self.id, "signal": signal}
+        for channel in self.signal_forward_channels:
+            channel(signal_info)
 
     def forward_activation_status_change(self, status):
         info = {'code': 'activation', 'n_id': self.id, 'status':status}
@@ -24,7 +24,7 @@ class SenderNeuron(ProcessLoggerMixin):
 
     def feed_forward(self, msg=None):
         if self.forward_queue:
-            print(self.forward_queue)
+            #print(self.forward_queue)
             self.feed_forward_log(msg)
         for fwd in self.forward_queue:
             fn = fwd[0]

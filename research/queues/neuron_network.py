@@ -14,7 +14,7 @@ class QNetwork:
         for signal_neuron_item in signal_neurons_info:
             self.add_neuron(signal_neuron_item)
         if switch_info:
-            self.switch = get_switch(switch_info)
+            self.switch = get_switch(self, switch_info)
             for subscription in switch_info['que_subscriptions']:
                 from_id = subscription[0]
                 th_type = subscription[1]
@@ -46,11 +46,11 @@ class QNetwork:
             self.create_if_not_exists(tmp_neuron_info)
         linked_neuron = self.neuron_dict[to_id]['neuron']
         if link_type == "signal":
-            linked_neuron.signal_forward_channels.append(curr_neuron.receive_communication)
+            linked_neuron.signal_forward_channels.append(curr_neuron.receive_signal_communication)
         elif link_type == "activation":
-            linked_neuron.activation_forward_channels.append(curr_neuron.receive_communication)
+            linked_neuron.activation_forward_channels.append(curr_neuron.receive_activation_communication)
         elif link_type == "reversal":
-            linked_neuron.reset_on_new_signal_channels.append(curr_neuron.receive_communication)
+            linked_neuron.reset_on_new_signal_channels.append(curr_neuron.receive_reset_communication)
 
     def add_neuron(self, signal_neuron_item):
         self.create_if_not_exists(signal_neuron_item)

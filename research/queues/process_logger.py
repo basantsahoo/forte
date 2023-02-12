@@ -1,10 +1,9 @@
-from research.config import process_log
 import functools
 
 
 class ProcessLoggerMixin:
     def log(self, *msgs):
-        if process_log:
+        if self.log_enabled:
             p_id = self.display_id if self.display_id else self.id
             print("***", p_id, *msgs)
 

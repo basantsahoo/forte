@@ -10,6 +10,9 @@ class SignalQueue:
         self.high_threshold_value = None
         self.low_threshold_value = None
 
+    def set_threshold(self, th_type, th):
+        self.thresholds[th_type] = th
+
     def meets_threshold(self, signal):
         high_threshold_value = self.thresholds['high']
         low_threshold_value = self.thresholds['low']

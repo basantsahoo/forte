@@ -1,4 +1,7 @@
 from datetime import datetime
+from research.queues.process_logger import ProcessLoggerMixin
+from research.config import watcher_log
+
 def get_watcher(neuron=None, watcher_id=0, watcher_info={}, threshold=0):
     watcher_type = watcher_info['type']
     if watcher_type in ['HighBreach']:
@@ -7,7 +10,7 @@ def get_watcher(neuron=None, watcher_id=0, watcher_info={}, threshold=0):
         raise Exception("Watcher is not defined")
 
 
-class HighBreach:
+class HighBreach(ProcessLoggerMixin):
     def __init__(self, neuron, watcher_id, watcher_info, threshold):
         self.neuron = neuron
         self.id = watcher_id
@@ -21,6 +24,8 @@ class HighBreach:
         self.signals = []
         self.code = 'watcher_update_signal'
         self.creation_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        self.display_id = self.neuron.manager.strategy.id + ' Watcher id== ' + repr(self.id)
+        self.log_enabled = watcher_log
 
     def receive_signal(self, signal):
         #self.pre_log()
@@ -47,10 +52,10 @@ class HighBreach:
 
     def pre_log(self):
         last_tick_time = datetime.fromtimestamp(self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp'])
-        print(last_tick_time, ' Watcher id==',  repr(self.id), "PRE  LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
+        self.log(' Watcher id==',  repr(self.id), "PRE  LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
 
     def post_log(self):
         last_tick_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
-        print(last_tick_time, ' Watcher id==', repr(self.id), "POST LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type,  'current count ==', len(self.signals))
+        self.log(' Watcher id==', repr(self.id), "POST LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type,  'current count ==', len(self.signals))
 
 
