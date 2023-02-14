@@ -1,4 +1,4 @@
-from research.strategies.signal_setup import get_signal_key
+from research.strategies.signal_setup import get_signal_key,get_target_fn
 from research.queues.controllers import get_controller
 
 class Trade:
@@ -78,17 +78,19 @@ class Trade:
                 levels.append(target)
             else:
                 #print(target_level[0])
-                mapped_fn = target_level['mapped_fn']
-                kwargs = target_level.get('kwargs', {})
+                target_fn = get_target_fn(target_level[0])
+                mapped_fn = target_fn['mapped_fn']
+                kwargs = target_fn.get('kwargs', {})
+                kwargs = {**kwargs, **target_level[1]} if len(target_level) > 1 else kwargs
+                # print(target_fn)
                 rs = 0
-                if target_level['category'] == 'signal_queue':
-                    queue = self.strategy.entry_signal_pipeline.get_que_by_category(target_level['mapped_object'])#self.entry_signal_queues[target_level['mapped_object']]
-                    queue = self.strategy.entry_signal_pipeline.get_neuron_by_id(target_level['mapped_object'])
+                if target_fn['category'] == 'signal_queue':
+                    queue = self.strategy.entry_signal_pipeline.get_que_by_category(target_fn['mapped_object'])#self.entry_signal_queues[target_fn['mapped_object']]
                     # print('queue.'+ mapped_fn + "()")
                     rs = eval('queue.' + mapped_fn)(**kwargs)
                     print('inside target fn +++++++++', rs)
-                elif target_level['category'] == 'global':
-                    obj = target_level['mapped_object']
+                elif target_fn['category'] == 'global':
+                    obj = target_fn['mapped_object']
                     fn_string = 'self.' + (obj + '.' if obj else '') + mapped_fn  # + '()'
                     # print(fn_string)
                     rs = eval(fn_string)(**kwargs)

@@ -46,15 +46,11 @@ class QNetwork:
             self.create_if_not_exists(tmp_neuron_info)
         linked_neuron = self.neuron_dict[to_id]['neuron']
         if link_type == "signal":
-            linked_neuron.signal_forward_channels.append(curr_neuron.receive_signal)
+            linked_neuron.signal_forward_channels.append(curr_neuron.receive_signal_communication)
         elif link_type == "activation":
             linked_neuron.activation_forward_channels.append(curr_neuron.receive_activation_communication)
         elif link_type == "reversal":
             linked_neuron.reset_on_new_signal_channels.append(curr_neuron.receive_reset_communication)
-        elif link_type == "high_threshold":
-            linked_neuron.signal_forward_channels.append(curr_neuron.receive_high_threshold)
-        elif link_type == "low_threshold":
-            linked_neuron.signal_forward_channels.append(curr_neuron.receive_low_threshold)
 
     def add_neuron(self, signal_neuron_item):
         self.create_if_not_exists(signal_neuron_item)
@@ -64,10 +60,6 @@ class QNetwork:
             self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "activation")
         for back_neuron_id in signal_neuron_item['neuron_info']['signal_subscriptions']:
             self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "signal")
-        for back_neuron_id in signal_neuron_item['neuron_info']['high_threshold_subscriptions']:
-            self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "high_threshold")
-        for back_neuron_id in signal_neuron_item['neuron_info']['low_threshold_subscriptions']:
-            self.create_backward_link(signal_neuron_item['neuron_info']['id'], back_neuron_id, "low_threshold")
 
     def register_signal(self, signal):
         for q_id, queue_item in self.neuron_dict.items():
@@ -138,10 +130,6 @@ class QNetwork:
         for q_id, queue_item in self.neuron_dict.items():
             if category == queue_item['neuron'].signal_type:
                 return queue_item['neuron']
-
-    def get_neuron_by_id(self, n_id):
-        queue_item = self.neuron_dict[n_id]
-        return queue_item['neuron']
 
     def check_validity(self):
         for neuron_item in self.neuron_dict.values():

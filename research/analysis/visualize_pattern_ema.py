@@ -15,7 +15,7 @@ def load_back_test_results():
     #df = df[df['strategy'] == 'PriceReverseBreakDownEMA'] #PriceReverseBreakDownEMA # PriceBreakEMADownward43
     return df
 
-def plot_intraday_chart(report, ticker, day, period, entry_points, exit_points, entry_prices, exit_prices):
+def plot_intraday_chart(report, ticker, day, period, entry_point_list, exit_point_list, entry_price_list, exit_price_list):
     today_df = get_daily_tick_data(ticker, day)
     today_df['timestamp'] = pd.to_datetime(today_df['timestamp'], unit='s', utc=True).dt.tz_convert('Asia/Kolkata')
     today_df = today_df.set_index('timestamp')
@@ -26,13 +26,12 @@ def plot_intraday_chart(report, ticker, day, period, entry_points, exit_points, 
     today_df_cp['timestamp'] = today_df_cp['timestamp'].apply(lambda x: x.timestamp()) #.astype('int64')
     #print(today_df_cp['timestamp'].to_list())
     #print(entry_points)
-    entry_indices = [np.array(today_df.index[today_df_cp['timestamp'] == (entry_time - 4* 60)])[0] for entry_time in entry_points]
-    print(entry_indices)
-    entry_indices = [get_next_lowest_index(today_df_cp['timestamp'].to_list(), entry_time) for entry_time in
-                 entry_points]
-    print(entry_indices)
-    exit_indices = [get_next_lowest_index(today_df_cp['timestamp'].to_list(), exit_time) for exit_time in
-                 exit_points if not np.isnan(exit_time)]
+    entry_indices_list = [[np.array(today_df.index[today_df_cp['timestamp'] == (entry_time - 4* 60)])[0] for entry_time in entry_points] for entry_points in entry_point_list]
+    print(entry_indices_list)
+    entry_indices_list = [[get_next_lowest_index(today_df_cp['timestamp'].to_list(), entry_time) for entry_time in entry_points] for entry_points in entry_point_list]
+    print(entry_indices_list)
+    exit_indices_list = [[get_next_lowest_index(today_df_cp['timestamp'].to_list(), exit_time) for exit_time in
+                 exit_points if not np.isnan(exit_time)] for exit_points in exit_point_list]
 
     today_df["timestamp"] = today_df["timestamp"].apply(lambda x: x.strftime('%H:%M'))
 
@@ -64,16 +63,24 @@ def plot_intraday_chart(report, ticker, day, period, entry_points, exit_points, 
 
     prices['EMA5'] = prices['close'].ewm(span=5, adjust=False).mean()
     plt.plot(prices.index, prices['EMA5'], color='green', label='EMA5')
+    entry_colors = ['red', 'green']
+    exit_colors = ['black', 'blue']
+    for o_idx in range(len(entry_indices_list)):
+        entry_indices = entry_indices_list[o_idx]
+        entry_prices = entry_price_list[o_idx]
+        for idx in range(len(entry_indices)):
+            entry_idx = entry_indices[idx]
+            entry_price = entry_prices[idx]
+            plt.plot(entry_idx, entry_price, marker="<", markersize=7, markeredgecolor=entry_colors[o_idx], markerfacecolor=entry_colors[o_idx])
 
-    for idx in range(len(entry_indices)):
-        entry_idx = entry_indices[idx]
-        entry_price = entry_prices[idx]
-        plt.plot(entry_idx, entry_price, marker="<", markersize=7, markeredgecolor="black", markerfacecolor="black")
+    for o_idx in range(len(exit_indices_list)):
+        exit_indices = exit_indices_list[o_idx]
+        exit_prices = exit_price_list[o_idx]
 
-    for idx in range(len(exit_indices)):
-        exit_idx = exit_indices[idx]
-        exit_price = exit_prices[idx]
-        plt.plot(exit_idx, exit_price, marker=">", markersize=7, markeredgecolor="blue", markerfacecolor="blue")
+        for idx in range(len(exit_indices)):
+            exit_idx = exit_indices[idx]
+            exit_price = exit_prices[idx]
+            plt.plot(exit_idx, exit_price, marker=">", markersize=7, markeredgecolor=exit_colors[o_idx], markerfacecolor=exit_colors[o_idx])
     tick_pos = list(range(0,len(prices.timestamp),3))
     tick_labels = [prices.timestamp[x] for x in tick_pos]
     plt.xticks(ticks = tick_pos, labels = tick_labels)
@@ -94,17 +101,28 @@ def run():
     days = df['day'].unique()
     ticker = df['symbol'].tolist()[0]
     with PdfPages(reports_dir + 'visualize_ema_chart_' + ticker + '.pdf') as report:
+        strategies = list(set(df['strategy'].to_list()))
         for day in days:
             try:
                 t_day = df[df['day']==day]
-                entry_points = list(set(t_day['entry_time'].tolist()))
-                exit_points = list(set(t_day['exit_time'].tolist()))
-                entry_prices = [t_day[t_day['entry_time'] == entry_point]['entry_price'].to_list()[0] for entry_point in entry_points]
-                #print(entry_prices)
-                exit_prices = [t_day[t_day['exit_time'] == exit_point]['exit_price'].to_list()[0] for exit_point in exit_points]
-                #print(exit_prices)
-                #print('trying', day)
-                plot_intraday_chart(report, ticker, day, '5Min', entry_points, exit_points, entry_prices, exit_prices)
+                entry_point_list = []
+                exit_point_list = []
+                entry_price_list = []
+                exit_price_list = []
+                for strategy in strategies:
+                    t_day_strat = t_day[t_day['strategy'] == strategy]
+                    entry_points = list(set(t_day_strat['entry_time'].tolist()))
+                    exit_points = list(set(t_day_strat['exit_time'].tolist()))
+                    entry_prices = [t_day_strat[t_day_strat['entry_time'] == entry_point]['entry_price'].to_list()[0] for
+                                    entry_point in entry_points]
+                    # print(entry_prices)
+                    exit_prices = [t_day_strat[t_day_strat['exit_time'] == exit_point]['exit_price'].to_list()[0] for exit_point in
+                                   exit_points]
+                    entry_point_list.append(entry_points)
+                    exit_point_list.append(exit_points)
+                    entry_price_list.append(entry_prices)
+                    exit_price_list.append(exit_prices)
+                plot_intraday_chart(report, ticker, day, '5Min', entry_point_list, exit_point_list, entry_price_list, exit_price_list)
             except Exception as e:
                 print(e)
             pass

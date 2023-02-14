@@ -2,12 +2,12 @@ from helper.utils import locate_point
 from research.queues.signal_queue import SignalQueue
 from research.strategies.signal_setup import get_signal_key
 from research.queues.watchers import get_watcher
-from research.queues.sender_neuron import SenderNeuron
-from research.queues.receiver_neuron import ReceiverNeuron
 from research.queues.process_logger import ProcessLoggerMixin
-from research.config import neuron_log
 
-class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
+
+
+#neuron_type="fifo/fixed",stream_size=1/1000,
+class Neuron(ProcessLoggerMixin):
     def __init__(self, manager, **kwargs):
         self.manager = manager
         self.id = kwargs['id']
@@ -20,7 +20,6 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         self.signal_queue = SignalQueue(**kwargs['signal_queue_info'])
         self.update_watcher_info = kwargs['update_watcher_info']
         self.reset_watcher_info = kwargs['reset_watcher_info']
-        self.reset_on_new_signal_channels = []
         self.signal_forward_channels = []
         self.activation_forward_channels = []
         self.threshold_forward_channels = []
@@ -35,7 +34,6 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             self.activation_dependency[back_neuron_id] = False
         self.forward_queue = []
         self.display_id = self.manager.strategy.id + " Neuron id ======== " + repr(self.id)
-        self.log_enabled = neuron_log
 
     # Q network will send filtered messages
     def receive_signal(self, signal):
@@ -55,10 +53,15 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         new_signal = self.signal_queue.new_signal(signal)
         if new_signal:
             self.pending_trade_eval = True
+            self.forward_queue.append([self.forward_signal, {}])
             self.check_activation_status_change()
-            self.forward_queue.append([self.forward_signal, signal])
             self.forward_queue.append([self.notify_threshold_change, {}])
             self.feed_forward('new signal')
+
+    def forward_signal(self, info={}):
+        info = {'code': 'signal', 'n_id': self.id}
+        for channel in self.signal_forward_channels:
+            channel(info)
 
     def check_activation_status_change(self):
         if (len(self.signal_queue.signals) >= self.min_activation_strength) and (len(self.signal_queue.signals) <= self.max_activation_strength):
@@ -74,7 +77,8 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             else:
                 self.remove_watchers()
             self.active = new_status
-            self.forward_queue.append([self.forward_activation_status_change, new_status])
+            self.forward_queue.append([self.forward_state_change, new_status])
+            #self.forward_state_change(new_status) #Inform only when changed
             self.post_log()
 
     def create_watchers(self):
@@ -95,7 +99,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             threshold = self.get_watcher_threshold('close')
         watcher = get_watcher(self, watcher_id, watcher_info, threshold)
         watcher.code = code
-        watcher.activation_forward_channels.append(self.receive_watcher_action)
+        watcher.activation_forward_channels.append(self.receive_communication)
         self.watcher_list.append(watcher)
         self.log("Watcher id", watcher_id, " created")
 
@@ -110,21 +114,57 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
     def remove_watchers(self, watcher_id=None):
         if watcher_id is None:
             for watcher in self.watcher_list:
-                self.log("Watcher id", watcher.id, " removed")
+                self.log("Watcher id", watcher_id, " removed")
                 watcher.activation_forward_channels = []
             self.watcher_list = []
         else:
             for w in range(len(self.watcher_list)):
                 if self.watcher_list[w].id == watcher_id:
-                    self.log("Watcher id", watcher_id, " removed")
                     del self.watcher_list[w]
                     break
 
+    def forward_state_change(self, status):
+
+        info = {'code': 'activation', 'n_id': self.id, 'status':status}
+        for channel in self.activation_forward_channels:
+            channel(info)
+
+    def notify_threshold_change(self):
+        for channel in self.threshold_forward_channels:
+            th_type = channel['th_type']
+            comm_fn = channel['comm_fn']
+            th = self.get_watcher_threshold(th_type)
+            last_informed = self.last_informed_thresholds[th_type]
+            if th != last_informed:
+                self.last_informed_thresholds[th_type] = th
+                comm_fn(th_type, th)
 
     def flush(self):
         if self.flush_hist:
             self.reset()
             self.feed_forward()
+
+    def watcher_action(self, info):
+        if info['code'] == 'watcher_update_signal':
+            self.watcher_thresholds[info['threshold_type']] = info['new_threshold']
+            self.forward_queue.append([self.notify_threshold_change, {}])
+            self.remove_watchers()
+            self.create_watchers()
+            self.feed_forward()
+        elif info['code'] == 'watcher_reset_signal':
+            self.reset()
+            self.feed_forward()
+
+    def receive_communication(self, info={}):
+        self.communication_log(info)
+        if info['code'] == 'activation':
+            self.activation_dependency[info['n_id']] = info['status']
+            self.check_activation_status_change()
+            self.feed_forward()
+        elif info['code'] == 'signal':
+            self.reset_neuron_signal()
+        elif info['code'] == 'watcher_update_signal' or info['code'] == 'watcher_reset_signal':
+            self.watcher_action(info)
 
     def reset_neuron_signal(self):
         if not self.active:
@@ -149,6 +189,18 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             if watcher.life_span_complete():
                 del watcher
 
+    def feed_forward(self, msg=None):
+        if self.forward_queue:
+            print(self.forward_queue)
+            self.feed_forward_log(msg)
+        for fwd in self.forward_queue:
+            fn = fwd[0]
+            args = fwd[1]
+            if type(args) == bool or len(args):
+                fn(args)
+            else:
+                fn()
+        self.forward_queue = []
     def has_signal(self):
         return self.active
 
@@ -259,5 +311,3 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         #signal = self.signal_queue.get_signal(-1)
         #return signal['info']['high']
 
-    def get_signal_close(self):
-        return self.get_watcher_threshold('close')

@@ -259,5 +259,3 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         #signal = self.signal_queue.get_signal(-1)
         #return signal['info']['high']
 
-    def get_signal_close(self):
-        return self.get_watcher_threshold('close')

@@ -22,16 +22,18 @@ class ReceiverNeuron:
         if info['code'] == 'reset_signal':
             self.reset_neuron_signal()
 
-    def receive_high_threshold(self, info={}):
-        print('receive_high_threshold++++++++++++++++++++++++++++++++++++++++++', self.display_id)
+    def receive_signal_communication(self, info={}):
+        print('receive_signal_communication++++++++++++++++++++++++++++++++++++++++++', self.display_id)
         self.communication_log(info)
         high = info['signal']['info']['high']
-        self.signal_queue.set_threshold('high', high)
-
-    def receive_low_threshold(self, info={}):
-        print('receive_low_threshold++++++++++++++++++++++++++++++++++++++++++', self.display_id)
-        self.communication_log(info)
         low = info['signal']['info']['low']
+        close = info['signal']['info']['close']
+        self.signal_queue.set_threshold('high', high)
         self.signal_queue.set_threshold('low', low)
+        self.signal_queue.set_threshold('close', close)
+        if info['code'] == 'queue_signal':
+            #self.reset_neuron_signal()
+            pass
+
 
 
