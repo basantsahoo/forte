@@ -26,7 +26,7 @@ from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
 
 class InsightBook:
-    def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
+    def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0, insight_log=False):
         self.spot_processor = SpotProcessor(self, ticker)
         self.option_processor = IntradayOptionProcessor(self, ticker)
         self.candle_5_processor = CandleProcessor(self, 5, 0)
@@ -51,6 +51,7 @@ class InsightBook:
         self.strategies = []
         self.ticker = ticker
         self.record_metric = record_metric
+        self.log_enabled = insight_log
         self.run_aggregator=False
         self.curr_tpo = None
         #self.last_tick = None

@@ -41,7 +41,7 @@ class StartegyBackTester:
             in_day = day if type(day) == str else day.strftime('%Y-%m-%d')
             start = datetime.now()
 
-            story_book = InsightBook(symbol, in_day, record_metric=self.strat_config['record_metric'], candle_sw=self.strat_config['candle_sw'])
+            story_book = InsightBook(symbol, in_day, record_metric=self.strat_config['record_metric'], candle_sw=self.strat_config['candle_sw'], insight_log=self.strat_config.get('insight_log', False))
             end = datetime.now()
             print('insight book init took', (end-start).total_seconds())
             place_live = False
