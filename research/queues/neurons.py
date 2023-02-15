@@ -35,11 +35,17 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             self.activation_dependency[back_neuron_id] = False
         self.forward_queue = []
         self.display_id = self.manager.strategy.id + " Neuron id ======== " + repr(self.id)
-        self.log_enabled = neuron_log
+        self.log_enabled = kwargs.get('neuron_log', neuron_log)
+        #print(self.display_id, self.log_enabled)
 
     # Q network will send filtered messages
+    def test(self):
+        # self.log(self.signal_queue.signals)
+        pass
+
     def receive_signal(self, signal):
         if self.dependency_satisfied():
+            self.log('receive_signal', signal)
             self.add_to_signal_queue(signal)
 
 
@@ -101,10 +107,15 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     def get_watcher_threshold(self, th_type):
         th = self.watcher_thresholds[th_type]
-        #print('get_watcher_threshold in Neuron=====', self.id)
+        self.log('get_watcher_threshold in Neuron===== ', th_type, self.id)
+        self.log('threshold', th)
         #print(self.signal_queue.signals)
         if th is None:
             th = self.signal_queue.get_signal(-1)['info'][th_type] if self.signal_queue.signals else None
+            try:
+                self.log(self.signal_queue.signals)
+            except:
+                pass
         return th
 
     def remove_watchers(self, watcher_id=None):

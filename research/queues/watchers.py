@@ -25,7 +25,7 @@ class HighBreach(ProcessLoggerMixin):
         self.code = 'watcher_update_signal'
         self.creation_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
         self.display_id = self.neuron.manager.strategy.id + ' Watcher id== ' + repr(self.id)
-        self.log_enabled = watcher_log
+        self.log_enabled = watcher_info.get('watcher_log', watcher_log)
 
     def receive_signal(self, signal):
         #self.pre_log()

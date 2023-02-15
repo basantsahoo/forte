@@ -22,28 +22,28 @@ class SignalQueue:
         return meets_high and meets_low
 
     def new_signal(self, signal):
-        if self.unique_only and signal['signal_time'] == self.last_signal_time:
+        if self.unique_only and (signal['signal_time'] == self.last_signal_time):
             return False
         else:
             if self.meets_threshold(signal):
                 if self.type == 'fixed':
                     if len(self.signals) < self.size:
-                        self.signals.append(signal)
+                        self.signals.append(signal.copy())
                         self.last_signal_time = signal['signal_time']
+                        #print(self.signals)
                         return True
                     else:
                         return False
                 elif self.type == "stream":
                     if len(self.signals) == self.size:
                         del self.signals[0]
-                    self.signals.append(signal)
+                    self.signals.append(signal.copy())
                     self.last_signal_time = signal['signal_time']
                     return True
 
                 else:
                     raise Exception("Signal Queue is not defined")
                     return False
-
     def check_validity(self, last_tick_time):
         self.signals = [signal for signal in self.signals if last_tick_time - signal['signal_time'] < self.validity_period * 60]
 

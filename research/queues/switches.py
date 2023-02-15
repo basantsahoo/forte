@@ -16,7 +16,7 @@ class DistToSL(ProcessLoggerMixin):
         self.thresholds = {'high': None, 'low': None, 'open': None, 'close': None, 'entry': None}
         self.dispatch_signal = kwargs.get("dispatch_signal", {})
         self.display_id = self.manager.strategy.id + ' Switch id== ' + repr(self.id)
-        self.log_enabled = switch_log
+        self.log_enabled = kwargs.get('switch_log', switch_log)
 
     def set_threshold(self, th_type, th):
         self.log("THRESHOLD  LOG", "Switch class==", self.__class__.__name__, "threshold type==", th_type, 'value ==', th, 'old value ', self.thresholds[th_type])
@@ -24,7 +24,7 @@ class DistToSL(ProcessLoggerMixin):
 
     def get_signal(self):
         if self.dispatch_signal:
-            signal = {'category': 'STRAT', 'indicator': 'EMA_BREAK_DOWN_5_ENTRY', 'strength': 1, 'signal_time': None, 'notice_time': None, 'info': self.thresholds}
+            signal = {'category': 'STRAT', 'indicator': 'EMA_BREAK_DOWN_5_ENTRY', 'strength': 1, 'signal_time': None, 'notice_time': None, 'info': self.thresholds.copy()}
             return signal
         else:
             return {}

@@ -36,7 +36,8 @@
             "reversal_subscriptions": [],
             "register_instr": false,
             "update_watcher_info": {},
-            "reset_watcher_info": {}
+            "reset_watcher_info": {},
+            "neuron_log": false
           },
           "apply_pre_filter": false
         },
@@ -64,9 +65,11 @@
               "type": "HighBreach",
               "signal_type": "TICK_PRICE_SIGNAL",
               "min_activation_strength": 1,
-              "life_span": 30
+              "life_span": 30,
+              "watcher_log": false
             },
-            "reset_watcher_info": {}
+            "reset_watcher_info": {},
+            "neuron_log": false
           },
           "apply_pre_filter": false
         },
@@ -91,7 +94,8 @@
             "reversal_subscriptions": [1],
             "register_instr": false,
             "reset_watcher_info": {},
-            "update_watcher_info": {}
+            "update_watcher_info": {},
+            "neuron_log": false
           },
           "apply_pre_filter": false
         }
@@ -109,7 +113,8 @@
           "type": "DistToSL",
           "switch_eval": "(high - close)/close < 0.002",
           "que_subscriptions": [[1 ,"high","set_threshold"],[2, "close","set_threshold"]],
-          "dispatch_signal": true
+          "dispatch_signal": true,
+          "switch_log": false
         },
       "signal_filters" : [
       ],
@@ -151,7 +156,8 @@
             "register_instr": false,
             "update_watcher_info": {
             },
-            "reset_watcher_info": {}
+            "reset_watcher_info": {},
+            "neuron_log": true
           },
           "apply_pre_filter": false
         },
@@ -176,7 +182,8 @@
             "reversal_subscriptions": [],
             "register_instr": false,
             "update_watcher_info": {},
-            "reset_watcher_info": {}
+            "reset_watcher_info": {},
+            "neuron_log": false
           },
           "apply_pre_filter": false
         }
@@ -187,14 +194,15 @@
           "id": 0,
           "type": "DistToSL",
           "switch_eval": "(close - high) > 0",
-          "que_subscriptions": [[0 ,"high","set_threshold"],[1, "close","set_threshold"],[1, "low","set_threshold"]]
+          "que_subscriptions": [[0 ,"high","set_threshold"],[1, "close","set_threshold"],[1, "low","set_threshold"]],
+          "switch_log": false
         },
       "signal_filters" : [
       ],
       "risk_limits": ["max_movement > 50", "total_losses < -25"]
     }
   ],
-  "test_days": ["2022-12-13"],
+  "test_days": ["2022-11-10"],
   "for_past_days": 90,
   "symbols": ["NIFTY"],
   "to_date": "2022-12-14",
