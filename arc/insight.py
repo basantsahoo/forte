@@ -249,7 +249,7 @@ class InsightBook:
 
     def pattern_signal(self, signal):
         #print(signal['category'])
-        if signal['category'] == 'STRAT':
+        if signal['category'] == 'OPTION':
             print('pattern_signal+++++++++++', signal)
             pass
         self.activity_log.register_signal(signal)

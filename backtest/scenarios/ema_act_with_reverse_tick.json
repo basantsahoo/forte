@@ -1,5 +1,5 @@
 {
-  "strategies":["PriceBreakEMADownward", "PriceReverseBreakDownEMA"],
+  "strategies":["PriceBreakEMADownward"],
   "strategy_kwargs":[
     {
       "id":"PriceBreakEMADownward",
