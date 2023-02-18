@@ -120,8 +120,9 @@ class InsightBook:
             self.transition_data = MCPreprocessor().get_processed_data(data, symbol=self.ticker, start_tpo=1, end_tpo=None)
             self.mc.from_data(self.transition_data, "unique_transitions_fill_break")
             self.state_prob_calculator = EmpiricalDistribution(self.transition_data,"unique_transitions_fill_break")
-        except:
-            pass
+        except Exception as e:
+            print('Exception in set_transition_matrix')
+            print(e)
 
     def add_strategy(self, strategy_class, strategy_kwarg={}):
         strategy = strategy_class(self, **strategy_kwarg)
@@ -250,7 +251,7 @@ class InsightBook:
     def pattern_signal(self, signal):
         #print(signal['category'])
         if signal['category'] == 'OPTION':
-            print('pattern_signal+++++++++++', signal)
+            #print('pattern_signal+++++++++++', signal)
             pass
         self.activity_log.register_signal(signal)
         if signal['indicator'] == INDICATOR_TREND:

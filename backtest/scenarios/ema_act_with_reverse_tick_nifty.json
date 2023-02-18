@@ -118,7 +118,7 @@
         },
       "signal_filters" : [
       ],
-      "risk_limits": ["max_movement > 170", "total_losses < -80"]
+      "risk_limits": ["max_movement > 80", "total_losses < -35"]
     },
     {
       "id":"HedgeEMADownward",
@@ -202,9 +202,9 @@
       "risk_limits": ["max_movement > 50", "total_losses < -25"]
     }
   ],
-  "test_days": [],
+  "test_days": ["2022-12-07"],
   "for_past_days": 90,
-  "symbols": ["BANKNIFTY"],
+  "symbols": ["NIFTY"],
   "to_date": "2022-12-14",
   "candle_sw" : 0,
   "week_days": [],

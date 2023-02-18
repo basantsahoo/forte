@@ -60,7 +60,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
     def add_to_signal_queue(self, signal):
         new_signal = self.signal_queue.new_signal(signal)
         if new_signal:
-            print('new signal')
+            #print('new signal')
             self.pending_trade_eval = True
             status_change = self.check_activation_status_change()
             self.register_instrument(status_change)
@@ -69,16 +69,18 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             self.feed_forward('new signal')
 
     def register_instrument(self, status_change=False):
+
         if self.active:
             if status_change:
                 if self.register_instr:
+                    print('going to register_instrument +++++++')
                     self.manager.strategy.register_instrument(self.signal_queue.get_signal(-1))
             elif self.register_instr == 'always':
                 self.manager.strategy.register_instrument(self.signal_queue.get_signal(-1))
 
 
     def check_activation_status_change(self):
-        print('check_activation_status_change')
+        #print('check_activation_status_change')
         if (len(self.signal_queue.signals) >= self.min_activation_strength) and (len(self.signal_queue.signals) <= self.max_activation_strength):
             new_status = True
         else:

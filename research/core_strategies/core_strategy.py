@@ -12,10 +12,6 @@ market_view_dict = {'SPOT_BUY': 'LONG',
                     'PE_BUY': 'SHORT',
                     'PE_SELL': 'LONG'}
 
-
-
-
-
 class BaseStrategy:
     def __init__(self,
                  insight_book=None,
@@ -42,7 +38,8 @@ class BaseStrategy:
                  instr_to_trade=[],
                  trade_controllers=[],
                  entry_switch={},
-                 risk_limits=[]
+                 risk_limits=[],
+                 trade_cut_off_time=60
     ):
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.insight_book = insight_book
@@ -77,6 +74,7 @@ class BaseStrategy:
         self.minimum_quantity = 1
         self.trade_controllers = trade_controllers
         self.risk_limits = risk_limits
+        self.trade_cut_off_time = trade_cut_off_time
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
@@ -97,6 +95,7 @@ class BaseStrategy:
 
 
     def get_market_view(self, instr):
+        print('get_market_view', instr)
         view_dict = {'SPOT_BUY': 'LONG', 'SPOT_SELL': 'SHORT', 'CE_BUY': 'LONG', 'CE_SELL': 'SHORT', 'PE_BUY': 'SHORT', 'PE_SELL': 'LONG'}
         if not self.inst_is_option(instr):
             d_key = instr + "_" + self.order_type
@@ -111,8 +110,12 @@ class BaseStrategy:
             self.deactivate()
 
     def initiate_signal_trades(self):
+        print('initiate_signal_trades+++++++++++++++++')
+        print(self.spot_instruments)
+        print(self.derivative_instruments)
         all_inst = self.spot_instruments + self.derivative_instruments
         for trade_inst in all_inst:
+            print(trade_inst)
             trd_key = self.add_tradable_signal(trade_inst)
             curr_trade = self.tradable_signals[trd_key]
             curr_trade.trigger_entry()
@@ -226,7 +229,7 @@ class BaseStrategy:
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
-        enough_time = True #self.insight_book.get_time_to_close() > min(self.exit_time)
+        enough_time = self.insight_book.get_time_to_close() > self.trade_cut_off_time
         suitable_tpo = self.valid_tpo()
         signal_present = self.entry_signal_pipeline.all_entry_signal()
         trade_limit_not_reached = not self.trade_limit_reached()

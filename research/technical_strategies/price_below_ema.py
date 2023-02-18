@@ -6,6 +6,7 @@ from helper.utils import get_option_strike
 class PriceBreakEMADownward(BaseStrategy):
     #def __init__(self, insight_book, id="PriceBreakEMADownward", order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=[45], min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[],entry_criteria=[],exit_criteria_list=[],signal_filter_conditions=[],spot_long_targets=[],spot_long_stop_losses=[], spot_short_targets=[0.002,0.003, 0.004, 0.005], spot_short_stop_losses=[0.001,0.002, 0.002,0.002], instr_targets=[], instr_stop_losses=[]):
     def __init__(self, insight_book, **kwargs):
+        print('PriceBreakEMADownward+++++++++++++ init')
         args = get_startegy_args(**kwargs)
         """
         exit_criteria_list = [
@@ -24,7 +25,7 @@ class PriceBreakEMADownward(BaseStrategy):
             for instr in self.instr_to_trade:
                 strike = get_option_strike(ltp, instr[0], instr[1], instr[2])
                 self.derivative_instruments.append(str(strike) + "_" + instr[2])
-
+        print('register instr', self.derivative_instruments)
     def process_post_entry(self):
         self.derivative_instruments = []
 

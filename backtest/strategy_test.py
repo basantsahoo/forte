@@ -33,9 +33,8 @@ class StartegyBackTester:
         results = []
         start_time = datetime.now()
         for day in self.strat_config['test_days']:
-            print(day)
+            print(day, symbol)
             print('=========================================================================================')
-
             processor = HistMarketProfileService()
 
             in_day = day if type(day) == str else day.strftime('%Y-%m-%d')
@@ -103,11 +102,11 @@ class StartegyBackTester:
                     #print(strategy)
                     position = trade_details['position']
                     strategy_id = strategy_tuple[1]
-                    symbol = strategy_tuple[0]
+                    t_symbol = strategy_tuple[0]
                     trade_id = strategy_tuple[2]
                     strategy_signal_generator = story_book.get_signal_generator_from_id(strategy_id)
                     for leg_id, leg_info in position.items():
-                        _tmp = {'day': day, 'symbol': symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+                        _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                         _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
                         trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
                         _tmp = {**_tmp, **trigger_details}

@@ -38,6 +38,8 @@ class DistToSL(ProcessLoggerMixin):
         entry = self.thresholds['entry']
         res = eval(self.switch_eval)
         print(self.switch_eval, res)
+        print("high====", high)
+        print("close====", close)
         return res
 
     def flush(self):
