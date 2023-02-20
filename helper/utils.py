@@ -235,3 +235,25 @@ def get_option_strike(ltp, money_ness, level, kind):
     itm_strike = atm_strike - level
     strike = otm_strike if money_ness == 'OTM' else itm_strike if money_ness == 'ITM' else atm_strike
     return strike
+
+
+def determine_day_open(open_candle, profile): ## this is definitive
+    open_low = open_candle['open']
+    open_high = open_candle['open']
+    if open_low >= profile['high']:
+        open_type = 'GAP_UP'
+    elif open_high <= profile['low']:
+        open_type = 'GAP_DOWN'
+    elif open_low >= profile['va_h_p']:
+        open_type = 'ABOVE_VA'
+    elif open_high <= profile['va_l_p']:
+        open_type = 'BELOW_VA'
+    else:
+        open_type = 'INSIDE_VA'
+    return open_type
+
+
+def determine_level_reach(level, candle):
+    level_range = [level * (1 - 0.00015), level * (1 + 0.00015)]
+    ol = get_overlap(level_range, [candle['low'], candle['high']])
+    return ol > 0

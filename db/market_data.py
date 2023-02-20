@@ -306,6 +306,7 @@ def get_prev_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
     return df
 
 def get_curr_week_minute_data_by_start_day(symbol, trade_day, week_start_day=None, start_time=None):
+    #print('get_curr_week_minute_data_by_start_day', symbol, trade_day, week_start_day, start_time)
     df = None
     try:
         symbol = helper_utils.get_nse_index_symbol(symbol)
