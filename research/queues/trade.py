@@ -14,9 +14,12 @@ class Trade:
         self.controller_list = []
         self.con_seq = 0
 
-    def trigger_entry(self):
-        legs = self.get_trade_legs()
+    def re_instate(self):
+        pass
+
+    def set_controllers(self):
         if self.controllers:
+            legs = list(self.legs.values())
             for leg_no in range(len(legs)):
                 leg = legs[leg_no]
                 total_controllers = len(self.strategy.trade_controllers)
@@ -28,7 +31,13 @@ class Trade:
                 controller = get_controller(self.id +"_"+ repr(controller_id), leg['seq'], leg['entry_price'], leg['spot_stop_loss_rolling'], leg['market_view'], controller_info)
                 controller.activation_forward_channels.append(self.receive_communication)
                 self.controller_list.append(controller)
-        self.strategy.trigger_entry(self.trade_inst, self.strategy.order_type, self.id, legs)
+
+
+    def trigger_entry(self):
+        self.get_trade_legs()
+        self.set_controllers()
+        self.strategy.trigger_entry(self.trade_inst, self.strategy.order_type, self.id, list(self.legs.values()))
+
 
     def get_trade_legs(self):
         next_trigger = len(self.legs) + 1
@@ -56,7 +65,7 @@ class Trade:
             'spot_stop_loss_rolling': spot_stop_losses[idx - 1] if spot_stop_losses else None,
             'instr_target': instr_targets[idx-1] if instr_targets else None,
             'instr_stop_loss': instr_stop_losses[idx-1] if instr_stop_losses else None,
-            'duration': min(self.strategy.exit_time[idx-1], self.strategy.insight_book.get_time_to_close()-2) if not self.strategy.carry_forward else 500,
+            'duration': min(self.strategy.exit_time[idx-1], self.strategy.insight_book.get_time_to_close()-2) if not self.strategy.carry_forward else 90000000,
             'quantity': self.strategy.minimum_quantity,
             'exit_type':None,
             'entry_price':last_candle['close'],
@@ -118,6 +127,8 @@ class Trade:
                 last_instr_candle = self.strategy.get_last_tick(trigger_details['instrument'])
                 if last_spot_candle['timestamp'] - trigger_details['trigger_time'] >= trigger_details['duration']*60:
                     self.trigger_exit(trigger_seq, exit_type='TC')
+                elif self.strategy.force_exit_ts is not None and last_spot_candle['timestamp'] >= self.strategy.force_exit_ts:
+                    self.trigger_exit(trigger_seq, exit_type='TSFE')
                 elif self.strategy.order_type == 'BUY':
                     if trigger_details['instr_target'] and last_instr_candle['close'] >= trigger_details['instr_target']:
                         self.trigger_exit(trigger_seq, exit_type='IT')

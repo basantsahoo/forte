@@ -9,6 +9,7 @@ class WeeklySell(BaseStrategy):
         print('WeeklySell+++++++++++++ init')
         args = get_startegy_args(**kwargs)
         BaseStrategy.__init__(self, insight_book=insight_book, **args)
+        self.cover = 200
 
     def register_instrument(self, signal):
         if (signal['category'], signal['indicator']): #== get_signal_key('TECH_PRICE_BELOW_EMA_5'):

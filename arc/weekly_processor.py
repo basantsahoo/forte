@@ -1,11 +1,9 @@
-from collections import OrderedDict
-from helper.utils import get_epoc_minute
-from talipp.indicators import EMA, SMA, Stoch
-from talipp.ohlcv import OHLCVFactory
 from datetime import datetime
 from db.market_data import get_prev_week_minute_data_by_start_day, get_curr_week_minute_data_by_start_day
 from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 from helper.utils import determine_day_open, determine_level_reach
+from config import get_expiry_date
+import time
 
 
 class WeeklyProcessor:
@@ -17,6 +15,7 @@ class WeeklyProcessor:
         self.first_tick_of_week = {}
         self.last_week_metrices = {}
         self.week_open_type = None
+        self.expiry_date = None
         self.curr_week_metrices = {
             'open': 0,
             'high': 0,
@@ -67,6 +66,7 @@ class WeeklyProcessor:
             'low_ext_val': processed_data['extremes']['low_ext_val'],
             'high_ext_val': processed_data['extremes']['high_ext_val'],
         }
+        self.expiry_date = get_expiry_date(trade_day).strftime('%Y-%m-%d')
         if curr_week_recs:
             self.first_tick_of_week = curr_week_recs[0]
 
@@ -93,6 +93,11 @@ class WeeklyProcessor:
                'signal_time': self.first_tick_of_week['timestamp'], 'notice_time': self.first_tick_of_week['timestamp'],
                'info': self.first_tick_of_week}
         self.insight_book.pattern_signal(pat)
+
+    def get_expiry_day_time(self, t_string):
+        start_str = self.expiry_date + " " + t_string + " +0530"
+        ts = int(time.mktime(time.strptime(start_str, "%Y-%m-%d %H:%M:%S %z")))  # - 5.5 * 3600
+        return ts
 
     def get_market_params(self):
         mkt_parms = {}

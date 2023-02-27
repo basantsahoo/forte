@@ -20,7 +20,7 @@ class DownController:
         self.activation_forward_channels = []
         self.signals = []
         self.code = 'revise_stop_loss'
-        print('controller created for ', leg_seq)
+        #print('controller created for ', leg_seq)
     def receive_signal(self, signal):
         #self.pre_log()
         self.signals.append(signal['info'])

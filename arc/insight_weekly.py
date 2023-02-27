@@ -136,8 +136,8 @@ class InsightBook:
 
     def update_periodic(self):
         #print('update periodic')
-        #self.intraday_trend.calculate_measures()
-        #self.activity_log.update_periodic()
+        self.intraday_trend.calculate_measures()
+        self.activity_log.update_periodic()
         #print('self.intraday_trend.trend_params', self.intraday_trend.trend_params)
         pass
 
@@ -188,7 +188,7 @@ class InsightBook:
         for strategy in self.strategies:
             strategy.on_minute_data_pre()
         self.update_state_transition()
-        if len(self.spot_processor.spot_ts.items()): #== 2 : #and self.open_type is None:
+        if len(self.spot_processor.spot_ts.items()) == 1: #== 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()
             self.set_up_strategies()
         self.activity_log.update_last_candle()
@@ -198,18 +198,18 @@ class InsightBook:
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
-        #self.inflex_detector.on_price_update([price['timestamp'], price['close']])
-        #self.trend_detector.evaluate()
-        #self.candle_5_processor.create_candles()
-        #self.candle_15_processor.create_candles()
-        """
+        self.inflex_detector.on_price_update([price['timestamp'], price['close']])
+        #print('input price', [price['timestamp'], price['close']])
+
+        self.trend_detector.evaluate()
+        self.candle_5_processor.create_candles()
+        self.candle_15_processor.create_candles()
         for pattern_detector in self.price_action_pattern_detectors:
             #print('pattern_detector.evaluate')
             pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
             #print('candle patterns=====')
             candle_detector.evaluate()
-        """
         self.spot_processor.process_spot_signals()
         self.weekly_processor.process_minute_data(price)
         #self.activity_log.process()
@@ -247,7 +247,7 @@ class InsightBook:
     def pattern_signal(self, signal):
         #print(signal)
         if signal['category'] == 'WEEKLY_LEVEL_REACH':
-            print('pattern_signal+++++++++++', signal)
+            #print('pattern_signal+++++++++++', signal)
             pass
         self.activity_log.register_signal(signal)
         if signal['indicator'] == INDICATOR_TREND:
@@ -296,6 +296,10 @@ class InsightBook:
                 break
         return strategy_signal_generator
 
+    def market_close_for_day(self):
+        for strategy in self.strategies:
+            strategy.market_close_for_day()
+        self.pm.market_close_for_day()
 
     def clean(self):
         self.inflex_detector = None

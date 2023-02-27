@@ -1,13 +1,15 @@
 from datetime import datetime
 from helper.utils import get_broker_order_type, get_exit_order_type
 from arc.dummy_broker import DummyBroker
-
+from servers.server_settings import cache_dir
+from diskcache import Cache
 
 class AlgoPortfolioManager:
     def __init__(self, place_live_orders=False, data_interface=None):
+        self.cache = Cache(cache_dir + 'algo_pm_cache')
         self.ltps = {}
         self.last_times = {}
-        self.position_book = {}
+        self.position_book = self.cache.get('algo_pm', {})
         self.broker = None
         self.strategy_order_map = {}
         self.broker = None
@@ -19,6 +21,7 @@ class AlgoPortfolioManager:
 
         if place_live_orders:
             self.set_live()
+
 
     """required for storing trades in trader db"""
     def set_dummy_broker(self):
@@ -95,7 +98,7 @@ class AlgoPortfolioManager:
                 self.position_book[(symbol, strategy_id, signal_id)]['order_book'].append([self.last_times[symbol], trigger_seq, order_type, qty, self.ltps[symbol]])
                 if self.dummy_broker is not None:
                     self.dummy_broker.place_order(strategy_id, signal_id, trigger_seq, symbol, side, self.ltps[symbol], qty, trade_date, order_time)
-
+        print(self.position_book)
 
     def strategy_exit_signal(self, signal_info, candle=None, option_signal=False):
         print('##########################################algo port strategy_exit_signal')
@@ -126,18 +129,33 @@ class AlgoPortfolioManager:
             self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]['un_realized_pnl'] = get_broker_order_type(exit_order_type) * self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]['curr_qty'] * (self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]['entry_price'] - l_price)
             self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]['exit_time'] = l_time
             self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]['exit_price'] = l_price
+            print(self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq])
             if candle is None:
                 self.place_oms_exit_order(strategy_id, symbol, exit_order_type, order_id, qty, option_signal)
             if self.dummy_broker is not None:
                 self.dummy_broker.place_order(strategy_id, signal_id, trigger_seq, symbol, exit_order_type, l_price, qty, trade_date, order_time)
 
+    def market_close_for_day(self):
+        position_book = {}
+        for (symbol, strategy_id, signal_id), sig_details in self.position_book.items():
+            tot_qty = 0
+            for trigger_seq in sig_details['position'].keys():
+                tot_qty += sig_details['position'][trigger_seq]['curr_qty']
+            if tot_qty:
+                position_book[(symbol, strategy_id, signal_id)] = sig_details
+
+        self.cache.set('algo_pm', position_book)
+
 
     def reached_risk_limit(self, strat_id):
         return False
+
 
     def evaluate_risk(self):
         pnl = 0
         for key, str_details in self.position_book.items():
             for trigger in str_details['position'].values():
                 exit_order_type = get_exit_order_type(trigger['side'])
-                trigger['un_realized_pnl'] = exit_order_type * trigger['curr_qty'] * (trigger['entry_price'] - self.ltps[key[0]])
+                trigger['un_realized_pnl'] = exit_order_type * abs(trigger['curr_qty']) * (trigger['entry_price'] - self.ltps[key[0]])
+                #print("trigger['un_realized_pnl']", trigger['un_realized_pnl'])
+                #print(exit_order_type, trigger['curr_qty'], trigger['entry_price'], self.ltps[key[0]])

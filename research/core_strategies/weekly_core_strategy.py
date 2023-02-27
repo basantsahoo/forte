@@ -4,6 +4,9 @@ from research.strategies.signal_setup import get_target_fn
 from research.queues.neuron_network import QNetwork
 from research.queues.trade import Trade
 import functools
+from servers.server_settings import cache_dir
+from diskcache import Cache
+
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
                     'SPOT_SELL': 'SHORT',
@@ -40,7 +43,8 @@ class BaseStrategy:
                  trade_controllers=[],
                  entry_switch={},
                  risk_limits=[],
-                 trade_cut_off_time=60
+                 trade_cut_off_time=60,
+                 force_exit_ts=None
     ):
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.insight_book = insight_book
@@ -77,6 +81,7 @@ class BaseStrategy:
         self.risk_limits = risk_limits
         self.trade_cut_off_time = trade_cut_off_time
         self.carry_forward = carry_forward
+        self.force_exit_ts=force_exit_ts
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
@@ -84,17 +89,15 @@ class BaseStrategy:
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)
         #print('Add exit queue')
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
+        self.strategy_cache = Cache(cache_dir + 'strategy_cache')
+        print('self.record_metric', self.record_metric)
 
-        #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
-        #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
-        """
-        self.spot_targets = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
-        self.spot_stop_loss = [('DT_HEIGHT_TARGET', {'ref_point':-2, 'factor':-1}),  ('LAST_N_CANDLE_BODY_TARGET_UP', {'period':5, 'n':3}), ('LAST_N_CANDLE_HIGH', {'period':5, 'n':3}), ('PREV_SPH', {})]
-        self.instr_targets = [0.1, 0.2, 0.3, 0.4]
-        self.instr_stop_loss = [-0.1, -0.2, -0.3, -0.4]
-        """
-        #self.prepare_targets()
-
+    def set_force_exit_ts(self):
+        if not self.force_exit_ts:
+            self.force_exit_ts = None
+        else:
+            if self.force_exit_ts[0] == 'weekly_expiry_day':
+                self.force_exit_ts = self.insight_book.weekly_processor.get_expiry_day_time(self.force_exit_ts[1])
 
     def get_market_view(self, instr):
         print('get_market_view', instr)
@@ -111,13 +114,29 @@ class BaseStrategy:
         if not activation_criterion:
             self.deactivate()
 
+        if self.carry_forward:
+            carry_trades = self.strategy_cache.get(self.id, [])
+            for leg in carry_trades:
+                leg_copy = leg.copy()
+                del leg_copy['sig_key']
+                sig_key = leg['sig_key']
+                trade_inst = leg['instrument']
+                if sig_key not in self.tradable_signals:
+                    self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst)
+                self.tradable_signals[sig_key].legs[leg['seq']] = leg_copy
+
+            for trade in self.tradable_signals.values():
+                trade.set_controllers()
+                #self.trigger_entry(trade.trade_inst, self.order_type, trade.id, list(trade.legs.values()))
+                #trade.re_instate()
+        self.params_repo = self.strategy_cache.get('params_repo', {})
+        self.set_force_exit_ts()
+
+
     def initiate_signal_trades(self):
         print('initiate_signal_trades+++++++++++++++++')
-        print(self.spot_instruments)
-        print(self.derivative_instruments)
         all_inst = self.spot_instruments + self.derivative_instruments
         for trade_inst in all_inst:
-            print(trade_inst)
             trd_key = self.add_tradable_signal(trade_inst)
             curr_trade = self.tradable_signals[trd_key]
             curr_trade.trigger_entry()
@@ -169,6 +188,7 @@ class BaseStrategy:
                 if self.signal_params:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
+
         self.signal_params = {}
         updated_symbol = self.insight_book.ticker + "_" + trade_inst if self.inst_is_option(trade_inst) else self.insight_book.ticker
         cover = triggers[0].get('cover', 0)
@@ -231,7 +251,8 @@ class BaseStrategy:
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
-        enough_time = self.insight_book.get_time_to_close() > self.trade_cut_off_time
+        last_spot_candle = self.get_last_tick('SPOT')
+        enough_time = self.insight_book.get_time_to_close() > self.trade_cut_off_time and (self.force_exit_ts is None or (last_spot_candle['timestamp'] < self.force_exit_ts))
         suitable_tpo = self.valid_tpo()
         signal_present = self.entry_signal_pipeline.all_entry_signal()
         trade_limit_not_reached = not self.trade_limit_reached()
@@ -311,9 +332,20 @@ class BaseStrategy:
             #print(satisfied)
         return satisfied
 
+    def market_close_for_day(self):
+        carry_trades = []
+        params_repo = {}
+        for (sig_key, trade) in self.tradable_signals.items():
+            if not trade.trade_complete():
+                for leg in trade.legs.values():
+                    lg_copy = leg.copy()
+                    lg_copy['sig_key'] = sig_key
+                    carry_trades.append(lg_copy)
+                    params_repo[(sig_key, leg['seq'])] = self.params_repo[(sig_key, leg['seq'])]
+        self.strategy_cache.set(self.id, carry_trades)
+        self.strategy_cache.set('params_repo', params_repo)
 
     def record_params(self):
-        #print('inside record_params', matched_pattern)
         #print(self.insight_book.activity_log.locate_price_region())
         if self.record_metric:
             price_region = self.insight_book.activity_log.locate_price_region()

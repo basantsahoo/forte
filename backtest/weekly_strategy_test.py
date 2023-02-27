@@ -18,7 +18,7 @@ from arc.insight_weekly import InsightBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
 
-default_symbols =  ['NIFTY', 'BANKNIFTY']
+default_symbols = ['NIFTY', 'BANKNIFTY']
 
 
 class StartegyBackTester:
@@ -88,6 +88,8 @@ class StartegyBackTester:
                     #story_book.spot_minute_data_stream(price, iv)
                     story_book.spot_minute_data_stream(price)
                     time.sleep(0.005)
+                    if i == len(price_list) - 1:
+                        story_book.market_close_for_day()
 
                 for strategy_tuple, trade_details in pm.position_book.items():
                     #print(strategy)
@@ -96,21 +98,23 @@ class StartegyBackTester:
                     t_symbol = strategy_tuple[0]
                     trade_id = strategy_tuple[2]
                     strategy_signal_generator = story_book.get_signal_generator_from_id(strategy_id)
-                    for leg_id, leg_info in position.items():
-                        _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
-                        _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
-                        trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
-                        _tmp = {**_tmp, **trigger_details}
-                        signal_custom_details = strategy_signal_generator.tradable_signals[trade_id].custom_features
-                        signal_params = ['pattern_height']
-                        for signal_param in signal_params:
-                            if signal_param in signal_custom_details:
-                                _tmp[signal_param] = signal_custom_details[signal_param]
-                        if story_book.record_metric:
-                            params = strategy_signal_generator.params_repo.get((trade_id, leg_id), {})
-                            #print('params====', params)
-                            _tmp = {**_tmp, **params}
-                        results.append(_tmp)
+                    if not strategy_signal_generator.carry_forward or strategy_signal_generator.tradable_signals[trade_id].trade_complete():
+                        for leg_id, leg_info in position.items():
+                            entry_day = datetime.fromtimestamp(leg_info['entry_time']).date()
+                            _tmp = {'day': entry_day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+                            _tmp['week_day'] = datetime.strptime(entry_day, '%Y-%m-%d').strftime('%A') if type(entry_day) == str else entry_day.strftime('%A')
+                            trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
+                            _tmp = {**_tmp, **trigger_details}
+                            signal_custom_details = strategy_signal_generator.tradable_signals[trade_id].custom_features
+                            signal_params = ['pattern_height']
+                            for signal_param in signal_params:
+                                if signal_param in signal_custom_details:
+                                    _tmp[signal_param] = signal_custom_details[signal_param]
+                            if story_book.record_metric:
+                                params = strategy_signal_generator.params_repo.get((trade_id, leg_id), {})
+                                #print('params====', params)
+                                _tmp = {**_tmp, **params}
+                            results.append(_tmp)
             except Exception as e:
 
                 print('error on', day)
