@@ -14,7 +14,9 @@ human_machine_signal_map = {
     'TECH_PRICE_ABOVE_EMA_5': ('TECHNICAL', 'PRICE_ABOVE_EMA_5'),
     'TICK_PRICE_SIGNAL': ('PRICE', 'TICK_PRICE'),
     'CANDLE_SIGNAL': ('PRICE', 'CANDLE'),
-    'STRAT_EMA_BREAK_DOWN_5': ('STRAT', 'EMA_BREAK_DOWN_5_ENTRY')
+    'STRAT_EMA_BREAK_DOWN_5': ('STRAT', 'EMA_BREAK_DOWN_5_ENTRY'),
+
+    'WEEKLY_LEVEL_VA_H_POC_MID': ('WEEKLY_LEVEL_REACH', 'va_h_poc_mid')
 }
 
 human_machine_target_map = {
@@ -40,9 +42,9 @@ def get_signal_key(human_lang):
 def get_target_fn(human_lang):
     return human_machine_target_map.get(human_lang.upper(), None)
 
-def get_startegy_args(id=None, order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=[30], min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[], entry_signal_queues=[], exit_criteria_list = [], signal_filters = [], spot_long_targets = [], spot_long_stop_losses = [], spot_short_targets=[], spot_short_stop_losses=[],  instr_targets = [], instr_stop_losses = [], instr_to_trade=[], trade_controllers=[], entry_switch={}, risk_limits=[]):
+def get_startegy_args(id=None, order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=[30], min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[], entry_signal_queues=[], exit_criteria_list = [], signal_filters = [], spot_long_targets = [], spot_long_stop_losses = [], spot_short_targets=[], spot_short_stop_losses=[],  instr_targets = [], instr_stop_losses = [], instr_to_trade=[], trade_controllers=[], entry_switch={}, risk_limits=[], carry_forward=False):
     args = {}
-    arg_list = ["id", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed","entry_signal_queues", "exit_criteria_list", "signal_filters", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade", "trade_controllers", "entry_switch", "risk_limits"]
+    arg_list = ["id", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed","entry_signal_queues", "exit_criteria_list", "signal_filters", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade", "trade_controllers", "entry_switch", "risk_limits", "carry_forward"]
     for arg_ in arg_list:
         #if eval(arg_):
         args[arg_] = eval(arg_)
