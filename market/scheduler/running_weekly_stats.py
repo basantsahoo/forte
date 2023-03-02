@@ -157,7 +157,7 @@ def generate_historical_weekly_profile_chart(ticker, filtered_days, week_start_d
 
 
 def generate(tickers=[], days_past=7):
-    dateToday = date.today()
+    dateToday = date.today() #datetime.strptime('2022-12-26', '%Y-%m-%d')
     curr_ordinal = dateToday.toordinal()
     last_ordinal = curr_ordinal-days_past
     trade_days = list(range(curr_ordinal, last_ordinal, -7))

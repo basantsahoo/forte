@@ -83,6 +83,23 @@ def get_overlap(overlap_of, compared_with):
     compared_with.sort()
     return max(0, min(overlap_of[1], compared_with[1]) - max(overlap_of[0], compared_with[0]))
 
+
+def get_percentile(p_val, compared_range):
+
+    low = min(compared_range)
+    high = max(compared_range)
+    return round((p_val - low) / (high - low) * 100,0)
+
+
+def candle_reversal_score(current, previous):
+    previous_dir = np.sign(previous['close'] - previous['open'])
+    curr_dir = np.sign(current['close'] - current['open'])
+    dir_reversal = previous_dir != curr_dir
+    ref_point = current['high'] if previous_dir < 0 else current['low']
+    reversal = get_percentile(ref_point, [previous['high'], previous['low']]) if previous_dir < 0 else (100 - get_percentile(ref_point, [previous['high'], previous['low']]))
+    print('candle_reversal_score +++++++++++++++', previous_dir, curr_dir, ref_point, [previous['high'], previous['low']])
+    return 0 if not dir_reversal else reversal
+
 def compare_day_activity(compare_day, against_day):
     resp = {}
     compare_day_range = [compare_day['low'], compare_day['high']]

@@ -142,6 +142,7 @@ class StartegyBackTester:
                 start_date_index = min(end_date_index + for_past_days, len(all_days))
                 days = all_days[end_date_index:start_date_index]
                 days = [x for x in days if (datetime.strptime(x, '%Y-%m-%d').strftime('%A') if type(x) == str else x.strftime('%A')) in self.strat_config['week_days']] if self.strat_config['week_days'] else days
+                days.sort()
                 print(days)
                 self.strat_config['test_days'] = days
             result = self.back_test(symbol)

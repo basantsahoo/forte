@@ -169,9 +169,9 @@ class MarketProfileService:
                 sym['initial_balance_acc'] = [min(ib_data), max(ib_data)]
                 sym['initial_balance_idx'] = initial_balance_idx
                 sym['h_a_l'] = sym['ht'] > sym['lt']
-                extremes = utils.get_extremes(sym['print_matrix'], sym['price_bins'], self.min_co_ext)
-                extremes = utils.get_distribution(sym['hist'], extremes)
-                sym['extremes'] = extremes
+                profile_dist = utils.get_profile_dist(sym['print_matrix'], sym['price_bins'], self.min_co_ext)
+                profile_dist = utils.get_distribution(sym['hist'], profile_dist)
+                sym['profile_dist'] = profile_dist
 
     def get_profile_data(self):
         day = self.price_data.get(self.trade_day, {})

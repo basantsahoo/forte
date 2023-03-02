@@ -2,6 +2,8 @@ import numpy as np
 from itertools import compress
 import json
 from config import price_range, tick_steps
+from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
+from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -94,7 +96,128 @@ def calculate_value_area(tpo_sum_arr, poc_idx, value_area_pct):
     return [low_idx, high_idx]
 
 
-def get_extremes(print_matrix, price_bins, min_co_ext):
+def get_profile_dist(print_matrix, price_bins, min_co_ext):
+    # print(np.transpose(print_matrix))
+    single_print = False
+    extreme_low = False
+    extreme_high = False
+    result = {
+        'ext_low': extreme_low,
+        'ext_high': extreme_high,
+        'sin_print': single_print,
+        'low_ext_val': [],
+        'high_ext_val': [],
+        'sin_print_val': []
+    }
+
+    tpo_passed_sum = np.sum(print_matrix, axis=1)
+    tpo_passed_letters = list(compress(tpo_passed_sum, list(map(lambda i: i > 0, tpo_passed_sum))))
+    # convert to Price bin * TPO
+    print_matrix_t = np.transpose(print_matrix)
+
+    if len(tpo_passed_letters) <= 2:
+        pass
+    else:
+        occured_tpos = ~np.all(print_matrix_t == 0, axis=0).A1
+        occured_price_bins = ~np.all(print_matrix_t == 0, axis=1).A1
+        # filter unoccured tpos and prices
+        print_matrix_t = print_matrix_t[:, occured_tpos]
+        print_matrix_t = print_matrix_t[occured_price_bins]
+
+        possible_low_extremes = []
+        # iterate over all price bins
+        for tick_slab_idx in range(print_matrix_t.shape[0]):
+            tick_slab = print_matrix_t[tick_slab_idx].A1
+            total_visits = sum(tick_slab)
+            # Break when more than 2 tpos found for same price. it's not an extreme anymore
+            if total_visits == 1:
+                possible_low_extremes.append(tick_slab_idx)
+            else:
+                break
+            """
+                consecutive check to be done
+                any(i == j for i, j in zip(tick_slab, tick_slab[1:]))
+            """
+        if len(possible_low_extremes) >= min_co_ext:
+            extreme_low = True
+        possible_high_extremes = []
+        for tick_slab_idx in range(print_matrix_t.shape[0] - 1, 0, -1):
+            tick_slab = print_matrix_t[tick_slab_idx].A1
+            total_visits = sum(tick_slab)
+            if total_visits == 1:
+                possible_high_extremes.append(tick_slab_idx)
+            else:
+                break
+        if len(possible_high_extremes) >= min_co_ext:
+            extreme_high = True
+
+        """
+        look at single prints from one direction excluding tail from that direction
+        Low will find high single prints and vice versa
+        take intersetion to find middle ones 
+        """
+        single_print_l = []
+        single_print_h = []
+        looking_at_low_tail = True
+        for tick_slab_idx in range(1,print_matrix_t.shape[0]-1):
+            tick_slab = print_matrix_t[tick_slab_idx].A1
+            total_visits = sum(tick_slab)
+            if total_visits == 1:
+                if not looking_at_low_tail:
+                    single_print_l.append(tick_slab_idx)
+            else:
+                looking_at_low_tail = False
+        looking_at_high_tail = True
+        for tick_slab_idx in range(print_matrix_t.shape[0]-2,1,-1):
+            tick_slab = print_matrix_t[tick_slab_idx].A1
+            total_visits = sum(tick_slab)
+            if total_visits == 1:
+                if not looking_at_high_tail:
+                    single_print_h.append(tick_slab_idx)
+            else:
+                looking_at_high_tail = False
+        single_print_vals = list(set(single_print_l).intersection(set(single_print_h)))
+        #print(single_print_l)
+        #print(single_print_h)
+        #print(single_print_vals)
+        if len(single_print_vals) > 0:
+            single_print = True
+
+        tpo_sum_arr = np.sum(print_matrix_t, axis=1).A1
+        inflex_detector = PriceInflexDetectorForTrend('profile', fpth=0.4, spth=0.4)
+        for idx in range(len(tpo_sum_arr)):
+            inflex_detector.on_price_update([idx, tpo_sum_arr[idx]])
+        df2 = inflex_detector.dfstock_3
+        all_sp_infl = np.array(df2.index[df2.SPExt != ''])
+        low_infl = np.array(df2.index[df2.SPExt == 'SPL'])
+        high_infl = np.array(df2.index[df2.SPExt == 'SPH'])
+
+        if len(high_infl) == 1:
+            if (high_infl[0] <= max(df2.index)) * 0.6 and (high_infl[0] >= max(df2.index) * 0.4):
+                p_shape = 'D'
+            elif high_infl[0] > max(df2.index) * 0.6:
+                p_shape = 'P'
+            elif high_infl[0] < max(df2.index) * 0.4:
+                p_shape = 'b'
+        else:
+            p_shape = 'B'
+
+        result = {
+            'ext_low': extreme_low,
+            'ext_high': extreme_high,
+            'sin_print': single_print,
+            'low_ext_val': np.array(price_bins)[occured_price_bins][possible_low_extremes] if extreme_low else [],
+            'high_ext_val': np.array(price_bins)[occured_price_bins][
+                possible_high_extremes] if extreme_high else [],
+            'sin_print_val': np.array(price_bins)[occured_price_bins][single_print_vals] if single_print else [],
+            'p_shape': p_shape,
+            'p_bin_len' : print_matrix_t.shape[0],
+            'p_bins': occured_price_bins
+        }
+    return result
+
+
+def get_extremes_w(print_matrix, price_bins, min_co_ext):
     # print(price_bins)
     # print(np.transpose(print_matrix))
     single_print = False
@@ -204,6 +327,7 @@ def get_extremes(print_matrix, price_bins, min_co_ext):
             'sin_print_val': np.array(price_bins)[occured_price_bins][single_print_vals] if single_print else []
         }
     return result
+
 
 def get_distribution(history, extremes):
     # print(extremes)

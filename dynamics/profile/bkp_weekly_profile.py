@@ -3,7 +3,7 @@ import numpy as np
 import time
 from itertools import compress
 from dynamics.profile import utils
-from config import va_pct
+from config import va_pct, include_pre_market
 
 
 class WeeklyMarketProfileService:
@@ -97,14 +97,7 @@ class WeeklyMarketProfileService:
                 # print(sym['print_matrix'])
 
                 tpo_sum_arr = np.sum(sym['print_matrix'], axis=0).A1
-                """
-                print("tpo_sum_arr=", tpo_sum_arr)
-                print("price_bins", sym['price_bins'])
-                print("len price_bins", len(sym['price_bins']))
-                print("len tpo_brackets", len(self.tpo_brackets))
-                print(sym['print_matrix'].shape)
-                print(len(sym['price_bins']))
-                """
+                # print(tpo_sum_arr)
                 poc_idx = utils.mid_max_idx(tpo_sum_arr)
                 poc_price = sym['price_bins'][poc_idx]
                 poc_len = tpo_sum_arr[poc_idx]
@@ -126,9 +119,9 @@ class WeeklyMarketProfileService:
                 sym['below_poc'] = below_poc
                 sym['above_poc'] = above_poc
                 sym['h_a_l'] = sym['ht'] > sym['lt']
-                profile_dist = utils.get_profile_dist(sym['print_matrix'], sym['price_bins'], self.min_co_ext)
-                profile_dist = utils.get_distribution(sym['hist'], profile_dist)
-                sym['profile_dist'] = profile_dist
+                extremes = utils.get_extremes(sym['print_matrix'], sym['price_bins'], self.min_co_ext)
+                extremes = utils.get_distribution(sym['hist'], extremes)
+                sym['extremes'] = extremes
 
     def get_profile_data(self):
         day = self.price_data.get(self.trade_day, {})

@@ -11,10 +11,10 @@
       "derivative_instruments":[],
       "max_signal": 1,
       "triggers_per_signal": 1,
-      "spot_short_targets": [0.1,0.02, 0.03, 0.04],
+      "spot_short_targets": [0.01,0.02, 0.03, 0.04],
       "spot_short_stop_losses":[0.015,0.02, 0.02,0.02],
-      "instr_targets":[],
-      "instr_stop_losses":[],
+      "instr_targets":[0.5],
+      "instr_stop_losses":[1],
       "instr_to_trade" : [["ITM", 1, "CE"]],
       "entry_signal_queues": [
         {
@@ -59,7 +59,7 @@
       "risk_limits": ["max_movement > 80", "total_losses < -35"]
     }
   ],
-  "test_days": ["2023-01-24", "2023-01-25"],
+  "test_days": [],
   "for_past_days": 80,
   "symbols": ["NIFTY"],
   "to_date": "2023-01-24",

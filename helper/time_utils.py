@@ -1,0 +1,16 @@
+from datetime import datetime
+
+
+def date_string_from_epoc(epoch_time):
+    dt = datetime.fromtimestamp(epoch_time)
+    return dt.strftime('%Y-%m-%d')
+
+
+def time_string_from_epoc(epoch_time):
+    dt = datetime.fromtimestamp(epoch_time)
+    return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+
+def epoch_to_ordinal(epoch_time):
+    dt = datetime.fromtimestamp(epoch_time).date()
+    return dt.toordinal()
