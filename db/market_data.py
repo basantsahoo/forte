@@ -8,6 +8,7 @@ import calendar
 import numpy as np
 engine = get_db_engine()
 import helper.utils as helper_utils
+from config import exclued_days
 
 
 def get_pending_key_level_days(symbol):
@@ -282,6 +283,7 @@ def get_prev_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
         t_day = datetime.strptime(trade_day, '%Y-%m-%d') if type(trade_day) == str else trade_day
         t_day_weekday = t_day.weekday()
         offset = (t_day_weekday - week_end_day_as_int) % 7
+        offset = 7 if offset == 0 else offset
         t_day_ordinal = t_day.toordinal()
         last_week_end = t_day_ordinal - offset
         last_week_start = last_week_end - 6
@@ -295,10 +297,10 @@ def get_prev_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
         start_ts = int(time.mktime(time.strptime(last_week_start_str, "%Y-%m-%d %H:%M:%S")))
         end_ts = int(time.mktime(time.strptime(last_week_end_plus_one_str, "%Y-%m-%d %H:%M:%S")))
 
-        stmt_1 = "select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} order by timestamp asc"
+        stmt_1 = "select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3} order by timestamp asc"
         #print(stmt_1)
         conn = engine.connect()
-        df = pd.read_sql_query(stmt_1.format(symbol, start_ts, end_ts), conn)
+        df = pd.read_sql_query(stmt_1.format(symbol, start_ts, end_ts, tuple(exclued_days)), conn)
         conn.close()
         res = df.to_dict('records')[0]
     except Exception as e:
@@ -317,6 +319,7 @@ def get_curr_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
         t_day = datetime.strptime(trade_day, '%Y-%m-%d') if type(trade_day) == str else trade_day
         t_day_weekday = t_day.weekday()
         offset = (t_day_weekday - week_end_day_as_int) % 7
+        offset = 7 if offset == 0 else offset
         t_day_ordinal = t_day.toordinal()
         last_week_end = t_day_ordinal - offset
         this_week_start = last_week_end + 1
@@ -330,10 +333,10 @@ def get_curr_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
         start_ts = int(time.mktime(time.strptime(this_week_start_str, "%Y-%m-%d %H:%M:%S")))
         end_ts = int(time.mktime(time.strptime(this_week_end_plus_one_str, "%Y-%m-%d %H:%M:%S")))
 
-        stmt_1 = "select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} order by timestamp asc"
+        stmt_1 = "select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3} order by timestamp asc"
         #print(stmt_1)
         conn = engine.connect()
-        df = pd.read_sql_query(stmt_1.format(symbol, start_ts, end_ts), conn)
+        df = pd.read_sql_query(stmt_1.format(symbol, start_ts, end_ts, tuple(exclued_days)), conn)
         conn.close()
     except Exception as e:
         print(e)

@@ -35,7 +35,7 @@ def start():
     scheduler.add_job(td_download_spot_data.run, 'cron', day_of_week='mon-fri', hour='19', minute='37')
     scheduler.add_job(calculate_historical_measures.run, 'cron', day_of_week='mon-fri', hour='20', minute='28')
     scheduler.add_job(historical_profile.run, 'cron', day_of_week='mon-fri', hour='20', minute='48')
-    scheduler.add_job(running_weekly_stats.run, 'cron', day_of_week='mon-fri', hour='9', minute='37')
+    scheduler.add_job(running_weekly_stats.run, 'cron', day_of_week='mon-fri', hour='10', minute='46')
     scheduler.add_job(calculate_support_resistance.run, 'cron', day_of_week='mon-fri', hour='20', minute='46')
     scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='17', minute='45')
     scheduler.add_job(download_economic_calendar.run, 'cron', day_of_week='*', hour='19', minute='30')
