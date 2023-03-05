@@ -41,14 +41,34 @@ def extract_metrices(processed_data):
     }
     return metrices
 
-
-def relative_profile_position(daily_metrices, last_week_metrices):
+def relative_profile_position(curr_metrices, last_metrices):
     profile_pos = {
-        'poc_dir': np.sign(daily_metrices['poc_price'] - last_week_metrices['poc_price']),
-        'poc_pos': get_percentile(daily_metrices['poc_price'], [last_week_metrices['high'], last_week_metrices['low']])
+        'w_poc_dir': np.sign(curr_metrices['poc_price'] - last_metrices['poc_price']),
+        'w_high_pos': get_percentile(curr_metrices['high'], [last_metrices['high'], last_metrices['low']]),
+        'w_low_pos': get_percentile(curr_metrices['low'], [last_metrices['high'], last_metrices['low']]),
+        'w_poc_pos': get_percentile(curr_metrices['poc_price'], [last_metrices['high'], last_metrices['low']]),
+        'w_close_pos': get_percentile(curr_metrices['close'], [last_metrices['high'], last_metrices['low']]),
+        't_close_pos': get_percentile(curr_metrices['close'], [curr_metrices['high'], curr_metrices['low']]),
+        'return': curr_metrices['close'] / last_metrices['close'] - 1
     }
     return profile_pos
 
+def check_level_reach_in_tpo(last_week_metrices, price_bins,visits):
+    metrices = {}
+    lk_keys = ['open', 'high', 'low', 'close', 'poc_price', 'va_l_p', 'va_l_poc_mid', 'va_l_low_mid', 'va_h_poc_mid', 'va_h_high_mid', 'va_h_p', 'balance_target']
+    for l_key in lk_keys:
+        #print('l_key', l_key, last_week_metrices[l_key])
+        level = last_week_metrices[l_key]
+        pb_idx_low = get_next_lowest_index(price_bins, level)
+        pb_idx_high = get_next_highest_index(price_bins,level)
+        #print(pb_idx_low, pb_idx_high)
+        #print(visits[pb_idx_low], visits[pb_idx_high])
+        level_reach = (pb_idx_low >= 0) and (pb_idx_high >= 0)
+        if level_reach:
+            metrices[l_key + "_tpo"] = max(visits[pb_idx_low], visits[pb_idx_high])
+        else:
+            metrices[l_key + "_tpo"] = 0
+    return metrices
 
 def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
     t_day = datetime.strptime(day, '%Y-%m-%d') if type(day) == str else day
@@ -67,7 +87,7 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
     lw_processor.calculateMeasures()
     lw_processed_data = lw_processor.get_profile_data()[0]
     last_week_metrices = extract_metrices(lw_processed_data)
-
+    lk_keys = ['open', 'high', 'low', 'close', 'poc_price', 'va_l_p', 'va_l_poc_mid', 'va_l_low_mid', 'va_h_poc_mid', 'va_h_high_mid', 'va_h_p', 'balance_target']
     # Current week
     df_curr_week = get_curr_week_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
     df_curr_week['ordinal_date'] = df_curr_week['timestamp'].apply(lambda x:epoch_to_ordinal(x))
@@ -100,28 +120,44 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
         processor.calculateMeasures()
         daily_profile_data = processor.get_profile_data()[0]
         daily_metrices = extract_metrices(daily_profile_data)
+
         t_metrices = {}
         if day_idx == 0:
             t_metrices['p_shape'] = daily_metrices['p_shape']
             t_metrices['range'] = daily_metrices['range']
             profile_pos = relative_profile_position(daily_metrices, last_week_metrices)
             t_metrices = {**t_metrices, **profile_pos}
-            t_metrices['ret'] = daily_metrices['close']/last_week_metrices['close']-1
         else:
             prev_processor = HistMarketProfileService()
             prev_processor.process_input_data(curr_week_daily_recs[day_idx-1])
             prev_processor.calculateMeasures()
             prev_daily_profile_data = prev_processor.get_profile_data()[0]
             prev_daily_metrices = extract_metrices(prev_daily_profile_data)
+            prev_daily_metrices['return'] = final_metrics['day_' + str(day_idx-1) + "_return"]
 
-            if day_idx == 1:
-                t_metrices['p_shape'] = daily_metrices['p_shape']
-                t_metrices['range'] = daily_metrices['range']
-                profile_pos = relative_profile_position(daily_metrices, prev_daily_metrices)
-                t_metrices = {**t_metrices, **profile_pos}
-                t_metrices['reversal'] = candle_reversal_score(prev_daily_metrices, daily_metrices)
-            t_metrices['ret'] = daily_metrices['close'] / prev_daily_metrices['close'] - 1
+            ongoing_weekly_processor = WeeklyMarketProfileService()
+            ongoing_weekly_recs = []
+            for idx in curr_week_daily_recs.keys():
+                if idx < day_idx:
+                    ongoing_weekly_recs.extend(curr_week_daily_recs[idx])
+            ongoing_weekly_processor.set_trade_date_from_time(ongoing_weekly_recs[0]['timestamp'], ongoing_weekly_recs[-1]['timestamp'])
+            ongoing_weekly_processor.process_input_data(ongoing_weekly_recs)
+            ongoing_weekly_processor.calculateMeasures()
+            ongoing_weekly_profile_data = ongoing_weekly_processor.get_profile_data()[0]
 
+            ongoing_weekly_metrices = extract_metrices(ongoing_weekly_profile_data)
+
+            t_metrices['p_shape'] = daily_metrices['p_shape']
+            t_metrices['range'] = daily_metrices['range']
+            profile_pos = relative_profile_position(daily_metrices, ongoing_weekly_metrices)
+            t_metrices = {**t_metrices, **profile_pos}
+            t_metrices['reversal'] = candle_reversal_score(daily_metrices, prev_daily_metrices)
+        daily_print_matrix = daily_profile_data['print_matrix']
+        daily_price_bins = daily_profile_data['price_bins']
+        daily_visits = daily_print_matrix.sum(axis=0).tolist()[0]
+        tpo_day_metrices = check_level_reach_in_tpo(last_week_metrices, daily_price_bins, daily_visits)
+        t_metrices = {**t_metrices, **tpo_day_metrices}
+        
         for key in t_metrices.keys():
             ks = 'day_' + str(day_idx) + "_" + key if day_idx != max(curr_week_daily_recs.keys()) else 'expiry_' + key
             final_metrics[ks] = t_metrices[key]
@@ -135,7 +171,7 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
     price_bins = processed_data['price_bins']
     print(extract_metrices(processed_data))
 
-    lk_keys = ['open', 'high', 'low', 'close', 'poc_price', 'va_l_p', 'va_l_poc_mid', 'va_l_low_mid', 'va_h_poc_mid', 'va_h_high_mid', 'va_h_p', 'balance_target']
+
     week_metrices = dict({
         'open': 0,
         'high': 0,
@@ -157,21 +193,10 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
             if level_reach:
                 week_metrices[l_key] += 1
     #print(price_bins)
-    visits = print_matrix.sum(axis=0).tolist()[0]
-    for l_key in lk_keys:
-        #print('l_key', l_key, last_week_metrices[l_key])
-        level = last_week_metrices[l_key]
-        pb_idx_low = get_next_lowest_index(price_bins, level)
-        pb_idx_high = get_next_highest_index(price_bins,level)
-        #print(pb_idx_low, pb_idx_high)
-        #print(visits[pb_idx_low], visits[pb_idx_high])
-        level_reach = (pb_idx_low >= 0) and (pb_idx_high >= 0)
-        if level_reach:
-            week_metrices[l_key + "_tpo"] = max(visits[pb_idx_low], visits[pb_idx_high])
-        else:
-            week_metrices[l_key + "_tpo"] = 0
-
     final_metrics = {**final_metrics, **week_metrices}
+    visits = print_matrix.sum(axis=0).tolist()[0]
+    tpo_week_metrices = check_level_reach_in_tpo(last_week_metrices, price_bins, visits)
+    final_metrics = {**final_metrics, **tpo_week_metrices}
     last_candle = curr_week_recs[-1].copy()
     last_candle['open'] = last_candle['close']
     final_metrics['close_type'] = determine_day_open(last_candle, last_week_metrices)
@@ -193,7 +218,7 @@ def generate_historical_weekly_profile_chart(ticker, filtered_days, week_start_d
     df.to_csv(reports_dir + 'weekly_metrices_t.csv')
 
 def generate(tickers=[], days_past=7):
-    dateToday = datetime.strptime('2023-03-02', '%Y-%m-%d')#date.today()
+    dateToday = datetime.strptime('2022-12-24', '%Y-%m-%d')#date.today()
     curr_ordinal = dateToday.toordinal()
     last_ordinal = curr_ordinal-days_past
     trade_days = list(range(curr_ordinal, last_ordinal, -7))
@@ -210,6 +235,6 @@ def generate(tickers=[], days_past=7):
 def run():
     print(default_symbols)
     tickers = default_symbols[0:1]
-    generate(tickers=tickers, days_past=7)
+    generate(tickers=tickers, days_past=30)
 
 run()

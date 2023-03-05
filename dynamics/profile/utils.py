@@ -184,11 +184,10 @@ def get_profile_dist(print_matrix, price_bins, min_co_ext):
             single_print = True
 
         tpo_sum_arr = np.sum(print_matrix_t, axis=1).A1
-        inflex_detector = PriceInflexDetectorForTrend('profile', fpth=0.4, spth=0.4)
+        inflex_detector = PriceInflexDetectorForTrend('profile', fpth=0.51, spth=0.51)
         for idx in range(len(tpo_sum_arr)):
             inflex_detector.on_price_update([idx, tpo_sum_arr[idx]])
         df2 = inflex_detector.dfstock_3
-        all_sp_infl = np.array(df2.index[df2.SPExt != ''])
         low_infl = np.array(df2.index[df2.SPExt == 'SPL'])
         high_infl = np.array(df2.index[df2.SPExt == 'SPH'])
 
@@ -200,7 +199,11 @@ def get_profile_dist(print_matrix, price_bins, min_co_ext):
             elif high_infl[0] < max(df2.index) * 0.4:
                 p_shape = 'b'
         else:
-            p_shape = 'B'
+            low_bet_high = [x for x in low_infl if x > min(high_infl) and x < max(high_infl)]
+            if not low_bet_high:
+                p_shape = 'D'
+            else:
+                p_shape = 'B'
 
         result = {
             'ext_low': extreme_low,

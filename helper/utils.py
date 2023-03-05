@@ -92,6 +92,15 @@ def get_percentile(p_val, compared_range):
 
 
 def candle_reversal_score(current, previous):
+    previous_dir = np.sign(previous['return'])
+    curr_dir = np.sign(current['close'] - previous['close'])
+    dir_reversal = previous_dir != curr_dir
+    ref_point = current['high'] if previous_dir < 0 else current['low']
+    reversal = get_percentile(ref_point, [previous['high'], previous['low']]) if previous_dir < 0 else (100 - get_percentile(ref_point, [previous['high'], previous['low']]))
+    print('candle_reversal_score +++++++++++++++', previous_dir, curr_dir, ref_point, [previous['high'], previous['low']])
+    return 0 if not dir_reversal else reversal
+
+def candle_reversal_score_2(current, previous):
     previous_dir = np.sign(previous['close'] - previous['open'])
     curr_dir = np.sign(current['close'] - current['open'])
     dir_reversal = previous_dir != curr_dir
