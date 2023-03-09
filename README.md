@@ -302,3 +302,12 @@ key levels : key_levels
 pip install talipp
 
 ```
+
+
+## casual inference
+```
+pip install causalinference
+pip install dowhy
+
+https://towardsdatascience.com/4-python-packages-to-learn-causal-analysis-9a8eaab9fdab
+```

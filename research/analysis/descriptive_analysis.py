@@ -66,11 +66,11 @@ def group_wise_summary(report, df_i,target, grp, filter={}):
     day_wise_df = df_i.groupby([grp]).agg({target: ['count', 'mean', 'min', 'max']})
     # day_wise_df = df_i.groupby(['strategy', 'support_ind',]).agg({target: ['count', 'mean', 'min', 'max']})
     day_wise_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
-    day_wise_df = day_wise_df.reset_index().round(2)
+    day_wise_df = day_wise_df.reset_index().round(3)
     aggregate_df = df_i.groupby(['strategy']).agg({target: ['count', 'mean', 'min', 'max']})
 
     aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
-    aggregate_df = aggregate_df.reset_index().round(2)
+    aggregate_df = aggregate_df.reset_index().round(3)
     print('aggregate_df+++++++++++++++++')
     print(aggregate_df)
     aggr_values = list(aggregate_df.iloc[0])

@@ -157,7 +157,7 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
         daily_visits = daily_print_matrix.sum(axis=0).tolist()[0]
         tpo_day_metrices = check_level_reach_in_tpo(last_week_metrices, daily_price_bins, daily_visits)
         t_metrices = {**t_metrices, **tpo_day_metrices}
-        
+
         for key in t_metrices.keys():
             ks = 'day_' + str(day_idx) + "_" + key if day_idx != max(curr_week_daily_recs.keys()) else 'expiry_' + key
             final_metrics[ks] = t_metrices[key]
@@ -235,6 +235,6 @@ def generate(tickers=[], days_past=7):
 def run():
     print(default_symbols)
     tickers = default_symbols[0:1]
-    generate(tickers=tickers, days_past=30)
+    generate(tickers=tickers, days_past=365*3)
 
 run()

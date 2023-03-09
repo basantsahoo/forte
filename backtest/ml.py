@@ -9,12 +9,14 @@ from research.analysis import option_strategy_analysis
 from research.analysis import ema_5_strategy_analysis
 from research.analysis import combined_analysis
 from research.analysis import visualize_pattern
+from research.analysis import weekly_path_analysis
 from research.analysis import visualize_pattern_ema
 #strategy_analysis_revised.run()
 #combined_analysis.run()
 #option_strategy_analysis.run()
 #ema_5_strategy_analysis.run()
-visualize_pattern_ema.run()
+#visualize_pattern_ema.run()
+weekly_path_analysis.run()
 
 
 
