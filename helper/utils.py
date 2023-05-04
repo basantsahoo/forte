@@ -231,16 +231,6 @@ def is_time_between(begin_time, end_time, check_time=None):
         return check_time >= begin_time or check_time <= end_time
 
 
-def get_epoc_minute(time_stamp):
-    epoch_tick_time = time_stamp
-    epoch_minute = int(epoch_tick_time / 60) * 60
-    return epoch_minute
-
-def get_epoc_from_iso_format(iso_ts):
-    epoch_tick_time = int(datetime.fromisoformat(iso_ts + '+05:30').timestamp())
-    return epoch_tick_time
-
-
 def convert_to_candle(lst):
 
     candle = {'timestamp': lst[0]['timestamp'], 'open': lst[0]['open'], 'high': max([y['high'] for y in lst]),
