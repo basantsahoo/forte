@@ -125,9 +125,10 @@ class Trade:
         for trigger_seq, trigger_details in self.legs.items():
             if trigger_details['exit_type'] is None:  #Still active
                 last_instr_candle = self.strategy.get_last_tick(trigger_details['instrument'])
+                #print("self.strategy.force_exit_ts=====", self.strategy.force_exit_ts)
                 if last_spot_candle['timestamp'] - trigger_details['trigger_time'] >= trigger_details['duration']*60:
                     self.trigger_exit(trigger_seq, exit_type='TC')
-                elif self.strategy.force_exit_ts is not None and last_spot_candle['timestamp'] >= self.strategy.force_exit_ts:
+                elif self.strategy.force_exit_ts and last_spot_candle['timestamp'] >= self.strategy.force_exit_ts:
                     self.trigger_exit(trigger_seq, exit_type='TSFE')
                 elif self.strategy.order_type == 'BUY':
                     if trigger_details['instr_target'] and last_instr_candle['close'] >= trigger_details['instr_target']:

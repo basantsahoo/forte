@@ -51,6 +51,7 @@ def get_option_details(option_symbol, inst_symbol, expiry):
     return {'strike': option_symbol[len(inst_oc_symbol)+len(expiry):-2], 'kind': option_symbol[-2:]}
 
 def download(trade_days=[], symbols=[]):
+    print("====starting download====")
     if len(symbols) == 0:
         symbols = [helper_utils.get_nse_index_symbol(symbol) for symbol in default_symbols]
     TD_object = TD(td_settings.user_name, td_settings.pass_word, live_port=None, historical_api=True)
@@ -62,6 +63,7 @@ def download(trade_days=[], symbols=[]):
         tmp_trade_days = trade_days
         if len(tmp_trade_days) == 0:
             last_date = get_last_option_loaded_date(helper_utils.get_nse_index_symbol(symbol))
+            print('last_date=================', last_date)
             if last_date is None:
                 last_date = datetime(2022, 9, 18).date()
             # print(last_date)
@@ -97,7 +99,7 @@ def download(trade_days=[], symbols=[]):
             if spot_daily_bar:
                 spot_price = spot_daily_bar[0]['o']
                 print(spot_price)
-                expiry_dt = get_expiry_date(trade_day)
+                expiry_dt = get_expiry_date(trade_day, symbol)
                 print('expiry_dt', expiry_dt)
                 expiry = expiry_dt.strftime('%y%m%d')
 
@@ -155,3 +157,4 @@ def download(trade_days=[], symbols=[]):
 def run():
     download()
 
+download()

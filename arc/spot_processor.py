@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from helper.utils import get_epoc_minute
+from helper.time_utils import get_epoc_minute
 from talipp.indicators import EMA, SMA, Stoch
 from talipp.ohlcv import OHLCVFactory
 from datetime import datetime

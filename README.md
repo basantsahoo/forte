@@ -273,18 +273,6 @@ https://stackoverflow.com/questions/59679629/template-matching-for-candlestick-o
 ```
 
 
-### execute service
-```
-cd forte
-python servers/run_oms_server.py
-python servers/run_website_server.py
-python servers/run_test_fetcher.py
-
-python market/manage.py runserver --norealod
-or cd forte/market
-python manage.py runserver --noreload
-
-```
 
 ### Backtest
 
@@ -310,4 +298,26 @@ pip install causalinference
 pip install dowhy
 
 https://towardsdatascience.com/4-python-packages-to-learn-causal-analysis-9a8eaab9fdab
+```
+
+
+### execute service
+```
+cd forte
+python servers/run_oms_server.py
+python servers/run_website_server.py
+python servers/run_test_fetcher.py
+
+python market/manage.py runserver --norealod
+or cd forte/market
+python manage.py runserver --noreload
+
+download data scripts are in scheduler and run by rest api through scheduler/jobs
+
+```
+
+### For my memory refresh after long time
+
+```
+
 ```

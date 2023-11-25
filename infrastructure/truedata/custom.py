@@ -12,9 +12,7 @@ from py_vollib_vectorized import vectorized_implied_volatility
 import pandas as pd
 from datetime import datetime
 from config import get_expiry_date
-expiry_dt = get_expiry_date()
-expiry = expiry_dt.strftime('%y%m%d')
-
+import helper.utils as helper_utils
 
 class TDCustom(TD):
     _instance = None
@@ -62,13 +60,17 @@ class TDCustom(TD):
 
     def get_intraday_geeks(self, ticker, option_type="PE"):
         #self.get_all_expiries()
+
         ticker_index = 'NIFTY 50' if ticker == 'NIFTY' else 'NIFTY BANK' if 'BANK' in ticker else None
+        expiry_dt = get_expiry_date(ticker_index)
+        expiry = expiry_dt.strftime('%y%m%d')
+
         flag = 'p' if option_type == 'PE' else 'c' if option_type == 'CE' else None
         index_spot_price = self.get_n_historical_bars(ticker_index, bar_size="tick")[0]['ltp']
         option_strike = round(index_spot_price / 100) * 100 + 100 if option_type == 'CE' else round(index_spot_price / 100) * 100 - 100 if option_type == 'PE' else round(index_spot_price / 100) * 100
         #print(option_strike)
         option_data = self.get_n_historical_bars(ticker + expiry + str(option_strike) + option_type, bar_size="1 min", no_of_bars=375)
-        eod_time_to_expiry = self.get_time_to_expiry(option_data[0]['time'])
+        eod_time_to_expiry = self.get_time_to_expiry(expiry_dt, option_data[0]['time'])
         spot_data = self.get_n_historical_bars(ticker_index, bar_size="1 min", no_of_bars=375)
         tim_to_expiry = [(x*60 + eod_time_to_expiry) / (365 * 24*3600) for x in range(len(spot_data))]
         r = 10 / 100
@@ -96,7 +98,7 @@ class TDCustom(TD):
         df = pd.read_csv(StringIO(chain), header=None)
         print(df.head().T)
 
-    def get_time_to_expiry(self, from_time=None):
+    def get_time_to_expiry(self, expiry_dt, from_time=None):
         option_expiry_time = expiry_dt.strftime('%Y-%m-%d') + " 15:30:00"
         end_ts = datetime.strptime(option_expiry_time, "%Y-%m-%d %H:%M:%S")
         diff = (end_ts-from_time).total_seconds()#-(24-6.25)*3600
@@ -106,7 +108,7 @@ class TDCustom(TD):
 class OptionChainCustom(OptionChain):
     def get_strike_step(self):
         print('get_strike_step++++++++++++', self.symbol)
-        if self.symbol in ['NIFTY', 'BANKNIFTY']:
+        if self.symbol in [helper_utils.get_nse_index_symbol("NIFTY"), helper_utils.get_nse_index_symbol("BANKNIFTY")]:
             return 100
         else:
             expiry = self.expiry.strftime('%Y%m%d')

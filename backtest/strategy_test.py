@@ -57,7 +57,9 @@ class StartegyBackTester:
                 print('strategy=====', self.strat_config['strategies'][s_id])
                 strategy_class = eval(self.strat_config['strategies'][s_id])
                 strategy_kwargs = self.strat_config['strategy_kwargs'][s_id]
+                print(strategy_kwargs)
                 story_book.add_strategy(strategy_class, strategy_kwargs)
+
                 end = datetime.now()
                 print('strategy init took', (end - start).total_seconds())
             start = datetime.now()

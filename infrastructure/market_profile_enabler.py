@@ -7,7 +7,8 @@ from dynamics.profile import utils
 from config import va_pct, include_pre_market,live_feed, back_test_day
 from dynamics.profile.utils import NpEncoder
 from db.market_data import prev_day_data, get_prev_week_candle, get_nth_day_profile_data
-from helper.utils import get_pivot_points, get_epoc_minute
+from helper.utils import get_pivot_points
+from helper.time_utils import get_epoc_minute
 
 
 class MarketProfileEnablerService:

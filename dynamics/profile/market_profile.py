@@ -6,7 +6,8 @@ from itertools import compress
 from dynamics.profile import utils
 
 from config import va_pct, include_pre_market
-from helper.utils import get_pivot_points, get_epoc_minute
+from helper.utils import get_pivot_points
+from helper.time_utils import get_epoc_minute
 
 class MarketProfileService:
     def __init__(self, trade_day=None, market_cache=None):

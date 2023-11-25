@@ -1,4 +1,5 @@
 from datetime import datetime, date, time
+import helper.utils as helper_utils
 va_pct = 0.7 #value area percentage
 min_co_ext = 2 #no of tpos for considering extremes
 """
@@ -26,24 +27,42 @@ allowed_apps = ['CALG136148', 'FEEDTD136148', 'FEEDFY136148']
 
 order_api = 'https://api.niftybull.in/order'
 expiry_dt = datetime(2022, 8, 25)
-future_expiry_dates = ['2022-08-25',  '2022-09-01', '2022-09-08', '2022-09-15', '2022-09-22', '2022-09-29', '2022-10-06', '2022-10-13', '2022-10-20', '2022-10-27', '2022-11-03', '2022-11-10', '2022-11-17', '2022-11-24', '2022-12-01', '2022-12-08', '2022-12-15', '2022-12-22',	'2022-12-29',
-                       '2023-01-05', '2023-01-12',	'2023-01-19', '2023-01-25',	'2023-02-02',  '2023-02-09', '2023-02-16', '2023-02-23', '2023-03-02', '2023-03-09', '2023-03-16', '2023-03-23', '2023-03-29']
+nifty_future_expiry_dates = ['2022-08-25',  '2022-09-01', '2022-09-08', '2022-09-15', '2022-09-22', '2022-09-29', '2022-10-06', '2022-10-13', '2022-10-20', '2022-10-27', '2022-11-03', '2022-11-10', '2022-11-17', '2022-11-24', '2022-12-01', '2022-12-08', '2022-12-15', '2022-12-22',	'2022-12-29',
+                       '2023-01-05', '2023-01-12',	'2023-01-19', '2023-01-25',	'2023-02-02',  '2023-02-09', '2023-02-16', '2023-02-23', '2023-03-02', '2023-03-09', '2023-03-16', '2023-03-23', '2023-03-29', '2023-04-06','2023-04-13','2023-04-20', '2023-04-27', '2023-05-04', '2023-05-11', '2023-05-18',
+                       '2023-06-01','2023-06-08','2023-06-15','2023-06-22', '2023-06-29', '2023-07-06', '2023-07-13', '2023-07-20', '2023-07-27', '2023-07-27',
+                       '2023-08-03','2023-08-10','2023-08-17','2023-08-24', '2023-08-31', '2023-09-07', '2023-09-14', '2023-09-21', '2023-09-28', '2023-10-05', '2023-10-12', '2023-10-19', '2023-10-26',
+                       '2023-11-02', '2023-11-09', '2023-11-16', '2023-11-23', '2023-11-30', '2023-12-07', '2023-12-14', '2023-12-21', '2023-12-28']
+
+
+bank_nifty_future_expiry_dates = ['2022-08-25',  '2022-09-01', '2022-09-08', '2022-09-15', '2022-09-22', '2022-09-29', '2022-10-06', '2022-10-13', '2022-10-20', '2022-10-27', '2022-11-03', '2022-11-10', '2022-11-17', '2022-11-24', '2022-12-01', '2022-12-08', '2022-12-15', '2022-12-22',	'2022-12-29',
+                       '2023-01-05', '2023-01-12',	'2023-01-19', '2023-01-25',	'2023-02-02',  '2023-02-09', '2023-02-16', '2023-02-23', '2023-03-02', '2023-03-09', '2023-03-16', '2023-03-23', '2023-03-29', '2023-04-06','2023-04-13','2023-04-20', '2023-04-27', '2023-05-04', '2023-05-11', '2023-05-18',
+                       '2023-06-01','2023-06-08','2023-06-15','2023-06-22', '2023-06-29', '2023-07-06', '2023-07-13', '2023-07-20', '2023-07-27', '2023-07-27',
+                       '2023-08-03','2023-08-10','2023-08-17','2023-08-24', '2023-08-31', '2023-09-06', '2023-09-13', '2023-09-20', '2023-09-28', '2023-10-04', '2023-10-11', '2023-10-18', '2023-10-26',
+                       '2023-11-01', '2023-11-08', '2023-11-15', '2023-11-22', '2023-11-30', '2023-12-06', '2023-12-13', '2023-12-20', '2023-12-28']
 
 market_open_time = time(9, 15)
 market_close_time = time(15, 30)
 def get_expiry_date_o():
     return expiry_dt
 
-def get_expiry_date(trade_day=None):
-    fut_exp_dates = [datetime.strptime(x, '%Y-%m-%d').toordinal() for x in future_expiry_dates]
+def get_expiry_date(trade_day=None, symbol=None):
+    print('get_expiry_date====', symbol)
+    if symbol == helper_utils.get_nse_index_symbol("NIFTY"):
+        sym_future_expiry_dates = nifty_future_expiry_dates
+    elif symbol == helper_utils.get_nse_index_symbol("BANKNIFTY"):
+        sym_future_expiry_dates = bank_nifty_future_expiry_dates
+    elif symbol == helper_utils.get_nse_index_symbol("FINNIFTY"):
+        sym_future_expiry_dates = bank_nifty_future_expiry_dates
+
+    fut_exp_dates = [datetime.strptime(x, '%Y-%m-%d').toordinal() for x in sym_future_expiry_dates]
     t_day = date.today().toordinal() if trade_day is None else datetime.strptime(trade_day, '%Y-%m-%d').toordinal()
     expiry = min([x for x in fut_exp_dates if x >= t_day])
     return datetime.fromordinal(expiry)
 
-def is_month_end_expiry(expiry):
+def is_month_end_expiry(expiry, symbol=None):
 
     epiry_dt = datetime.strptime(expiry, '%y%m%d').toordinal()
-    fut_exp_dates = [datetime.strptime(x, '%Y-%m-%d').toordinal() for x in future_expiry_dates]
+    fut_exp_dates = [datetime.strptime(x, '%Y-%m-%d').toordinal() for x in nifty_future_expiry_dates]
     next_expiry = min([x for x in fut_exp_dates if x > epiry_dt])
     #print('expiry', expiry)
     #print('next_expiry', datetime.fromordinal(next_expiry))

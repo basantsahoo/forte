@@ -66,7 +66,7 @@ class WeeklyProcessor:
             'low_ext_val': processed_data['extremes']['low_ext_val'],
             'high_ext_val': processed_data['extremes']['high_ext_val'],
         }
-        self.expiry_date = get_expiry_date(trade_day).strftime('%Y-%m-%d')
+        self.expiry_date = get_expiry_date(trade_day, self.ticker).strftime('%Y-%m-%d')
         if curr_week_recs:
             self.first_tick_of_week = curr_week_recs[0]
 

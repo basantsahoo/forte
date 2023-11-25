@@ -20,6 +20,7 @@ class BaseStrategy:
                  spot_instruments = [], # Instruments that should be traded as linear can include FUT in future
                  derivative_instruments=[], # Instruments that should be traded as non options
                  exit_time=[10],
+                 carry_forward=False,
                  min_tpo=1,
                  max_tpo=13,
                  record_metric=True,
@@ -39,7 +40,8 @@ class BaseStrategy:
                  trade_controllers=[],
                  entry_switch={},
                  risk_limits=[],
-                 trade_cut_off_time=60
+                 trade_cut_off_time=60,
+                 force_exit_ts = None
     ):
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.insight_book = insight_book
@@ -75,6 +77,8 @@ class BaseStrategy:
         self.trade_controllers = trade_controllers
         self.risk_limits = risk_limits
         self.trade_cut_off_time = trade_cut_off_time
+        self.carry_forward = carry_forward
+        self.force_exit_ts=force_exit_ts
         self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
