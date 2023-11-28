@@ -3,8 +3,8 @@ from helper.utils import  get_overlap
 
 
 class DoubleTopStrategy(BaseStrategy):
-    def __init__(self, insight_book, **kwargs):
-        BaseStrategy.__init__(self, insight_book, **kwargs)
+    def __init__(self, market_book, **kwargs):
+        BaseStrategy.__init__(self, market_book, **kwargs)
 
 
 

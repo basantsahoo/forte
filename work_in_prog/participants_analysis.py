@@ -51,7 +51,7 @@ from db.market_data import (
 	get_option_data_with_time_jump,
 	get_daily_option_data)
 
-from settings import reports_dir
+from backtest.settings import reports_dir
 from config import default_symbols
 import time
 from datetime import datetime

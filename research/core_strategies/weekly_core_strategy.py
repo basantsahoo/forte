@@ -17,7 +17,7 @@ market_view_dict = {'SPOT_BUY': 'LONG',
 
 class BaseStrategy:
     def __init__(self,
-                 insight_book=None,
+                 market_book=None,
                  id=None,
                  order_type="BUY",  # order type of the instrument, can take only one value
                  spot_instruments = [], # Instruments that should be traded as linear can include FUT in future
@@ -47,7 +47,7 @@ class BaseStrategy:
                  force_exit_ts=None
     ):
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
-        self.insight_book = insight_book
+        self.market_book = market_book
         self.order_type = order_type
         self.spot_instruments = spot_instruments if spot_instruments else []
         self.derivative_instruments = derivative_instruments if derivative_instruments else []

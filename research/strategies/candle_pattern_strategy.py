@@ -3,7 +3,7 @@ from research.core_strategies.core_strategy import BaseStrategy
 
 class CandlePatternStrategy(BaseStrategy):
     def __init__(self,
-                 insight_book=None,
+                 market_book=None,
                  id=None,
                  order_type="BUY",
                  spot_instruments=[],
@@ -27,7 +27,7 @@ class CandlePatternStrategy(BaseStrategy):
 
                  ):
         BaseStrategy.__init__(self,
-                              insight_book=insight_book,
+                              market_book=market_book,
                               id=id,
                               order_type=order_type,
                               spot_instruments=spot_instruments,

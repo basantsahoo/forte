@@ -6,9 +6,9 @@ candle_names = talib.get_function_groups()['Pattern Recognition']
 
 
 class StrategyAggregator:
-    def __init__(self, insight_book=None):
+    def __init__(self, market_book=None):
         self.id = 'AGGR'
-        self.insight_book = insight_book
+        self.market_book = market_book
         self.is_aggregator = True
         self.individual_strategies = []
 
@@ -34,41 +34,41 @@ class StrategyAggregator:
 
 
 class CandleAggregator(StrategyAggregator):
-    def __init__(self, insight_book=None):
-        super().__init__(insight_book)
+    def __init__(self, market_book=None):
+        super().__init__(market_book)
         self.id = "CANDLE_AGGR"
         for candle_pattern in candle_names:
             """
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 10, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 10, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 15, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 15, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 20, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 20, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 30, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 30, 5))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 10, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 10, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 15, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 15, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 20, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 20, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 30, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 30, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 10, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 10, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 15, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 15, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 20, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 20, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 30, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 30, 5))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 10, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 10, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 15, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 15, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 20, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 20, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 30, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 30, 15))
             """
             """
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "BUY", 30, 15))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, candle_pattern, "SELL", 30, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "BUY", 30, 15))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, candle_pattern, "SELL", 30, 15))
             """
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, None, candle_pattern, "BUY", 10, 5, min_tpo=1, max_tpo=3, triggers_per_signal=1))
-            self.individual_strategies.append(CandlePatternStrategy(insight_book, None, candle_pattern, "SELL", 10, 5, min_tpo=1, max_tpo=3, triggers_per_signal=1))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, None, candle_pattern, "BUY", 10, 5, min_tpo=1, max_tpo=3, triggers_per_signal=1))
+            self.individual_strategies.append(CandlePatternStrategy(market_book, None, candle_pattern, "SELL", 10, 5, min_tpo=1, max_tpo=3, triggers_per_signal=1))
 
 
 class PatternAggregator(StrategyAggregator):
-    def __init__(self, insight_book=None):
-        super().__init__(insight_book)
+    def __init__(self, market_book=None):
+        super().__init__(market_book)
         self.id = 'PATTERN_AGGR'
-        self.individual_strategies.append(DoubleTopStrategy(insight_book, None, 'DT', "SELL", 15, 1, 'UP'))
+        self.individual_strategies.append(DoubleTopStrategy(market_book, None, 'DT', "SELL", 15, 1, 'UP'))
         #self.individual_strategies.append(DoubleTopBreakStrategy(insight_book, 'DT', "BUY", 10, 1, 'UP'))
         # ABOVE 2 TRIGGERED LOT OF TRADES WHY?
         #self.individual_strategies.append(DoubleTopStrategy(insight_book, 'TREND', "SELL", 10, 1, 'UP'))

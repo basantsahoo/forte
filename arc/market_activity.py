@@ -1,9 +1,9 @@
 from helper.utils import get_overlap, compare_day_activity
 import helper.utils as helper_utils
 
-class MarketActivity:
-    def __init__(self, insight_book):
-        self.insight_book = insight_book
+class AssetActivityLog:
+    def __init__(self, asset_book):
+        self.asset_book = asset_book
         self.candle_stats = []
         self.hist_2d_activity = {}
         self.trend_features = {}
@@ -18,15 +18,15 @@ class MarketActivity:
     def set_up(self):
         self.determine_day_open()
         #self.candle_stats = get_candle_body_size(self.insight_book.ticker, self.insight_book.trade_day)
-        self.t_minus_1 = {'high':self.insight_book.yday_profile['high'], 'va_h_p':self.insight_book.yday_profile['va_h_p'],'poc_price':self.insight_book.yday_profile['poc_price'], 'va_l_p':self.insight_book.yday_profile['va_l_p'], 'low':self.insight_book.yday_profile['low'], 'open':self.insight_book.yday_profile['open'], 'close':self.insight_book.yday_profile['close']}
-        self.t_minus_2 = {'high': self.insight_book.day_before_profile['high'],
-                          'va_h_p': self.insight_book.day_before_profile['va_h_p'],
-                          'poc_price': self.insight_book.day_before_profile['poc_price'],
-                          'va_l_p': self.insight_book.day_before_profile['va_l_p'],
-                          'low': self.insight_book.day_before_profile['low'],
-                          'open': self.insight_book.day_before_profile['open'],
-                          'close': self.insight_book.day_before_profile['close']}
-        self.open_type = self.insight_book.state_generator.get_features()['open_type']
+        self.t_minus_1 = {'high':self.asset_book.yday_profile['high'], 'va_h_p':self.asset_book.yday_profile['va_h_p'],'poc_price':self.insight_book.yday_profile['poc_price'], 'va_l_p':self.insight_book.yday_profile['va_l_p'], 'low':self.insight_book.yday_profile['low'], 'open':self.insight_book.yday_profile['open'], 'close':self.insight_book.yday_profile['close']}
+        self.t_minus_2 = {'high': self.asset_book.day_before_profile['high'],
+                          'va_h_p': self.asset_book.day_before_profile['va_h_p'],
+                          'poc_price': self.asset_book.day_before_profile['poc_price'],
+                          'va_l_p': self.asset_book.day_before_profile['va_l_p'],
+                          'low': self.asset_book.day_before_profile['low'],
+                          'open': self.asset_book.day_before_profile['open'],
+                          'close': self.asset_book.day_before_profile['close']}
+        self.open_type = self.asset_book.state_generator.get_features()['open_type']
         self.hist_2d_activity = compare_day_activity(self.t_minus_1, self.t_minus_2)
 
         """
@@ -39,16 +39,16 @@ class MarketActivity:
         print(retest)
         """
     def determine_day_open(self): ## this is definitive
-        open_candle = next(iter(self.insight_book.spot_processor.spot_ts.items()))[1]
+        open_candle = next(iter(self.asset_book.spot_processor.spot_ts.items()))[1]
         open_low = open_candle['open']
         open_high = open_candle['open']
-        if open_low >= self.insight_book.yday_profile['high']:
+        if open_low >= self.asset_book.yday_profile['high']:
             self.open_type = 'GAP_UP'
-        elif open_high <= self.insight_book.yday_profile['low']:
+        elif open_high <= self.asset_book.yday_profile['low']:
             self.open_type = 'GAP_DOWN'
-        elif open_low >= self.insight_book.yday_profile['va_h_p']:
+        elif open_low >= self.asset_book.yday_profile['va_h_p']:
             self.open_type = 'ABOVE_VA'
-        elif open_high <= self.insight_book.yday_profile['va_l_p']:
+        elif open_high <= self.asset_book.yday_profile['va_l_p']:
             self.open_type = 'BELOW_VA'
         else:
             self.open_type = 'INSIDE_VA'
@@ -56,18 +56,18 @@ class MarketActivity:
     def determine_level_break(self, ts):
         for k in self.yday_level_breaks:
             if not self.yday_level_breaks[k]['value']:
-                level_range = [self.insight_book.yday_profile[k] * (1 - 0.0015), self.insight_book.yday_profile[k] * (1 + 0.0015)]
+                level_range = [self.asset_book.yday_profile[k] * (1 - 0.0015), self.asset_book.yday_profile[k] * (1 + 0.0015)]
                 ol = get_overlap(level_range, [self.range['low'], self.range['high']])
                 if ol > 0:
                     self.yday_level_breaks[k]['value'] = True
-                    self.yday_level_breaks[k]['time'] = ts-self.insight_book.ib_periods[0]
+                    self.yday_level_breaks[k]['time'] = ts-self.asset_book.market_book.ib_periods[0]
         for k in self.day_before_level_breaks:
             if not self.day_before_level_breaks[k]['value']:
-                level_range = [self.insight_book.day_before_profile[k] * (1 - 0.0015), self.insight_book.day_before_profile[k] * (1 + 0.0015)]
+                level_range = [self.asset_book.day_before_profile[k] * (1 - 0.0015), self.asset_book.day_before_profile[k] * (1 + 0.0015)]
                 ol = get_overlap(level_range, [self.range['low'], self.range['high']])
                 if ol > 0:
                     self.day_before_level_breaks[k]['value'] = True
-                    self.day_before_level_breaks[k]['time'] = ts-self.insight_book.ib_periods[0]
+                    self.day_before_level_breaks[k]['time'] = ts-self.asset_book.market_book.ib_periods[0]
 
     def get_day_features(self):
         resp = {}
@@ -83,7 +83,7 @@ class MarketActivity:
 
     def check_support(self, candle):
         support_ind = 0
-        for support in self.insight_book.supports_to_watch:
+        for support in self.asset_book.supports_to_watch:
             support_range = [support-5, support+5]
             #candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
             candle_range = [candle['low'], candle['high']]
@@ -95,7 +95,7 @@ class MarketActivity:
 
     def check_resistance(self, candle):
         resistance_ind = 0
-        for resistance in self.insight_book.resistances_to_watch:
+        for resistance in self.asset_book.resistances_to_watch:
             resistance_range = [resistance-5, resistance+5]
             #candle_range = [min(candle['open'], candle['close']), max(candle['open'], candle['close'])]
             candle_range = [candle['low'], candle['high']]
@@ -115,7 +115,7 @@ class MarketActivity:
         return ind
 
     def update_periodic(self):
-        self.trend_features = {**self.trend_features, **self.insight_book.intraday_trend.trend_params}
+        self.trend_features = {**self.trend_features, **self.asset_book.intraday_trend.trend_params}
 
     def update_sp_trend(self,trend):
         #print('update_sp_trend======',trend)
@@ -123,20 +123,20 @@ class MarketActivity:
 
 
     def locate_price_region(self, mins=15):
-        ticks = list(self.insight_book.spot_processor.spot_ts.values())[-mins::]
+        ticks = list(self.asset_book.spot_processor.spot_ts.values())[-mins::]
         candle = {'open': ticks[0]['open'], 'high': max([y['high'] for y in ticks]), 'low': min([y['low'] for y in ticks]), 'close': ticks[-1]['close']}
         #print('locate_price_region', candle)
         return self.candle_position_wrt_key_levels(candle)
 
     def candle_position_wrt_key_levels(self, candle):
         resp = {}
-        yday_profile = {k: v for k, v in self.insight_book.yday_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
+        yday_profile = {k: v for k, v in self.asset_book.yday_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
         for (lvl, price) in yday_profile.items():
             resp['y_' + lvl] = self.check_level(candle, price)
-        t_2_profile = {k: v for k, v in self.insight_book.day_before_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
+        t_2_profile = {k: v for k, v in self.asset_book.day_before_profile.items() if k in ('high', 'low', 'va_h_p', 'va_l_p', 'poc_price')}
         for (lvl, price) in t_2_profile.items():
             resp['t_2_' + lvl] = self.check_level(candle, price)
-        weekly_profile = {k: v for k, v in self.insight_book.weekly_pivots.items() if k not in ('open', 'close')}
+        weekly_profile = {k: v for k, v in self.asset_book.weekly_pivots.items() if k not in ('open', 'close')}
         for (lvl, price) in weekly_profile.items():
             resp['w_' + lvl] = self.check_level(candle, price)
         return resp
@@ -159,7 +159,7 @@ class MarketActivity:
         """
 
 
-        last_candle = self.insight_book.spot_processor.last_tick
+        last_candle = self.asset_book.spot_processor.last_tick
         self.range['low'] = min(last_candle['low'], self.range['low'])
         self.range['high'] = max(last_candle['high'], self.range['high'])
 
@@ -174,9 +174,9 @@ class MarketActivity:
     def get_market_params(self):
         mkt_parms = {}
         mkt_parms['open_type'] = self.open_type
-        mkt_parms['tpo'] = self.insight_book.curr_tpo
-        mkt_parms['spot'] = self.insight_book.spot_processor.last_tick['close']
-        mkt_parms['candles_in_range'] = round(self.insight_book.intraday_trend.candles_in_range, 2)
+        mkt_parms['tpo'] = self.asset_book.curr_tpo
+        mkt_parms['spot'] = self.asset_book.spot_processor.last_tick['close']
+        mkt_parms['candles_in_range'] = round(self.asset_book.intraday_trend.candles_in_range, 2)
         mkt_parms = {**mkt_parms, **self.trend_features}
         mkt_parms = {**mkt_parms, **self.lc_features}
         mkt_parms = {**mkt_parms, **self.get_day_features()}

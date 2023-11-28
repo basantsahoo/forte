@@ -4,8 +4,8 @@ from helper.utils import get_option_strike
 
 
 class DTBuyPut(BaseStrategy):
-    def __init__(self, insight_book, **kwargs):
-        BaseStrategy.__init__(self, insight_book=insight_book, **kwargs)
+    def __init__(self, market_book, **kwargs):
+        BaseStrategy.__init__(self, market_book=market_book, **kwargs)
 
     def register_instrument(self, signal):
 

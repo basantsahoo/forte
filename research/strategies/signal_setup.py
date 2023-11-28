@@ -31,6 +31,37 @@ human_machine_target_map = {
 
 }
 
+default_strategy_params = {
+    "id": None,
+    "symbol":None,
+    "order_type": "BUY",
+    "spot_instruments": [],
+    "derivative_instruments" : [],
+    "exit_time": [10],
+    "carry_forward": False,
+    "min_tpo": 1,
+    "max_tpo": 13,
+    "record_metric": True,
+    "triggers_per_signal": 1,
+    "max_signal": 1,
+    "weekdays_allowed": [],
+    "entry_signal_queues": [],  # Used for signals to be evaluated to enter a trade
+    "exit_criteria_list": [],  # Used for signals to be evaluated to exit a trade
+    "signal_filters": [],  # Signals that should be filtered out before sending to queue
+    "spot_long_targets": [],  # [0.002,0.003, 0.004, 0.005],
+    "spot_long_stop_losses": [],  # [-0.001, -0.002, -0.002, -0.002],
+    "spot_short_targets": [],  # [-0.002, -0.003, -0.004, -0.005],
+    "spot_short_stop_losses": [],  # [0.001, 0.002, 0.002, 0.002],
+    "instr_targets": [],  # [0.002,0.003, 0.004, 0.005],
+    "instr_stop_losses": [],  # [-0.001,-0.002, -0.002,-0.002]
+    "instr_to_trade": [],
+    "trade_controllers": [],
+    "entry_switch": {},
+    "risk_limits": [],
+    "trade_cut_off_time": 60,
+    "force_exit_ts": None
+}
+
 
 def get_signal_key(human_lang):
     if isinstance(human_lang, tuple):
@@ -42,12 +73,13 @@ def get_signal_key(human_lang):
 def get_target_fn(human_lang):
     return human_machine_target_map.get(human_lang.upper(), None)
 
-def get_startegy_args(id=None, order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=[30], min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[], entry_signal_queues=[], exit_criteria_list = [], signal_filters = [], spot_long_targets = [], spot_long_stop_losses = [], spot_short_targets=[], spot_short_stop_losses=[],  instr_targets = [], instr_stop_losses = [], instr_to_trade=[], trade_controllers=[], entry_switch={}, risk_limits=[], carry_forward=False, force_exit_ts=[]):
+def get_startegy_args(**kwargs):
     args = {}
-    arg_list = ["id", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed","entry_signal_queues", "exit_criteria_list", "signal_filters", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade", "trade_controllers", "entry_switch", "risk_limits", "carry_forward", "force_exit_ts"]
+    arg_list = ["id", "symbol", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed","entry_signal_queues", "exit_criteria_list", "signal_filters", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade", "trade_controllers", "entry_switch", "risk_limits", "carry_forward", "force_exit_ts"]
     for arg_ in arg_list:
         #if eval(arg_):
-        args[arg_] = eval(arg_)
+        #args[arg_] = eval(arg_)
+        args[arg_] = kwargs.get(arg_, default_strategy_params[arg_])
     return args
 
 

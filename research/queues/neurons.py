@@ -188,7 +188,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
 
     def check_validity(self):
-        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
         self.signal_queue.check_validity(last_tick_time)
         self.check_activation_status_change()
         self.feed_forward()
@@ -200,7 +200,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         return self.active
 
     def pre_log(self):
-        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
         self.log(last_tick_time, "PRE  LOG", "Neuron class==", self.__class__.__name__, "signal type==", self.signal_type, 'dependency satisfied ==', self.dependency_satisfied(), 'current count ==', len(self.signal_queue.signals))
 
     def post_log(self):
@@ -213,7 +213,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         self.log("FEED FORWARD LOG", msg)
 
     def communication_log(self, info):
-        last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
         if info['code'] not in ['watcher_update_signal', 'watcher_reset_signal']:
             self.log(last_tick_time, "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
         else:
@@ -241,7 +241,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             res['money_ness'] = pattern['money_ness']
 
         if res.get('pattern_price', None):
-            pattern_df = self.manager.strategy.insight_book.get_inflex_pattern_df().dfstock_3
+            pattern_df = self.manager.strategy.asset_book.get_inflex_pattern_df().dfstock_3
             pattern_location = locate_point(pattern_df, max(res['pattern_price']))
             res['pattern_location'] = pattern_location
         if pattern['info'].get('price_list', None) is not None:
@@ -254,7 +254,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     def eval_entry_criteria(self):
         test_criteria = self.trade_eval
-        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        curr_ts = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
         if not test_criteria:
             return True
         #print(criteria)
@@ -281,7 +281,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     def eval_exit_criteria(self):
         criteria = self.trade_eval
-        curr_ts = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        curr_ts = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
         #print('eval_exit_criteria', criteria)
         if not criteria:
             return True

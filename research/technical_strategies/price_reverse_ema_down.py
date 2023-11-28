@@ -4,9 +4,9 @@ from helper.utils import get_option_strike
 
 
 class PriceReverseBreakDownEMA(BaseStrategy):
-    def __init__(self, insight_book, **kwargs):
+    def __init__(self, market_book, **kwargs):
         args = get_startegy_args(**kwargs)
-        BaseStrategy.__init__(self, insight_book=insight_book, **args)
+        BaseStrategy.__init__(self, market_book=market_book, **args)
 
 
     def register_instrument(self, signal):

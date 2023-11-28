@@ -1,9 +1,56 @@
+run_params:
+  test_days: []
+  for_past_days: 90
+  symbols:
+    -NIFTY
+  to_date: 2022-12-14
+  candle_sw : 0
+  week_days:
+    -
+  record_metric: true
+  send_to_oms: false
+strategies:
+  - id: PriceBreakEMADownward
+    exit_time:
+      - 300
+      - 300
+    order_type: SELL,
+    spot_instruments:
+    - SPOT
+    derivative_instruments:
+      -
+    max_signal: 5
+    triggers_per_signal: 1
+    spot_short_targets:
+    - 0.003
+    - 0.04
+    - 0.04
+    - 0.05
+    spot_short_stop_losses:
+      -
+        - SPIKE_CANDLE_HIGH
+      - 0.002
+      - 0.002
+      - 0.002
+    instr_targets:
+      - 0.002
+      - 0.003
+      - 0.004
+      - 0.005
+    instr_stop_losses:
+      - 0.001
+      - 0.002
+      - 0.002
+      - 0.002
+    instr_to_trade:
+      -
+
+
   {
   "strategies":[
     {
       "id":"PriceBreakEMADownward",
-      "class": "PriceBreakEMADownward",
-      "symbol": "NIFTY",
+      "signal": "PriceBreakEMADownward",
       "exit_time":[300, 300],
       "order_type":"SELL",
       "spot_instruments":["SPOT"],
@@ -31,7 +78,6 @@
             "max_activation_strength": 8,
             "flush_hist": false,
             "activation_subscriptions": [],
-            "signal_subscriptions": [],
             "reversal_subscriptions": [],
             "register_instr": false,
             "update_watcher_info": {},
@@ -54,7 +100,6 @@
             "max_activation_strength": 1,
             "flush_hist": true,
             "activation_subscriptions": [0],
-            "signal_subscriptions": [],
             "reversal_subscriptions": [],
             "register_instr": false,
             "update_watcher_info": {
@@ -82,7 +127,6 @@
             "max_activation_strength": 1,
             "flush_hist": true,
             "activation_subscriptions": [1],
-            "signal_subscriptions": [],
             "reversal_subscriptions": [1],
             "register_instr": false,
             "reset_watcher_info": {},
@@ -112,8 +156,7 @@
     },
     {
       "id":"PriceReverseBreakDownEMA",
-      "class": "PriceReverseBreakDownEMA",
-      "symbol": "NIFTY",
+      "signal": "PriceReverseBreakDownEMA",
       "exit_time":[60, 75],
       "order_type":"BUY",
       "spot_instruments":["SPOT"],
@@ -141,7 +184,6 @@
             "max_activation_strength": 1,
             "flush_hist": true,
             "activation_subscriptions": [],
-            "signal_subscriptions": [],
             "reversal_subscriptions": [],
             "register_instr": false,
             "update_watcher_info": {
@@ -165,7 +207,6 @@
             "max_activation_strength": 8,
             "flush_hist": true,
             "activation_subscriptions": [0],
-            "signal_subscriptions": [],
             "reversal_subscriptions": [],
             "register_instr": false,
             "update_watcher_info": {},
@@ -187,9 +228,10 @@
       "risk_limits": ["max_movement > 50", "total_losses < -25"]
     }
   ],
-  "run_params": {
+  run_params: {
     "test_days": [],
     "for_past_days": 90,
+    "symbols": ["NIFTY"],
     "to_date": "2022-12-14",
     "candle_sw" : 0,
     "week_days": [],

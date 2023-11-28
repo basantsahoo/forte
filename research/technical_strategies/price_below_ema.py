@@ -5,16 +5,17 @@ from helper.utils import get_option_strike
 
 class PriceBreakEMADownward(BaseStrategy):
     #def __init__(self, insight_book, id="PriceBreakEMADownward", order_type='BUY', spot_instruments=[], derivative_instruments=[], exit_time=[45], min_tpo=1, max_tpo=13, record_metric=True, triggers_per_signal=1, max_signal=1, weekdays_allowed=[],entry_criteria=[],exit_criteria_list=[],signal_filter_conditions=[],spot_long_targets=[],spot_long_stop_losses=[], spot_short_targets=[0.002,0.003, 0.004, 0.005], spot_short_stop_losses=[0.001,0.002, 0.002,0.002], instr_targets=[], instr_stop_losses=[]):
-    def __init__(self, insight_book, **kwargs):
+    def __init__(self, market_book, **kwargs):
         print('PriceBreakEMADownward+++++++++++++ init')
         args = get_startegy_args(**kwargs)
+        print(args)
         """
         exit_criteria_list = [
             {"signal_type": "CANDLE_5_DOJI_SELL", "eval_criteria": [-1, 'time_lapsed', ">=", 5], "flush_hist": True,
              "id": 0,"dependent_on": []},
             ]
         """
-        BaseStrategy.__init__(self, insight_book=insight_book, **args)
+        BaseStrategy.__init__(self, market_book=market_book, **args)
 
 
     def register_instrument(self, signal):

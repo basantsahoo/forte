@@ -9,18 +9,20 @@ market_view_dict = {'SPOT_BUY': 'LONG',
 
 class DummyStrategy:
     def __init__(self,
-                 insight_book=None,
+                 market_book=None,
                  **kwargs
     ):
         self.id = 'DUMMY'
-        self.insight_book = insight_book
+        self.symbol = 'NIFTY'
+        self.market_book = market_book
         self.time_intervals = [30,60]
         self.signal = {'category': 'STRAT', 'indicator': 'EMA_BREAK_DOWN_5_ENTRY', 'strength': 1, 'signal_time': None, 'notice_time': None, 'info': {}}
         self.counter = 0
         self.is_aggregator = False
+        self.asset_book = self.market_book.get_asset_book(self.symbol)
 
     def get_last_tick(self, instr='SPOT'):
-        last_candle = self.insight_book.spot_processor.last_tick
+        last_candle = self.asset_book.spot_processor.last_tick
         return last_candle
 
 
@@ -31,7 +33,7 @@ class DummyStrategy:
             signal['signal_time'] = last_candle['timestamp']
             signal['notice_time'] = last_candle['timestamp']
             signal['info'] = last_candle
-            self.insight_book.pattern_signal(signal)
+            self.asset_book.pattern_signal(signal)
         self.counter += 1
 
 

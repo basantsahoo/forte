@@ -14,10 +14,9 @@ from backtest.bt_strategies import *
 from dynamics.profile.market_profile import HistMarketProfileService
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
-from arc.market_book import MarketBook
+from arc.insight import InsightBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
-from arc.strategy_manager import StrategyManager
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 
@@ -26,10 +25,14 @@ class StartegyBackTester:
     def __init__(self, strat_config):
         self.strat_config = strat_config
 
+    def configure(self):
+        if len(self.strat_config.symbols) == 0:
+            self.strat_config.symbols = default_symbols
+
     def back_test(self, symbol):
         results = []
         start_time = datetime.now()
-        for day in self.strat_config['run_params']['test_days']:
+        for day in self.strat_config['test_days']:
             print(day, symbol)
             print('=========================================================================================')
             processor = HistMarketProfileService()
@@ -37,27 +40,28 @@ class StartegyBackTester:
             in_day = day if type(day) == str else day.strftime('%Y-%m-%d')
             start = datetime.now()
 
-            market_book = MarketBook(in_day, assets=[symbol], record_metric=self.strat_config['run_params']['record_metric'], candle_sw=self.strat_config['run_params']['candle_sw'], insight_log=self.strat_config['run_params'].get('insight_log', False))
+            story_book = InsightBook(symbol, in_day, record_metric=self.strat_config['record_metric'], candle_sw=self.strat_config['candle_sw'], insight_log=self.strat_config.get('insight_log', False))
             end = datetime.now()
             print('insight book init took', (end-start).total_seconds())
             place_live = False
             interface = None
-            if self.strat_config['run_params'].get("send_to_oms", False):
+            if self.strat_config.get("send_to_oms", False):
                 interface = AlgorithmBacktestIterface()
                 place_live = True
             pm = AlgoPortfolioManager(place_live, interface)
-            market_book.pm = pm
-            record_metric = self.strat_config['run_params'].get("record_metric", False)
-            strategy_manager = StrategyManager(market_book=market_book, record_metric=record_metric)
+            story_book.pm = pm
+
             #story_book.profile_processor = processor
-            for deployed_strategy in self.strat_config['strategies']:
+            for s_id in range(len(self.strat_config['strategies'])):
                 start = datetime.now()
-                #print('deployed_strategy=====', deployed_strategy)
-                strategy_class = eval(deployed_strategy['class'])
-                strategy_manager.add_strategy(strategy_class, deployed_strategy)
+                print('strategy=====', self.strat_config['strategies'][s_id])
+                strategy_class = eval(self.strat_config['strategies'][s_id])
+                strategy_kwargs = self.strat_config['strategy_kwargs'][s_id]
+                print(strategy_kwargs)
+                story_book.add_strategy(strategy_class, strategy_kwargs)
+
                 end = datetime.now()
                 print('strategy init took', (end - start).total_seconds())
-            market_book.strategy_manager = strategy_manager
             start = datetime.now()
             price_list = get_daily_tick_data(symbol, day)
             price_list['symbol'] = helper_utils.root_symbol(symbol)
@@ -91,9 +95,9 @@ class StartegyBackTester:
 
                     pm.option_price_input({'timestamp': ts, 'symbol': symbol, 'records': recs})
                     pm.price_input(price)
-                    market_book.option_minute_data_stream({'timestamp': ts, 'symbol': symbol, 'records': recs})
+                    story_book.option_minute_data_stream({'timestamp': ts, 'symbol': symbol, 'records': recs})
                     #story_book.spot_minute_data_stream(price, iv)
-                    market_book.spot_minute_data_stream(price)
+                    story_book.spot_minute_data_stream(price)
                     time.sleep(0.005)
 
                 for strategy_tuple, trade_details in pm.position_book.items():
@@ -102,7 +106,7 @@ class StartegyBackTester:
                     strategy_id = strategy_tuple[1]
                     t_symbol = strategy_tuple[0]
                     trade_id = strategy_tuple[2]
-                    strategy_signal_generator = strategy_manager.get_deployed_strategy_from_id(strategy_id)
+                    strategy_signal_generator = story_book.get_signal_generator_from_id(strategy_id)
                     for leg_id, leg_info in position.items():
                         _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                         _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
@@ -113,7 +117,7 @@ class StartegyBackTester:
                         for signal_param in signal_params:
                             if signal_param in signal_custom_details:
                                 _tmp[signal_param] = signal_custom_details[signal_param]
-                        if market_book.record_metric:
+                        if story_book.record_metric:
                             params = strategy_signal_generator.params_repo.get((trade_id, leg_id), {})
                             #print('params====', params)
                             _tmp = {**_tmp, **params}
@@ -132,23 +136,43 @@ class StartegyBackTester:
 
 
     def run(self):
-        subscribed_symbols = list(set([strategy['symbol'] for strategy in self.strat_config['strategies']]))
+        if not self.strat_config['symbols']:
+            self.strat_config["symbols"] = default_symbols
         final_result = []
-        for symbol in subscribed_symbols:
-            if len(self.strat_config['run_params']['test_days']) == 0:
+        for symbol in self.strat_config['symbols']:
+            if len(self.strat_config['test_days']) == 0:
                 all_days = get_all_days(helper_utils.get_nse_index_symbol(symbol))
-                to_date = datetime.strptime(self.strat_config['run_params']['to_date'], '%Y-%m-%d') if type(self.strat_config['run_params']['to_date']) == str else self.strat_config['run_params']['to_date']
+                to_date = datetime.strptime(self.strat_config['to_date'], '%Y-%m-%d') if type(self.strat_config['to_date']) == str else self.strat_config['to_date']
                 end_date = max(x for x in all_days if x <= to_date.date())
                 end_date_index = all_days.index(end_date)
-                for_past_days = int(self.strat_config['run_params']['for_past_days']) if type(self.strat_config['run_params']['for_past_days']) == str else self.strat_config['run_params']['for_past_days']
+                for_past_days = int(self.strat_config['for_past_days']) if type(self.strat_config['for_past_days']) == str else self.strat_config['for_past_days']
                 start_date_index = min(end_date_index + for_past_days, len(all_days))
                 days = all_days[end_date_index:start_date_index]
-                days = [x for x in days if (datetime.strptime(x, '%Y-%m-%d').strftime('%A') if type(x) == str else x.strftime('%A')) in self.strat_config['run_params']['week_days']] if self.strat_config['run_params']['week_days'] else days
+                days = [x for x in days if (datetime.strptime(x, '%Y-%m-%d').strftime('%A') if type(x) == str else x.strftime('%A')) in self.strat_config['week_days']] if self.strat_config['week_days'] else days
                 print(days)
-                self.strat_config['run_params']['test_days'] = days
+                self.strat_config['test_days'] = days
             result = self.back_test(symbol)
             final_result.extend(result)
         return final_result
+
+def print_lines_of_code():
+    from os import listdir
+    from os.path import isfile, isdir, join
+
+    def item_line_count(path):
+        if isdir(path):
+            return dir_line_count(path)
+        elif isfile(path):
+            return len(open(path, 'rb').readlines())
+        else:
+            return 0
+
+
+    def dir_line_count(dir):
+        return sum(map(lambda item: item_line_count(join(dir, item)), listdir(dir)))
+
+    ln = item_line_count('./')
+    print(ln)
 
 if __name__ == '__main__':
     argv = sys.argv[1:]
@@ -161,14 +185,14 @@ if __name__ == '__main__':
         strat_config_file = args[0]
     else:
         strat_config_file = 'bkp_cheap_option.json'
-    strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios/" + strat_config_file
-    #strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios_yaml/" + strat_config_file
+    #strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios/" + strat_config_file
+    strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios_yaml/" + strat_config_file
     import yaml
     from loaders.yml_loader import YAMLLoader
     with open(strat_config_path, 'r') as bt_config:
-        strat_config = json.load(bt_config)
-        #strat_config = yaml.load(bt_config, YAMLLoader)
-        #print(strat_config)
+        #strat_config = json.load(bt_config)
+        strat_config = yaml.load(bt_config, YAMLLoader)
+        print(strat_config)
 
     back_tester = StartegyBackTester(strat_config)
     results = back_tester.run()
