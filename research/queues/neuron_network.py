@@ -104,7 +104,7 @@ class QNetwork:
                         last_spot_tick = self.strategy.get_last_tick('SPOT')
                         signal['signal_time'] = last_spot_tick['timestamp']
                         signal['notice_time'] = last_spot_tick['timestamp']
-                        self.strategy.insight_book.pattern_signal(signal)
+                        self.strategy.asset_book.pattern_signal(signal)
             if not switch_val:
                 self.flush_queues()
             return switch_val

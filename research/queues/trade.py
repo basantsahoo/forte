@@ -65,7 +65,7 @@ class Trade:
             'spot_stop_loss_rolling': spot_stop_losses[idx - 1] if spot_stop_losses else None,
             'instr_target': instr_targets[idx-1] if instr_targets else None,
             'instr_stop_loss': instr_stop_losses[idx-1] if instr_stop_losses else None,
-            'duration': min(self.strategy.exit_time[idx-1], self.strategy.insight_book.get_time_to_close()-2) if not self.strategy.carry_forward else 90000000,
+            'duration': min(self.strategy.exit_time[idx-1], self.strategy.asset_book.market_book.get_time_to_close()-2) if not self.strategy.carry_forward else 90000000,
             'quantity': self.strategy.minimum_quantity,
             'exit_type':None,
             'entry_price':last_candle['close'],

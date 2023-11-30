@@ -3,6 +3,9 @@ from helper.time_utils import get_epoc_minute
 from talipp.indicators import EMA, SMA, Stoch
 from talipp.ohlcv import OHLCVFactory
 from datetime import datetime
+from entities.base import Signal
+
+
 class SpotProcessor:
     def __init__(self, asset_book, market_book, symbol):
         self.asset_book = asset_book
@@ -52,9 +55,7 @@ class SpotProcessor:
                 candle_low = candle_5['low']
                 if candle_low > self.ema_5[-1]:
                     print('candle signal =========',datetime.fromtimestamp(self.last_tick['timestamp']))
-                    pat = {'category': 'TECHNICAL', 'indicator': 'CDL_5_ABOVE_EMA_5', 'strength': 1,
-                           'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
-                           'info': candle_5}
+                    pat = Signal(category='TECHNICAL', indicator='CDL_5_ABOVE_EMA_5', strength=1, signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'], info= candle_5)
                     self.asset_book.pattern_signal(pat)
 
                 price_below_ema = int(candle_5['close'] < self.ema_5[-1])

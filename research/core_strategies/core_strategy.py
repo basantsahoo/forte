@@ -46,7 +46,6 @@ class BaseStrategy:
     ):
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.symbol = symbol
-        self.market_book = market_book
         self.order_type = order_type
         self.spot_instruments = spot_instruments if spot_instruments else []
         self.derivative_instruments = derivative_instruments if derivative_instruments else []
@@ -88,7 +87,7 @@ class BaseStrategy:
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)
         #print('Add exit queue')
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
-        self.asset_book = self.market_book.get_asset_book(self.symbol) if self.market_book is not None else None
+        self.asset_book = market_book.get_asset_book(self.symbol) if market_book is not None else None
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
         #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
         """
@@ -110,7 +109,7 @@ class BaseStrategy:
         return view_dict[d_key]
 
     def set_up(self):
-        week_day_criterion = (not self.weekdays_allowed) or datetime.strptime(self.market_book.trade_day, '%Y-%m-%d').strftime('%A') in self.weekdays_allowed
+        week_day_criterion = (not self.weekdays_allowed) or datetime.strptime(self.asset_book.market_book.trade_day, '%Y-%m-%d').strftime('%A') in self.weekdays_allowed
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()
@@ -148,7 +147,7 @@ class BaseStrategy:
 
     """ Every strategy should run in valid tpo"""
     def valid_tpo(self):
-        current_tpo = self.market_book.curr_tpo
+        current_tpo = self.asset_book.market_book.curr_tpo
         min_tpo_met = self.min_tpo is None or current_tpo >= self.min_tpo
         max_tpo_met = self.max_tpo is None or current_tpo <= self.max_tpo
         return min_tpo_met and max_tpo_met
@@ -161,31 +160,31 @@ class BaseStrategy:
 
     def get_last_tick(self, instr='SPOT'):
         if self.inst_is_option(instr):
-            last_candle = self.market_book.option_processor.get_last_tick(instr)
+            last_candle = self.asset_book.option_processor.get_last_tick(instr)
         else:
-            last_candle = self.market_book.spot_processor.last_tick
+            last_candle = self.asset_book.spot_processor.last_tick
         return last_candle
 
     def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
         for trigger in triggers:
             if self.record_metric:
-                mkt_parms = self.market_book.activity_log.get_market_params()
+                mkt_parms = self.asset_book.activity_log.get_market_params()
                 if self.signal_params:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
         self.signal_params = {}
-        updated_symbol = self.market_book.ticker + "_" + trade_inst if self.inst_is_option(trade_inst) else self.market_book.ticker
+        updated_symbol = self.asset_book.asset + "_" + trade_inst if self.inst_is_option(trade_inst) else self.asset_book.asset
         cover = triggers[0].get('cover', 0)
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'legs': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
-        print('placing entry order at================', datetime.fromtimestamp(self.market_book.spot_processor.last_tick['timestamp']))
-        self.market_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
+        print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_processor.last_tick['timestamp']))
+        self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
 
     def trigger_exit(self, signal_info):
         signal_info['strategy_id'] = self.id
         instrument = signal_info['symbol']
-        updated_symbol = self.market_book.ticker + "_" + instrument if self.inst_is_option(instrument) else self.market_book.ticker
+        updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
         signal_info['symbol'] = updated_symbol
-        self.market_book.pm.strategy_exit_signal(signal_info, option_signal=self.inst_is_option(instrument))
+        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, option_signal=self.inst_is_option(instrument))
 
     def manage_risk(self):
         spot_movements = []
@@ -235,7 +234,7 @@ class BaseStrategy:
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
-        enough_time = self.market_book.get_time_to_close() > self.trade_cut_off_time
+        enough_time = self.asset_book.market_book.get_time_to_close() > self.trade_cut_off_time
         suitable_tpo = self.valid_tpo()
         signal_present = self.entry_signal_pipeline.all_entry_signal()
         trade_limit_not_reached = not self.trade_limit_reached()
@@ -293,7 +292,7 @@ class BaseStrategy:
     def pre_signal_filter(self, signal={}):
         satisfied = not self.signal_filters
         if not satisfied:
-            market_params = self.market_book.activity_log.get_market_params()
+            market_params = self.asset_book.activity_log.get_market_params()
             #print(market_params)
             d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure',0)
 
@@ -301,7 +300,7 @@ class BaseStrategy:
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params.get('d2_cd_new_business_pressure',0)
             category = (signal['category'] , signal['indicator'])
-            week_day = datetime.strptime(self.market_book.trade_day, '%Y-%m-%d').strftime('%A')
+            week_day = datetime.strptime(self.asset_book.market_book.trade_day, '%Y-%m-%d').strftime('%A')
             open_type = market_params['open_type']
             tpo = market_params['tpo']
             strength = signal.get('strength', 0)
@@ -319,7 +318,7 @@ class BaseStrategy:
         #print('inside record_params', matched_pattern)
         #print(self.market_book.activity_log.locate_price_region())
         if self.record_metric:
-            price_region = self.market_book.activity_log.locate_price_region()
+            price_region = self.asset_book.activity_log.locate_price_region()
             for key, val in price_region.items():
                 self.signal_params['pat_' + key] = val
             for pattern_queue_item in self.entry_signal_pipeline.neuron_dict.values():

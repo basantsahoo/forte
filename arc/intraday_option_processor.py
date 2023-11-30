@@ -1,8 +1,8 @@
 from collections import OrderedDict
 
 class IntradayOptionProcessor:
-    def __init__(self, insight_book, symbol):
-        self.insight_book = insight_book
+    def __init__(self, asset_book, symbol):
+        self.asset_book = asset_book
         self.symbol = symbol
         self.option_data_cross_ts_inst_oi = OrderedDict() #{}
         self.option_data_cross_ts_inst_volume = OrderedDict() #{}
@@ -41,9 +41,9 @@ class IntradayOptionProcessor:
     def get_inst_details(self, inst):
         strike = int(inst.split("_")[0])
         kind = inst.split("_")[1]
-        #print(self.insight_book.last_tick)
-        spot = list(self.insight_book.spot_processor.spot_ts.values())[0]['close']
-        #spot = self.insight_book.last_tick['close']
+        #print(self.asset_book.last_tick)
+        spot = list(self.asset_book.spot_processor.spot_ts.values())[0]['close']
+        #spot = self.asset_book.last_tick['close']
         dist = round((strike - spot) / 100)
         if kind == 'CE':
             money_ness = ('OTM_' if dist > 0 else 'ITM_' if dist < 0 else 'ATM_') + str(abs(dist))
@@ -73,7 +73,7 @@ class IntradayOptionProcessor:
                         if inst_details['dist'] <= 10:
                             #matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
                             pat = {'category':'OPTION', 'indicator': 'PRICE_DROP', 'strength': pct, 'signal_time': last_ts, 'notice_time': last_ts, 'instrument': inst, 'info': inst_details}
-                            self.insight_book.pattern_signal(pat)
+                            self.asset_book.pattern_signal(pat)
                 else:
                     self.price_drop_book[inst]['drop_' + str(pct)] = None
 

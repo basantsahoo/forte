@@ -174,7 +174,7 @@ class AssetActivityLog:
     def get_market_params(self):
         mkt_parms = {}
         mkt_parms['open_type'] = self.open_type
-        mkt_parms['tpo'] = self.asset_book.curr_tpo
+        mkt_parms['tpo'] = self.asset_book.market_book.curr_tpo
         mkt_parms['spot'] = self.asset_book.spot_processor.last_tick['close']
         mkt_parms['candles_in_range'] = round(self.asset_book.intraday_trend.candles_in_range, 2)
         mkt_parms = {**mkt_parms, **self.trend_features}
