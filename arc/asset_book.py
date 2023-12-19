@@ -25,14 +25,14 @@ from arc.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
 from helper.time_utils import get_epoc_minute
-
+from entities.base import BaseSignal, Signal
 
 
 class AssetBook:
     def __init__(self, market_book, asset, candle_sw):
         self.market_book = market_book
         self.asset = asset
-        self.spot_processor = SpotProcessor(self, market_book, asset)
+        self.spot_processor = SpotProcessor(self)
         self.option_processor = IntradayOptionProcessor(self, asset)
         self.candle_5_processor = CandleProcessor(self, 5, 0)
         self.candle_15_processor = CandleProcessor(self, 15, 0)
@@ -154,7 +154,9 @@ class AssetBook:
             probs = self.mc.get_prob_from_curr_state(open_type)
             #print(probs)
             #self.pattern_signal('STATE', {'signal': 'open_type', 'params': {'open_type':open_type, 'probs': probs}, 'strength':0})
-            pat = {'category': 'STATE', 'indicator': 'open_type', 'signal': open_type, 'strength':0, 'signal_time': self.spot_processor.last_tick['timestamp'], 'notice_time': self.spot_processor.last_tick['timestamp'], 'info': {'probs': probs}}
+            pat = Signal(asset=self.asset, category="STATE", instrument="", indicator="open_type", signal=open_type,
+                   signal_time=self.spot_processor.last_tick['timestamp'], notice_time=self.spot_processor.last_tick['timestamp'],
+                   info={'probs': probs}, strength=0)
             self.pattern_signal(pat)
 
     def spot_minute_data_stream(self, price, iv=None):
@@ -184,16 +186,17 @@ class AssetBook:
         self.spot_processor.process_spot_signals()
         #self.activity_log.process()
 
-    def pattern_signal(self, signal):
+    def pattern_signal(self, signal: BaseSignal):
+        print(type(signal))
         #print(signal['category'])
-        if signal['category'] == 'OPTION':
+        if signal.is_option_signal():
             #print('pattern_signal+++++++++++', signal)
             pass
         self.activity_log.register_signal(signal)
-        if signal['indicator'] == INDICATOR_TREND:
+        if signal.is_trend_signal():
             #print('TREND+++++', signal)
-            self.activity_log.update_sp_trend(signal['info']['trend'])
-            for wave in signal['info']['all_waves']:
+            self.activity_log.update_sp_trend(signal.info['trend'])
+            for wave in signal.info['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
         self.market_book.pattern_signal(signal)
 

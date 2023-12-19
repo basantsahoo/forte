@@ -7,26 +7,63 @@ from haystack.schema import Document, MultiLabel
 from haystack.lazy_imports import LazyImport
 """
 from typing import Any, Dict, List, Optional, Tuple, Type, Union, overload
+from typing import Literal
 
 class BaseEntity:
     name:str
 
 
 class BaseSignal:
-    name: str
+    name: Optional[str]
     asset: str
+    category: Literal["PRICE_ACTION_PATTERN", "TECHNICAL", "PRICE"]
+    period: Literal["5min", "15min", "1hr", "daily", "weekly"]
+    indicator: str
+    instrument: Literal["SPOT", "OPTION"]
+    contract: Optional[str]
+    signal_time: int
+    notice_time: int
+    strength: Optional[Union[int, float]]
+    signal:Optional[str]
+    info: Optional[Dict]
+
+    def is_option_signal(self):
+        return self.instrument == "OPTION"
+
+    def is_trend_signal(self):
+        return self.indicator == "INDICATOR_TREND"
 
 
-
-class Signal:
-    def __init__(self, asset, category, indicator, strength, signal_time, notice_time, info):
+class Signal(BaseSignal):
+    def __init__(self,
+                 asset:str,
+                 category: Literal["PRICE_ACTION_PATTERN", "TECHNICAL", "PRICE"],
+                 indicator: str,
+                 instrument: Literal['SPOT', "OPTION"],
+                 signal_time: int,
+                 notice_time: int,
+                 strength: Optional[Union[int, float]],
+                 info: Optional[Dict],
+                 signal: Optional[str] = None,
+                 contract: Optional[str] = None,
+                 period: Optional[Literal["5min", "15min", "1hr", "daily", "weekly"]] = None,
+                 name: Optional[str] = None,
+                 ):
+        self.name= name
         self.asset = asset
-        self.category: str = category
-        self.indicator: str = indicator
-        self.strength: int = strength
-        self.signal_time: int = signal_time
-        self.notice_time: int = notice_time
-        self.info: Dict = info
+        self.category = category
+        self.indicator = indicator
+        self.instrument = instrument
+        self.strength = strength
+        self.signal = signal
+        self.signal_time = signal_time
+        self.notice_time = notice_time
+        self.info = info
+        self.instrument = instrument
+        self.period = period
+        self.contract = contract
+
+
 
 """
 spot processor

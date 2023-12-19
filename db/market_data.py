@@ -344,11 +344,37 @@ def get_curr_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
 
 def get_daily_option_data(symbol, trade_day):
     symbol = helper_utils.get_nse_index_symbol(symbol)
-    stmt_1 = "select timestamp, CONCAT(strike, kind) AS instrument, oi  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc"
+    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, oi  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc"
     conn = engine.connect()
     df = pd.read_sql_query(stmt_1.format(symbol, trade_day), conn)
     conn.close()
     return df
+
+def get_daily_option_oi_data(symbol, trade_day, kind='CE'):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    stmt_1 = "select timestamp, strike AS instrument, oi  FROM option_data where underlying = '{0}' and date = '{1}' and kind='{2}' order by timestamp asc, strike desc"
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(symbol, trade_day, kind), conn)
+    conn.close()
+    return df
+
+def get_daily_option_price_data(symbol, trade_day, kind='CE'):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    stmt_1 = "select timestamp, strike AS instrument, close as price  FROM option_data where underlying = '{0}' and date = '{1}' and kind='{2}' order by timestamp asc, strike desc"
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(symbol, trade_day, kind), conn)
+    conn.close()
+    return df
+
+
+def get_daily_option_volume_data(symbol, trade_day, kind='CE'):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    stmt_1 = "select timestamp, strike AS instrument, volume  FROM option_data where underlying = '{0}' and date = '{1}' and kind='{2}' order by timestamp asc, strike desc"
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(symbol, trade_day, kind), conn)
+    conn.close()
+    return df
+
 
 def get_daily_option_data_2(symbol, trade_day):
     symbol = helper_utils.get_nse_index_symbol(symbol)

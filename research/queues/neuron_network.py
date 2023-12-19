@@ -72,12 +72,12 @@ class QNetwork:
     def register_signal(self, signal):
         for q_id, queue_item in self.neuron_dict.items():
             for watcher in queue_item['neuron'].watcher_list:
-                if (signal['category'], signal['indicator']) == watcher.signal_type:
+                if (signal.category, signal.indicator) == watcher.signal_type:
                     watcher.receive_signal(signal)
             #print(queue_item['neuron'].signal_type)
             queue_item['neuron'].test()
-            if (signal['category'], signal['indicator']) == queue_item['neuron'].signal_type:
-                if signal['category'] in ['STATE']:
+            if (signal.category, signal.indicator) == queue_item['neuron'].signal_type:
+                if signal.category in ['STATE']:
                     proceed = True
                 else:
                     proceed = not queue_item['apply_pre_filter'] or (queue_item['apply_pre_filter'] and self.strategy.pre_signal_filter(signal))
@@ -102,8 +102,8 @@ class QNetwork:
                     signal = self.switch.get_signal()
                     if signal:
                         last_spot_tick = self.strategy.get_last_tick('SPOT')
-                        signal['signal_time'] = last_spot_tick['timestamp']
-                        signal['notice_time'] = last_spot_tick['timestamp']
+                        signal.signal_time = last_spot_tick['timestamp']
+                        signal.notice_time = last_spot_tick['timestamp']
                         self.strategy.asset_book.pattern_signal(signal)
             if not switch_val:
                 self.flush_queues()

@@ -32,8 +32,9 @@ def get_last_option_loaded_date(symbol):
     conn = engine.connect()
     try:
         qry = "select max(date) as last_date from option_data where underlying = '{}'".format(symbol)
+        print(qry)
         df = pd.read_sql_query(qry, con=conn)
-        #print(df)
+        print(df)
         last_date = df['last_date'].to_list()[0] if df['last_date'].to_list() else None
     except:
         pass
@@ -74,7 +75,7 @@ def download(trade_days=[], symbols=[]):
                 day_from_now = last_date + relativedelta(days=d)
                 date_formated = day_from_now.strftime("%Y-%m-%d")
                 tmp_trade_days.append(date_formated)
-            #print(tmp_trade_days)
+            print(tmp_trade_days)
         IDX = 0
         for idx in range(len(tmp_trade_days)):
             trade_day = tmp_trade_days[idx]
@@ -105,6 +106,7 @@ def download(trade_days=[], symbols=[]):
 
                 chain = OptionChainCustom(TD_object, helper_utils.get_oc_symbol(symbol), expiry_dt, chain_length[helper_utils.get_oc_symbol(symbol)], spot_price, bid_ask=False, market_open_post_hours=False)
                 for option_symbol in chain.option_symbols:
+                    print(option_symbol)
                     hist_data = TD_object.historical_datasource.get_historic_data(option_symbol, start_time=start_time,
                                                            end_time=end_time,  bar_size="1 min")
                     try:
@@ -154,7 +156,8 @@ def download(trade_days=[], symbols=[]):
     conn.close()
 
 
-def run():
+def run2():
+    print('run 2')
     download()
 
 download()

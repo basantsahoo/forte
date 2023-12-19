@@ -7,10 +7,8 @@ from entities.base import Signal
 
 
 class SpotProcessor:
-    def __init__(self, asset_book, market_book, symbol):
+    def __init__(self, asset_book):
         self.asset_book = asset_book
-        self.market_book = market_book
-        self.symbol = symbol
         self.last_tick = {}
         self.spot_ts = OrderedDict()
         self.candles_5 = []
@@ -26,9 +24,12 @@ class SpotProcessor:
         epoch_minute = get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
         self.last_tick = feed_small
+        pat = Signal(asset=self.asset_book.asset, category="PRICE", instrument="", indicator="TICK_PRICE", signal_time=self.last_tick['timestamp'], notice_time=self.last_tick['timestamp'], info= self.last_tick, strength=1)
+        """
         pat = {'category': 'PRICE', 'indicator': 'TICK_PRICE', 'strength': 1,
                'signal_time': self.last_tick['timestamp'], 'notice_time': self.last_tick['timestamp'],
                'info': self.last_tick}
+        """
         self.asset_book.pattern_signal(pat)
 
     def process_spot_signals(self, notify=True):
@@ -55,7 +56,7 @@ class SpotProcessor:
                 candle_low = candle_5['low']
                 if candle_low > self.ema_5[-1]:
                     print('candle signal =========',datetime.fromtimestamp(self.last_tick['timestamp']))
-                    pat = Signal(category='TECHNICAL', indicator='CDL_5_ABOVE_EMA_5', strength=1, signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'], info= candle_5)
+                    pat = Signal(asset=self.asset_book.asset,  category='TECHNICAL', indicator='CDL_5_ABOVE_EMA_5', strength=1, signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'], info= candle_5)
                     self.asset_book.pattern_signal(pat)
 
                 price_below_ema = int(candle_5['close'] < self.ema_5[-1])

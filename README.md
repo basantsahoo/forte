@@ -319,5 +319,5 @@ download data scripts are in scheduler and run by rest api through scheduler/job
 ### For my memory refresh after long time
 
 ```
-
+python backtest/strategy_test.py ema_act_with_reverse_tick_nifty.json
 ```
