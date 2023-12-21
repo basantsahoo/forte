@@ -122,3 +122,5 @@ def run():
 	download()
 	#download(['2022-10-28'])
 	#download(['2022-03-17'], ['NSE:NIFTY2232417000PE'])
+
+#download()

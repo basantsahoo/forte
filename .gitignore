@@ -16,6 +16,8 @@ dist/
 
 # Compiled Java class files
 *.class
+*.csv
+*.xlsx
 
 # Compiled Python bytecode
 *.py[cod]

@@ -62,7 +62,7 @@ class TDCustom(TD):
         #self.get_all_expiries()
 
         ticker_index = 'NIFTY 50' if ticker == 'NIFTY' else 'NIFTY BANK' if 'BANK' in ticker else None
-        expiry_dt = get_expiry_date(ticker_index)
+        expiry_dt = get_expiry_date(symbol=ticker_index)
         expiry = expiry_dt.strftime('%y%m%d')
 
         flag = 'p' if option_type == 'PE' else 'c' if option_type == 'CE' else None
@@ -97,13 +97,13 @@ class TDCustom(TD):
         chain = requests.get(chain_link).text
         df = pd.read_csv(StringIO(chain), header=None)
         print(df.head().T)
-
+    """
     def get_time_to_expiry(self, expiry_dt, from_time=None):
         option_expiry_time = expiry_dt.strftime('%Y-%m-%d') + " 15:30:00"
         end_ts = datetime.strptime(option_expiry_time, "%Y-%m-%d %H:%M:%S")
         diff = (end_ts-from_time).total_seconds()#-(24-6.25)*3600
         return diff
-
+    """
 
 class OptionChainCustom(OptionChain):
     def get_strike_step(self):

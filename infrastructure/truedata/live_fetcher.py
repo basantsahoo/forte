@@ -26,8 +26,12 @@ tz_ist = pytz.timezone('Asia/Kolkata')
 Truedata socket for servers tick
 """
 sio = socketio.Client(reconnection_delay=5)
-expiry_dt = get_expiry_date()
-expiry = expiry_dt.strftime('%y%m%d')
+nifty_expiry_dt = get_expiry_date(symbol=helper_utils.get_nse_index_symbol("NIFTY"))
+nifty_expiry = nifty_expiry_dt.strftime('%y%m%d')
+
+bank_nifty_expiry_dt = get_expiry_date(symbol=helper_utils.get_nse_index_symbol("BANKNIFTY"))
+bank_nifty_expiry = bank_nifty_expiry_dt.strftime('%y%m%d')
+
 fetcher_started = False
 ns = None
 class TrueDataLiveFeed(socketio.ClientNamespace):
@@ -106,7 +110,8 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
         ltt = option_chain['ltt'].iloc[oc_middle_row]
         option_chain['flag'] = option_chain['type'].apply(lambda x: 'p' if x == 'PE' else 'c')
         spot_price = self.spot_data[ticker]
-        tim_to_expiry = self.td_scoket.get_time_to_expiry(ltt)/(3600*24*365) #(6.25*1+6*24)/(365*24*3600)
+        expiry_date = get_expiry_date(symbol=ticker)
+        tim_to_expiry = helper_utils.get_time_to_expiry(expiry_date, ltt)/(3600*24*365) #(6.25*1+6*24)/(365*24*3600)
         r = 10 / 100
         # print(tim_to_expiry)
         iv_p = vectorized_implied_volatility(option_chain['ltp'].to_list(), spot_price, option_chain['strike'].to_list() , tim_to_expiry, r, option_chain['flag'].to_list(), return_as='array')
@@ -133,8 +138,8 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
         all_index_futs = ['NIFTY-I', 'BANKNIFTY-I']
         req_id_futs = self.td_scoket.start_live_data(all_index_futs)
         time.sleep(1)
-        nifty_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('NIFTY'), expiry_dt, chain_length=20, bid_ask=True)
-        bnf_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('BANKNIFTY'), expiry_dt, chain_length=30, bid_ask=True)
+        nifty_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('NIFTY'), nifty_expiry_dt, chain_length=20, bid_ask=True)
+        bnf_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('BANKNIFTY'), bank_nifty_expiry_dt, chain_length=30, bid_ask=True)
         time.sleep(1)
         self.live_data_objs['NIFTY'] = nifty_chain.get_option_chain().to_dict('records')
         self.live_data_objs['BANKNIFTY'] = bnf_chain.get_option_chain().to_dict('records')
@@ -195,12 +200,12 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
                     bank_nifty_call_price = latest_bank_nifty_chain[(latest_bank_nifty_chain['strike'] == str(bank_nifty_call_strike_suitable)) & (latest_bank_nifty_chain['type'] == 'CE')]['ltp'].to_list()[0]
                     bank_nifty_put_price = latest_bank_nifty_chain[(latest_bank_nifty_chain['strike'] == str(bank_nifty_put_strike_suitable)) & (latest_bank_nifty_chain['type'] == 'PE')]['ltp'].to_list()[0]
 
-                    option_prices = [['NIFTY_CE', nifty_call_strike_suitable, nifty_call_price, self.spot_data[helper_utils.get_nse_index_symbol('NIFTY')], expiry],
-                                     ['NIFTY_PE', nifty_put_strike_suitable, nifty_put_price, self.spot_data[helper_utils.get_nse_index_symbol('NIFTY')], expiry],
+                    option_prices = [['NIFTY_CE', nifty_call_strike_suitable, nifty_call_price, self.spot_data[helper_utils.get_nse_index_symbol('NIFTY')], nifty_expiry],
+                                     ['NIFTY_PE', nifty_put_strike_suitable, nifty_put_price, self.spot_data[helper_utils.get_nse_index_symbol('NIFTY')], nifty_expiry],
                                      ['BANKNIFTY_CE', bank_nifty_call_strike_suitable, bank_nifty_call_price,
-                                      self.spot_data[helper_utils.get_nse_index_symbol('BANKNIFTY')], expiry],
+                                      self.spot_data[helper_utils.get_nse_index_symbol('BANKNIFTY')], bank_nifty_expiry],
                                      ['BANKNIFTY_PE', bank_nifty_put_strike_suitable, bank_nifty_put_price,
-                                      self.spot_data[helper_utils.get_nse_index_symbol('BANKNIFTY')], expiry]]
+                                      self.spot_data[helper_utils.get_nse_index_symbol('BANKNIFTY')], bank_nifty_expiry]]
                     #print(option_prices)
                     self.option_price_received_live(option_prices)
                 except Exception as e:
