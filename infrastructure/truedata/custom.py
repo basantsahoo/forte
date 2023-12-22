@@ -10,7 +10,7 @@ import numpy as np
 from py_vollib_vectorized import price_dataframe, get_all_greeks
 from py_vollib_vectorized import vectorized_implied_volatility
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import get_expiry_date
 import helper.utils as helper_utils
 
@@ -42,8 +42,14 @@ class TDCustom(TD):
     def start_option_chain(self, symbol, expiry, chain_length=None, bid_ask=False, market_open_post_hours=False):
         chain_length = 10 if chain_length is None else chain_length  # setting default value for chain length
         #print(self.get_n_historical_bars(f'{symbol}-I'))
-        future_price = self.get_n_historical_bars(f'{symbol}-I')[0]['c']
-        #print(future_price)
+
+        end_time = datetime.today() - timedelta(days=1)
+        end_time = end_time.strftime('%y%m%dT%H:%M:%S')    # This is the request format
+        start_time = datetime.today() - timedelta(days=5)
+        start_time = start_time.strftime('%y%m%dT%H:%M:%S')  # This is the request format
+        future_price = self.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=start_time, end_time=end_time, bar_size="eod")[-1]['c']
+        #future_price = self.get_n_historical_bars(f'{symbol}-I')[0]['c']
+        print(future_price)
         try:
             chain = OptionChainCustom(self, symbol, expiry, chain_length, future_price, bid_ask, market_open_post_hours)
         except Exception as e:

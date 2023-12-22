@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.types import VARCHAR, DATE
 import logging
 
@@ -95,10 +95,10 @@ def download(trade_days=[], symbols=[]):
             #print(TD_object.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=start_time, end_time=end_time,  bar_size="eod"))
             #print(TD_object.get_n_historical_bars(helper_utils.get_td_index_symbol(symbol), no_of_bars=len(tmp_trade_days)-idx, bar_size="eod"))
             #future_price = TD_object.get_n_historical_bars(helper_utils.get_td_index_symbol(symbol), no_of_bars=len(tmp_trade_days)-idx, bar_size="eod")[-1]['o']
-            spot_daily_bar = TD_object.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=start_time,
-                                                       end_time=end_time,  bar_size="eod")
+            spot_daily_bar = TD_object.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=(start_ts-timedelta(days=5)).strftime('%y%m%dT%H:%M:%S'),
+                                                       end_time=(start_ts-timedelta(days=1)).strftime('%y%m%dT%H:%M:%S'),  bar_size="eod")
             if spot_daily_bar:
-                spot_price = spot_daily_bar[0]['o']
+                spot_price = spot_daily_bar[-1]['c']
                 print(spot_price)
                 expiry_dt = get_expiry_date(trade_day, symbol)
                 print('expiry_dt', expiry_dt)

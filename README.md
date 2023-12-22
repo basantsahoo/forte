@@ -320,4 +320,8 @@ download data scripts are in scheduler and run by rest api through scheduler/job
 
 ```
 python backtest/strategy_test.py ema_act_with_reverse_tick_nifty.json
+
+4200 - frontend
+8000 -  api
+8080 - socket
 ```

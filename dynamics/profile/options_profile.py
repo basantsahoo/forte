@@ -100,6 +100,7 @@ class OptionProfileService:
         #print(recent_changes)
         """
 
+
     def process_input_data(self, data_dict):
         option_lst = data_dict['options_data']
         #epoch_tick_time = int(time.mktime(time.strptime(option_lst[0]['ltt'], "%Y-%m-%dT%H:%M:%S")))
@@ -122,9 +123,7 @@ class OptionProfileService:
             #print(df.head().T)
             hist_df = df[['strike', 'type','volume', 'oi', 'oi_change', 'IV', 'ltp', 'ltt']]
             symbol_option_data['hist'][epoch_minute] = hist_df.to_dict('records')
-
-            highest_strike = math.ceil((self.spot_data[data_dict['symbol']]['day_high'] * 1.06)/100)*100
-            lowest_strike = math.floor((self.spot_data[data_dict['symbol']]['day_low'] * 0.94)/100)*100
+            highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(data_dict['symbol'], self.spot_data[data_dict['symbol']])
             df['strike'] = df['strike'].astype(int)
             df = df[(df['strike'] <= highest_strike) & (df['strike'] >= lowest_strike)]
             tmp_data = df[['strike', 'type','ltt','volume', 'oi', 'oi_change', 'IV', 'delta', 'gamma', 'theta', 'ltp']]
@@ -145,7 +144,7 @@ class OptionProfileService:
 
     def process_spot_data(self, dict_input):
         #print(dict_input)
-        self.spot_data[dict_input['symbol']] = {'ltp':dict_input['ltp'],'day_high':dict_input['day_high'],'day_low':dict_input['day_low'] }
+        self.spot_data[dict_input['symbol']] = {'ltp':dict_input['ltp'],'day_high':dict_input['day_high'],'day_low':dict_input['day_low'], 'day_open': dict_input['day_open'], 'prev_day_close':dict_input['prev_day_close'] }
         self.market_cache.set('spot_data', self.spot_data)
 
     def filtered_option(self, ticker, inst_data):
@@ -162,8 +161,9 @@ class OptionProfileService:
         print('get_hist_data+++++++++++++++++++++++++++++++++++++++++++')
         hist_data = self.option_data.get(ticker, {}).get('hist', None)
         root_symbol = helper_utils.root_symbol(ticker)
-        highest_strike = math.ceil((self.spot_data[root_symbol]['day_high'] * 1.06) / 100) * 100
-        lowest_strike = math.floor((self.spot_data[root_symbol]['day_low'] * 0.94) / 100) * 100
+        highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(root_symbol, self.spot_data[root_symbol])
+        #highest_strike = 48600 #math.ceil((self.spot_data[root_symbol]['day_high'] * 1.06) / 100) * 100
+        #lowest_strike = 45700 #math.floor((self.spot_data[root_symbol]['day_low'] * 0.94) / 100) * 100
 
         if hist_data is not None:
             tmp_data = []

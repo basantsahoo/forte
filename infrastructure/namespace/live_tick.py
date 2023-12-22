@@ -165,18 +165,18 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
 
 
     async def on_td_price_feed(self, sid, feed):
-        print('td feed received')
+        print('td feed received', feed)
         feed['symbol'] = helper_utils.root_symbol(feed['symbol'])
         epoch_tick_time = int(datetime.fromisoformat(feed['timestamp'] + '+05:30').timestamp())
         feed['timestamp'] = epoch_tick_time
         feed['min_volume'] = feed['volume'] if 'volume' in feed else 0
         self.option_processor.process_spot_data(feed)
         item = self.processor.process_input_data(feed)
-        print(item)
+        #print(item)
         await self.emit('tick_data', {item['timestamp']: item}, room=item['symbol'])
         ley_list = ['symbol', 'ltp', "day_high", "day_low", "volume"]
         feed_small = {key: feed[key] for key in ley_list if key in feed}
-        print(feed_small)
+        #print(feed_small)
         for room in option_rooms:
             await self.emit('spot_data', feed_small, room=room)
         self.market_cache.set(item['symbol'], item) #3 Gets overwritten

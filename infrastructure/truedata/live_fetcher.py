@@ -138,6 +138,7 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
         all_index_futs = ['NIFTY-I', 'BANKNIFTY-I']
         req_id_futs = self.td_scoket.start_live_data(all_index_futs)
         time.sleep(1)
+        print('Starting option chain.... ')
         nifty_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('NIFTY'), nifty_expiry_dt, chain_length=20, bid_ask=True)
         bnf_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('BANKNIFTY'), bank_nifty_expiry_dt, chain_length=30, bid_ask=True)
         time.sleep(1)
@@ -299,7 +300,7 @@ def start():
     scheduler = BackgroundScheduler({'apscheduler.timezone': 'Asia/Kolkata'}, use_reloader=False)
     check_running_scheduler(scheduler)
     scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='8', minute='45')
-    scheduler.add_job(start_fetcher, 'cron', day_of_week='mon-sat', hour='6', minute='59')
+    scheduler.add_job(start_fetcher, 'cron', day_of_week='mon-sat', hour='9', minute='09')
     scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='16', minute='46')
     #scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='16', minute='55') #Do twice
 
