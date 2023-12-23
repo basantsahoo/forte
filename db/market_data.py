@@ -342,13 +342,6 @@ def get_curr_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
         print(e)
     return df
 
-def get_daily_option_data(symbol, trade_day):
-    symbol = helper_utils.get_nse_index_symbol(symbol)
-    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, oi  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc"
-    conn = engine.connect()
-    df = pd.read_sql_query(stmt_1.format(symbol, trade_day), conn)
-    conn.close()
-    return df
 
 def get_daily_option_oi_data(symbol, trade_day, kind='CE'):
     symbol = helper_utils.get_nse_index_symbol(symbol)
@@ -372,6 +365,25 @@ def get_daily_option_volume_data(symbol, trade_day, kind='CE'):
     stmt_1 = "select timestamp, strike AS instrument, volume  FROM option_data where underlying = '{0}' and date = '{1}' and kind='{2}' order by timestamp asc, strike desc"
     conn = engine.connect()
     df = pd.read_sql_query(stmt_1.format(symbol, trade_day, kind), conn)
+    conn.close()
+    return df
+
+def get_daily_option_data(asset, trade_day, data='close', kind=None):
+    asset = helper_utils.get_nse_index_symbol(asset)
+    if kind is None:
+        stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, {2}   FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(asset, trade_day, data)
+    else:
+        stmt_1 = "select timestamp, strike AS instrument, {3}   FROM option_data where underlying = '{0}' and date = '{1}' and kind='{2}' order by timestamp asc, strike desc".format(asset, trade_day, kind, data)
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1, conn)
+    conn.close()
+    return df
+
+def get_daily_option_ion_data(asset, trade_day):
+    asset = helper_utils.get_nse_index_symbol(asset)
+    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, CONCAT(close, '|', volume, '|', oi) as ion  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(asset, trade_day)
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1, conn)
     conn.close()
     return df
 
@@ -428,6 +440,15 @@ def get_option_data_with_time_jump(symbol, dt):
     df = pd.read_sql_query(stmt_a.format(symbol, dt), conn)
     conn.close()
     return df
+
+
+def get_trading_days_between_days(day1, day2):
+    stmt_1 = "select distinct date from minute_data where date >= '{0}' and date <= '{1}'".format(day1, day2)
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(day1, day2), conn)
+    return df['date'].to_list()
+
+
 
 def get_candle_body_size(symbol, trade_day, period='5Min'):
     symbol = helper_utils.get_nse_index_symbol(symbol)
