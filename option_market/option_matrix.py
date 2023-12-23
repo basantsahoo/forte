@@ -103,10 +103,12 @@ class OptionMatrix:
                 ion_cell.fresh_born(instrument_capsule)
             else:
                 ion_cell = self.get_timestamp_cell(timestamp)
+            #print(instrument_data['ion'])
             ion = Ion.from_raw(instrument_data['ion'])
             ion_cell.update_ion(ion)
             ion_cell.validate_ion_data()
             ion_cell.analyse()
+            #print(ion_cell.analytics)
 
 
 
@@ -147,7 +149,7 @@ class Cell:
 
     def get_elder_sibling(self, parent):
         all_keys = list(parent.trading_data.keys())
-        prev_key = min([key for key in all_keys if key > self.identifier])
+        prev_key = max([key for key in all_keys if key < self.identifier])
         return parent.trading_data[prev_key]
 
     def analyse(self):
@@ -183,7 +185,7 @@ class Ion:
     @classmethod
     def from_raw(cls, ion_data):
         [price, volume, oi] = ion_data.split("|")
-        return cls(price, volume, oi)
+        return cls(float(price), int(volume), int(oi))
 
 class Nucleus:
     def __init__(self):
