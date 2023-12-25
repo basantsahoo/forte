@@ -43,7 +43,9 @@ print("end==", expiry_week.end_date.date_string)
 print("month end==", expiry_week.moth_end_expiry)
 
 
-from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix
+from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
+from option_market.analysers import OptionMatrixAnalyser
+
 from db.market_data import get_trading_days_between_days
 days = get_trading_days_between_days(expiry_week.start_date.date_string, expiry_week.end_date.date_string)
 days_formatted = [day.strftime('%Y-%m-%d') for day in days]
@@ -51,6 +53,7 @@ print(days_formatted)
 
 data_loader = MultiDayOptionDataLoader(asset="BANKNIFTY", trade_days=days_formatted[0:1])
 option_matrix = OptionMatrix()
+
 
 while data_loader.data_present:
     feed_list = data_loader.generate_next_feed()

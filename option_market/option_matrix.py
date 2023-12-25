@@ -1,8 +1,40 @@
+"""
+OptionMatrix:
+capsule (
+    trading_data:{
+        '2023-12-01':capsule(
+                        trading_data:{
+                            '4200_CE':capsule(
+                                          trading_data:{
+                                              epoc1: cell(
+                                                        ion
+                                                        analytics
+                                                    )
+                                          }
+                                    )
+                        },
+                        transposed_data: {
+                            epoc1: {
+                                '4200_CE': cell
+                            }
+                        },
+                        cross_analyser: None
+                    )
+    }
+    analytics:{}
+    )
+"""
+
+
 import pandas as pd
 from datetime import datetime
 from db.market_data import get_daily_option_ion_data
 from collections import OrderedDict
 from entities.trading_day import TradeDateTime
+from option_market.building_blocks import Capsule, Cell, Ion
+from option_market.analysers import IntradayCrossAssetAnalyser
+from option_market.analysers import OptionMatrixAnalyser
+
 
 class OptionIonBuilder:
     def __init__(self, asset, trade_day):
@@ -32,49 +64,44 @@ class MultiDayOptionDataLoader:
             self.data_present = False
             return []
 
-class Capsule:
-    def __init__(self):
-        self.trading_data = OrderedDict()
-        self.analytics = {}
 
-    def in_trading_data(self, key):
-        return key in list(self.trading_data.keys())
+class PriceThrottler:
+    def __init__(self, matrix, feed_speed, throttle_speed=0):
+        self.matrix = matrix
+        self.feed_speed = feed_speed
+        self.throttle_speed = throttle_speed if throttle_speed > 1 else 1
+        self.last_frame_end = None
+        self.ion_dict = {}
 
-    def insert_trading_data(self, key, data):
-        self.trading_data[key] = data
+    def throttle(self, instrument_data_list):
+        for instrument_data in instrument_data_list:
+            timestamp = TradeDateTime.get_epoc_minute(instrument_data['timestamp'])
+            current_frame = int(timestamp/(self.throttle_speed * 60)) * 60
+            if self.last_frame_end != current_frame:
+                self.last_frame_end = current_frame
+                self.push()
+            instrument = instrument_data['instrument']
+            epoc_minute = TradeDateTime.get_epoc_minute(instrument_data['timestamp'])
 
-    def insert_analytics(self, key, data):
-        self.analytics[key] = data
-
-
-"""
-OptionMatrix:
-capsule (
-    trading_data:{
-        '2023-12-01':capsule(
-                        trading_data:{
-                            '4200_CE':capsule(
-                                          trading_data:{
-                                              epoc1: cell( 
-                                                        ion
-                                                        analytics 
-                                                    )   
-                                          }             
-                                    )
-                        }
-                    )
-    }
-    analytics:{}
-    )
-"""
+    def push(self):
+        pass
 
 class OptionMatrix:
 
-    def __init__(self):
+    def __init__(self, instant_compute=True, feed_speed=1, throttle_speed=15):
         self.capsule = Capsule()
+        self.instant_compute = instant_compute
+        self.matrix_analyser = OptionMatrixAnalyser(self)
+        self.current_date = None
+        self.last_time_stamp = None
+        self.signal_generator = OptionSignalGenerator(self)
+        self.price_throttler = PriceThrottler(self, feed_speed, throttle_speed)
 
-    def get_day_capsule(self, instrument_data):
-        return self.capsule.trading_data[instrument_data['trade_date']]
+    def process_feed(self, instrument_data_list):
+        self.price_throttler.throttle(instrument_data_list)
+
+    def get_day_capsule(self, trade_date):
+        return self.capsule.trading_data[trade_date]
 
     def get_instrument_capsule(self, instrument_data):
         return self.capsule.trading_data[instrument_data['trade_date']].trading_data[instrument_data['instrument']]
@@ -83,14 +110,25 @@ class OptionMatrix:
         timestamp = TradeDateTime.get_epoc_minute(instrument_data['timestamp'])
         return self.capsule.trading_data[instrument_data['trade_date']].trading_data[instrument_data['instrument']].trading_data[timestamp]
 
-    def process_feed(self, instrument_data_list):
+    def process_feed_2(self, instrument_data_list):
+        timestamp_set = set()
         for instrument_data in instrument_data_list:
-            trade_date = instrument_data['trade_date']
-            instrument = instrument_data['instrument']
             timestamp = TradeDateTime.get_epoc_minute(instrument_data['timestamp'])
+            if self.last_time_stamp != timestamp:
+                self.last_time_stamp = timestamp
+                self.signal_generator.generate()
+
+            trade_date = instrument_data['trade_date']
+            self.current_date = trade_date
+            instrument = instrument_data['instrument']
+
+            timestamp_set.add(timestamp)
             if not self.capsule.in_trading_data(trade_date):
-                self.capsule.insert_trading_data(trade_date, Capsule())
-            day_capsule = self.get_day_capsule(instrument_data)
+                capsule = Capsule()
+                cross_analyser = IntradayCrossAssetAnalyser(capsule)
+                capsule.cross_analyser = cross_analyser
+                self.capsule.insert_trading_data(trade_date, capsule)
+            day_capsule = self.get_day_capsule(trade_date)
 
             if not day_capsule.in_trading_data(instrument):
                 day_capsule.insert_trading_data(instrument, Capsule())
@@ -98,8 +136,9 @@ class OptionMatrix:
             instrument_capsule = self.get_instrument_capsule(instrument_data)
 
             if not instrument_capsule.in_trading_data(timestamp):
-                ion_cell = Cell(identifier=timestamp)
+                ion_cell = Cell(timestamp=timestamp, instrument=instrument)
                 instrument_capsule.insert_trading_data(timestamp, ion_cell)
+                day_capsule.insert_transposed_data(timestamp, instrument, ion_cell)
                 ion_cell.fresh_born(instrument_capsule)
             else:
                 ion_cell = self.get_timestamp_cell(timestamp)
@@ -108,88 +147,42 @@ class OptionMatrix:
             ion_cell.update_ion(ion)
             ion_cell.validate_ion_data()
             ion_cell.analyse()
+            if self.instant_compute:
+                day_capsule.cross_analyser.compute(list(timestamp_set))
             #print(ion_cell.analytics)
 
 
+class OptionSignalGenerator:
+
+    def __init__(self, matrix):
+        self.option_matrix = matrix
+        self.candle_minutes = 15
+        self.trade_hold_period = 30
+        self.roll_period = 30
 
 
+    def generate(self):
+        self.generate_intra_day_oi_drop_signal()
 
-class OptionMatrixAnalyser:
-    pass
-
-
-class Cell:
-    def __init__(self, identifier=None, elder_sibling=None):
-        self.identifier = identifier
-        self.ion = None
-        self.analytics = {}
-        self.elder_sibling = elder_sibling
-        self.analyser = CellAnalyser(self)
-
-    def update_ion(self, new_ion):
-        self.ion = new_ion
-
-    def copy_price_from_sibling(self):
-        pass
-
-    def fresh_born(self, parent):
-        try:
-            self.elder_sibling = self.get_elder_sibling(parent)
-        except:
-            pass
-
-    def validate_ion_data(self):
-        if self.elder_sibling is not None:
-            if not self.ion.price_is_valid():
-                self.ion.price = self.elder_sibling.ion.price
-            if not self.ion.volume_is_valid():
-                self.ion.volume = self.elder_sibling.ion.volume
-            if not self.ion.oi_is_valid():
-                self.ion.oi = self.elder_sibling.ion.oi
-
-    def get_elder_sibling(self, parent):
-        all_keys = list(parent.trading_data.keys())
-        prev_key = max([key for key in all_keys if key < self.identifier])
-        return parent.trading_data[prev_key]
-
-    def analyse(self):
-        self.analyser.compute()
-
-
-class CellAnalyser:
-    def __init__(self, cell):
-        self.cell = cell
-
-    def compute(self):
-        if self.cell.elder_sibling is not None:
-            self.cell.analytics['price_delta'] = self.cell.ion.price - self.cell.elder_sibling.ion.price
-            self.cell.analytics['oi_delta'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
-            self.cell.analytics['volume'] = self.cell.elder_sibling.ion.volume
-
-
-class Ion:
-    def __init__(self, price, volume, oi):
-        self.price = price
-        self.volume = volume
-        self.oi = oi
-
-    def price_is_valid(self):
-        return type(self.price) == int or type(self.price) == float
-
-    def volume_is_valid(self):
-        return type(self.volume) == int or type(self.volume) == float
-
-    def oi_is_valid(self):
-        return type(self.oi) == int or type(self.oi) == float
-
-    @classmethod
-    def from_raw(cls, ion_data):
-        [price, volume, oi] = ion_data.split("|")
-        return cls(float(price), int(volume), int(oi))
-
-class Nucleus:
-    def __init__(self):
-        self.price_delta = None
-        self.oi_delta = None
-        self.volume = None
+    def generate_intra_day_oi_drop_signal(self):
+        day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
+        call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
+        put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
+        """
+        if len(self.total_oi_series) >= roll_period / candle_minutes:
+            last_oi = self.total_oi_series[-1]
+            mean_oi = np.mean(self.total_oi_series[-int(roll_period / candle_minutes):-1])
+            if (last_oi * 1.00 / mean_oi) - 1 > 0.01:
+                # print('Buildup++++++')
+                pass
+            elif (last_oi * 1.00 / self.attention_oi) - 1 < -0.05:
+                print('covering----')
+                # print((last_oi * 1.00 / self.attention_oi) - 1)
+                self.attention_oi = last_oi
+                signal = 1
+            else:
+                # print('balance====')
+                pass
+        return signal
+        """
 

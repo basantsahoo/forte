@@ -105,7 +105,7 @@ class OptionProfileService:
         option_lst = data_dict['options_data']
         #epoch_tick_time = int(time.mktime(time.strptime(option_lst[0]['ltt'], "%Y-%m-%dT%H:%M:%S")))
         epoch_tick_time = int(datetime.fromisoformat(option_lst[0]['ltt'] + '+05:30').timestamp())
-        epoch_minute = int(epoch_tick_time // 60 * 60) + 60
+        epoch_minute = int(epoch_tick_time // 60 * 60)
 
         if self.waiting_for_data:
             self.set_trade_date_from_time(epoch_tick_time)

@@ -234,7 +234,7 @@ class TickMarketProfileService(MarketProfileService):
                     'low': min(inst['ltp'],
                                self.price_data[self.trade_day][inst['symbol']]['hist'][epoch_minute]['low']),
                     'close': inst['ltp'],
-                    'volume': self.price_data[self.trade_day][inst['symbol']]['hist'][epoch_minute]['low'] + inst.get('volume', 0),
+                    'volume': self.price_data[self.trade_day][inst['symbol']]['hist'][epoch_minute]['volume'] + inst.get('volume', 0),
                     'lt': inst['timestamp'] if inst['ltp'] > self.price_data[self.trade_day][inst['symbol']]['high'] else self.price_data[self.trade_day][inst['symbol']]['hist'][epoch_minute]['ht'],
                     'ht': inst['timestamp'] if inst['ltp'] < self.price_data[self.trade_day][inst['symbol']]['low'] else self.price_data[self.trade_day][inst['symbol']]['hist'][epoch_minute]['lt']
                 }
