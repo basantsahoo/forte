@@ -3,6 +3,8 @@ import pytz
 import time
 from helper import utils as helper_utils
 from config import nifty_future_expiry_dates, bank_nifty_future_expiry_dates
+from db.market_data import get_all_trade_dates_between_two_dates
+
 
 class TradeDateTime:
     def __init__(self, date_time_input, time_zone=pytz.timezone('Asia/Kolkata')):
@@ -22,8 +24,13 @@ class TradeDateTime:
         self.market_end_epoc = None
         self.month = None
         self.time_zone = time_zone
+        self.trade_d2e = -1
+        self.cal_d2e = -1
+        #print(type(date_time_input))
         if type(date_time_input) == str:
             self.process_string_format(date_time_input)
+        elif type(date_time_input) == date:
+            self.date_time = datetime.fromordinal(date_time_input.toordinal())
         elif type(date_time_input) == datetime:
             self.date_time = date_time_input
         elif type(date_time_input) == int:
@@ -87,12 +94,22 @@ class NearExpiryWeek:
         fut_exp_dates = self.get_asset_expiry_dates(asset)
         expiry_week_end_day = min([x.ordinal for x in fut_exp_dates if x.ordinal >= trade_date_time.ordinal])
         expiry_week_start_day = max([x.ordinal for x in fut_exp_dates if x.ordinal < trade_date_time.ordinal]) + 1
-
+        self.asset = asset
         self.start_date = TradeDateTime.from_ordinal(expiry_week_start_day)
         self.end_date = TradeDateTime.from_ordinal(expiry_week_end_day)
         next_expiry = min([x.ordinal for x in fut_exp_dates if x.ordinal > expiry_week_end_day])
         self.next_expiry_end = TradeDateTime.from_ordinal(next_expiry)
         self.moth_end_expiry = self.next_expiry_end.month != self.end_date.month
+        self.all_trade_days = []
+
+    def get_all_trade_days(self):
+        all_days = get_all_trade_dates_between_two_dates(self.asset, self.start_date.date_string, self.end_date.date_string)
+        for idx in range(len(all_days)):
+            day = TradeDateTime(all_days[idx])
+            day.trade_d2e = len(all_days) - idx - 1
+            day.cal_d2e = (self.end_date.date_time - day.date_time).days
+            self.all_trade_days.append(day)
+
 
     @staticmethod
     def get_asset_expiry_dates(asset):

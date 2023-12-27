@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+project_path = str(Path(__file__).resolve().parent.parent.parent)
+sys.path.insert(1, project_path)
+
+
 import time
 import pandas as pd
 import traceback
@@ -160,4 +166,4 @@ def run2():
     print('run 2')
     download()
 
-#download()
+download()

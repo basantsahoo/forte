@@ -263,6 +263,17 @@ def get_all_days(symbol):
     conn.close()
     return days
 
+def get_all_trade_dates_between_two_dates(symbol, start_date, end_date):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    conn = engine.connect()
+    stmt_1 = "select distinct date from minute_data where symbol = '{0}' and date>= '{1}' and date <= '{2}' order by date"
+    rs = conn.execute(stmt_1.format(symbol, start_date, end_date))
+    days = list(rs)
+    days = [x[0] for x in days]
+    conn.close()
+    return days
+
+
 def get_hist_ndays_profile_data(symbol, trade_day, n):
     symbol = helper_utils.get_nse_index_symbol(symbol)
     stmt_1 = "select date,open,high,low,close,va_h_p, va_l_p,ib_l_acc,ib_h_acc,poc_price from daily_profile where symbol = '{0}' and date < date('{1}') and  date > date('{1}' - INTERVAL {2} DAY)"
@@ -440,14 +451,6 @@ def get_option_data_with_time_jump(symbol, dt):
     df = pd.read_sql_query(stmt_a.format(symbol, dt), conn)
     conn.close()
     return df
-
-
-def get_trading_days_between_days(day1, day2):
-    stmt_1 = "select distinct date from minute_data where date >= '{0}' and date <= '{1}'".format(day1, day2)
-    conn = engine.connect()
-    df = pd.read_sql_query(stmt_1.format(day1, day2), conn)
-    return df['date'].to_list()
-
 
 
 def get_candle_body_size(symbol, trade_day, period='5Min'):

@@ -25,6 +25,7 @@ class IntradayCrossAssetAnalyser:
 
     def compute_oi_volume(self, timestamp_list=[]):
         transposed_data = self.capsule.transposed_data
+        #print('timestamp_list=====', timestamp_list)
         if not timestamp_list:
             timestamp_list = transposed_data.keys()
         #print(timestamp_list)

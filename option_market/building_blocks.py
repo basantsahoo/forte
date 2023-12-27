@@ -44,7 +44,10 @@ class Cell:
 
     def update_ion(self, new_ion):
         self.ion = new_ion
-
+        """
+        if self.timestamp == 1703131200 and self.instrument=='48600_CE':
+            print(self.ion.oi)
+        """
     def copy_price_from_sibling(self):
         pass
 

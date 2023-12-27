@@ -34,7 +34,7 @@ from datetime import datetime, timedelta
 d = '2023-11-24 09:15'
 dt = datetime.strptime(d, '%Y-%m-%d %H:%M')
 
-candle_minutes = 15
+candle_minutes = 1
 trade_hold_period = 30
 roll_period = 30
 
@@ -42,9 +42,11 @@ roll_period = 30
 class OptionFeeder:
 	def __init__(self, t_date):
 		self.t_date = t_date
+		all_oi = get_daily_option_data('BANK NIFTY', t_date, data='oi')
+		all_oi.to_csv('all_oi_' + t_date + '.csv')
 		call_oi_df = get_daily_option_oi_data('BANK NIFTY', t_date, 'CE')
 		call_oi_df_cross = call_oi_df.pivot_table('oi', ['timestamp'], 'instrument')
-		call_oi_df_cross.fillna(method='bfill', inplace=True)
+		#call_oi_df_cross.fillna(method='bfill', inplace=True)
 		call_oi_df_cross.fillna(method='ffill', inplace=True)
 		call_oi_df_cross = call_oi_df_cross[call_oi_df_cross.index % (candle_minutes * 60) == 0]
 		call_oi_df_cross.to_csv('call_oi_df_cross_'+t_date+'.csv')
@@ -159,7 +161,7 @@ class CallAnalyser:
 				#print('Buildup++++++')
 				pass
 			elif (last_oi*1.00/self.attention_oi) -1 < -0.05:
-				print('covering----')
+				print('covering----', last_oi)
 				#print((last_oi * 1.00 / self.attention_oi) - 1)
 				self.attention_oi = last_oi
 				signal = 1
@@ -289,6 +291,7 @@ class OptionChainAnalyser:
 			print('exit_price ====', trade.exit_price)
 			print('pnl=======================================', trade.pnl)
 		print('total pnl=======', total_pnl)
+
 class BackTester:
 	def __init__(self, t_date):
 		self.t_date = t_date
