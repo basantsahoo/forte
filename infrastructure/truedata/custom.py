@@ -13,6 +13,8 @@ import pandas as pd
 from datetime import datetime, timedelta
 from config import get_expiry_date
 import helper.utils as helper_utils
+from entities.trading_day import TradeDateTime, NearExpiryWeek
+from db.market_data import get_last_option_loaded_date, get_last_minute_data
 
 class TDCustom(TD):
     _instance = None
@@ -42,14 +44,19 @@ class TDCustom(TD):
     def start_option_chain(self, symbol, expiry, chain_length=None, bid_ask=False, market_open_post_hours=False):
         chain_length = 10 if chain_length is None else chain_length  # setting default value for chain length
         #print(self.get_n_historical_bars(f'{symbol}-I'))
+        t_day = TradeDateTime(datetime.today())
+        expiry_week = NearExpiryWeek(t_day)
+        last_close = get_last_minute_data(symbol, expiry_week.last_expiry_end.date_string)
+        print(last_close)
+        future_price = last_close['close'].to_list()[-1]
 
         end_time = datetime.today() - timedelta(days=1)
         end_time = end_time.strftime('%y%m%dT%H:%M:%S')    # This is the request format
         start_time = datetime.today() - timedelta(days=5)
         start_time = start_time.strftime('%y%m%dT%H:%M:%S')  # This is the request format
-        future_price = self.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=start_time, end_time=end_time, bar_size="eod")[-1]['c']
+        #future_price = self.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=start_time, end_time=end_time, bar_size="eod")[-1]['c']
         #future_price = self.get_n_historical_bars(f'{symbol}-I')[0]['c']
-        print(future_price)
+        #print(future_price)
         try:
             chain = OptionChainCustom(self, symbol, expiry, chain_length, future_price, bid_ask, market_open_post_hours)
         except Exception as e:
@@ -113,8 +120,9 @@ class TDCustom(TD):
 
 class OptionChainCustom(OptionChain):
     def get_strike_step(self):
-        print('get_strike_step++++++++++++', self.symbol)
-        if self.symbol in [helper_utils.get_nse_index_symbol("NIFTY"), helper_utils.get_nse_index_symbol("BANKNIFTY")]:
+        #print('get_strike_step++++++++++++', self.symbol)
+        #print(helper_utils.get_nse_index_symbol("NIFTY"))
+        if self.symbol in [helper_utils.get_oc_symbol("NIFTY"), helper_utils.get_oc_symbol("BANKNIFTY")]:
             return 100
         else:
             expiry = self.expiry.strftime('%Y%m%d')

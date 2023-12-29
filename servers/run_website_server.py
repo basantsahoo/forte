@@ -28,7 +28,7 @@ async def refresh(ns):
         now = datetime.now(tz_ist)
         #print(now.hour)
         #print(now.minute)
-        if (now.hour == 8 and now.minute >= 45) or (now.hour == 9 and now.minute <= 15):
+        if (now.hour == 8 and now.minute >= 45) or (now.hour == 13 and now.minute <= 45):
             ns.refresh()
             ns.processor.refresh()
             ns.option_processor.refresh()

@@ -17,10 +17,11 @@ from dynamics.profile.utils import get_next_lowest_index, get_next_highest_index
 from helper.time_utils import epoch_to_ordinal
 
 from entities.trading_day import TradeDateTime, NearExpiryWeek
-day = "2023-12-21"
+day = "2023-09-01"
+asset = "BANKNIFTY"
 
 trading_day = TradeDateTime(day)
-expiry_week = NearExpiryWeek(trading_day, "BANKNIFTY")
+expiry_week = NearExpiryWeek(trading_day, "NIFTY")
 """
 print("********************************")
 
@@ -47,12 +48,13 @@ print("month end==", expiry_week.moth_end_expiry)
 
 from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
 from option_market.analysers import OptionMatrixAnalyser
+from option_market.exclude_trade_days import exclude_trade_days
 
-days = get_all_trade_dates_between_two_dates("BANKNIFTY", expiry_week.start_date.date_string, expiry_week.end_date.date_string)
-days_formatted = [day.strftime('%Y-%m-%d') for day in days]
+days = get_all_trade_dates_between_two_dates(asset, expiry_week.start_date.date_string, expiry_week.end_date.date_string)
+days_formatted = [day.strftime('%Y-%m-%d') for day in days if day.strftime('%Y-%m-%d') not in exclude_trade_days[asset]]
 print(days_formatted)
 
-data_loader = MultiDayOptionDataLoader(asset="BANKNIFTY", trade_days=days_formatted[0:1])
+data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=days_formatted[0:1])
 option_matrix = OptionMatrix(feed_speed=1, throttle_speed=1)
 signal_generator = OptionSignalGenerator(option_matrix)
 

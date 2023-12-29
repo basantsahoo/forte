@@ -19,7 +19,8 @@ class MarketClient(socketio.ClientNamespace):
         self.sio.register_namespace(ns)
         """
     def on_tick_data(self, feed):
-        print('on_price' , feed)
+        pass
+        #print('on_price' , feed)
 
     def on_hist(self, feed):
         pass
@@ -29,7 +30,8 @@ class MarketClient(socketio.ClientNamespace):
         pass
 
     def on_atm_option_feed(self, feed):
-        print('on_atm_option_feed', feed)
+        #print('on_atm_option_feed', feed)
+        pass
 
     def on_all_option_data(self, feed):
         pass

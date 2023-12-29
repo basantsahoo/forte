@@ -19,7 +19,9 @@ import infrastructure.truedata.settings as td_settings
 import helper.utils as helper_utils
 
 from infrastructure.truedata.custom import OptionChainCustom
+from db.market_data import get_last_option_loaded_date, get_last_minute_data
 from db.db_engine import get_db_engine
+from entities.trading_day import TradeDateTime, NearExpiryWeek
 
 log_format = "(%(asctime)s) %(levelname)s :: %(message)s (PID:%(process)d Thread:%(thread)d)"
 log_formatter = logging.Formatter(log_format)
@@ -30,23 +32,6 @@ logger = logging.getLogger('hist_downloader')
 logger.addHandler(log_handler)
 logger.setLevel(log_handler.level)
 logger.debug("Logger ready...")
-
-
-def get_last_option_loaded_date(symbol):
-    last_date = None
-    engine = get_db_engine()
-    conn = engine.connect()
-    try:
-        qry = "select max(date) as last_date from option_data where underlying = '{}'".format(symbol)
-        print(qry)
-        df = pd.read_sql_query(qry, con=conn)
-        print(df)
-        last_date = df['last_date'].to_list()[0] if df['last_date'].to_list() else None
-    except:
-        pass
-    conn.close()
-    return last_date
-
 
 
 #hist_fetcher = HistoricalREST(td_settings.user_name, td_settings.pass_word, td_settings.hist_url, None, logger)
@@ -62,7 +47,7 @@ def download(trade_days=[], symbols=[]):
     if len(symbols) == 0:
         symbols = [helper_utils.get_nse_index_symbol(symbol) for symbol in default_symbols]
     TD_object = TD(td_settings.user_name, td_settings.pass_word, live_port=None, historical_api=True)
-    chain_length = {'NIFTY': 10, 'BANKNIFTY': 30}
+    chain_length = {'NIFTY': 15, 'BANKNIFTY': 40}
     engine = get_db_engine()
     conn = engine.connect()
 
@@ -72,7 +57,7 @@ def download(trade_days=[], symbols=[]):
             last_date = get_last_option_loaded_date(helper_utils.get_nse_index_symbol(symbol))
             print('last_date=================', last_date)
             if last_date is None:
-                last_date = datetime(2022, 9, 18).date()
+                last_date = datetime(2023, 7, 7).date()
             # print(last_date)
             curr_date = datetime.now().date()
             delta = curr_date - last_date
@@ -89,6 +74,7 @@ def download(trade_days=[], symbols=[]):
             start_str = trade_day + " 09:15:00"
             end_str = trade_day + " 15:30:30"
             start_ts = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S")
+            print(start_ts)
             end_ts = datetime.strptime(end_str, "%Y-%m-%d %H:%M:%S")
             end_time = end_ts.strftime('%y%m%dT%H:%M:%S')  # This is the request format
             start_time = start_ts.strftime('%y%m%dT%H:%M:%S')  # This is the request format
@@ -101,12 +87,17 @@ def download(trade_days=[], symbols=[]):
             #print(TD_object.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=start_time, end_time=end_time,  bar_size="eod"))
             #print(TD_object.get_n_historical_bars(helper_utils.get_td_index_symbol(symbol), no_of_bars=len(tmp_trade_days)-idx, bar_size="eod"))
             #future_price = TD_object.get_n_historical_bars(helper_utils.get_td_index_symbol(symbol), no_of_bars=len(tmp_trade_days)-idx, bar_size="eod")[-1]['o']
-            spot_daily_bar = TD_object.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=(start_ts-timedelta(days=5)).strftime('%y%m%dT%H:%M:%S'),
+            t_day = TradeDateTime(trade_day)
+            expiry_week = NearExpiryWeek(t_day)
+            last_close = get_last_minute_data(symbol, expiry_week.last_expiry_end.date_string)
+            """
+            last_close = TD_object.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=(start_ts-timedelta(days=5)).strftime('%y%m%dT%H:%M:%S'),
                                                        end_time=(start_ts-timedelta(days=1)).strftime('%y%m%dT%H:%M:%S'),  bar_size="eod")
-            if spot_daily_bar:
-                spot_price = spot_daily_bar[-1]['c']
+            """
+            if last_close.shape[0]:
+                spot_price = last_close['close'].to_list()[-1]
                 print(spot_price)
-                expiry_dt = get_expiry_date(trade_day, symbol)
+                expiry_dt = expiry_week.end_date.date_time #get_expiry_date(trade_day, symbol)
                 print('expiry_dt', expiry_dt)
                 expiry = expiry_dt.strftime('%y%m%d')
 
@@ -166,4 +157,4 @@ def run2():
     print('run 2')
     download()
 
-download()
+#download(trade_days=['2023-12-20'], symbols=['BANKNIFTY'])

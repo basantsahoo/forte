@@ -116,6 +116,15 @@ def get_daily_tick_data(symbol, trade_day):
     conn.close()
     return df
 
+def get_last_minute_data(symbol, trade_day):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    stmt_1 = "select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and date = date('{1}') and timestamp = (select max(timestamp) from minute_data where symbol = '{0}' and date = date('{1}'))"
+    #print(stmt_1.format(symbol, trade_day))
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(symbol, trade_day), conn)
+    conn.close()
+    return df
+
 
 def get_nth_day_hist_data(symbol, trade_day, n):
     symbol = helper_utils.get_nse_index_symbol(symbol)
@@ -451,6 +460,19 @@ def get_option_data_with_time_jump(symbol, dt):
     df = pd.read_sql_query(stmt_a.format(symbol, dt), conn)
     conn.close()
     return df
+
+def get_last_option_loaded_date(symbol):
+    last_date = None
+    engine = get_db_engine()
+    conn = engine.connect()
+    try:
+        qry = "select max(date) as last_date from option_data where underlying = '{}'".format(symbol)
+        df = pd.read_sql_query(qry, con=conn)
+        last_date = df['last_date'].to_list()[0] if df['last_date'].to_list() else None
+    except:
+        pass
+    conn.close()
+    return last_date
 
 
 def get_candle_body_size(symbol, trade_day, period='5Min'):
