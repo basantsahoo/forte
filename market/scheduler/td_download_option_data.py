@@ -55,7 +55,7 @@ def download(trade_days=[], symbols=[]):
         tmp_trade_days = trade_days
         if len(tmp_trade_days) == 0:
             last_date = get_last_option_loaded_date(helper_utils.get_nse_index_symbol(symbol))
-            print('last_date=================', last_date)
+            print('last_date=================', symbol, " " , last_date)
             if last_date is None:
                 last_date = datetime(2023, 7, 7).date()
             # print(last_date)
@@ -88,7 +88,7 @@ def download(trade_days=[], symbols=[]):
             #print(TD_object.get_n_historical_bars(helper_utils.get_td_index_symbol(symbol), no_of_bars=len(tmp_trade_days)-idx, bar_size="eod"))
             #future_price = TD_object.get_n_historical_bars(helper_utils.get_td_index_symbol(symbol), no_of_bars=len(tmp_trade_days)-idx, bar_size="eod")[-1]['o']
             t_day = TradeDateTime(trade_day)
-            expiry_week = NearExpiryWeek(t_day)
+            expiry_week = NearExpiryWeek(t_day, symbol)
             last_close = get_last_minute_data(symbol, expiry_week.last_expiry_end.date_string)
             """
             last_close = TD_object.historical_datasource.get_historic_data(helper_utils.get_td_index_symbol(symbol), start_time=(start_ts-timedelta(days=5)).strftime('%y%m%dT%H:%M:%S'),
@@ -157,4 +157,5 @@ def run2():
     print('run 2')
     download()
 
-#download(trade_days=['2023-12-20'], symbols=['BANKNIFTY'])
+#download()
+#download(trade_days=['2023-12-21'], symbols=['BANKNIFTY'])

@@ -52,6 +52,9 @@ class IntradayCrossAssetAnalyser:
     def get_total_put_oi_series(self):
         return list(self.put_oi.values())
 
+    def get_ts_series(self):
+        return list(self.capsule.transposed_data.keys())
+
 class OptionMatrixAnalyser:
 
     def __init__(self, option_matrix=None):
