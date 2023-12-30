@@ -39,7 +39,7 @@ while data_loader.data_present:
             option_matrix.process_option_feed(feed_list)
         if feed_type == 'spot':
             #print(feed_list)
-            option_matrix.process_spot_feed(feed_list)
+            option_matrix.process_feed_without_signal(feed_list)
         #option_matrix.generate_signal()
 
 current_date = option_matrix.current_date

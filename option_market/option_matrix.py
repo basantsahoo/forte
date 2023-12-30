@@ -35,7 +35,7 @@ from entities.trading_day import TradeDateTime
 from option_market.building_blocks import Capsule, Cell
 from option_market.analysers import IntradayCrossAssetAnalyser
 from option_market.analysers import OptionMatrixAnalyser
-from option_market.throttlers import TickPriceThrottler
+from option_market.throttlers import OptionFeedThrottler, FeedThrottler
 from option_market.signal_generator import OptionSignalGenerator
 
 from option_market.data_loader import MultiDayOptionDataLoader
@@ -51,17 +51,19 @@ class OptionMatrix:
         self.matrix_analyser = OptionMatrixAnalyser(self)
         self.current_date = None
         self.signal_generator = OptionSignalGenerator(self, live_mode)
-        self.price_throttler = TickPriceThrottler(self, feed_speed, throttle_speed)
+        self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed)
+        self.data_throttler = FeedThrottler(self, feed_speed, throttle_speed)
         self.live_mode = live_mode
         self.counter = 0
         self.last_time_stamp = None
 
     def process_option_feed(self, instrument_data_list):
         self.current_date = instrument_data_list[0]['trade_date']
-        self.price_throttler.throttle(instrument_data_list)
+        self.option_data_throttler.throttle(instrument_data_list)
 
-    def process_spot_feed(self, instrument_data_list):
-        self.price_throttler.throttle(instrument_data_list)
+    def process_feed_without_signal(self, instrument_data_list):
+        #self.current_date = instrument_data_list[0]['trade_date']
+        self.data_throttler.throttle(instrument_data_list)
 
     def get_day_capsule(self, trade_date):
         return self.capsule.trading_data[trade_date]

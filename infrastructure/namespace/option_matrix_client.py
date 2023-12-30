@@ -5,7 +5,7 @@ import json
 import pandas as pd
 from infrastructure.namespace.market_client import MarketClient
 from option_market.option_matrix import OptionMatrix
-from option_market.throttlers import TickPriceThrottler
+from option_market.throttlers import OptionFeedThrottler
 from servers.server_settings import feed_socket_service
 enabled_symbols = list(algorithm_setup.keys())
 
@@ -15,8 +15,8 @@ class OptionMatrixClient(socketio.ClientNamespace):
     def __init__(self, namespace=None):
         socketio.ClientNamespace.__init__(self, namespace)
         option_matrix = OptionMatrix(feed_speed=1, throttle_speed=1, live_mode=True)
-        throttler = TickPriceThrottler(option_matrix, feed_speed=1, throttle_speed=1)
-        option_matrix.price_throttler = throttler
+        #throttler = OptionFeedThrottler(option_matrix, feed_speed=1, throttle_speed=1)
+        #option_matrix.option_data_throttler = throttler
         self.option_matrix = option_matrix
         self.c_sio = socketio.Client(reconnection_delay=5)
         ns = MarketClient('/livefeed', ['NIFTY'])
@@ -24,6 +24,9 @@ class OptionMatrixClient(socketio.ClientNamespace):
         ns.on_all_option_data = self.on_option_tick_data
         ns.on_hist_option_data = self.on_hist_option_data
         ns.on_set_trade_date = self.on_set_trade_date
+        ns.on_tick_data = self.on_tick_data
+        ns.on_hist = self.on_hist
+
         self.request_data = ns.request_data
         self.trade_day = None
 
@@ -33,7 +36,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
         self.trade_day = trade_day
         self.request_data()
 
-    def map_to_recs(self, feed):
+    def map_to_option_recs(self, feed):
         #print(feed)
         recs = feed['data']
         f_recs = []
@@ -51,15 +54,36 @@ class OptionMatrixClient(socketio.ClientNamespace):
         return hist_recs
 
 
+
     def on_hist_option_data(self, feed):
         #print('hist option data+++++++++++++++++++++', feed)
-        hist_recs = self.map_to_recs(feed)
-        self.option_matrix.process_feed(hist_recs)
+        hist_recs = self.map_to_option_recs(feed)
+        self.option_matrix.process_option_feed(hist_recs)
         #self.option_matrix.generate_signal()
 
     def on_option_tick_data(self, feed):
-        hist_recs = self.map_to_recs(feed)
-        self.option_matrix.process_feed(hist_recs)
+        hist_recs = self.map_to_option_recs(feed)
+        self.option_matrix.process_option_feed(hist_recs)
+
+
+    def map_to_spot_recs(self, feed):
+        #print(feed)
+        fdd = {
+            'instrument': 'spot',
+            'ion': str(feed['open']) + '|' + str(feed['high']) + '|' + str(feed['low']) + '|' + str(feed['close']),
+            'timestamp' : feed['timestamp'],
+            'trade_date': self.trade_day
+        }
+        return fdd
+
+
+    def on_tick_data(self, feed):
+        #print(feed)
+        feed = self.map_to_spot_recs(list(feed.values())[0])
+        self.option_matrix.process_feed_without_signal([feed])
+
+    def on_hist(self, feed):
+        print('on_hist++++++++++++++++++++')
 
     def on_connect(self):
         print('Algo runner  connected to oms')

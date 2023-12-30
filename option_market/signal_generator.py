@@ -72,15 +72,15 @@ class OptionSignalGenerator:
         if last_oi > self.attention_oi:
             self.attention_oi = last_oi
         signal = 0
-        if len(call_oi_series) >= self.roll_period / self.option_matrix.price_throttler.aggregation_factor:
+        if len(call_oi_series) >= self.roll_period / self.option_matrix.option_data_throttler.aggregation_factor:
             #print(call_oi_series)
-            mean_oi = np.mean(call_oi_series[-int(self.roll_period / self.option_matrix.price_throttler.aggregation_factor):-1])
+            mean_oi = np.mean(call_oi_series[-int(self.roll_period / self.option_matrix.option_data_throttler.aggregation_factor):-1])
             if (last_oi * 1.00 / mean_oi) - 1 > 0.01:
                 # print('Buildup++++++')
                 pass
             elif (last_oi * 1.00 / self.attention_oi) - 1 < -0.05:
                 print('covering----', last_oi)
-                print(self.option_matrix.price_throttler.last_frame_start)
+                print(self.option_matrix.option_data_throttler.last_frame_start)
                 if last_oi == 0:
                     for ts, cross in day_capsule.transposed_data.items():
                         for inst, cell in cross.items():

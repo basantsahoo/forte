@@ -2,7 +2,7 @@ from entities.trading_day import TradeDateTime
 from option_market.building_blocks import Cell, OptionIon, SpotIon
 
 
-class TickPriceThrottler:
+class FeedThrottler:
     def __init__(self, matrix, feed_speed, throttle_speed=0):
         self.matrix = matrix
         self.feed_speed = feed_speed if feed_speed > 1 else 1
@@ -45,6 +45,12 @@ class TickPriceThrottler:
                 ion = OptionIon.from_raw(instrument_data['ion'])
             self.update_ion_cell(current_frame, instrument, ion)
 
+    def push(self):
+        self.matrix.add_cells(self.current_date, list(self.ion_dict.values()))
+        self.ion_dict = {}
+
+
+class OptionFeedThrottler(FeedThrottler):
     def push(self):
         self.matrix.add_cells(self.current_date, list(self.ion_dict.values()))
         self.ion_dict = {}

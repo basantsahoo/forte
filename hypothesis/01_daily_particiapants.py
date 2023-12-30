@@ -30,7 +30,7 @@ for expiry_date in expiry_dates[23:len(expiry_dates)-4]:
             if feed_type == 'option':
                 option_matrix.process_option_feed(feed_list)
             if feed_type == 'spot':
-                option_matrix.process_spot_feed(feed_list)
+                option_matrix.process_feed_without_signal(feed_list)
             #option_matrix.generate_signal()
     for day in expiry_week.all_trade_days:
         current_date = day.date_string

@@ -67,7 +67,7 @@ while data_loader.data_present:
         if feed_type == 'option':
             option_matrix.process_option_feed(feed_list)
         if feed_type == 'spot':
-            option_matrix.process_spot_feed(feed_list)
+            option_matrix.process_feed_without_signal(feed_list)
         option_matrix.generate_signal()
 
 day_capsule = option_matrix.get_day_capsule(option_matrix.current_date)
