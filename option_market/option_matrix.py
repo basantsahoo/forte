@@ -32,7 +32,7 @@ from datetime import datetime
 from db.market_data import get_daily_option_ion_data
 from collections import OrderedDict
 from entities.trading_day import TradeDateTime
-from option_market.building_blocks import Capsule, Cell, Ion
+from option_market.building_blocks import Capsule, Cell
 from option_market.analysers import IntradayCrossAssetAnalyser
 from option_market.analysers import OptionMatrixAnalyser
 from option_market.throttlers import TickPriceThrottler
@@ -56,8 +56,11 @@ class OptionMatrix:
         self.counter = 0
         self.last_time_stamp = None
 
-    def process_feed(self, instrument_data_list):
+    def process_option_feed(self, instrument_data_list):
         self.current_date = instrument_data_list[0]['trade_date']
+        self.price_throttler.throttle(instrument_data_list)
+
+    def process_spot_feed(self, instrument_data_list):
         self.price_throttler.throttle(instrument_data_list)
 
     def get_day_capsule(self, trade_date):
@@ -70,6 +73,7 @@ class OptionMatrix:
         self.counter += 1
         if cell_list:
             self.last_time_stamp = cell_list[0].timestamp
+            #print(self.counter)
             """
             if self.last_time_stamp == 1703843580:
                 for cell in cell_list:
@@ -91,6 +95,7 @@ class OptionMatrix:
             instrument_capsule.insert_trading_data(cell.timestamp, cell)
             day_capsule.insert_transposed_data(cell.timestamp, cell.instrument, cell)
             cell.fresh_born(instrument_capsule)
+            cell.validate_ion_data()
             timestamp_set.add(cell.timestamp)
         if self.instant_compute:
             day_capsule.cross_analyser.compute(list(timestamp_set))

@@ -55,6 +55,14 @@ class IntradayCrossAssetAnalyser:
     def get_ts_series(self):
         return list(self.capsule.transposed_data.keys())
 
+    def get_instrument_series(self, instrument='spot'):
+        instrument_capsule = self.capsule.trading_data.get(instrument, None)
+        series = []
+        if instrument_capsule is not None:
+            series = [cell.ion.default_field() for cell in list(instrument_capsule.trading_data.values())]
+
+        return series
+
 class OptionMatrixAnalyser:
 
     def __init__(self, option_matrix=None):

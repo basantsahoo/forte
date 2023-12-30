@@ -21,8 +21,17 @@ class OptionSignalGenerator:
         self.inform_hour = 15
 
     def generate(self):
+        #self.print_instant_info()
         self.print_stats()
         self.generate_intra_day_call_oi_drop_signal()
+
+    def print_instant_info(self):
+        day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
+        if self.option_matrix.last_time_stamp == 1703843700:
+            for key, cell in day_capsule.transposed_data[1703843700].items():
+                info = cell.ion.oi if cell.ion.category == 'option' else cell.ion.close
+                print(key, " ", cell.instrument, " ", cell.timestamp, " ", info)
+
 
     def print_stats(self):
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
@@ -49,11 +58,8 @@ class OptionSignalGenerator:
                 ['pcr_minus_1', '', '', pcr_minus_1]
             ]
             print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
-        """
-        if self.option_matrix.last_time_stamp == 1703843700:
-            for key, cell in day_capsule.transposed_data[1703843700].items():
-                print(key, " ", cell.instrument, " ", cell.timestamp, " ", cell.ion.oi)
-        """
+
+
 
     def generate_intra_day_call_oi_drop_signal(self):
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
@@ -74,17 +80,18 @@ class OptionSignalGenerator:
                 pass
             elif (last_oi * 1.00 / self.attention_oi) - 1 < -0.05:
                 print('covering----', last_oi)
-                """
+                print(self.option_matrix.price_throttler.last_frame_start)
                 if last_oi == 0:
                     for ts, cross in day_capsule.transposed_data.items():
                         for inst, cell in cross.items():
-                            print(ts," ", inst," ", cell.ion.oi)
-                """
+                            if inst != 'spot':
+                                print(ts," ", inst," ", cell.ion.oi)
+
                 # print((last_oi * 1.00 / self.attention_oi) - 1)
                 self.attention_oi = last_oi
                 #self.attention_oi = max(last_oi,1) #Hack for divisible by 0
                 signal = 1
-                print(self.option_matrix.price_throttler.last_frame_start)
+
             else:
                 # print('balance====')
                 pass

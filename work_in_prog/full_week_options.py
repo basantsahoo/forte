@@ -60,9 +60,14 @@ signal_generator = OptionSignalGenerator(option_matrix)
 
 
 while data_loader.data_present:
-    feed_list = data_loader.generate_next_feed()
-    if feed_list:
-        option_matrix.process_feed(feed_list)
+    feed_ = data_loader.generate_next_feed()
+    if feed_:
+        feed_type = feed_['feed_type']
+        feed_list = feed_['feed_list']
+        if feed_type == 'option':
+            option_matrix.process_option_feed(feed_list)
+        if feed_type == 'spot':
+            option_matrix.process_spot_feed(feed_list)
         option_matrix.generate_signal()
 
 day_capsule = option_matrix.get_day_capsule(option_matrix.current_date)

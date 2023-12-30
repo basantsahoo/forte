@@ -12,7 +12,7 @@ from option_market.exclude_trade_days import exclude_trade_days
 
 expiry_dates = NearExpiryWeek.get_asset_expiry_dates(asset)
 list_of_data = []
-for expiry_date in expiry_dates[20:len(expiry_dates)-4]:
+for expiry_date in expiry_dates[23:len(expiry_dates)-4]:
     print(expiry_date.date_string)
     expiry_week = NearExpiryWeek(expiry_date, asset)
     expiry_week.get_all_trade_days()
@@ -23,10 +23,15 @@ for expiry_date in expiry_dates[20:len(expiry_dates)-4]:
     #signal_generator = OptionSignalGenerator(option_matrix)
 
     while data_loader.data_present:
-        feed_list = data_loader.generate_next_feed()
-        if feed_list:
-            option_matrix.process_feed(feed_list)
-            option_matrix.generate_signal()
+        feed_ = data_loader.generate_next_feed()
+        if feed_:
+            feed_type = feed_['feed_type']
+            feed_list = feed_['feed_list']
+            if feed_type == 'option':
+                option_matrix.process_option_feed(feed_list)
+            if feed_type == 'spot':
+                option_matrix.process_spot_feed(feed_list)
+            #option_matrix.generate_signal()
     for day in expiry_week.all_trade_days:
         current_date = day.date_string
         print(current_date)

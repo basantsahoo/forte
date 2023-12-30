@@ -407,6 +407,14 @@ def get_daily_option_ion_data(asset, trade_day):
     conn.close()
     return df
 
+def get_daily_spot_ion_data(asset, trade_day):
+    asset = helper_utils.get_nse_index_symbol(asset)
+    stmt_1 = "select timestamp, CONCAT(open, '|', high, '|', low, '|', close) as ion  from minute_data where symbol = '{0}' and date = date('{1}') order by timestamp asc"
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(asset, trade_day), conn)
+    conn.close()
+    return df
+
 
 def get_daily_option_data_2(symbol, trade_day):
     symbol = helper_utils.get_nse_index_symbol(symbol)

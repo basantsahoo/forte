@@ -19,8 +19,8 @@ from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, 
 from option_market.exclude_trade_days import exclude_trade_days
 
 from entities.trading_day import TradeDateTime, NearExpiryWeek
-t_day = "2023-12-29"
-asset = "BANKNIFTY"
+t_day = "2023-12-14"
+asset = "NIFTY"
 
 trading_day = TradeDateTime(t_day)
 expiry_week = NearExpiryWeek(trading_day, "NIFTY")
@@ -31,15 +31,23 @@ signal_generator = OptionSignalGenerator(option_matrix)
 
 
 while data_loader.data_present:
-    feed_list = data_loader.generate_next_feed()
-    if feed_list:
-        option_matrix.process_feed(feed_list)
-        option_matrix.generate_signal()
+    feed_ = data_loader.generate_next_feed()
+    if feed_:
+        feed_type = feed_['feed_type']
+        feed_list = feed_['feed_list']
+        if feed_type == 'option':
+            option_matrix.process_option_feed(feed_list)
+        if feed_type == 'spot':
+            #print(feed_list)
+            option_matrix.process_spot_feed(feed_list)
+        #option_matrix.generate_signal()
 
 current_date = option_matrix.current_date
 day_capsule = option_matrix.get_day_capsule(option_matrix.current_date)
 call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
 put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
+spot_series = day_capsule.cross_analyser.get_instrument_series()
+print(spot_series)
 t_series = day_capsule.cross_analyser.get_ts_series()
 
 total_oi = [x + y for x, y in zip(call_oi_series, put_oi_series)]

@@ -59,12 +59,20 @@ class Cell:
 
     def validate_ion_data(self):
         if self.elder_sibling is not None:
-            if not self.ion.price_is_valid():
-                self.ion.price = self.elder_sibling.ion.price
-            if not self.ion.volume_is_valid():
-                self.ion.volume = self.elder_sibling.ion.volume
-            if not self.ion.oi_is_valid():
-                self.ion.oi = self.elder_sibling.ion.oi
+            if self.ion.category == 'option':
+                if not self.ion.price_is_valid():
+                    self.ion.price = self.elder_sibling.ion.price
+                if not self.ion.volume_is_valid():
+                    self.ion.volume = self.elder_sibling.ion.volume
+                if not self.ion.oi_is_valid():
+                    self.ion.oi = self.elder_sibling.ion.oi
+            elif self.ion.category == 'spot':
+                if not self.ion.price_is_valid():
+                    self.ion.open = self.elder_sibling.ion.open
+                    self.ion.high = self.elder_sibling.ion.high
+                    self.ion.low = self.elder_sibling.ion.low
+                    self.ion.close = self.elder_sibling.ion.close
+
 
     def get_elder_sibling(self, parent):
         all_keys = list(parent.trading_data.keys())
@@ -77,8 +85,9 @@ class Cell:
 
 
 
-class Ion:
+class OptionIon:
     def __init__(self, price, volume, oi):
+        self.category = 'option'
         self.price = price
         self.volume = volume
         self.oi = oi
@@ -92,9 +101,37 @@ class Ion:
     def oi_is_valid(self):
         return type(self.oi) == int or type(self.oi) == float
 
+    def default_field(self):
+        return self.oi
+
     @classmethod
     def from_raw(cls, ion_data):
         [price, volume, oi] = ion_data.split("|")
         return cls(float(price), int(volume), int(oi))
 
+
+class SpotIon:
+    def __init__(self, open, high, low, close):
+        self.category = 'spot'
+        self.open = open
+        self.high = high
+        self.low = low
+        self.close = close
+
+    def price_is_valid(self):
+        return (self.open > 0) and (self.high > 0) and (self.low > 0) and (self.close > 0)
+
+    def volume_is_valid(self):
+        return True
+
+    def oi_is_valid(self):
+        return True
+
+    def default_field(self):
+        return self.close
+
+    @classmethod
+    def from_raw(cls, ion_data):
+        [open, high, low, close] = ion_data.split("|")
+        return cls(float(open), float(high), float(low), float(close))
 

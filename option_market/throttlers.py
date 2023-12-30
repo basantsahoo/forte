@@ -1,5 +1,5 @@
 from entities.trading_day import TradeDateTime
-from option_market.building_blocks import Cell, Ion
+from option_market.building_blocks import Cell, OptionIon, SpotIon
 
 
 class TickPriceThrottler:
@@ -39,7 +39,10 @@ class TickPriceThrottler:
                 self.pushed_frame_start = self.last_frame_start
                 self.last_frame_start = current_frame
             instrument = instrument_data['instrument']
-            ion = Ion.from_raw(instrument_data['ion'])
+            if instrument == 'spot':
+                ion = SpotIon.from_raw(instrument_data['ion'])
+            else:
+                ion = OptionIon.from_raw(instrument_data['ion'])
             self.update_ion_cell(current_frame, instrument, ion)
 
     def push(self):
