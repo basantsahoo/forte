@@ -19,7 +19,7 @@ from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, 
 from option_market.exclude_trade_days import exclude_trade_days
 
 from entities.trading_day import TradeDateTime, NearExpiryWeek
-t_day = "2023-12-14"
+t_day = "2023-12-27"
 asset = "NIFTY"
 
 trading_day = TradeDateTime(t_day)
@@ -47,7 +47,7 @@ day_capsule = option_matrix.get_day_capsule(option_matrix.current_date)
 call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
 put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
 spot_series = day_capsule.cross_analyser.get_instrument_series()
-print(spot_series)
+#print(spot_series)
 t_series = day_capsule.cross_analyser.get_ts_series()
 
 total_oi = [x + y for x, y in zip(call_oi_series, put_oi_series)]

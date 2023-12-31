@@ -52,6 +52,12 @@ class IntradayCrossAssetAnalyser:
     def get_total_put_oi_series(self):
         return list(self.put_oi.values())
 
+    def get_total_call_volume_series(self):
+        return list(self.call_volume.values())
+
+    def get_total_put_volume_series(self):
+        return list(self.put_volume.values())
+
     def get_ts_series(self):
         return list(self.capsule.transposed_data.keys())
 

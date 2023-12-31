@@ -6,7 +6,8 @@ from collections import OrderedDict
 from entities.trading_day import TradeDateTime
 from entities.trading_day import TradeDateTime
 from tabulate import tabulate
-
+from talib import stream
+from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator
 
 class OptionSignalGenerator:
 
@@ -19,11 +20,16 @@ class OptionSignalGenerator:
         self.minutes_past = 0
         self.live_mode = live_mode
         self.inform_hour = 15
+        self.call_down_cross_over = DownCrossOver('CALL_DOWN_CROSS', 0.05, call_back_fn=self.dispatch_signal)
+        self.put_down_cross_over = DownCrossOver('PUT_DOWN_CROSS', 0.05, call_back_fn=self.dispatch_signal)
+        self.build_up_calculator = BuildUpFollowingMomentum('BUILDUP', call_back_fn=self.dispatch_signal)
+        self.option_volume_indicator = OptionVolumeIndicator('OPTION_VOLUME', call_back_fn=self.dispatch_signal)
 
     def generate(self):
         #self.print_instant_info()
         self.print_stats()
-        self.generate_intra_day_call_oi_drop_signal()
+        #self.generate_intra_day_call_oi_drop_signal()
+        self.run_external_generators()
 
     def print_instant_info(self):
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
@@ -59,6 +65,25 @@ class OptionSignalGenerator:
             ]
             print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
 
+    def run_external_generators(self):
+        if self.option_matrix.last_time_stamp is not None:
+            print(TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
+        day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
+        call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
+        put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
+        call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
+        put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
+
+        spot_series = day_capsule.cross_analyser.get_instrument_series()
+        """"""
+        self.call_down_cross_over.evaluate(call_oi_series, put_oi_series)
+        self.put_down_cross_over.evaluate(put_oi_series, call_oi_series)
+        self.build_up_calculator.evaluate(spot_series, call_oi_series, put_oi_series)
+        self.option_volume_indicator.evaluate(call_volume_series, put_volume_series)
+
+    def dispatch_signal(self, signal):
+        #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
+        print(signal.name)
 
 
     def generate_intra_day_call_oi_drop_signal(self):
