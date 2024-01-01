@@ -49,8 +49,6 @@ class Cell:
         if self.timestamp == 1703131200 and self.instrument=='48600_CE':
             print(self.ion.oi)
         """
-    def copy_price_from_sibling(self):
-        pass
 
     def fresh_born(self, parent):
         try:
@@ -70,13 +68,15 @@ class Cell:
                     self.ion.oi = self.elder_sibling.ion.oi
                 if self.volume_delta_mode:
                     self.ion.volume = self.ion.ref_volume - self.elder_sibling.ion.ref_volume
+                #self.ion.oi_delta = self.ion.oi - self.elder_sibling.ion.oi
+
             elif self.ion.category == 'spot':
                 if not self.ion.price_is_valid():
                     self.ion.open = self.elder_sibling.ion.open
                     self.ion.high = self.elder_sibling.ion.high
                     self.ion.low = self.elder_sibling.ion.low
                     self.ion.close = self.elder_sibling.ion.close
-
+        self.analyse()
 
     def get_elder_sibling(self, parent):
         all_keys = list(parent.trading_data.keys())
@@ -96,6 +96,7 @@ class OptionIon:
         self.volume = volume
         self.oi = oi
         self.ref_volume = volume
+        #self.oi_delta = 0
 
     def price_is_valid(self):
         return type(self.price) == int or type(self.price) == float
@@ -106,8 +107,13 @@ class OptionIon:
     def oi_is_valid(self):
         return type(self.oi) == int or type(self.oi) == float
 
-    def default_field(self):
-        return self.volume
+    def get_field(self, field=None):
+        if field is None or field == 'oi':
+            return self.oi
+        elif field == 'price':
+            return self.price
+        elif field == 'volume':
+            return self.volume
 
     @classmethod
     def from_raw(cls, ion_data):
@@ -132,8 +138,16 @@ class SpotIon:
     def oi_is_valid(self):
         return True
 
-    def default_field(self):
-        return self.close
+    def get_field(self, field=None):
+        if field is None or field == 'close':
+            return self.close
+        elif field == 'low':
+            return self.low
+        elif field == 'high':
+            return self.high
+        elif field == 'open':
+            return self.open
+
 
     @classmethod
     def from_raw(cls, ion_data):

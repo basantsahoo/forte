@@ -105,6 +105,7 @@ class OptionMatrix:
 
     def generate_signal(self):
         if self.instant_compute:
+            self.matrix_analyser.analyse()
             self.signal_generator.generate()
 
 

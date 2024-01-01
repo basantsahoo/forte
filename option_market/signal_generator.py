@@ -4,10 +4,10 @@ import numpy as np
 from datetime import datetime
 from collections import OrderedDict
 from entities.trading_day import TradeDateTime
-from entities.trading_day import TradeDateTime
 from tabulate import tabulate
 from talib import stream
 from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator
+from config import oi_denomination
 
 class OptionSignalGenerator:
 
@@ -29,7 +29,9 @@ class OptionSignalGenerator:
         #self.print_instant_info()
         self.print_stats()
         #self.generate_intra_day_call_oi_drop_signal()
-        self.run_external_generators()
+        #self.run_external_generators()
+        #self.run_dynamic_analysis()
+        pass
 
     def print_instant_info(self):
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
@@ -71,14 +73,38 @@ class OptionSignalGenerator:
 
             table = [
                 ['', 'Call', 'Put', 'Total'],
-                ['Max', max(call_oi_series)/10000000, max(put_oi_series)/10000000, max_total_oi/10000000],
-                ['POI', poi_call_oi/10000000, poi_put_oi/10000000, poi_total_oi/10000000],
+                ['Max', max(call_oi_series)/oi_denomination, max(put_oi_series)/oi_denomination, max_total_oi/oi_denomination],
+                ['POI', poi_call_oi/oi_denomination, poi_put_oi/oi_denomination, poi_total_oi/oi_denomination],
                 ['Drop', call_drop_pct, put_drop_pct, total_drop_pct],
                 ['Buildup', call_build_up, put_build_up, total_build_up],
                 ['Volume', OptionVolumeIndicator.calc_scale(call_volume_series), OptionVolumeIndicator.calc_scale(put_volume_series), OptionVolumeIndicator.calc_scale(total_volume)],
                 ['pcr_minus_1', '', '', pcr_minus_1]
             ]
             print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+            cross_stats = day_capsule.cross_analyser.get_cross_instrument_stats(self.option_matrix.last_time_stamp-240)
+            call_cross_stats = {key: val for key, val in cross_stats.items() if key[-2::] == 'CE'}
+            put_cross_stats = {key: val for key, val in cross_stats.items() if key[-2::] == 'PE'}
+            #print('spot===', day_capsule.cross_analyser.get_instrument_series()[-1])
+            print('Call stats==')
+            call_cross_stats_table = self.get_cross_stats_table(call_cross_stats)
+            print(tabulate(call_cross_stats_table, headers='firstrow', tablefmt='fancy_grid'))
+
+            print('put stats==')
+            put_cross_stats_table = self.get_cross_stats_table(put_cross_stats)
+            print(tabulate(put_cross_stats_table, headers='firstrow', tablefmt='fancy_grid'))
+
+    def get_cross_stats_table(self, cross_stats):
+        cross_stats_table = []
+        inst_keys = [key[:-3] for key in list(cross_stats.keys())]
+        cross_stats_table.append([""] + inst_keys)
+        first_item = list(cross_stats.values())[0]
+        for key in first_item.keys():
+            lst = [key]
+            for inst_data in cross_stats.values():
+                lst.append(inst_data[key])
+            cross_stats_table.append(lst)
+        return cross_stats_table
+
 
     def run_external_generators(self):
         if self.option_matrix.last_time_stamp is not None:
@@ -139,3 +165,21 @@ class OptionSignalGenerator:
                 pass
 
         return signal
+
+    def run_dynamic_analysis(self):
+        if self.option_matrix.last_time_stamp is not None:
+            print(TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
+        day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
+        call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
+        put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
+        call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
+        put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
+
+        spot_series = day_capsule.cross_analyser.get_instrument_series()
+        vol_series = day_capsule.cross_analyser.get_instrument_series('22200_CE')
+        #print(vol_series)
+        """"""
+        self.call_down_cross_over.evaluate(call_oi_series, put_oi_series)
+        self.put_down_cross_over.evaluate(put_oi_series, call_oi_series)
+        self.build_up_calculator.evaluate(spot_series, call_oi_series, put_oi_series)
+        self.option_volume_indicator.evaluate(call_volume_series, put_volume_series)

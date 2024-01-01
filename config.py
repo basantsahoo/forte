@@ -79,6 +79,8 @@ def is_month_end_expiry(expiry, symbol=None):
     #print('next_expiry', date.fromordinal(epiry_dt).month != date.fromordinal(next_expiry).month)
     return date.fromordinal(epiry_dt).month != date.fromordinal(next_expiry).month
 
+oi_denomination = 10000000
+
 #default_symbols =  ['NSE:NIFTY50-INDEX', 'NSE:NIFTYBANK-INDEX']
 'https://www1.nseindia.com/products/content/equities/indices/sectoral_indices.htm'
 

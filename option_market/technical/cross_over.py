@@ -90,7 +90,7 @@ class OptionVolumeIndicator:
     def calc_scale(series):
         scale = 0
         if series:
-            avg_volume = np.mean(series[:-1][-10::])
+            avg_volume = np.median(series[:-1][-30::])
             scale = np.round(series[-1] / avg_volume, 2)
         return scale
 
