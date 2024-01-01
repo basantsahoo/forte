@@ -34,7 +34,7 @@ from collections import OrderedDict
 from entities.trading_day import TradeDateTime
 from option_market.building_blocks import Capsule, Cell
 from option_market.analysers import IntradayCrossAssetAnalyser
-from option_market.analysers import OptionMatrixAnalyser
+#from option_market.analysers import OptionMatrixAnalyser
 from option_market.throttlers import OptionFeedThrottler, FeedThrottler
 from option_market.signal_generator import OptionSignalGenerator
 
@@ -48,7 +48,7 @@ class OptionMatrix:
     def __init__(self,  feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False):
         self.capsule = Capsule()
         self.instant_compute = instant_compute
-        self.matrix_analyser = OptionMatrixAnalyser(self)
+        #self.matrix_analyser = OptionMatrixAnalyser(self)
         self.current_date = None
         self.signal_generator = OptionSignalGenerator(self, live_mode)
         self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
@@ -105,7 +105,7 @@ class OptionMatrix:
 
     def generate_signal(self):
         if self.instant_compute:
-            self.matrix_analyser.analyse()
+            #self.matrix_analyser.analyse()
             self.signal_generator.generate()
 
 

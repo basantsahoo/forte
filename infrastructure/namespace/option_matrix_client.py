@@ -60,11 +60,11 @@ class OptionMatrixClient(socketio.ClientNamespace):
         print('hist option data+++++++++++++++++++++')
         hist_recs = self.map_to_option_recs(feed)
         #print(hist_recs)
-        #self.option_matrix.process_option_feed(hist_recs)
-
+        self.option_matrix.process_option_feed(hist_recs)
+        """
         self.option_matrix.process_feed_without_signal(hist_recs)
         self.option_matrix.generate_signal()
-
+        """
     def on_option_tick_data(self, feed):
         hist_recs = self.map_to_option_recs(feed)
         self.option_matrix.process_option_feed(hist_recs)

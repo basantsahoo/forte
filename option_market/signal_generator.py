@@ -57,7 +57,8 @@ class OptionSignalGenerator:
 
 
             t_time = TradeDateTime(self.option_matrix.last_time_stamp)
-            print('time == ', t_time.date_time.hour, ":", t_time.date_time.minute)
+            print('time ==========================================================================',
+                  t_time.date_time.hour, ":", t_time.date_time.minute)
             max_total_oi = max(total_oi)
             poi_total_oi = total_oi[-1]
             poi_call_oi = call_oi_series[-1]
@@ -81,7 +82,7 @@ class OptionSignalGenerator:
                 ['pcr_minus_1', '', '', pcr_minus_1]
             ]
             print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
-            cross_stats = day_capsule.cross_analyser.get_cross_instrument_stats(self.option_matrix.last_time_stamp-240)
+            cross_stats = day_capsule.cross_analyser.get_cross_instrument_stats(self.option_matrix.last_time_stamp)
             call_cross_stats = {key: val for key, val in cross_stats.items() if key[-2::] == 'CE'}
             put_cross_stats = {key: val for key, val in cross_stats.items() if key[-2::] == 'PE'}
             #print('spot===', day_capsule.cross_analyser.get_instrument_series()[-1])

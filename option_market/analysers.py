@@ -11,7 +11,7 @@ class CellAnalyser:
         if self.cell.elder_sibling is not None:
             self.cell.analytics['price_delta'] = self.cell.ion.price - self.cell.elder_sibling.ion.price
             self.cell.analytics['oi_delta'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
-            self.cell.analytics['oi_delta_pct'] = np.round(self.cell.analytics['oi_delta']/self.cell.ion.oi - 1, 2)
+            self.cell.analytics['oi_delta_pct'] = np.round(self.cell.analytics['oi_delta']/self.cell.ion.oi, 2)
             self.cell.analytics['volume'] = self.cell.ion.volume
 
 
@@ -86,16 +86,17 @@ class IntradayCrossAssetAnalyser:
             #print(volume_series)
             median_volume = volume_series[0]/100 #np.median(volume_series)
             change_dct[cell.instrument] = {
-                'oi_dlt' : np.round(cell.analytics.get('oi_delta', None)/oi_denomination, 2),
+                'oi_dlt': np.round(cell.analytics.get('oi_delta', 0)/oi_denomination, 4),
                 'oi_dlt_pct': cell.analytics.get('oi_delta_pct', None),
                 'oi_share': np.round(float(cell.ion.oi/ts_oi), 4),
                 'vol_share': np.round(float(cell.ion.volume / ts_volume), 4),
                 'vol_scale': np.round(float(cell.ion.volume / median_volume), 2),
+                'price_delta': np.round(cell.analytics.get('price_delta', 0), 2),
             }
 
         return change_dct
 
-
+"""
 class OptionMatrixAnalyser:
 
     def __init__(self, option_matrix=None):
@@ -117,10 +118,12 @@ class OptionMatrixAnalyser:
                 curr_cell = instrument_capsule.trading_data[ts_list[idx]]
                 prev_cell = instrument_capsule.trading_data[ts_list[idx-1]]
                 print(curr_cell)
-
+"""
+"""
     def analyse(self):
         print('matrix analyse')
-        """
+"""
+"""
         self.calculate_info()
         if self.option_matrix.last_time_stamp is not None:
             print(TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
@@ -128,4 +131,4 @@ class OptionMatrixAnalyser:
         print(day_capsule.trading_data)
         for instrument, capsule in day_capsule.trading_data.items():
             pass
-        """
+"""
