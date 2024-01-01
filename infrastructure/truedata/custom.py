@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from config import get_expiry_date
 import helper.utils as helper_utils
 from entities.trading_day import TradeDateTime, NearExpiryWeek
-from db.market_data import get_last_option_loaded_date, get_last_minute_data
+from db.market_data import  get_last_minute_data
 
 class TDCustom(TD):
     _instance = None

@@ -276,7 +276,7 @@ def determine_level_reach(level, candle):
     return ol > 0
 
 def get_strike_levels_from_spot(symbol, symbol_spot_data):
-    strike_level = 30 if 'BANK' in symbol else 10
+    strike_level = 40 if 'BANK' in symbol else 15
     highest_strike = (math.ceil(symbol_spot_data['prev_day_close'] / 100) + int(strike_level/2)) * 100
     lowest_strike = (math.floor(symbol_spot_data['prev_day_close'] / 100) - int(strike_level/2)) * 100
     return highest_strike, lowest_strike

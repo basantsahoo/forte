@@ -42,9 +42,18 @@ class OptionSignalGenerator:
     def print_stats(self):
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
         call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
+        #print(day_capsule.cross_analyser.call_oi)
         put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
         total_oi = [x + y for x, y in zip(call_oi_series, put_oi_series)]
-        if self.live_mode and self.option_matrix.last_time_stamp:
+        call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
+        put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
+        total_volume = [x + y for x, y in zip(call_volume_series, put_volume_series)]
+        if self.live_mode and self.option_matrix.last_time_stamp and call_oi_series:
+            start_call_oi = [x for x in call_oi_series if x > 0][0]
+            start_put_oi = [x for x in put_oi_series if x > 0][0]
+            start_total_oi = [x for x in total_oi if x > 0][0]
+
+
             t_time = TradeDateTime(self.option_matrix.last_time_stamp)
             print('time == ', t_time.date_time.hour, ":", t_time.date_time.minute)
             max_total_oi = max(total_oi)
@@ -54,13 +63,19 @@ class OptionSignalGenerator:
             call_drop_pct = np.round( poi_call_oi * 1.00 / max(call_oi_series) -1, 2)
             put_drop_pct = np.round(poi_put_oi * 1.00 / max(put_oi_series) -1, 2)
             total_drop_pct = np.round(poi_total_oi * 1.00 / max_total_oi - 1, 2)
-            pcr_minus_1 = np.round(poi_put_oi/poi_call_oi -1, 2)
+            call_build_up = np.round(call_oi_series[-1] / start_call_oi - 1, 2)
+            put_build_up = np.round(put_oi_series[-1] / start_put_oi - 1, 2)
+            total_build_up = np.round(total_oi[-1] / start_total_oi - 1, 2)
+            pcr_minus_1 = np.round(poi_put_oi/poi_call_oi - 1, 2)
+            #print(call_volume_series)
 
             table = [
                 ['', 'Call', 'Put', 'Total'],
                 ['Max', max(call_oi_series)/10000000, max(put_oi_series)/10000000, max_total_oi/10000000],
                 ['POI', poi_call_oi/10000000, poi_put_oi/10000000, poi_total_oi/10000000],
                 ['Drop', call_drop_pct, put_drop_pct, total_drop_pct],
+                ['Buildup', call_build_up, put_build_up, total_build_up],
+                ['Volume', OptionVolumeIndicator.calc_scale(call_volume_series), OptionVolumeIndicator.calc_scale(put_volume_series), OptionVolumeIndicator.calc_scale(total_volume)],
                 ['pcr_minus_1', '', '', pcr_minus_1]
             ]
             print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
@@ -75,6 +90,8 @@ class OptionSignalGenerator:
         put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
 
         spot_series = day_capsule.cross_analyser.get_instrument_series()
+        vol_series = day_capsule.cross_analyser.get_instrument_series('22200_CE')
+        #print(vol_series)
         """"""
         self.call_down_cross_over.evaluate(call_oi_series, put_oi_series)
         self.put_down_cross_over.evaluate(put_oi_series, call_oi_series)

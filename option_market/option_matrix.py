@@ -45,24 +45,25 @@ from tabulate import tabulate
 
 class OptionMatrix:
 
-    def __init__(self,  feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False):
+    def __init__(self,  feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False):
         self.capsule = Capsule()
         self.instant_compute = instant_compute
         self.matrix_analyser = OptionMatrixAnalyser(self)
         self.current_date = None
         self.signal_generator = OptionSignalGenerator(self, live_mode)
-        self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed)
-        self.data_throttler = FeedThrottler(self, feed_speed, throttle_speed)
+        self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
+        self.data_throttler = FeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
         self.live_mode = live_mode
         self.counter = 0
         self.last_time_stamp = None
+        self.volume_delta_mode = volume_delta_mode
 
     def process_option_feed(self, instrument_data_list):
         self.current_date = instrument_data_list[0]['trade_date']
         self.option_data_throttler.throttle(instrument_data_list)
 
     def process_feed_without_signal(self, instrument_data_list):
-        #self.current_date = instrument_data_list[0]['trade_date']
+        self.current_date = instrument_data_list[0]['trade_date']
         self.data_throttler.throttle(instrument_data_list)
 
     def get_day_capsule(self, trade_date):

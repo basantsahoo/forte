@@ -124,6 +124,18 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         else:
             await self.emit('tick_data', {spot_data['timestamp']: spot_data}, room=sid)
 
+    async def on_get_hist_spot_data(self, sid, ticker):
+        print("JOIN HIST SPOT FEED BY USER", ticker)
+        spot_data = self.market_cache.get(helper_utils.root_symbol(ticker))
+        ltp = spot_data['close'] #-----------------------------------------
+        hist_data = self.processor.get_hist_data(ticker)
+        #print(hist_data)
+        if hist_data is not None:
+            hist_data['symbol'] = ticker
+            await self.emit('hist', json.dumps(hist_data, cls=NpEncoder), room=sid)
+        else:
+            await self.emit('tick_data', {spot_data['timestamp']: spot_data}, room=sid)
+
     async def on_get_last_feed(self, sid, ticker):
         await self.send_pivot_values(sid, ticker)
         print("on_get_last_feed++++++++++", ticker)

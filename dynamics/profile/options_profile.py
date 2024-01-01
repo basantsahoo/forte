@@ -9,6 +9,9 @@ import pandas as pd
 import asyncio
 import math
 import helper.utils as helper_utils
+from entities.trading_day import TradeDateTime, NearExpiryWeek
+from db.market_data import  get_last_minute_data
+
 
 class OptionProfileService:
     def __init__(self,  trade_day=None, market_cache=None):
@@ -26,8 +29,10 @@ class OptionProfileService:
         self.waiting_for_data = True
         self.spot_data = {}
         self.important_strikes = {}
+        self.strike_levels = {}
         self.load_from_cache()
         self.calculate_important_strikes()
+
 
     def load_from_cache(self):
         print('load option data from_cache')
@@ -65,6 +70,16 @@ class OptionProfileService:
         start_ts = int(time.mktime(time.strptime(start_str, "%Y-%m-%d %H:%M:%S")))
         end_ts = int(time.mktime(time.strptime(end_str, "%Y-%m-%d %H:%M:%S")))
         self.tpo_brackets = np.arange(start_ts, end_ts, 300)
+        t_day = TradeDateTime(trade_day)
+        for symbol in ['NIFTY', 'BANKNIFTY']:
+            expiry_week = NearExpiryWeek(t_day, symbol)
+            last_close = get_last_minute_data(symbol, expiry_week.last_expiry_end.date_string)
+            spot_price = last_close['close'].to_list()[-1]
+            symbol_spot_data = {'prev_day_close': spot_price}
+            highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(symbol,symbol_spot_data)
+            self.strike_levels[symbol] = {}
+            self.strike_levels[symbol]['highest_strike'] = highest_strike
+            self.strike_levels[symbol]['lowest_strike'] = lowest_strike
 
     def update_derived_data(self, data_dict):
         option_lst = data_dict['options_data']
@@ -123,7 +138,8 @@ class OptionProfileService:
             #print(df.head().T)
             hist_df = df[['strike', 'type','volume', 'oi', 'oi_change', 'IV', 'ltp', 'ltt']]
             symbol_option_data['hist'][epoch_minute] = hist_df.to_dict('records')
-            highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(data_dict['symbol'], self.spot_data[data_dict['symbol']])
+            #highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(data_dict['symbol'], self.spot_data[data_dict['symbol']])
+            (highest_strike, lowest_strike) = (self.strike_levels[data_dict['symbol']]['highest_strike'], self.strike_levels[data_dict['symbol']]['lowest_strike'])
             df['strike'] = df['strike'].astype(int)
             df = df[(df['strike'] <= highest_strike) & (df['strike'] >= lowest_strike)]
             tmp_data = df[['strike', 'type','ltt','volume', 'oi', 'oi_change', 'IV', 'delta', 'gamma', 'theta', 'ltp']]

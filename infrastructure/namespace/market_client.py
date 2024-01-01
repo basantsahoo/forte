@@ -86,3 +86,14 @@ class MarketClient(socketio.ClientNamespace):
 
 
 
+class OptionMatrixMarketClient(MarketClient):
+    def request_data(self):
+        for symbol in self.subscribed_symbols:
+            self.emit('get_hist_option_data', symbol)
+            time.sleep(2)
+            self.emit('get_hist_spot_data', symbol)
+            time.sleep(2)
+        for symbol in self.subscribed_symbols:
+            self.emit('join_tick_feed', symbol)
+            self.emit('join_options_feed', symbol)
+

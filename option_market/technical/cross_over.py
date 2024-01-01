@@ -11,6 +11,10 @@ class DownCrossOver:
         self.last_signal_idx = 0
 
     def evaluate(self, series, relative_series):
+        """
+        series = [max(1, x) for x in series]
+        relative_series = [max(1, x) for x in relative_series]
+        """
         if series and relative_series:
             ratio = [x * 1.00 / y - 1 for x, y in zip(series, relative_series)]
             if ratio[-1] < (-1 * self.threshold):
@@ -81,6 +85,14 @@ class OptionVolumeIndicator:
         self.name = name
         self.call_back_fn = call_back_fn
         self.last_signal_idx = 0
+
+    @staticmethod
+    def calc_scale(series):
+        scale = 0
+        if series:
+            avg_volume = np.mean(series[:-1][-10::])
+            scale = np.round(series[-1] / avg_volume, 2)
+        return scale
 
     def evaluate(self, call_volume, put_volume):
         if len(call_volume) < 3:

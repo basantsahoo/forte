@@ -29,7 +29,7 @@ class Capsule:
 
 
 class Cell:
-    def __init__(self, timestamp=None, instrument=None, elder_sibling=None):
+    def __init__(self, timestamp=None, instrument=None, elder_sibling=None, volume_delta_mode=False):
         """
         :param timestamp:  required for instrument time series
         :param instrument: required for cross section of time stamp
@@ -41,6 +41,7 @@ class Cell:
         self.analytics = {}
         self.elder_sibling = elder_sibling
         self.analyser = CellAnalyser(self)
+        self.volume_delta_mode = volume_delta_mode
 
     def update_ion(self, new_ion):
         self.ion = new_ion
@@ -64,8 +65,11 @@ class Cell:
                     self.ion.price = self.elder_sibling.ion.price
                 if not self.ion.volume_is_valid():
                     self.ion.volume = self.elder_sibling.ion.volume
+                    self.ion.ref_volume = self.elder_sibling.ion.ref_volume
                 if not self.ion.oi_is_valid():
                     self.ion.oi = self.elder_sibling.ion.oi
+                if self.volume_delta_mode:
+                    self.ion.volume = self.ion.ref_volume - self.elder_sibling.ion.ref_volume
             elif self.ion.category == 'spot':
                 if not self.ion.price_is_valid():
                     self.ion.open = self.elder_sibling.ion.open
@@ -91,6 +95,7 @@ class OptionIon:
         self.price = price
         self.volume = volume
         self.oi = oi
+        self.ref_volume = volume
 
     def price_is_valid(self):
         return type(self.price) == int or type(self.price) == float
@@ -102,7 +107,7 @@ class OptionIon:
         return type(self.oi) == int or type(self.oi) == float
 
     def default_field(self):
-        return self.oi
+        return self.volume
 
     @classmethod
     def from_raw(cls, ion_data):
