@@ -300,7 +300,7 @@ def start():
     scheduler = BackgroundScheduler({'apscheduler.timezone': 'Asia/Kolkata'}, use_reloader=False)
     check_running_scheduler(scheduler)
     scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='8', minute='45')
-    scheduler.add_job(start_fetcher, 'cron', day_of_week='mon-sat', hour='9', minute='12')
+    scheduler.add_job(start_fetcher, 'cron', day_of_week='mon-fri', hour='9', minute='15')
     scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='16', minute='46')
     #scheduler.add_job(restart_process, 'cron', day_of_week='mon-fri', hour='16', minute='55') #Do twice
 

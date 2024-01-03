@@ -9,8 +9,9 @@ from option_market.throttlers import OptionFeedThrottler
 from servers.server_settings import feed_socket_service
 enabled_symbols = list(algorithm_setup.keys())
 from entities.trading_day import TradeDateTime
-
+from db.market_data import get_prev_day_avg_volume
 sio = socketio.Client(reconnection_delay=5)
+
 
 class OptionMatrixClient(socketio.ClientNamespace):
     def __init__(self, namespace=None):
@@ -34,7 +35,11 @@ class OptionMatrixClient(socketio.ClientNamespace):
 
     def on_set_trade_date(self, trade_day):
         print('algo client set_trade_day', trade_day)
-        self.trade_day = trade_day
+        self.trade_day = '2024-01-03'
+        avg_volume_df = get_prev_day_avg_volume('NIFTY', self.trade_day)
+        #print(avg_volume_df.to_dict("record"))
+
+        self.option_matrix.process_avg_volume(self.trade_day, avg_volume_df.to_dict("record"))
         self.request_data()
 
     def map_to_option_recs(self, feed):
@@ -59,6 +64,13 @@ class OptionMatrixClient(socketio.ClientNamespace):
     def on_hist_option_data(self, feed):
         print('hist option data+++++++++++++++++++++')
         hist_recs = self.map_to_option_recs(feed)
+        """
+        all_ts = set([rec['timestamp'] for rec in hist_recs])
+
+        filtered_recs =[rec for rec in hist_recs if rec['timestamp'] == min(all_ts)]
+        print(filtered_recs)
+        """
+        #time.sleep(1500)
         #print(hist_recs)
         self.option_matrix.process_option_feed(hist_recs)
         """
@@ -84,7 +96,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
     def on_tick_data(self, feed):
         #print(feed)
         feed = self.map_to_spot_recs(list(feed.values())[0])
-        self.option_matrix.process_feed_without_signal([feed])
+        #self.option_matrix.process_feed_without_signal([feed])
 
     def on_hist(self, feed):
         print('on_hist+++++++++')

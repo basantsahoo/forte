@@ -157,7 +157,7 @@ class MarketProfileEnablerService:
         else:
             return None
     def get_hist_data(self, ticker):
-        print(self.price_data.get(self.trade_day, {}).get(ticker, None))
+        #print(self.price_data.get(self.trade_day, {}).get(ticker, None))
         return self.price_data.get(self.trade_day, {}).get(ticker, None)
 
 class TickMarketProfileEnablerService(MarketProfileEnablerService):

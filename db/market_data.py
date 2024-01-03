@@ -407,6 +407,39 @@ def get_daily_option_ion_data(asset, trade_day):
     conn.close()
     return df
 
+def get_prev_day_avg_volume(asset, trade_day):
+    asset = helper_utils.get_nse_index_symbol(asset)
+    #stmt_1 = "select  CONCAT(strike,'_', kind) AS instrument,  round(AVG(volume)) as avg_volume  FROM option_data where underlying = '{0}' and date = (select max(date) from option_data where underlying = '{0}' and date < '{1}') group by instrument".format(asset, trade_day)
+
+    stmt_1 = """
+    WITH 
+        B AS (select max(date) as m_date, max(timestamp) as m_time_stamp 
+        from option_data where underlying = '{0}' and date < '{1}' and date > date('{1}') - INTERVAL 7 day
+    )
+    
+    select C.instrument , C.avg_volume, D.closing_oi from 
+    (select  CONCAT(strike,'_', kind) AS instrument,  round(AVG(volume)) as avg_volume  
+    FROM option_data AS A JOIN B
+    ON  A.date = B.m_date
+    and A.underlying = '{0}' 
+    group by instrument) AS C
+    JOIN
+    
+    (SELECT CONCAT(strike,'_', kind) AS instrument,  oi as closing_oi
+    FROM option_data p1
+    INNER JOIN (select CONCAT(strike,'_', kind) AS instrument, max(date) as m_date, max(timestamp) as m_time_stamp 
+        from option_data where underlying = '{0}' and date = (select max(date) as m_date from option_data where underlying = '{0}' and date < '{1}' and date > date('{1}') - INTERVAL 7 day)
+        group by instrument) p2
+    ON (CONCAT(p1.strike,'_', p1.kind) = p2.instrument and p1.timestamp = p2.m_time_stamp)) AS D
+    ON C.instrument = D.instrument
+    """.format(asset, trade_day)
+    #print(stmt_1)
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1, conn)
+    conn.close()
+    return df
+
+
 def get_daily_spot_ion_data(asset, trade_day):
     asset = helper_utils.get_nse_index_symbol(asset)
     stmt_1 = "select timestamp, CONCAT(open, '|', high, '|', low, '|', close) as ion  from minute_data where symbol = '{0}' and date = date('{1}') order by timestamp asc"

@@ -53,10 +53,21 @@ class OptionMatrix:
         self.signal_generator = OptionSignalGenerator(self, live_mode)
         self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
         self.data_throttler = FeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
+        self.avg_volumes = {}
+        self.closing_oi = {}
         self.live_mode = live_mode
         self.counter = 0
         self.last_time_stamp = None
         self.volume_delta_mode = volume_delta_mode
+
+    def process_avg_volume(self, trade_date, inst_vol_list):
+        self.avg_volumes[trade_date] = {}
+        self.closing_oi[trade_date] = {}
+        for inst_vol in inst_vol_list:
+            self.avg_volumes[trade_date][inst_vol['instrument']] = inst_vol['avg_volume']
+            self.closing_oi[trade_date][inst_vol['instrument']] = inst_vol['closing_oi']
+        #print(self.avg_volumes)
+        #print(self.closing_oi)
 
     def process_option_feed(self, instrument_data_list):
         self.current_date = instrument_data_list[0]['trade_date']
@@ -87,7 +98,7 @@ class OptionMatrix:
         timestamp_set = set()
         if not self.capsule.in_trading_data(trade_date):
             capsule = Capsule()
-            cross_analyser = IntradayCrossAssetAnalyser(capsule)
+            cross_analyser = IntradayCrossAssetAnalyser(capsule, self.avg_volumes[trade_date], self.closing_oi[trade_date])
             capsule.cross_analyser = cross_analyser
             self.capsule.insert_trading_data(trade_date, capsule)
         day_capsule = self.get_day_capsule(trade_date)

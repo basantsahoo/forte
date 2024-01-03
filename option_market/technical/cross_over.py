@@ -87,11 +87,13 @@ class OptionVolumeIndicator:
         self.last_signal_idx = 0
 
     @staticmethod
-    def calc_scale(series):
+    def calc_scale(series, prev_median_volume, normalization_factor=1):
         scale = 0
         if series:
-            avg_volume = series[0]/100 #np.median(series[:-1][-30::])
-            scale = np.round(series[-1] / avg_volume, 2)
+
+            normalization_factor = 1 if len(series) < 5 else np.median(series)/prev_median_volume
+            print('normalization_factor====', normalization_factor)
+            scale = np.round((series[-1] / prev_median_volume)/normalization_factor, 2)
         return scale
 
     def evaluate(self, call_volume, put_volume):

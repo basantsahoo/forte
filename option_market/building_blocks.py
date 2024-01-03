@@ -96,6 +96,8 @@ class OptionIon:
         self.volume = volume
         self.oi = oi
         self.ref_volume = volume
+        self.past_closing_oi = 0
+        self.past_avg_volume = 0
         #self.oi_delta = 0
 
     def price_is_valid(self):

@@ -177,7 +177,7 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
 
 
     async def on_td_price_feed(self, sid, feed):
-        print('td feed received', feed)
+        #print('td feed received', feed)
         feed['symbol'] = helper_utils.root_symbol(feed['symbol'])
         epoch_tick_time = int(datetime.fromisoformat(feed['timestamp'] + '+05:30').timestamp())
         feed['timestamp'] = epoch_tick_time
