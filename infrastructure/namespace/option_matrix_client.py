@@ -17,7 +17,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
     def __init__(self, namespace=None, asset='NIFTY'):
         socketio.ClientNamespace.__init__(self, namespace)
         self.asset = asset
-        option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1, live_mode=True, volume_delta_mode=True, print_cross_stats=False)
+        option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1, live_mode=True, volume_delta_mode=True, print_cross_stats=True)
         #throttler = OptionFeedThrottler(option_matrix, feed_speed=1, throttle_speed=1)
         #option_matrix.option_data_throttler = throttler
         self.option_matrix = option_matrix

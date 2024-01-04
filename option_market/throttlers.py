@@ -47,7 +47,7 @@ class FeedThrottler:
                 closing_oi = self.matrix.closing_oi[self.matrix.current_date].get(instrument, 0)
                 if closing_oi:
                     ion.past_closing_oi = closing_oi
-                else:
+                else: #Set closing oi as current oi becuase data is not present earlier
                     ion.past_closing_oi = ion.oi
                     self.matrix.closing_oi[self.matrix.current_date][instrument] = ion.oi
                 # ion.past_avg_volume = self.matrix.avg_volumes[self.matrix.current_date].get(instrument,1)
