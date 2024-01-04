@@ -2,6 +2,7 @@ from collections import OrderedDict
 from entities.trading_day import TradeDateTime
 from config import oi_denomination
 import numpy as np
+from option_market.technical.cross_over import OptionVolumeIndicator
 
 class CellAnalyser:
     def __init__(self, cell):
@@ -50,25 +51,31 @@ class CellAnalyser:
 
 class IntradayCrossAssetAnalyser:
     def __init__(self, capsule, avg_volumes, closing_oi):
-        self.closing_oi = closing_oi
         self.capsule = capsule
         self.call_oi = OrderedDict()
         self.put_oi = OrderedDict()
         self.call_volume = OrderedDict()
         self.put_volume = OrderedDict()
         self.avg_volumes = avg_volumes
+        self.closing_oi = closing_oi
+        self.aggregate_stats = {}
         #print(closing_oi.items())
 
     def compute(self, timestamp_list=[]):
-        self.compute_oi_volume(timestamp_list)
+        self.compute_stats(timestamp_list)
 
-    def compute_oi_volume(self, timestamp_list=[]):
+    def compute_stats(self, timestamp_list=[]):
         transposed_data = self.capsule.transposed_data
         #print('timestamp_list=====', timestamp_list)
         if not timestamp_list:
             timestamp_list = transposed_data.keys()
         #print(timestamp_list)
         for ts in timestamp_list:
+            t_time = TradeDateTime(ts)
+            print('time ==========================================================================',
+                  t_time.date_time.hour, ":", t_time.date_time.minute)
+
+            self.aggregate_stats[ts] = {}
             ts_data = transposed_data[ts]
             call_oi = sum([cell.ion.oi for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
             put_oi = sum([cell.ion.oi for cell in ts_data.values() if cell.instrument[-2::] == 'PE'])
@@ -79,12 +86,60 @@ class IntradayCrossAssetAnalyser:
             self.put_oi[ts] = put_oi
             self.call_volume[ts] = call_volume
             self.put_volume[ts] = put_volume
+
+
+            call_oi_series = self.get_total_call_oi_series()
+            put_oi_series = self.get_total_put_oi_series()
+            total_oi_series = [x + y for x, y in zip(call_oi_series, put_oi_series)]
+            call_volume_series = self.get_total_call_volume_series()
+            put_volume_series = self.get_total_put_volume_series()
+            total_volume_series = [x + y for x, y in zip(call_volume_series, put_volume_series)]
+
+            prev_call_median_volume = sum([value for key, value in self.avg_volumes.items() if key[-2::] == 'CE'])
+            prev_put_median_volume = sum([value for key, value in self.avg_volumes.items() if key[-2::] == 'PE'])
+            prev_median_total_volume = prev_call_median_volume + prev_put_median_volume
+            day_normalization_factor = 1 if len(total_volume_series) < 3000 else (np.median(total_volume_series) / prev_median_total_volume)
+
+            start_call_oi = self.get_total_call_closing_oi()
+            start_put_oi = self.get_total_put_closing_oi()
+            start_total_oi = start_call_oi + start_put_oi
+
+            max_total_oi = max(total_oi_series)
+            poi_total_oi = total_oi_series[-1]
+            poi_call_oi = call_oi_series[-1]
+            poi_put_oi = put_oi_series[-1]
+            t_2_call_oi = call_oi_series[-2] if len(call_oi_series) > 2 else start_call_oi
+            t_2_put_oi = put_oi_series[-2] if len(put_oi_series) > 2 else start_put_oi
+            t_2_total_oi = total_oi_series[-2] if len(total_oi_series) > 2 else start_total_oi
+
+            call_volume_scale = OptionVolumeIndicator.calc_scale(call_volume_series, prev_median_total_volume * 0.5,
+                                                          day_normalization_factor)
+            put_volume_scale = OptionVolumeIndicator.calc_scale(put_volume_series, prev_median_total_volume * 0.5,
+                                                             day_normalization_factor)
+            total_volume_scale = OptionVolumeIndicator.calc_scale(total_volume_series, prev_median_total_volume,
+                                             day_normalization_factor)
+
+            self.aggregate_stats[ts]['max_call_oi'] = np.round(max(call_oi_series) / oi_denomination, 2)
+            self.aggregate_stats[ts]['max_put_oi'] = np.round(max(put_oi_series) / oi_denomination, 2)
+            self.aggregate_stats[ts]['max_total_oi'] = np.round(max_total_oi / oi_denomination, 2)
+            self.aggregate_stats[ts]['poi_call_oi'] = np.round(poi_call_oi / oi_denomination, 2)
+            self.aggregate_stats[ts]['poi_put_oi'] = np.round(poi_put_oi / oi_denomination, 2)
+            self.aggregate_stats[ts]['poi_total_oi'] = np.round(poi_total_oi / oi_denomination, 2)
+            self.aggregate_stats[ts]['call_drop'] = np.round(poi_call_oi * 1.00 / max(call_oi_series) - 1, 2)
+            self.aggregate_stats[ts]['put_drop'] = np.round(poi_put_oi * 1.00 / max(put_oi_series) - 1, 2)
+            self.aggregate_stats[ts]['total_drop'] = np.round(poi_total_oi * 1.00 / max_total_oi - 1, 2)
+            self.aggregate_stats[ts]['call_build_up'] = np.round((call_oi_series[-1] - start_call_oi) / start_total_oi, 2)
+            self.aggregate_stats[ts]['put_build_up'] = np.round((put_oi_series[-1] - start_put_oi) / start_total_oi, 2)
+            self.aggregate_stats[ts]['total_build_up'] = np.round(total_oi_series[-1] / start_total_oi - 1, 2)
+            self.aggregate_stats[ts]['call_addition'] = np.round((call_oi_series[-1] - t_2_call_oi) / start_total_oi, 4)
+            self.aggregate_stats[ts]['put_addition'] = np.round((put_oi_series[-1] - t_2_put_oi) / start_total_oi, 4)
+            self.aggregate_stats[ts]['total_addition'] = np.round((total_oi_series[-1] - t_2_total_oi) / start_total_oi, 4)
+            self.aggregate_stats[ts]['call_volume_scale'] = call_volume_scale
+            self.aggregate_stats[ts]['put_volume_scale'] = put_volume_scale
+            self.aggregate_stats[ts]['total_volume_scale'] = total_volume_scale
+            self.aggregate_stats[ts]['pcr_minus_1'] = np.round(poi_put_oi / poi_call_oi - 1, 2)
+
             self.calc_cross_instrument_stats(ts)
-            """
-            if self.call_oi[ts] == 0:
-                print([cell.ion for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
-            """
-            #print(self.call_oi[ts])
 
     def calc_cross_instrument_stats(self, timestamp):
         transposed_data = self.capsule.transposed_data
@@ -170,6 +225,8 @@ class IntradayCrossAssetAnalyser:
     def get_cross_instrument_stats(self, timestamp):
         return self.capsule.analytics[timestamp]
 
+    def get_aggregate_stats(self, timestamp):
+        return self.aggregate_stats[timestamp]
 """
 class OptionMatrixAnalyser:
 

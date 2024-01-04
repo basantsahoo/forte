@@ -12,8 +12,8 @@ from config import oi_denomination
 from beepy import beep
 from subprocess import call
 
-class OptionSignalGenerator:
 
+class OptionSignalGenerator:
     def __init__(self, matrix, live_mode=False):
         self.option_matrix = matrix
         self.trade_hold_period = 30
@@ -47,71 +47,22 @@ class OptionSignalGenerator:
     def print_stats(self):
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
         call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
-        #print(day_capsule.cross_analyser.call_oi)
-        put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
-        total_oi_series = [x + y for x, y in zip(call_oi_series, put_oi_series)]
-        call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
-        put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
-        total_volume_series = [x + y for x, y in zip(call_volume_series, put_volume_series)]
-
-        prev_call_median_volume = sum([value for key, value in day_capsule.cross_analyser.avg_volumes.items() if key[-2::] == 'CE'])
-        prev_put_median_volume = sum([value for key, value in day_capsule.cross_analyser.avg_volumes.items() if key[-2::] == 'PE'])
-        prev_median_total_volume = prev_call_median_volume + prev_put_median_volume
-
-        day_normalization_factor = 1 if len(total_volume_series) < 3000 else (np.median(total_volume_series) / prev_median_total_volume)
 
         if self.live_mode and self.option_matrix.last_time_stamp and call_oi_series:
-
-            start_call_oi = day_capsule.cross_analyser.get_total_call_closing_oi()
-            start_put_oi = day_capsule.cross_analyser.get_total_put_closing_oi()
-            start_total_oi = start_call_oi + start_put_oi
-            print('start_call_oi====', start_call_oi)
-            print('start_put_oi====', start_put_oi)
-            t_time = TradeDateTime(self.option_matrix.last_time_stamp)
-            print('time ==========================================================================',
-                  t_time.date_time.hour, ":", t_time.date_time.minute)
-            max_total_oi = max(total_oi_series)
-            poi_total_oi = total_oi_series[-1]
-            poi_call_oi = call_oi_series[-1]
-            poi_put_oi = put_oi_series[-1]
-            call_drop_pct = np.round( poi_call_oi * 1.00 / max(call_oi_series) -1, 2)
-            put_drop_pct = np.round(poi_put_oi * 1.00 / max(put_oi_series) -1, 2)
-            total_drop_pct = np.round(poi_total_oi * 1.00 / max_total_oi - 1, 2)
-            call_build_up = np.round((call_oi_series[-1] - start_call_oi)/start_total_oi, 2)
-            put_build_up = np.round((put_oi_series[-1] - start_put_oi)/start_total_oi, 2)
-            total_build_up = np.round(total_oi_series[-1] / start_total_oi - 1, 2)
-            pcr_minus_1 = np.round(poi_put_oi/poi_call_oi - 1, 2)
-            t_2_call_oi = call_oi_series[-2] if len(call_oi_series) > 2 else start_call_oi
-            t_2_put_oi = put_oi_series[-2] if len(put_oi_series) > 2 else start_put_oi
-            t_total_oi = total_oi_series[-2] if len(total_oi_series) > 2 else start_total_oi
-            call_addition = np.round((call_oi_series[-1] - t_2_call_oi)/start_total_oi, 4)
-            put_addition = np.round((put_oi_series[-1] - t_2_put_oi) /start_total_oi, 4)
-            total_addition = np.round((total_oi_series[-1] - t_total_oi) /start_total_oi, 4)
-            #print(call_volume_series)
-            call_scale = OptionVolumeIndicator.calc_scale(call_volume_series, prev_median_total_volume * 0.5, day_normalization_factor)
-            put_scale = OptionVolumeIndicator.calc_scale(put_volume_series, prev_median_total_volume * 0.5, day_normalization_factor)
-            table = [
-                ['', 'Call', 'Put', 'Total'],
-                ['Max', np.round(max(call_oi_series)/oi_denomination, 2), np.round(max(put_oi_series)/oi_denomination, 2), np.round(max_total_oi/oi_denomination,2)],
-                ['POI', np.round(poi_call_oi/oi_denomination,2), np.round(poi_put_oi/oi_denomination,2), np.round(poi_total_oi/oi_denomination,2)],
-                ['Drop', call_drop_pct, put_drop_pct, total_drop_pct],
-                ['Buildup', call_build_up, put_build_up, total_build_up],
-                ['Addition(T-1)', call_addition, put_addition, total_addition],
-                ['Volume', call_scale, put_scale, OptionVolumeIndicator.calc_scale(total_volume_series, prev_median_total_volume, day_normalization_factor)],
-                ['pcr_minus_1', '', '', pcr_minus_1]
-            ]
-            print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+            aggregate_stats = day_capsule.cross_analyser.get_aggregate_stats(self.option_matrix.last_time_stamp)
+            aggregate_stat_table = self.get_aggregate_stats_table(aggregate_stats)
+            print(tabulate(aggregate_stat_table, headers='firstrow', tablefmt='fancy_grid'))
             cross_stats = day_capsule.cross_analyser.get_cross_instrument_stats(self.option_matrix.last_time_stamp)
             call_cross_stats = {key: val for key, val in cross_stats.items() if key[-2::] == 'CE'}
             put_cross_stats = {key: val for key, val in cross_stats.items() if key[-2::] == 'PE'}
             """
-            if call_scale > 2 and put_scale > 2:
+            if aggregate_stats['call_volume_scale'] > 2 and aggregate_stats['put_volume_scale'] > 2:
                 self.play_both_sound()
             else:
-                if put_scale > 2:
+                if aggregate_stats['put_volume_scale'] > 2:
                     self.play_put_sound()
 
-                elif call_scale > 2:
+                elif aggregate_stats['call_volume_scale'] > 2:
                     self.play_call_sound()
             """
             #print('spot===', day_capsule.cross_analyser.get_instrument_ion_field_series()[-1])
@@ -157,6 +108,19 @@ class OptionSignalGenerator:
                 lst.append(inst_data[key])
             cross_stats_table.append(lst)
         return cross_stats_table
+
+    def get_aggregate_stats_table(self, aggregate_stats):
+        table = [
+            ['', 'Call', 'Put', 'Total'],
+            ['Max', aggregate_stats['max_call_oi'], aggregate_stats['max_put_oi'], aggregate_stats['max_total_oi']],
+            ['POI', aggregate_stats['poi_call_oi'], aggregate_stats['poi_put_oi'], aggregate_stats['poi_total_oi']],
+            ['Drop', aggregate_stats['call_drop'], aggregate_stats['put_drop'], aggregate_stats['total_drop']],
+            ['Buildup', aggregate_stats['call_build_up'], aggregate_stats['put_build_up'], aggregate_stats['total_build_up']],
+            ['Addition(T-1)', aggregate_stats['call_addition'], aggregate_stats['put_addition'], aggregate_stats['total_addition']],
+            ['Volume', aggregate_stats['call_volume_scale'], aggregate_stats['put_volume_scale'], aggregate_stats['total_volume_scale']],
+            ['pcr_minus_1', '', '', aggregate_stats['pcr_minus_1']]
+        ]
+        return table
 
 
     def run_external_generators(self):
