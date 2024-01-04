@@ -11,17 +11,18 @@ enabled_symbols = list(algorithm_setup.keys())
 from entities.trading_day import TradeDateTime
 from db.market_data import get_prev_day_avg_volume
 sio = socketio.Client(reconnection_delay=5)
-
+from option_market.utils import get_average_volume_for_day
 
 class OptionMatrixClient(socketio.ClientNamespace):
-    def __init__(self, namespace=None):
+    def __init__(self, namespace=None, asset='BANKNIFTY'):
         socketio.ClientNamespace.__init__(self, namespace)
-        option_matrix = OptionMatrix(feed_speed=1, throttle_speed=1, live_mode=True, volume_delta_mode=True)
+        self.asset = asset
+        option_matrix = OptionMatrix(feed_speed=1, throttle_speed=1, live_mode=True, volume_delta_mode=True, print_cross_stats=False)
         #throttler = OptionFeedThrottler(option_matrix, feed_speed=1, throttle_speed=1)
         #option_matrix.option_data_throttler = throttler
         self.option_matrix = option_matrix
         self.c_sio = socketio.Client(reconnection_delay=5)
-        ns = OptionMatrixMarketClient('/livefeed', ['NIFTY'])
+        ns = OptionMatrixMarketClient('/livefeed', [self.asset])
         self.c_sio.register_namespace(ns)
         ns.on_all_option_data = self.on_option_tick_data
         ns.on_hist_option_data = self.on_hist_option_data
@@ -33,13 +34,27 @@ class OptionMatrixClient(socketio.ClientNamespace):
         self.trade_day = None
 
 
-    def on_set_trade_date(self, trade_day):
+    def on_set_trade_date_old(self, trade_day):
         print('algo client set_trade_day', trade_day)
-        self.trade_day = '2024-01-03'
-        avg_volume_df = get_prev_day_avg_volume('NIFTY', self.trade_day)
+        self.trade_day = trade_day #'2024-01-03'
+        avg_volume_df = get_prev_day_avg_volume(self.asset, self.trade_day)
         #print(avg_volume_df.to_dict("record"))
 
         self.option_matrix.process_avg_volume(self.trade_day, avg_volume_df.to_dict("record"))
+        self.request_data()
+
+    def on_set_trade_date(self, trade_day):
+        print('algo client set_trade_day', trade_day)
+        self.trade_day = trade_day #'2024-01-03'
+        closing_oi_df = get_prev_day_avg_volume(self.asset, self.trade_day)
+        print(closing_oi_df['avg_volume'].sum())
+        closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
+        self.option_matrix.process_closing_oi(self.trade_day, closing_oi_df.to_dict("record"))
+        avg_volume_recs = get_average_volume_for_day(self.asset, self.trade_day)
+        #print(avg_volume_recs)
+        #print(avg_volume_df.to_dict("record"))
+
+        self.option_matrix.process_avg_volume(self.trade_day, avg_volume_recs)
         self.request_data()
 
     def map_to_option_recs(self, feed):

@@ -58,7 +58,7 @@ class OptionSignalGenerator:
         prev_put_median_volume = sum([value for key, value in day_capsule.cross_analyser.avg_volumes.items() if key[-2::] == 'PE'])
         prev_median_total_volume = prev_call_median_volume + prev_put_median_volume
 
-        day_normalization_factor = 1 if len(total_volume_series) < 30 else (np.median(total_volume_series) / prev_median_total_volume)
+        day_normalization_factor = 1 if len(total_volume_series) < 3000 else (np.median(total_volume_series) / prev_median_total_volume)
 
         if self.live_mode and self.option_matrix.last_time_stamp and call_oi_series:
 
@@ -114,14 +114,15 @@ class OptionSignalGenerator:
                 elif call_scale > 2:
                     self.play_call_sound()
             """
-            #print('spot===', day_capsule.cross_analyser.get_instrument_series()[-1])
-            print('Call stats==')
-            call_cross_stats_table = self.get_cross_stats_table(call_cross_stats)
-            print(tabulate(call_cross_stats_table, headers='firstrow', tablefmt='fancy_grid'))
+            #print('spot===', day_capsule.cross_analyser.get_instrument_ion_field_series()[-1])
+            if self.option_matrix.print_cross_stats:
+                print('Call stats==')
+                call_cross_stats_table = self.get_cross_stats_table(call_cross_stats)
+                print(tabulate(call_cross_stats_table, headers='firstrow', tablefmt='fancy_grid'))
 
-            print('put stats==')
-            put_cross_stats_table = self.get_cross_stats_table(put_cross_stats)
-            print(tabulate(put_cross_stats_table, headers='firstrow', tablefmt='fancy_grid'))
+                print('put stats==')
+                put_cross_stats_table = self.get_cross_stats_table(put_cross_stats)
+                print(tabulate(put_cross_stats_table, headers='firstrow', tablefmt='fancy_grid'))
 
     def play_call_sound(self):
         #beep(sound='coin')
@@ -167,8 +168,8 @@ class OptionSignalGenerator:
         call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
         put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
 
-        spot_series = day_capsule.cross_analyser.get_instrument_series()
-        vol_series = day_capsule.cross_analyser.get_instrument_series('22200_CE')
+        spot_series = day_capsule.cross_analyser.get_instrument_ion_field_series()
+        vol_series = day_capsule.cross_analyser.get_instrument_ion_field_series('22200_CE')
         #print(vol_series)
         """"""
         self.call_down_cross_over.evaluate(call_oi_series, put_oi_series)
@@ -227,8 +228,8 @@ class OptionSignalGenerator:
         call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
         put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
 
-        spot_series = day_capsule.cross_analyser.get_instrument_series()
-        vol_series = day_capsule.cross_analyser.get_instrument_series('22200_CE')
+        spot_series = day_capsule.cross_analyser.get_instrument_ion_field_series()
+        vol_series = day_capsule.cross_analyser.get_instrument_ion_field_series('22200_CE')
         #print(vol_series)
         """"""
         self.call_down_cross_over.evaluate(call_oi_series, put_oi_series)

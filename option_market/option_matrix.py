@@ -45,7 +45,7 @@ from tabulate import tabulate
 
 class OptionMatrix:
 
-    def __init__(self,  feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False):
+    def __init__(self,  feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False, print_cross_stats=False):
         self.capsule = Capsule()
         self.instant_compute = instant_compute
         #self.matrix_analyser = OptionMatrixAnalyser(self)
@@ -59,14 +59,19 @@ class OptionMatrix:
         self.counter = 0
         self.last_time_stamp = None
         self.volume_delta_mode = volume_delta_mode
+        self.print_cross_stats = print_cross_stats
 
     def process_avg_volume(self, trade_date, inst_vol_list):
         self.avg_volumes[trade_date] = {}
-        self.closing_oi[trade_date] = {}
         for inst_vol in inst_vol_list:
-            self.avg_volumes[trade_date][inst_vol['instrument']] = inst_vol['avg_volume']
-            self.closing_oi[trade_date][inst_vol['instrument']] = inst_vol['closing_oi']
+            self.avg_volumes[trade_date][inst_vol['kind']] = inst_vol['avg_volume']
         #print(self.avg_volumes)
+        #print(self.closing_oi)
+
+    def process_closing_oi(self, trade_date, inst_oi_list):
+        self.closing_oi[trade_date] = {}
+        for inst_vol in inst_oi_list:
+            self.closing_oi[trade_date][inst_vol['instrument']] = inst_vol['closing_oi']
         #print(self.closing_oi)
 
     def process_option_feed(self, instrument_data_list):

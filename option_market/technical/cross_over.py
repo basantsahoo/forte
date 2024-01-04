@@ -91,7 +91,7 @@ class OptionVolumeIndicator:
         scale = 0
         if series:
 
-            normalization_factor = 1 if len(series) < 5 else np.median(series)/prev_median_volume
+            #normalization_factor = 1 if len(series) < 5 else np.median(series)/prev_median_volume
             print('normalization_factor====', normalization_factor)
             scale = np.round((series[-1] / prev_median_volume)/normalization_factor, 2)
         return scale

@@ -44,8 +44,8 @@ class FeedThrottler:
                 ion = SpotIon.from_raw(instrument_data['ion'])
             else:
                 ion = OptionIon.from_raw(instrument_data['ion'])
-                ion.past_closing_oi = self.matrix.closing_oi[self.matrix.current_date][instrument]
-                ion.past_avg_volume = self.matrix.avg_volumes[self.matrix.current_date][instrument]
+                ion.past_closing_oi = self.matrix.closing_oi[self.matrix.current_date].get(instrument,0)
+                ion.past_avg_volume = self.matrix.avg_volumes[self.matrix.current_date].get(instrument,1)
             self.update_ion_cell(current_frame, instrument, ion)
 
     def push(self):
