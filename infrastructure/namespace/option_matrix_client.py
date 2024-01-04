@@ -14,10 +14,10 @@ sio = socketio.Client(reconnection_delay=5)
 from option_market.utils import get_average_volume_for_day
 
 class OptionMatrixClient(socketio.ClientNamespace):
-    def __init__(self, namespace=None, asset='BANKNIFTY'):
+    def __init__(self, namespace=None, asset='NIFTY'):
         socketio.ClientNamespace.__init__(self, namespace)
         self.asset = asset
-        option_matrix = OptionMatrix(feed_speed=1, throttle_speed=1, live_mode=True, volume_delta_mode=True, print_cross_stats=False)
+        option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1, live_mode=True, volume_delta_mode=True, print_cross_stats=False)
         #throttler = OptionFeedThrottler(option_matrix, feed_speed=1, throttle_speed=1)
         #option_matrix.option_data_throttler = throttler
         self.option_matrix = option_matrix
@@ -37,6 +37,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
     def on_set_trade_date_old(self, trade_day):
         print('algo client set_trade_day', trade_day)
         self.trade_day = trade_day #'2024-01-03'
+        self.trade_day = '2024-01-04'
         avg_volume_df = get_prev_day_avg_volume(self.asset, self.trade_day)
         #print(avg_volume_df.to_dict("record"))
 
@@ -46,8 +47,9 @@ class OptionMatrixClient(socketio.ClientNamespace):
     def on_set_trade_date(self, trade_day):
         print('algo client set_trade_day', trade_day)
         self.trade_day = trade_day #'2024-01-03'
+        self.trade_day = '2024-01-04'
         closing_oi_df = get_prev_day_avg_volume(self.asset, self.trade_day)
-        print(closing_oi_df['avg_volume'].sum())
+        #print(closing_oi_df['avg_volume'].sum())
         closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
         self.option_matrix.process_closing_oi(self.trade_day, closing_oi_df.to_dict("record"))
         avg_volume_recs = get_average_volume_for_day(self.asset, self.trade_day)

@@ -62,8 +62,8 @@ class OptionSignalGenerator:
 
         if self.live_mode and self.option_matrix.last_time_stamp and call_oi_series:
 
-            start_call_oi = day_capsule.cross_analyser.total_closing_call_oi
-            start_put_oi = day_capsule.cross_analyser.total_closing_put_oi
+            start_call_oi = day_capsule.cross_analyser.get_total_call_closing_oi()
+            start_put_oi = day_capsule.cross_analyser.get_total_put_closing_oi()
             start_total_oi = start_call_oi + start_put_oi
             print('start_call_oi====', start_call_oi)
             print('start_put_oi====', start_put_oi)

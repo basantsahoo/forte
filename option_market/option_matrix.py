@@ -31,7 +31,7 @@ import numpy as np
 from datetime import datetime
 from db.market_data import get_daily_option_ion_data
 from collections import OrderedDict
-from entities.trading_day import TradeDateTime
+from entities.trading_day import TradeDateTime, NearExpiryWeek
 from option_market.building_blocks import Capsule, Cell
 from option_market.analysers import IntradayCrossAssetAnalyser
 #from option_market.analysers import OptionMatrixAnalyser
@@ -45,7 +45,8 @@ from tabulate import tabulate
 
 class OptionMatrix:
 
-    def __init__(self,  feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False, print_cross_stats=False):
+    def __init__(self,  asset, feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False, print_cross_stats=False):
+        self.asset = asset
         self.capsule = Capsule()
         self.instant_compute = instant_compute
         #self.matrix_analyser = OptionMatrixAnalyser(self)
@@ -74,11 +75,25 @@ class OptionMatrix:
             self.closing_oi[trade_date][inst_vol['instrument']] = inst_vol['closing_oi']
         #print(self.closing_oi)
 
+    def check_adjust_closing_oi(self, trade_date):
+        """
+        Reset closing oi to 0 when trade date is week begining
+        closing oi will be set to first entry in price throttler
+        """
+        if self.current_date != trade_date:
+            t_day = TradeDateTime(trade_date)
+            near_week = NearExpiryWeek(t_day, self.asset)
+            if t_day.date_string == near_week.start_date.date_string:
+                for inst in self.closing_oi[trade_date].keys():
+                    self.closing_oi[trade_date][inst] = 0
+
     def process_option_feed(self, instrument_data_list):
+        self.check_adjust_closing_oi(instrument_data_list[0]['trade_date'])
         self.current_date = instrument_data_list[0]['trade_date']
         self.option_data_throttler.throttle(instrument_data_list)
 
     def process_feed_without_signal(self, instrument_data_list):
+        self.check_adjust_closing_oi()
         self.current_date = instrument_data_list[0]['trade_date']
         self.data_throttler.throttle(instrument_data_list)
 

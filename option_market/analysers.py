@@ -21,7 +21,7 @@ class CellAnalyser:
             self.cell.analytics['oi_delta'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
             self.cell.analytics['day_oi_delta'] = self.cell.ion.oi - self.cell.ion.past_closing_oi
             self.cell.analytics['day_oi_delta_pct'] = np.round(self.cell.analytics['day_oi_delta']/self.cell.ion.past_closing_oi, 2)
-            self.cell.analytics['volume_scale'] = self.cell.ion.volume/self.cell.ion.past_avg_volume
+            #self.cell.analytics['volume_scale'] = self.cell.ion.volume/self.cell.ion.past_avg_volume
             self.cell.analytics['max_oi'] = max(self.cell.ion.oi, self.cell.elder_sibling.analytics['max_oi'])
             self.cell.analytics['cumulative_volume'] = self.cell.ion.volume + self.cell.elder_sibling.analytics['cumulative_volume']
 
@@ -39,7 +39,7 @@ class CellAnalyser:
             self.cell.analytics['oi_delta'] = 0
             self.cell.analytics['day_oi_delta'] = self.cell.ion.oi - self.cell.ion.past_closing_oi
             self.cell.analytics['day_oi_delta_pct'] = np.round(self.cell.analytics['day_oi_delta']/self.cell.ion.past_closing_oi, 2)
-            self.cell.analytics['volume_scale'] = self.cell.ion.volume/self.cell.ion.past_avg_volume
+            #self.cell.analytics['volume_scale'] = self.cell.ion.volume/self.cell.ion.past_avg_volume
             self.cell.analytics['max_oi'] = self.cell.ion.oi
             self.cell.analytics['cumulative_volume'] = self.cell.ion.volume
             self.cell.analytics['vwap'] = self.cell.ion.price
@@ -50,16 +50,14 @@ class CellAnalyser:
 
 class IntradayCrossAssetAnalyser:
     def __init__(self, capsule, avg_volumes, closing_oi):
+        self.closing_oi = closing_oi
         self.capsule = capsule
         self.call_oi = OrderedDict()
         self.put_oi = OrderedDict()
         self.call_volume = OrderedDict()
         self.put_volume = OrderedDict()
         self.avg_volumes = avg_volumes
-        self.closing_oi_by_inst = closing_oi
         #print(closing_oi.items())
-        self.total_closing_call_oi = sum([closing_oi for inst, closing_oi in closing_oi.items() if inst[-2::] == 'CE'])
-        self.total_closing_put_oi = sum([closing_oi for inst, closing_oi in closing_oi.items() if inst[-2::] == 'PE'])
 
     def compute(self, timestamp_list=[]):
         self.compute_oi_volume(timestamp_list)
@@ -93,10 +91,10 @@ class IntradayCrossAssetAnalyser:
         timestamp_list = transposed_data.keys()
         ts_data = transposed_data[timestamp]
         change_dct = {}
-        start_call_oi = self.total_closing_call_oi
-        start_put_oi = self.total_closing_put_oi
+        start_call_oi = self.get_total_call_closing_oi()
+        start_put_oi = self.get_total_put_closing_oi()
         start_total_oi = start_call_oi + start_put_oi
-
+        print(start_call_oi, start_put_oi, start_total_oi)
         for cell in ts_data.values():
             ts_oi = self.call_oi[timestamp]  if cell.instrument[-2::] == 'CE' else self.put_oi[timestamp]
             ts_volume = self.call_volume[timestamp] if cell.instrument[-2::] == 'CE' else self.put_volume[timestamp]
@@ -122,6 +120,12 @@ class IntradayCrossAssetAnalyser:
             }
 
         self.capsule.analytics[timestamp] = change_dct
+
+    def get_total_call_closing_oi(self):
+        return sum([oi for inst, oi in self.closing_oi.items() if inst[-2::] == 'CE'])
+
+    def get_total_put_closing_oi(self):
+        return sum([oi for inst, oi in self.closing_oi.items() if inst[-2::] == 'PE'])
 
     def get_total_call_oi_series(self):
         return list(self.call_oi.values())
