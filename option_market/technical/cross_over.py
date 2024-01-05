@@ -92,7 +92,7 @@ class OptionVolumeIndicator:
         if series:
 
             #normalization_factor = 1 if len(series) < 5 else np.median(series)/prev_median_volume
-            print('normalization_factor====', normalization_factor)
+            #print('normalization_factor====', normalization_factor)
             scale = np.round((series[-1] / prev_median_volume)/normalization_factor, 2)
         return scale
 
@@ -107,3 +107,21 @@ class OptionVolumeIndicator:
             print('call volume scale+++++', call_volume_scale)
         if put_volume_scale >= 1.6:
             print('Put volume scale++++++', put_volume_scale)
+
+
+
+class OptionMomemntumIndicator:
+    def __init__(self, name,  call_back_fn=None):
+        self.name = name
+        self.call_back_fn = call_back_fn
+        self.last_signal_idx = 0
+
+    def evaluate(self, option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta):
+        #print(option_volume_scale, cross_asset_price_delta)
+        if option_volume_scale > 1.5:
+            pos_price_change_list = [x for x in list(cross_asset_price_delta.values()) if x > 0]
+            negative_price_change_reverse_asset_list = [x for x in list(reverse_cross_asset_price_delta.values()) if x < 0]
+            if len(pos_price_change_list) > 0.5 * len(list(cross_asset_price_delta.values())) and \
+                len(negative_price_change_reverse_asset_list) > 0.5 * len(list(reverse_cross_asset_price_delta.values())):
+                print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
+                self.call_back_fn(Signal(self.name))

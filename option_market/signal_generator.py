@@ -7,7 +7,7 @@ from collections import OrderedDict
 from entities.trading_day import TradeDateTime
 from tabulate import tabulate
 from talib import stream
-from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator
+from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator, OptionMomemntumIndicator
 from config import oi_denomination
 from beepy import beep
 from subprocess import call
@@ -27,12 +27,14 @@ class OptionSignalGenerator:
         self.put_down_cross_over = DownCrossOver('PUT_DOWN_CROSS', 0.05, call_back_fn=self.dispatch_signal)
         self.build_up_calculator = BuildUpFollowingMomentum('BUILDUP', call_back_fn=self.dispatch_signal)
         self.option_volume_indicator = OptionVolumeIndicator('OPTION_VOLUME', call_back_fn=self.dispatch_signal)
+        self.bullish_option_momentum_indicator = OptionMomemntumIndicator('BULLISH_MOMENTUM', call_back_fn=self.dispatch_signal)
+        self.bearish_option_momentum_indicator = OptionMomemntumIndicator('BEARISH_MOMENTUM', call_back_fn=self.dispatch_signal)
 
     def generate(self):
         #self.print_instant_info()
         self.print_stats()
+        self.run_external_generators()
         #self.generate_intra_day_call_oi_drop_signal()
-        #self.run_external_generators()
         #self.run_dynamic_analysis()
         pass
 
@@ -131,6 +133,22 @@ class OptionSignalGenerator:
         put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
         call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
         put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
+        aggregate_stats = day_capsule.cross_analyser.get_aggregate_stats(self.option_matrix.last_time_stamp)
+        cross_stats = day_capsule.cross_analyser.get_cross_instrument_stats(self.option_matrix.last_time_stamp)
+
+        put_vwap = {inst: inst_data['vwap_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'PE'}
+        call_vwap = {inst: inst_data['vwap_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'CE'}
+        self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_vwap, put_vwap)
+        self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_vwap, call_vwap)
+
+    def run_external_generators_old(self):
+        if self.option_matrix.last_time_stamp is not None:
+            print(TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
+        day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
+        call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
+        put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
+        call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
+        put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
 
         spot_series = day_capsule.cross_analyser.get_instrument_ion_field_series()
         vol_series = day_capsule.cross_analyser.get_instrument_ion_field_series('22200_CE')
@@ -141,9 +159,10 @@ class OptionSignalGenerator:
         self.build_up_calculator.evaluate(spot_series, call_oi_series, put_oi_series)
         self.option_volume_indicator.evaluate(call_volume_series, put_volume_series)
 
+
     def dispatch_signal(self, signal):
         #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
-        print(signal.name)
+        print('------------------------------------', signal.name)
 
 
     def generate_intra_day_call_oi_drop_signal(self):
@@ -182,21 +201,3 @@ class OptionSignalGenerator:
                 pass
 
         return signal
-
-    def run_dynamic_analysis(self):
-        if self.option_matrix.last_time_stamp is not None:
-            print(TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
-        day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
-        call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
-        put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
-        call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
-        put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
-
-        spot_series = day_capsule.cross_analyser.get_instrument_ion_field_series()
-        vol_series = day_capsule.cross_analyser.get_instrument_ion_field_series('22200_CE')
-        #print(vol_series)
-        """"""
-        self.call_down_cross_over.evaluate(call_oi_series, put_oi_series)
-        self.put_down_cross_over.evaluate(put_oi_series, call_oi_series)
-        self.build_up_calculator.evaluate(spot_series, call_oi_series, put_oi_series)
-        self.option_volume_indicator.evaluate(call_volume_series, put_volume_series)

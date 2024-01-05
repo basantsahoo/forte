@@ -149,7 +149,6 @@ class IntradayCrossAssetAnalyser:
         start_call_oi = self.get_total_call_closing_oi()
         start_put_oi = self.get_total_put_closing_oi()
         start_total_oi = start_call_oi + start_put_oi
-        print(start_call_oi, start_put_oi, start_total_oi)
         for cell in ts_data.values():
             ts_oi = self.call_oi[timestamp]  if cell.instrument[-2::] == 'CE' else self.put_oi[timestamp]
             ts_volume = self.call_volume[timestamp] if cell.instrument[-2::] == 'CE' else self.put_volume[timestamp]

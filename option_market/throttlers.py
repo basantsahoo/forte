@@ -54,8 +54,9 @@ class FeedThrottler:
             self.update_ion_cell(current_frame, instrument, ion)
 
     def push(self):
-        self.matrix.add_cells(self.current_date, list(self.ion_dict.values()))
-        self.ion_dict = {}
+        if self.ion_dict:
+            self.matrix.add_cells(self.current_date, list(self.ion_dict.values()))
+            self.ion_dict = {}
 
 """
             else:
@@ -75,9 +76,10 @@ class FeedThrottler:
 
 class OptionFeedThrottler(FeedThrottler):
     def push(self):
-        self.matrix.add_cells(self.current_date, list(self.ion_dict.values()))
-        self.ion_dict = {}
-        self.matrix.generate_signal()
+        if self.ion_dict:
+            self.matrix.add_cells(self.current_date, list(self.ion_dict.values()))
+            self.ion_dict = {}
+            self.matrix.generate_signal()
 
 
 """

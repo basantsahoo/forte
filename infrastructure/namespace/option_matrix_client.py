@@ -47,7 +47,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
     def on_set_trade_date(self, trade_day):
         print('algo client set_trade_day', trade_day)
         self.trade_day = trade_day #'2024-01-03'
-        self.trade_day = '2024-01-04'
+        #self.trade_day = '2024-01-04'
         closing_oi_df = get_prev_day_avg_volume(self.asset, self.trade_day)
         #print(closing_oi_df['avg_volume'].sum())
         closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]

@@ -93,7 +93,7 @@ class OptionMatrix:
         self.option_data_throttler.throttle(instrument_data_list)
 
     def process_feed_without_signal(self, instrument_data_list):
-        self.check_adjust_closing_oi()
+        self.check_adjust_closing_oi(instrument_data_list[0]['trade_date'])
         self.current_date = instrument_data_list[0]['trade_date']
         self.data_throttler.throttle(instrument_data_list)
 

@@ -17,18 +17,28 @@ from dynamics.profile.utils import get_next_lowest_index, get_next_highest_index
 from helper.time_utils import epoch_to_ordinal
 from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
 from option_market.exclude_trade_days import exclude_trade_days
+from db.market_data import get_prev_day_avg_volume
+from option_market.utils import get_average_volume_for_day
 
 from entities.trading_day import TradeDateTime, NearExpiryWeek
 t_day = "2023-12-27"
 asset = "NIFTY"
 
 trading_day = TradeDateTime(t_day)
-expiry_week = NearExpiryWeek(trading_day, "NIFTY")
+expiry_week = NearExpiryWeek(trading_day, asset)
 
 data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
-option_matrix = OptionMatrix(feed_speed=1, throttle_speed=1)
-signal_generator = OptionSignalGenerator(option_matrix)
+option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1)
+#signal_generator = OptionSignalGenerator(option_matrix)
+closing_oi_df = get_prev_day_avg_volume(asset, t_day)
+# print(closing_oi_df['avg_volume'].sum())
+closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
+option_matrix.process_closing_oi(t_day, closing_oi_df.to_dict("record"))
+avg_volume_recs = get_average_volume_for_day(asset, t_day)
+# print(avg_volume_recs)
+# print(avg_volume_df.to_dict("record"))
 
+option_matrix.process_avg_volume(t_day, avg_volume_recs)
 
 while data_loader.data_present:
     feed_ = data_loader.generate_next_feed()
@@ -37,16 +47,18 @@ while data_loader.data_present:
         feed_list = feed_['feed_list']
         if feed_type == 'option':
             option_matrix.process_option_feed(feed_list)
+
         if feed_type == 'spot':
             #print(feed_list)
-            option_matrix.process_feed_without_signal(feed_list)
+            #option_matrix.process_feed_without_signal(feed_list)
+            pass
         #option_matrix.generate_signal()
 
 current_date = option_matrix.current_date
 day_capsule = option_matrix.get_day_capsule(option_matrix.current_date)
 call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
 put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
-spot_series = day_capsule.cross_analyser.get_instrument_series()
+spot_series = day_capsule.cross_analyser.get_instrument_ion_field_series()
 #print(spot_series)
 t_series = day_capsule.cross_analyser.get_ts_series()
 
