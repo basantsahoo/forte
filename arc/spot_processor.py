@@ -24,7 +24,7 @@ class SpotProcessor:
         epoch_minute = get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
         self.last_tick = feed_small
-        pat = Signal(asset=self.asset_book.asset, category="PRICE", instrument="", indicator="TICK_PRICE", signal_time=self.last_tick['timestamp'], notice_time=self.last_tick['timestamp'], info= self.last_tick, strength=1)
+        pat = Signal(asset=self.asset_book.asset, category="PRICE", instrument="SPOT", indicator="TICK_PRICE", signal_time=self.last_tick['timestamp'], notice_time=self.last_tick['timestamp'], info= self.last_tick, strength=1)
         """
         pat = {'category': 'PRICE', 'indicator': 'TICK_PRICE', 'strength': 1,
                'signal_time': self.last_tick['timestamp'], 'notice_time': self.last_tick['timestamp'],
@@ -42,9 +42,9 @@ class SpotProcessor:
             self.last_candle_5_count = candle_count
             candle_5 = self.asset_book.candle_5_processor.get_last_n_candles(1)[0]
             #print('new candle start time===', datetime.fromtimestamp(candle_5['timestamp']))
-            pat = {'category': 'PRICE', 'indicator': 'CANDLE', 'strength': 1,
-                   'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
-                   'info': candle_5}
+            pat = Signal(asset=self.asset_book.asset, category="PRICE", instrument="", indicator="CANDLE",
+                         signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'],
+                         info=candle_5, strength=1)
             self.asset_book.pattern_signal(pat)
             if candle_count > 2 and candle_count<6:
                 self.ema_5 = EMA(period=candle_count, input_values=[candle['close'] for candle in self.asset_book.candle_5_processor.candles])
@@ -56,39 +56,22 @@ class SpotProcessor:
                 candle_low = candle_5['low']
                 if candle_low > self.ema_5[-1]:
                     print('candle signal =========',datetime.fromtimestamp(self.last_tick['timestamp']))
-                    pat = Signal(asset=self.asset_book.asset,  category='TECHNICAL', indicator='CDL_5_ABOVE_EMA_5', strength=1, signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'], info= candle_5)
+                    pat = Signal(asset=self.asset_book.asset,  category='TECHNICAL', instrument="SPOT", indicator='CDL_5_ABOVE_EMA_5', strength=1, signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'], info= candle_5)
                     self.asset_book.pattern_signal(pat)
 
                 price_below_ema = int(candle_5['close'] < self.ema_5[-1])
                 if price_below_ema:
                     print('price_below_ema signal===========',datetime.fromtimestamp(self.last_tick['timestamp']))
-                    pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_BELOW_EMA_5', 'strength': 1,
-                           'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
-                           'info': candle_5}
+                    pat = Signal(asset=self.asset_book.asset, category="TECHNICAL", instrument="SPOT", indicator="PRICE_BELOW_EMA_5",
+                                 signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'],
+                                 info=candle_5, strength=1)
+
 
                 else:
-                    print('price_above_ema signal ==========',datetime.fromtimestamp(self.last_tick['timestamp']))
-                    pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_ABOVE_EMA_5', 'strength': 1,
-                           'signal_time': candle_5['timestamp'], 'notice_time': self.last_tick['timestamp'],
-                           'info': candle_5}
-
+                    pat = Signal(asset=self.asset_book.asset, category="TECHNICAL", instrument="SPOT", indicator="PRICE_ABOVE_EMA_5",
+                                 signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'],
+                                 info=candle_5, strength=1)
                 self.asset_book.pattern_signal(pat)
 
     def perform_calculations(self):
         self.ema_5_signal()
-        """
-        self.ema_5.add_input_value(self.last_tick['close'])
-        if self.ema_5:
-            print('ema_5=======',datetime.fromtimestamp(self.last_tick['timestamp']), self.ema_5[-1])
-            print('price=======', datetime.fromtimestamp(self.last_tick['timestamp']), self.last_tick)
-            candle_5 = self.insight_book.candle_5_processor.get_last_n_candles(1)[0]
-            #print(candle_5)
-            candle_low = candle_5['low']
-            if candle_low > self.ema_5[-1]:
-                print(candle_5)
-                pat = {'category': 'TECHNICAL', 'indicator': 'CDL_5_ABOVE_EMA_5', 'strength':1, 'signal_time': self.last_tick['timestamp'], 'notice_time':self.last_tick['timestamp'], 'info':{}}
-                self.insight_book.pattern_signal(pat)
-            if self.last_tick['close'] < self.ema_5[-1]:
-                pat = {'category': 'TECHNICAL', 'indicator': 'PRICE_BELOW_EMA_5', 'strength': 1, 'signal_time': self.last_tick['timestamp'], 'notice_time':self.last_tick['timestamp'], 'info': {}}
-                self.insight_book.pattern_signal(pat)
-        """

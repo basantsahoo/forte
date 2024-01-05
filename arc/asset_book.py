@@ -176,7 +176,7 @@ class AssetBook:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
         self.inflex_detector.on_price_update([price['timestamp'], price['close']])
-        self.trend_detector.evaluate()
+        #self.trend_detector.evaluate()
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()
         for pattern_detector in self.price_action_pattern_detectors:

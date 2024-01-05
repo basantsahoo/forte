@@ -147,7 +147,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         self.log('threshold', th)
         #print(self.signal_queue.signals)
         if th is None:
-            th = self.signal_queue.get_signal(-1)['info'][th_type] if self.signal_queue.signals else None
+            th = self.signal_queue.get_signal(-1).info[th_type] if self.signal_queue.signals else None
             try:
                 self.log(self.signal_queue.signals)
             except:
@@ -222,31 +222,31 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
     def get_attributes(self, pos=-1):
         res = {}
         pattern = self.signal_queue.get_signal(pos)
-        if pattern['info'].get('price_list', None) is not None:
+        if pattern.info.get('price_list', None) is not None:
             res['pattern_price'] = pattern['info']['price_list']
-        if pattern['info'].get('time_list', None) is not None:
+        if pattern.info.get('time_list', None) is not None:
             res['pattern_time'] = pattern['info']['time_list']
-        if pattern['info'].get('time', None) is not None:
+        if pattern.info.get('time', None) is not None:
             res['pattern_time'] = pattern['info']['time']
-        if pattern['info'].get('candle', None) is not None:
+        if pattern.info.get('candle', None) is not None:
             res['pattern_price'] = pattern['info']['candle']
-        if pattern['info'].get('time_list', None) is not None:
+        if pattern.info.get('time_list', None) is not None:
             res['pattern_time'] = pattern['info']['time_list']
 
-        if 'strike' in pattern:
+        if hasattr(pattern, 'strike'):
             res['strike'] = pattern['strike']
-        if 'kind' in pattern:
+        if hasattr(pattern, 'kind'):
             res['kind'] = pattern['kind']
-        if 'money_ness' in pattern:
+        if hasattr(pattern, 'money_ness'):
             res['money_ness'] = pattern['money_ness']
 
         if res.get('pattern_price', None):
             pattern_df = self.manager.strategy.asset_book.get_inflex_pattern_df().dfstock_3
             pattern_location = locate_point(pattern_df, max(res['pattern_price']))
             res['pattern_location'] = pattern_location
-        if pattern['info'].get('price_list', None) is not None:
+        if pattern.info.get('price_list', None) is not None:
             res['pattern_height'] = self.get_pattern_height()
-        res['strength'] = pattern['strength']
+        res['strength'] = pattern.strength
         return res
 
     def get_pattern_height(self, pos=-1):

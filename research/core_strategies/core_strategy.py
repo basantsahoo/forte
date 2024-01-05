@@ -299,13 +299,13 @@ class BaseStrategy:
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params.get('d2_cd_new_business_pressure',0)
-            category = (signal['category'] , signal['indicator'])
+            category = (signal.category , signal.indicator)
             week_day = datetime.strptime(self.asset_book.market_book.trade_day, '%Y-%m-%d').strftime('%A')
             open_type = market_params['open_type']
             tpo = market_params['tpo']
-            strength = signal.get('strength', 0)
-            kind = signal['info'].get('kind', "")
-            money_ness = signal['info'].get('money_ness', "")
+            strength = signal.strength if hasattr(signal, 'strength') else 0
+            kind = signal.info.get('kind', "")
+            money_ness = signal.info.get('money_ness', "")
             #print('inside +++++', open_type, tpo, strength, kind, money_ness)
             for condition in self.signal_filters:
                 #print(condition['logical_test'])

@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from entities.base import Signal
 
 class IntradayOptionProcessor:
     def __init__(self, asset_book, symbol):
@@ -71,8 +72,14 @@ class IntradayOptionProcessor:
                         self.price_drop_book[inst]['drop_'+ str(pct)] = last_ts
                         inst_details = self.get_inst_details(inst)
                         if inst_details['dist'] <= 10:
+                            pat = Signal(asset=self.asset_book.asset, category="OPTION", instrument=inst,
+                                         indicator="PRICE_DROP",
+                                         signal_time=last_ts,
+                                         notice_time=last_ts,
+                                         info=inst_details, strength=pct)
+
                             #matched_pattern = {'time': last_ts, 'instrument': inst, 'strength': pct, **inst_details}
-                            pat = {'category':'OPTION', 'indicator': 'PRICE_DROP', 'strength': pct, 'signal_time': last_ts, 'notice_time': last_ts, 'instrument': inst, 'info': inst_details}
+                            #pat = {'category':'OPTION', 'indicator': 'PRICE_DROP', 'strength': pct, 'signal_time': last_ts, 'notice_time': last_ts, 'instrument': inst, 'info': inst_details}
                             self.asset_book.pattern_signal(pat)
                 else:
                     self.price_drop_book[inst]['drop_' + str(pct)] = None

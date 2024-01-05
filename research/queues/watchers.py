@@ -29,7 +29,7 @@ class HighBreach(ProcessLoggerMixin):
 
     def receive_signal(self, signal):
         #self.pre_log()
-        if signal['info']['high'] > self.threshold and not self.active:
+        if signal.info['high'] > self.threshold and not self.active:
             self.signals = [signal]
         self.check_activation()
 
@@ -45,7 +45,7 @@ class HighBreach(ProcessLoggerMixin):
         return last_tick_time - self.creation_time > self.life_span * 60
 
     def forward_activation(self, status):
-        threshold = self.signals[-1]['info']['high']
+        threshold = self.signals[-1].info['high']
         info = {'code': self.code, 'n_id': self.id, 'status': status, 'threshold_type': self.threshold_type, 'new_threshold':threshold}
         for channel in self.activation_forward_channels:
             channel(info)

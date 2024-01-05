@@ -23,7 +23,7 @@ class DownController:
         #print('controller created for ', leg_seq)
     def receive_signal(self, signal):
         #self.pre_log()
-        self.signals.append(signal['info'])
+        self.signals.append(signal.info)
         self.check_activation()
 
     def get_next_high(self):

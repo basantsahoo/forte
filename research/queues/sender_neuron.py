@@ -1,3 +1,4 @@
+from entities.base import Signal
 class SenderNeuron:
     def forward_signal(self, signal={}):
         reset_info = {'code': 'reset_signal', 'n_id': self.id}
@@ -27,9 +28,10 @@ class SenderNeuron:
             #print(self.forward_queue)
             self.feed_forward_log(msg)
         for fwd in self.forward_queue:
+            print(fwd)
             fn = fwd[0]
             args = fwd[1]
-            if type(args) == bool or len(args):
+            if type(args) == bool or type(args) == Signal:
                 fn(args)
             else:
                 fn()

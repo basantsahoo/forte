@@ -1,5 +1,7 @@
 from research.queues.process_logger import ProcessLoggerMixin
 from research.config import switch_log
+from entities.base import Signal
+
 def get_switch(manager, switch_info):
     switch_type = switch_info['type']
     if switch_type in ['DistToSL']:
@@ -24,7 +26,12 @@ class DistToSL(ProcessLoggerMixin):
 
     def get_signal(self):
         if self.dispatch_signal:
-            signal = {'category': 'STRAT', 'indicator': 'EMA_BREAK_DOWN_5_ENTRY', 'strength': 1, 'signal_time': None, 'notice_time': None, 'info': self.thresholds.copy()}
+            signal = Signal(asset="STRAT", category="STRAT", instrument="SPOT",
+                         indicator="EMA_BREAK_DOWN_5_ENTRY",
+                         signal_time=None, notice_time=None,
+                         info=self.thresholds.copy(), strength=1)
+
+            #signal = {'category': 'STRAT', 'indicator': 'EMA_BREAK_DOWN_5_ENTRY', 'strength': 1, 'signal_time': None, 'notice_time': None, 'info': self.thresholds.copy()}
             return signal
         else:
             return {}

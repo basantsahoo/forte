@@ -33,18 +33,22 @@ class BaseSignal:
     def is_trend_signal(self):
         return self.indicator == "INDICATOR_TREND"
 
+        pat = {'category': 'PRICE', 'indicator': 'TICK_PRICE', 'strength': 1,
+               'signal_time': self.last_tick['timestamp'], 'notice_time': self.last_tick['timestamp'],
+               'info': self.last_tick}
+
 
 class Signal(BaseSignal):
     def __init__(self,
-                 asset:str,
+                 asset:Optional[str],
                  category: Literal["PRICE_ACTION_PATTERN", "TECHNICAL", "PRICE"],
                  indicator: str,
                  instrument: Literal['SPOT', "OPTION"],
-                 signal_time: int,
-                 notice_time: int,
+                 signal_time: Optional[int],
+                 notice_time: Optional[int],
                  strength: Optional[Union[int, float]],
                  info: Optional[Dict],
-                 signal: Optional[str] = None,
+                 signal: Optional[Union[str, int]] = None,
                  contract: Optional[str] = None,
                  period: Optional[Literal["5min", "15min", "1hr", "daily", "weekly"]] = None,
                  name: Optional[str] = None,
@@ -62,6 +66,12 @@ class Signal(BaseSignal):
         self.instrument = instrument
         self.period = period
         self.contract = contract
+
+    def copy(self):
+        return type(self)(self.asset, self.category, self.indicator, self.instrument, self.signal_time,
+                          self.notice_time, self.strength, self.info,
+                          self.signal, self.contract, self.period, self.name
+                          )
 
 
 

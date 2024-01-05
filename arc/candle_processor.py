@@ -2,14 +2,14 @@ from helper.utils import convert_to_candle
 
 
 class CandleProcessor:
-    def __init__(self, insight_book, period, sliding_window=0):
-        self.insight_book = insight_book
+    def __init__(self, asset_book, period, sliding_window=0):
+        self.asset_book = asset_book
         self.period = period
         self.sliding_window = sliding_window
         self.candles = []
 
     def create_candles(self, notify=True):
-        price_list = list(self.insight_book.spot_processor.spot_ts.values())[self.sliding_window::]
+        price_list = list(self.asset_book.spot_processor.spot_ts.values())[self.sliding_window::]
         chunks = [price_list[i:i + self.period] for i in range(0, len(price_list), self.period)]
         chunks = [x for x in chunks if len(x) == self.period]
         if len(chunks) > len(self.candles):
