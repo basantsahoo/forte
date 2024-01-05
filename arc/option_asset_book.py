@@ -24,12 +24,11 @@ from arc.market_activity import AssetActivityLog
 from arc.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
-from entities.trading_day import TradeDateTime
 from entities.base import BaseSignal, Signal
+from entities.trading_day import TradeDateTime
 
-
-class AssetBook:
-    def __init__(self, market_book, asset, candle_sw):
+class OptionAssetBook:
+    def __init__(self, market_book, asset):
         self.market_book = market_book
         self.asset = asset
         self.spot_processor = SpotProcessor(self)
@@ -45,7 +44,7 @@ class AssetBook:
         self.activity_log = AssetActivityLog(self)
         self.inflex_detector = PriceInflexDetectorForTrend(asset, fpth=0.001, spth = 0.001,  callback=None)
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
-        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw), CandlePatternDetector(self, period=15, sliding_window=candle_sw)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False

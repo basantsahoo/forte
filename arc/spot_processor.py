@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from helper.time_utils import get_epoc_minute
+from entities.trading_day import TradeDateTime
 from talipp.indicators import EMA, SMA, Stoch
 from talipp.ohlcv import OHLCVFactory
 from datetime import datetime
@@ -21,7 +21,7 @@ class SpotProcessor:
         #print('spot process_minute_data+++++', datetime.fromtimestamp(minute_data['timestamp']))
         key_list = ['timestamp', 'open', 'high', "low", "close"]
         feed_small = {key: minute_data[key] for key in key_list}
-        epoch_minute = get_epoc_minute(minute_data['timestamp'])
+        epoch_minute = TradeDateTime.get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
         self.last_tick = feed_small
         pat = Signal(asset=self.asset_book.asset, category="PRICE", instrument="SPOT", indicator="TICK_PRICE", signal_time=self.last_tick['timestamp'], notice_time=self.last_tick['timestamp'], info= self.last_tick, strength=1)

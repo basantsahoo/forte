@@ -14,7 +14,7 @@ sio = socketio.Client(reconnection_delay=5)
 from option_market.utils import get_average_volume_for_day
 
 class OptionMatrixClient(socketio.ClientNamespace):
-    def __init__(self, namespace=None, asset='NIFTY'):
+    def __init__(self, namespace=None, asset='BANKNIFTY'):
         socketio.ClientNamespace.__init__(self, namespace)
         self.asset = asset
         option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1, live_mode=True, volume_delta_mode=True, print_cross_stats=True)

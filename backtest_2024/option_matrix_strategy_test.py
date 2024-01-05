@@ -14,10 +14,13 @@ from backtest.bt_strategies import *
 from dynamics.profile.market_profile import HistMarketProfileService
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
-from arc.market_book import MarketBook
+from arc.option_market_book import OptionMarketBook
+from arc.option_asset_book import OptionAssetBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
 from arc.strategy_manager import StrategyManager
+from entities.trading_day import TradeDateTime, NearExpiryWeek
+from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 
@@ -26,20 +29,20 @@ class StartegyBackTester:
     def __init__(self, strat_config):
         self.strat_config = strat_config
 
-    def back_test(self, symbol):
+    def back_test(self, asset):
         results = []
         start_time = datetime.now()
         for day in self.strat_config['run_params']['test_days']:
-            print(day, symbol)
+            print(day, asset)
             print('=========================================================================================')
-            processor = HistMarketProfileService()
+            in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
+            t_day = in_day.date_string
 
-            in_day = day if type(day) == str else day.strftime('%Y-%m-%d')
             start = datetime.now()
 
-            market_book = MarketBook(in_day, assets=[symbol], record_metric=self.strat_config['run_params']['record_metric'], candle_sw=self.strat_config['run_params']['candle_sw'], insight_log=self.strat_config['run_params'].get('insight_log', False))
+            market_book = OptionMarketBook(in_day.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False))
             end = datetime.now()
-            print('insight book init took', (end-start).total_seconds())
+            print('MarketBook book init took', (end-start).total_seconds())
             place_live = False
             interface = None
             if self.strat_config['run_params'].get("send_to_oms", False):
@@ -59,8 +62,12 @@ class StartegyBackTester:
                 print('strategy init took', (end - start).total_seconds())
             market_book.strategy_manager = strategy_manager
             start = datetime.now()
-            price_list = get_daily_tick_data(symbol, day)
-            price_list['symbol'] = helper_utils.root_symbol(symbol)
+            data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
+
+            print(data_loader.generate_next_feed())
+            print(data_loader.generate_next_feed())
+            price_list = get_daily_tick_data(asset, day)
+            price_list['symbol'] = helper_utils.root_symbol(asset)
             price_list = price_list.to_dict('records')
             end = datetime.now()
             print('price list fetch took', (end - start).total_seconds())
@@ -70,28 +77,27 @@ class StartegyBackTester:
             #ivs = helper_utils.generate_random_ivs()
 
             start = datetime.now()
-            option_df = get_daily_option_data_2(symbol, day)
+            option_df = get_daily_option_data_2(asset, day)
             end = datetime.now()
             print('option data fetch took', (end - start).total_seconds())
 
             try:
                 for i in range(len(price_list)):
                     price = price_list[i]
-                    #iv = ivs[i]
-                    #processor.process_input_data([price])
-                    #processor.calculateMeasures()
+                    print(price)
                     ts = price['timestamp']
 
                     t_df = option_df[option_df['timestamp'] == ts][['instrument', 'oi', 'volume', 'open', 'high', 'low', 'close']]
                     t_df.set_index('instrument', inplace=True)
                     recs = t_df.to_dict('index')
+                    print(recs)
 
 
                     #recs = {'18400_PE': {'oi': 918400, 'volume': 15650, 'open': 337.55, 'high': 356.05, 'low': 333.95, 'close': 355.0}, '18400_CE': {'oi': 7561350, 'volume': 1651100, 'open': 1.5, 'high': 1.5, 'low': 1.05, 'close': 1.15}, '18300_PE': {'oi': 1651500, 'volume': 106700, 'open': 238.85, 'high': 256.6, 'low': 234.8, 'close': 254.65}, '18300_CE': {'oi': 8876250, 'volume': 2883200, 'open': 2.95, 'high': 3.6, 'low': 1.6, 'close': 1.75}, '18200_PE': {'oi': 2992350, 'volume': 710350, 'open': 125.05, 'high': 160.0, 'low': 125.05, 'close': 159.05}, '18200_CE': {'oi': 10904200, 'volume': 4354400, 'open': 8.9, 'high': 10.2, 'low': 4.8, 'close': 5.15}, '18100_CE': {'oi': 6178900, 'volume': 3805200, 'open': 29.0, 'high': 30.8, 'low': 22.3, 'close': 23.8}, '18100_PE': {'oi': 7415550, 'volume': 3030550, 'open': 57.5, 'high': 78.5, 'low': 57.5, 'close': 77.5}, '18000_PE': {'oi': 12389000, 'volume': 5424600, 'open': 25.0, 'high': 31.1, 'low': 22.9, 'close': 30.35}, '18000_CE': {'oi': 3336750, 'volume': 1150600, 'open': 100.0, 'high': 109.0, 'low': 75.35, 'close': 76.65}, '17900_CE': {'oi': 716050, 'volume': 163850, 'open': 172.45, 'high': 176.1, 'low': 156.45, 'close': 157.05}, '17900_PE': {'oi': 6893600, 'volume': 2551650, 'open': 10.3, 'high': 12.05, 'low': 8.3, 'close': 11.3}, '17800_PE': {'oi': 7972350, 'volume': 1939700, 'open': 4.5, 'high': 4.9, 'low': 3.4, 'close': 4.75}, '17800_CE': {'oi': 1025150, 'volume': 52900, 'open': 268.3, 'high': 271.75, 'low': 250.4, 'close': 251.05}, '17700_CE': {'oi': 260650, 'volume': 1900, 'open': 352.3, 'high': 366.25, 'low': 348.6, 'close': 348.6}, '17700_PE': {'oi': 5400950, 'volume': 1306050, 'open': 3.05, 'high': 3.05, 'low': 1.85, 'close': 2.15}, '17600_CE': {'oi': 62800, 'volume': 2300, 'open': 460.0, 'high': 466.0, 'low': 446.2, 'close': 447.15}, '17600_PE': {'oi': 4284600, 'volume': 499950, 'open': 1.45, 'high': 1.7, 'low': 1.15, 'close': 1.45}, '17500_PE': {'oi': 9329750, 'volume': 1264450, 'open': 1.2, 'high': 1.45, 'low': 1.1, 'close': 1.15}, '17500_CE': {'oi': 446500, 'volume': 1700, 'open': 558.25, 'high': 564.15, 'low': 546.6, 'close': 546.6}}
 
-                    pm.option_price_input({'timestamp': ts, 'symbol': symbol, 'records': recs})
+                    pm.option_price_input({'timestamp': ts, 'symbol': asset, 'records': recs})
                     pm.price_input(price)
-                    market_book.option_minute_data_stream({'timestamp': ts, 'symbol': symbol, 'records': recs})
+                    market_book.option_minute_data_stream({'timestamp': ts, 'symbol': asset, 'records': recs})
                     #story_book.spot_minute_data_stream(price, iv)
                     market_book.spot_minute_data_stream(price)
                     time.sleep(0.005)
@@ -150,9 +156,23 @@ class StartegyBackTester:
             final_result.extend(result)
         return final_result
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     argv = sys.argv[1:]
-    print(argv)
     kwargs = {kw[0]: kw[1] for kw in [ar.split('=') for ar in argv if ar.find('=') > 0]}
     args = [arg for arg in argv if arg.find('=') < 0]
     if 'strat_config' in kwargs:
@@ -160,15 +180,10 @@ if __name__ == '__main__':
     elif args:
         strat_config_file = args[0]
     else:
-        strat_config_file = 'bkp_cheap_option.json'
+        strat_config_file = 'ema_act_with_reverse_tick_nifty.json'
     strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios/" + strat_config_file
-    #strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios_yaml/" + strat_config_file
-    import yaml
-    from loaders.yml_loader import YAMLLoader
     with open(strat_config_path, 'r') as bt_config:
         strat_config = json.load(bt_config)
-        #strat_config = yaml.load(bt_config, YAMLLoader)
-        #print(strat_config)
 
     back_tester = StartegyBackTester(strat_config)
     results = back_tester.run()

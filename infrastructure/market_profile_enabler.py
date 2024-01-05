@@ -8,8 +8,7 @@ from config import va_pct, include_pre_market,live_feed, back_test_day
 from dynamics.profile.utils import NpEncoder
 from db.market_data import prev_day_data, get_prev_week_candle, get_nth_day_profile_data
 from helper.utils import get_pivot_points
-from helper.time_utils import get_epoc_minute
-
+from entities.trading_day import TradeDateTime
 
 class MarketProfileEnablerService:
     def __init__(self, trade_day=None, market_cache=None):
@@ -91,7 +90,7 @@ class MarketProfileEnablerService:
         if self.waiting_for_data:
             self.set_trade_date_from_time(epoch_tick_time)
             self.waiting_for_data = False
-        epoch_minute = get_epoc_minute(epoch_tick_time)
+        epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
         mm = tick_date_time.minute
         ss = tick_date_time.second
@@ -169,7 +168,7 @@ class TickMarketProfileEnablerService(MarketProfileEnablerService):
         if self.trade_day not in self.price_data:
             self.price_data[self.trade_day] = {}
         epoch_tick_time = inst['timestamp']
-        epoch_minute = get_epoc_minute(epoch_tick_time)
+        epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
         if self.trade_day not in self.price_data:
             self.price_data[self.trade_day] = {}
 

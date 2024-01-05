@@ -68,6 +68,11 @@ class TradeDateTime:
     def get_epoc_minute(epoc_time):
         return int(epoc_time / 60) * 60
 
+    @staticmethod
+    def get_epoc_from_iso_format(iso_ts):
+        epoch_tick_time = int(datetime.fromisoformat(iso_ts + '+05:30').timestamp())
+        return epoch_tick_time
+
     def convert(self):
         self.date_string = self.date_time.strftime('%Y-%m-%d')
         self.date_time_string = self.date_time.strftime('%Y-%m-%d %H:%M:%S')

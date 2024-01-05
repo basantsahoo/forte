@@ -4,11 +4,15 @@ import time
 from dynamics.profile import utils as profile_utils
 from dynamics.constants import INDICATOR_TREND
 from arc.strategy_manager import StrategyManager
-from arc.asset_book import AssetBook
+from arc.option_asset_book import OptionAssetBook
 from entities.trading_day import TradeDateTime
 
-class MarketBook:
-    def __init__(self, trade_day=None, assets=[],  record_metric=True, candle_sw=0, insight_log=False):
+class OptionMarketBook:
+    def __init__(self,
+                 trade_day=None,
+                 assets=[],
+                 record_metric=True,
+                 insight_log=False):
         self.day_setup_done = False
         self.trade_day = trade_day
         self.pm = None
@@ -27,7 +31,7 @@ class MarketBook:
         self.strategy_setup_done = False
         self.last_tick_timestamp = None
         for asset in assets:
-            self.asset_books[asset] = AssetBook(self, asset, candle_sw)
+            self.asset_books[asset] = OptionAssetBook(self, asset)
 
         if trade_day is not None:
             self.set_day_tpos(trade_day)

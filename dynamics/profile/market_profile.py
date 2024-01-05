@@ -7,7 +7,7 @@ from dynamics.profile import utils
 
 from config import va_pct, include_pre_market
 from helper.utils import get_pivot_points
-from helper.time_utils import get_epoc_minute
+from entities.trading_day import TradeDateTime
 
 class MarketProfileService:
     def __init__(self, trade_day=None, market_cache=None):
@@ -57,7 +57,7 @@ class MarketProfileService:
         if self.waiting_for_data:
             self.set_trade_date_from_time(epoch_tick_time)
             self.waiting_for_data = False
-        epoch_minute = get_epoc_minute(epoch_tick_time)
+        epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
         mm = tick_date_time.minute
         ss = tick_date_time.second
@@ -200,7 +200,7 @@ class TickMarketProfileService(MarketProfileService):
         if self.trade_day not in self.price_data:
             self.price_data[self.trade_day] = {}
 
-        epoch_minute = get_epoc_minute(epoch_tick_time)
+        epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
         tick_date_time = datetime.fromtimestamp(epoch_tick_time)
         mm = tick_date_time.minute
         ss = tick_date_time.second
@@ -275,7 +275,7 @@ class HistMarketProfileService(MarketProfileService):
             self.price_data[self.trade_day] = {}
         for inst in lst:
             epoch_tick_time = inst['timestamp']
-            epoch_minute = get_epoc_minute(epoch_tick_time)
+            epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
             """
             if not include_pre_market and epoch_minute < min(self.tpo_brackets) + 60:
                 continue
