@@ -50,10 +50,12 @@ class MultiDayOptionDataLoader:
                 #print('inside loop')
 
                 try:
-                    next_spot_feed = self.spot_ions[day_key].get(curr_ts, {'instrument': 'spot', 'timestamp': self.last_ts, 'trade_date': day_key, 'ion': '0|0|0|0'})
-                    next_spot_feed['asset'] = self.asset
-                    self.last_ts = curr_ts
-                    return {'feed_type': 'spot', 'asset': self.asset, 'data': [next_spot_feed]}
+                    #next_spot_feed = self.spot_ions[day_key].get(curr_ts, {'instrument': 'spot', 'timestamp': self.last_ts, 'trade_date': day_key, 'ion': '0|0|0|0'})
+                    next_spot_feed = self.spot_ions[day_key].get(curr_ts, None)
+                    if next_spot_feed:
+                        next_spot_feed['asset'] = self.asset
+                        self.last_ts = curr_ts
+                        return {'feed_type': 'spot', 'asset': self.asset, 'data': [next_spot_feed]}
                 except:
                     pass
             next_feed = self.option_ions[day_key].pop(0)

@@ -14,3 +14,7 @@ from research.technical_strategies.price_below_ema import PriceBreakEMADownward
 from research.technical_strategies.price_reverse_ema_down import PriceReverseBreakDownEMA
 from research.core_strategies.dummy_strategy import DummyStrategy
 from research.weekly_strategies.weekly_sell import WeeklySell
+
+
+
+from research.option_strategies.high_call_volume_buy import HighCallVolumeBuy

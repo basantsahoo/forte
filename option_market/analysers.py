@@ -124,7 +124,7 @@ class IntradayCrossAssetAnalyser:
             t_2_call_oi = call_oi_series[-2] if len(call_oi_series) > 2 else start_call_oi
             t_2_put_oi = put_oi_series[-2] if len(put_oi_series) > 2 else start_put_oi
             t_2_total_oi = total_oi_series[-2] if len(total_oi_series) > 2 else start_total_oi
-            print('prev_median_total_volume', prev_median_total_volume)
+            #print('prev_median_total_volume', prev_median_total_volume)
             call_volume_scale = OptionVolumeIndicator.calc_scale(call_volume_series, prev_median_total_volume * 0.5,
                                                           day_normalization_factor)
             put_volume_scale = OptionVolumeIndicator.calc_scale(put_volume_series, prev_median_total_volume * 0.5,

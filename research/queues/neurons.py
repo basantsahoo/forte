@@ -188,7 +188,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
 
     def check_validity(self):
-        last_tick_time = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         self.signal_queue.check_validity(last_tick_time)
         self.check_activation_status_change()
         self.feed_forward()

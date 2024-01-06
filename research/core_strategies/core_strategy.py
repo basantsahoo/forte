@@ -3,6 +3,7 @@ from helper.utils import get_broker_order_type
 from research.strategies.signal_setup import get_target_fn
 from research.queues.neuron_network import QNetwork
 from research.queues.trade import Trade
+from entities.trading_day import TradeDateTime
 import functools
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
@@ -109,7 +110,7 @@ class BaseStrategy:
         return view_dict[d_key]
 
     def set_up(self):
-        week_day_criterion = (not self.weekdays_allowed) or datetime.strptime(self.asset_book.market_book.trade_day, '%Y-%m-%d').strftime('%A') in self.weekdays_allowed
+        week_day_criterion = (not self.weekdays_allowed) or TradeDateTime(self.asset_book.market_book.trade_day).weekday_name in self.weekdays_allowed
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()

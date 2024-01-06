@@ -39,8 +39,8 @@ class StrategyManager:
     def get_strategies_by_symbol(self, symbol):
         return [strategy for strategy in self.strategies if strategy.symbol == symbol]
 
-    def on_minute_data_pre(self, symbol):
-        strategies = self.get_strategies_by_symbol(symbol)
+    def on_minute_data_pre(self, asset):
+        strategies = self.get_strategies_by_symbol(asset)
         for strategy in strategies:
             strategy.on_minute_data_pre()
 
@@ -48,8 +48,9 @@ class StrategyManager:
         for strategy in self.strategies:
             strategy.process_custom_signal()
 
-    def on_minute_data_post(self):
-        for strategy in self.strategies:
+    def on_minute_data_post(self, asset):
+        strategies = self.get_strategies_by_symbol(asset)
+        for strategy in strategies:
             strategy.on_minute_data_post()
 
     def register_signal(self, signal):

@@ -1,0 +1,71 @@
+{
+  "strategies":[
+    {
+      "id":"HighCallVolumeBuy",
+      "class":"HighCallVolumeBuy",
+      "symbol": "NIFTY",
+      "exit_time":[300, 300],
+      "order_type":"BUY",
+      "spot_instruments":[],
+      "derivative_instruments":[],
+      "max_signal": 5,
+      "triggers_per_signal": 1,
+      "spot_short_targets": [0.002,0.002, 0.002, 0.002],
+      "spot_short_stop_losses":[{"category":"signal_queue","mapped_object": 1,"mapped_fn":"get_signal_high", "kwargs":{}},0.0005, 0.0005,0.0005],
+      "instr_targets":[0.1,0.1, 0.1, 0.1],
+      "instr_stop_losses":[0.04,0.04, 0.04, 0.04],
+      "instr_to_trade" : [["OTM", 1, "CE"]],
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1000,
+              "unique_only": true,
+              "validity_period": 40
+            },
+            "signal_type": "BULLISH_MOMENTUM",
+            "trade_eval": [],
+            "min_activation_strength": 2,
+            "max_activation_strength": 8,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": true
+          },
+          "apply_pre_filter": true
+        }
+      ],
+      "trade_controllers": [
+      {
+        "type": "DownController",
+        "signal_type": "CANDLE_SIGNAL",
+        "roll_factor": 0.0005,
+	    "pnl_multiplier":5
+      }
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+      ],
+      "risk_limits": ["max_movement > 80", "total_losses < -35"]
+    }
+  ],
+  "run_params": {
+    "test_days": ["2023-12-28"],
+    "for_past_days": 60,
+    "to_date": "2023-12-28",
+    "candle_sw": 0,
+    "week_days": [],
+    "record_metric": true,
+    "insight_log": false,
+    "send_to_oms": false
+  }
+}

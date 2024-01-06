@@ -65,12 +65,9 @@ class OptionMatrix:
         self.print_cross_stats = print_cross_stats
 
     def process_avg_volume(self, trade_date, inst_vol_list):
-        print('process_avg_volume', inst_vol_list)
         self.avg_volumes[trade_date] = {}
         for inst_vol in inst_vol_list:
             self.avg_volumes[trade_date][inst_vol['kind']] = inst_vol['avg_volume']
-        print(self.avg_volumes)
-        #print(self.closing_oi)
 
     def process_closing_oi(self, trade_date, inst_oi_list):
         self.closing_oi[trade_date] = {}

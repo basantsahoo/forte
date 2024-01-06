@@ -1,8 +1,10 @@
 import numpy as np
+from entities.base import Signal
+"""
 class Signal:
     def __init__(self, name):
         self.name = name
-
+"""
 class DownCrossOver:
     def __init__(self, name, threshold=0.05, call_back_fn=None):
         self.name = name
@@ -111,9 +113,10 @@ class OptionVolumeIndicator:
 
 
 class OptionMomemntumIndicator:
-    def __init__(self, name,  call_back_fn=None):
+    def __init__(self, name, info_fn=None, call_back_fn=None):
         self.name = name
         self.call_back_fn = call_back_fn
+        self.info_fn = info_fn
         self.last_signal_idx = 0
 
     def evaluate(self, option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta):
@@ -124,4 +127,9 @@ class OptionMomemntumIndicator:
             if len(pos_price_change_list) > 0.5 * len(list(cross_asset_price_delta.values())) and \
                 len(negative_price_change_reverse_asset_list) > 0.5 * len(list(reverse_cross_asset_price_delta.values())):
                 print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
-                self.call_back_fn(Signal(self.name))
+
+                info = self.info_fn()
+                signal = Signal(asset=info['asset'], category=self.name, instrument="",
+                             indicator='', strength=1, signal_time=info['timestamp'],
+                             notice_time=info['timestamp'], info=info)
+                self.call_back_fn(signal)

@@ -48,6 +48,13 @@ class OptionMarketBook:
             self.do_day_set_up(feed['data'][0]['trade_date'])
         if feed['feed_type'] == 'spot':
             self.asset_books[feed['asset']].spot_feed_stream(feed['data'])
+            self.set_curr_tpo(feed['data'][0]['timestamp'])
+            self.strategy_manager.on_minute_data_pre(feed['asset'])
+            if not self.strategy_setup_done:
+                self.set_up_strategies()
+                self.strategy_setup_done = True
+            self.strategy_manager.process_custom_signal()
+            self.strategy_manager.on_minute_data_post(feed['asset'])
         elif feed['feed_type'] == 'option':
             self.asset_books[feed['asset']].option_feed_stream(feed['data'])
 

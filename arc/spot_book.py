@@ -33,6 +33,7 @@ class SpotBook:
         self.asset = asset
         self.spot_processor = SpotProcessor(self)
         self.option_processor = IntradayOptionProcessor(self, asset)
+        self.candle_1_processor = CandleProcessor(self, 1, 0)
         self.candle_5_processor = CandleProcessor(self, 5, 0)
         self.candle_15_processor = CandleProcessor(self, 15, 0)
         self.state_generator = None
@@ -51,16 +52,8 @@ class SpotBook:
 
     def feed_stream(self, feed_list):
         for feed in feed_list:
-            print(feed)
+            #print(feed)
             self.spot_minute_data_stream(feed)
-
-    def set_trade_date_from_time(self, epoch_tick_time):
-        tick_date_time = datetime.fromtimestamp(epoch_tick_time)
-        trade_day = tick_date_time.strftime('%Y-%m-%d')
-        self.trade_day = trade_day
-        self.set_key_levels()
-        self.set_transition_matrix()
-        self.day_setup_done = True
 
     def set_key_levels(self):
         self.weekly_pivots = get_pivot_points(get_prev_week_candle(self.asset, self.trade_day))
@@ -96,27 +89,27 @@ class SpotBook:
         return min(last_wave['start'], last_wave['end'])
 
     def get_n_candle_body_target_up(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         body = big_candle['high'] - big_candle['low']
         return big_candle['high'] + body
 
     def get_n_candle_body_target_down(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         body = big_candle['high'] - big_candle['low']
         return big_candle['low'] - body
 
     def get_last_n_candle_high(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         return big_candle['high']
 
     def get_last_n_candle_low(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         return big_candle['low']
@@ -131,7 +124,7 @@ class SpotBook:
         return self.inflex_detector
 
     def set_transition_matrix(self):
-        self.state_generator = DayFullStateGenerator(self.asset, self.trade_day, self.yday_profile)
+        self.state_generator = DayFullStateGenerator(self.asset, self.asset_book.market_book.trade_day, self.yday_profile)
         try:
             f = open(cache_dir + 'full_state_' + self.asset + '.json')
             data = json.load(f)
@@ -160,24 +153,24 @@ class SpotBook:
             self.pattern_signal(pat)
 
     def spot_minute_data_stream(self, price, iv=None):
-        print('Asset book of==', self.asset, " received price input===", price)
+        #print('Spot book of==', self.asset, " received price input===", price)
         epoch_tick_time = price['timestamp']
         epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
         key_list = ['timestamp','open', 'high', "low", "close"]
         feed_small = {key: price[key] for key in key_list}
         self.spot_processor.process_minute_data(price)
-        self.update_state_transition()
-        self.activity_log.update_last_candle()
-        self.activity_log.determine_level_break(epoch_tick_time)
+        #self.activity_log.update_last_candle()
+        #self.activity_log.determine_level_break(epoch_tick_time)
         if self.last_periodic_update is None:
             self.last_periodic_update = epoch_minute
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
-        self.inflex_detector.on_price_update([price['timestamp'], price['close']])
+        #self.inflex_detector.on_price_update([price['timestamp'], price['close']])
         #self.trend_detector.evaluate()
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()
+        self.candle_1_processor.create_candles()
         for pattern_detector in self.price_action_pattern_detectors:
             pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
@@ -186,8 +179,8 @@ class SpotBook:
         #self.activity_log.process()
 
     def pattern_signal(self, signal: BaseSignal):
-        print(type(signal))
-        #print(signal['category'])
+        #print(type(signal))
+        #print(signal.category)
         if signal.is_option_signal():
             #print('pattern_signal+++++++++++', signal)
             pass

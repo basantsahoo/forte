@@ -10,7 +10,7 @@ import traceback
 import math
 
 from backtest.settings import reports_dir
-from backtest.bt_strategies import *
+from backtest_2024.bt_strategies import *
 from dynamics.profile.market_profile import HistMarketProfileService
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
@@ -141,7 +141,8 @@ if __name__ == '__main__':
     elif args:
         strat_config_file = args[0]
     else:
-        strat_config_file = 'ema_act_with_reverse_tick_nifty.json'
+        #strat_config_file = 'ema_act_with_reverse_tick_nifty.json'
+        strat_config_file = 'buy_option_on_volume.json'
     strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios/" + strat_config_file
     with open(strat_config_path, 'r') as bt_config:
         strat_config = json.load(bt_config)

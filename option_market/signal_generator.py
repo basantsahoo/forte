@@ -27,9 +27,13 @@ class OptionSignalGenerator:
         self.put_down_cross_over = DownCrossOver('PUT_DOWN_CROSS', 0.05, call_back_fn=self.dispatch_signal)
         self.build_up_calculator = BuildUpFollowingMomentum('BUILDUP', call_back_fn=self.dispatch_signal)
         self.option_volume_indicator = OptionVolumeIndicator('OPTION_VOLUME', call_back_fn=self.dispatch_signal)
-        self.bullish_option_momentum_indicator = OptionMomemntumIndicator('BULLISH_MOMENTUM', call_back_fn=self.dispatch_signal)
-        self.bearish_option_momentum_indicator = OptionMomemntumIndicator('BEARISH_MOMENTUM', call_back_fn=self.dispatch_signal)
+        self.bullish_option_momentum_indicator = OptionMomemntumIndicator('BULLISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
+        self.bearish_option_momentum_indicator = OptionMomemntumIndicator('BEARISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
+        self.signal_dispatcher = None
 
+    def get_info(self):
+        return {'timestamp': self.option_matrix.last_time_stamp,
+                'asset': self.option_matrix.asset}
     def generate(self):
         #self.print_instant_info()
         self.print_stats()
@@ -162,7 +166,9 @@ class OptionSignalGenerator:
 
     def dispatch_signal(self, signal):
         #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
-        print('------------------------------------', signal.name)
+        print('------------------------------------', signal.category)
+        if self.signal_dispatcher:
+            self.signal_dispatcher(signal)
 
 
     def generate_intra_day_call_oi_drop_signal(self):
