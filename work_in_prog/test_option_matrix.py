@@ -14,7 +14,6 @@ import traceback
 from config import default_symbols
 from helper.utils import determine_day_open, determine_level_reach, get_overlap, get_percentile, candle_reversal_score
 from dynamics.profile.utils import get_next_lowest_index, get_next_highest_index
-from helper.time_utils import epoch_to_ordinal
 from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
 from option_market.exclude_trade_days import exclude_trade_days
 from db.market_data import get_prev_day_avg_volume

@@ -34,5 +34,7 @@ def get_average_volume_for_day(symbol, t_day):
     near_expiry = NearExpiryWeek(trade_date, symbol)
     days_to_expiry = date_diff(trade_date, near_expiry)
     month_end = int(near_expiry.moth_end_expiry)
-    aggregate_df = aggregate_df[aggregate_df['days_to_expiry'] == days_to_expiry][aggregate_df['month_end_expiry'] == month_end]
-    return aggregate_df.to_dict('records')
+    aggregate_df_f = aggregate_df[aggregate_df['days_to_expiry'] == days_to_expiry][aggregate_df['month_end_expiry'] == month_end]
+    if not aggregate_df_f.shape[0]: #For Saturday and Sunday, we don't have data
+        aggregate_df_f = aggregate_df[aggregate_df['days_to_expiry'] == 6][aggregate_df['month_end_expiry'] == month_end]
+    return aggregate_df_f.to_dict('records')

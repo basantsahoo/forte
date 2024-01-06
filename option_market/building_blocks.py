@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from option_market.analysers import CellAnalyser
+from option_market.analysers import OptionCellAnalyser, SpotCellAnalyser
 
 class Capsule:
     def __init__(self):
@@ -27,8 +27,7 @@ class Capsule:
             self.cross_analyser.compute()
 
 
-
-class Cell:
+class SpotCell:
     def __init__(self, timestamp=None, instrument=None, elder_sibling=None, volume_delta_mode=False):
         """
         :param timestamp:  required for instrument time series
@@ -40,7 +39,48 @@ class Cell:
         self.ion = None
         self.analytics = {}
         self.elder_sibling = elder_sibling
-        self.analyser = CellAnalyser(self)
+        self.analyser = SpotCellAnalyser(self)
+        self.volume_delta_mode = volume_delta_mode
+
+    def update_ion(self, new_ion):
+        self.ion = new_ion
+
+    def fresh_born(self, parent):
+        try:
+            self.elder_sibling = self.get_elder_sibling(parent)
+        except:
+            pass
+
+    def validate_ion_data(self):
+        if self.elder_sibling is not None:
+            if not self.ion.price_is_valid():
+                self.ion.open = self.elder_sibling.ion.open
+                self.ion.high = self.elder_sibling.ion.high
+                self.ion.low = self.elder_sibling.ion.low
+                self.ion.close = self.elder_sibling.ion.close
+        self.analyse()
+
+    def get_elder_sibling(self, parent):
+        all_keys = list(parent.trading_data.keys())
+        prev_key = max([key for key in all_keys if key < self.timestamp])
+        return parent.trading_data[prev_key]
+
+    def analyse(self):
+        self.analyser.compute()
+
+class OptionCell:
+    def __init__(self, timestamp=None, instrument=None, elder_sibling=None, volume_delta_mode=False):
+        """
+        :param timestamp:  required for instrument time series
+        :param instrument: required for cross section of time stamp
+        :param elder_sibling: required for updating values
+        """
+        self.timestamp = timestamp
+        self.instrument = instrument
+        self.ion = None
+        self.analytics = {}
+        self.elder_sibling = elder_sibling
+        self.analyser = OptionCellAnalyser(self)
         self.volume_delta_mode = volume_delta_mode
 
     def update_ion(self, new_ion):
@@ -58,24 +98,16 @@ class Cell:
 
     def validate_ion_data(self):
         if self.elder_sibling is not None:
-            if self.ion.category == 'option':
-                if not self.ion.price_is_valid():
-                    self.ion.price = self.elder_sibling.ion.price
-                if not self.ion.volume_is_valid():
-                    self.ion.volume = self.elder_sibling.ion.volume
-                    self.ion.ref_volume = self.elder_sibling.ion.ref_volume
-                if not self.ion.oi_is_valid():
-                    self.ion.oi = self.elder_sibling.ion.oi
-                if self.volume_delta_mode:
-                    self.ion.volume = self.ion.ref_volume - self.elder_sibling.ion.ref_volume
+            if not self.ion.price_is_valid():
+                self.ion.price = self.elder_sibling.ion.price
+            if not self.ion.volume_is_valid():
+                self.ion.volume = self.elder_sibling.ion.volume
+                self.ion.ref_volume = self.elder_sibling.ion.ref_volume
+            if not self.ion.oi_is_valid():
+                self.ion.oi = self.elder_sibling.ion.oi
+            if self.volume_delta_mode:
+                self.ion.volume = self.ion.ref_volume - self.elder_sibling.ion.ref_volume
                 #self.ion.oi_delta = self.ion.oi - self.elder_sibling.ion.oi
-
-            elif self.ion.category == 'spot':
-                if not self.ion.price_is_valid():
-                    self.ion.open = self.elder_sibling.ion.open
-                    self.ion.high = self.elder_sibling.ion.high
-                    self.ion.low = self.elder_sibling.ion.low
-                    self.ion.close = self.elder_sibling.ion.close
         self.analyse()
 
     def get_elder_sibling(self, parent):

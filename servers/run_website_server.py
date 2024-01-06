@@ -53,7 +53,7 @@ async def socketmain():
     await runner.setup()
     site = web.TCPSite(runner)
     await site.start()
-    await refresh(ns)
+    #await refresh(ns)
     if settings.live_feed:
         loop = asyncio.get_event_loop()
         """

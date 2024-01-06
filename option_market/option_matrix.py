@@ -32,10 +32,10 @@ from datetime import datetime
 from db.market_data import get_daily_option_ion_data
 from collections import OrderedDict
 from entities.trading_day import TradeDateTime, NearExpiryWeek
-from option_market.building_blocks import Capsule, Cell
+from option_market.building_blocks import Capsule
 from option_market.analysers import IntradayCrossAssetAnalyser
 #from option_market.analysers import OptionMatrixAnalyser
-from option_market.throttlers import OptionFeedThrottler, FeedThrottler
+from option_market.throttlers import OptionFeedThrottler, FeedThrottler, SpotFeedThrottler
 from option_market.signal_generator import OptionSignalGenerator
 
 from option_market.data_loader import MultiDayOptionDataLoader
@@ -48,12 +48,14 @@ class OptionMatrix:
     def __init__(self,  asset, feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False, print_cross_stats=False):
         self.asset = asset
         self.capsule = Capsule()
+        self.spot_capsule = Capsule()
         self.instant_compute = instant_compute
         #self.matrix_analyser = OptionMatrixAnalyser(self)
         self.current_date = None
         self.signal_generator = OptionSignalGenerator(self, live_mode)
         self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
         self.data_throttler = FeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
+        self.spot_throttler = SpotFeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
         self.avg_volumes = {}
         self.closing_oi = {}
         self.live_mode = live_mode
@@ -63,10 +65,11 @@ class OptionMatrix:
         self.print_cross_stats = print_cross_stats
 
     def process_avg_volume(self, trade_date, inst_vol_list):
+        print('process_avg_volume', inst_vol_list)
         self.avg_volumes[trade_date] = {}
         for inst_vol in inst_vol_list:
             self.avg_volumes[trade_date][inst_vol['kind']] = inst_vol['avg_volume']
-        #print(self.avg_volumes)
+        print(self.avg_volumes)
         #print(self.closing_oi)
 
     def process_closing_oi(self, trade_date, inst_oi_list):
@@ -92,6 +95,10 @@ class OptionMatrix:
         self.current_date = instrument_data_list[0]['trade_date']
         self.option_data_throttler.throttle(instrument_data_list)
 
+    def process_spot_feed(self, instrument_data_list):
+        self.current_date = instrument_data_list[0]['trade_date']
+        self.spot_throttler.throttle(instrument_data_list)
+
     def process_feed_without_signal(self, instrument_data_list):
         self.check_adjust_closing_oi(instrument_data_list[0]['trade_date'])
         self.current_date = instrument_data_list[0]['trade_date']
@@ -100,8 +107,32 @@ class OptionMatrix:
     def get_day_capsule(self, trade_date):
         return self.capsule.trading_data[trade_date]
 
+    def get_day_spot_capsule(self, trade_date):
+        return self.spot_capsule.trading_data[trade_date]
+
     def get_instrument_capsule(self, trade_date, instrument):
         return self.capsule.trading_data[trade_date].trading_data[instrument]
+
+    def get_spot_instrument_capsule(self, trade_date, instrument):
+        return self.spot_capsule.trading_data[trade_date].trading_data[instrument]
+
+    def add_spot_cells(self, trade_date, cell_list):
+        self.counter += 1
+        if cell_list:
+            self.last_time_stamp = cell_list[0].timestamp
+        timestamp_set = set()
+        if not self.spot_capsule.in_trading_data(trade_date):
+            capsule = Capsule()
+            self.spot_capsule.insert_trading_data(trade_date, capsule)
+        day_capsule = self.get_day_spot_capsule(trade_date)
+        for cell in cell_list:
+            if not day_capsule.in_trading_data(cell.instrument):
+                day_capsule.insert_trading_data(cell.instrument, Capsule())
+            instrument_capsule = self.get_spot_instrument_capsule(trade_date, cell.instrument)
+            instrument_capsule.insert_trading_data(cell.timestamp, cell)
+            cell.fresh_born(instrument_capsule)
+            cell.validate_ion_data()
+            timestamp_set.add(cell.timestamp)
 
     def add_cells(self, trade_date, cell_list):
         self.counter += 1

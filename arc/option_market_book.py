@@ -12,7 +12,13 @@ class OptionMarketBook:
                  trade_day=None,
                  assets=[],
                  record_metric=True,
-                 insight_log=False):
+                 insight_log=False,
+                 live_mode=False,
+                 volume_delta_mode=False,
+                 print_cross_stats=False):
+        self.live_mode = live_mode
+        self.volume_delta_mode = volume_delta_mode
+        self.print_cross_stats = print_cross_stats
         self.day_setup_done = False
         self.trade_day = trade_day
         self.pm = None
@@ -34,19 +40,19 @@ class OptionMarketBook:
             self.asset_books[asset] = OptionAssetBook(self, asset)
 
         if trade_day is not None:
-            self.set_day_tpos(trade_day)
+            self.do_day_set_up(trade_day)
             self.last_tick_timestamp = self.tpo_brackets[0]
-            self.day_setup_done = True
 
-    def set_trade_date_from_time(self, epoch_tick_time):
-        self.last_tick_timestamp = epoch_tick_time
-        tick_date_time = datetime.fromtimestamp(epoch_tick_time)
-        trade_day = tick_date_time.strftime('%Y-%m-%d')
+    def feed_stream(self, feed):
+        if self.trade_day != feed['data'][0]['trade_date']:
+            self.do_day_set_up(feed['data'][0]['trade_date'])
+        if feed['feed_type'] == 'spot':
+            self.asset_books[feed['asset']].spot_feed_stream(feed['data'])
+        elif feed['feed_type'] == 'option':
+            self.asset_books[feed['asset']].option_feed_stream(feed['data'])
+
+    def do_day_set_up(self, trade_day):
         self.trade_day = trade_day
-        self.set_day_tpos(trade_day)
-        self.day_setup_done = True
-
-    def set_day_tpos(self, trade_day):
         start_str = trade_day + " 09:15:00"
         ib_end_str = trade_day + " 10:15:00"
         end_str = trade_day + " 15:30:00"
@@ -57,6 +63,10 @@ class OptionMarketBook:
         self.market_start_ts = start_ts
         self.market_close_ts = end_ts
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
+        for asset_book in self.asset_books.values():
+            asset_book.day_change_notification(trade_day)
+
+        self.day_setup_done = True
 
     def update_periodic(self):
         #print('update periodic')
@@ -69,31 +79,6 @@ class OptionMarketBook:
 
     def get_asset_book(self, symbol):
         return self.asset_books[symbol]
-
-    def hist_spot_feed(self, hist_feed):
-        print('hist_feed_input++++++++++++', len(hist_feed))
-        for price in hist_feed:
-            epoch_tick_time = price['timestamp']
-            epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
-            key_list = ['timestamp', 'open', 'high', "low", "close"]
-            feed_small = {key: price[key] for key in key_list}
-            if not self.day_setup_done:
-                self.set_trade_date_from_time(epoch_tick_time)
-            #self.market_data[epoch_minute] = feed_small
-            asset_book = self.get_asset_book(price['symbol'])
-            asset_book.spot_processor.process_minute_data(price)
-        #self.last_tick = feed_small
-        self.set_curr_tpo(epoch_minute)
-        asset_book.spot_minute_data_stream(price)
-        if self.last_periodic_update is None:
-            self.last_periodic_update = epoch_minute
-            self.update_periodic()
-        self.set_up_strategies()
-        self.candle_5_processor.create_candles()
-        self.candle_15_processor.create_candles()
-        for candle_detector in self.candle_pattern_detectors:
-            candle_detector.evaluate(notify=False)
-        asset_book.spot_processor.process_spot_signals(notify=False)
 
     def spot_minute_data_stream(self, price, iv=None):
         print('insight price_input_stream++++++++++++++++++++++++++++++++++++ insight book')
@@ -128,19 +113,6 @@ class OptionMarketBook:
         self.strategy_manager.process_custom_signal()
         self.strategy_manager.on_minute_data_post()
 
-    def option_minute_data_stream(self, option_data):
-        #print('option price_input_stream+++++++++++++++++++++++++++++++++++++++++++++++++++++++++ insight book')
-        #print(option_data)
-        epoch_tick_time = option_data['timestamp']
-        if not self.day_setup_done:
-            self.set_trade_date_from_time(epoch_tick_time)
-        asset_book = self.get_asset_book(option_data['symbol'])
-        asset_book.option_processor.process_input_stream(option_data)
-
-    def hist_option_feed(self, hist_feed):
-        for option_data in hist_feed:
-            asset_book = self.get_asset_book(option_data['symbol'])
-            asset_book.option_processor.process_input_stream(option_data, notify=False)
 
 
     def pattern_signal(self, signal):

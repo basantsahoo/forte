@@ -402,6 +402,8 @@ def get_daily_option_data(asset, trade_day, data='close', kind=None):
 def get_daily_option_ion_data(asset, trade_day):
     asset = helper_utils.get_nse_index_symbol(asset)
     stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, CONCAT(close, '|', volume, '|', oi) as ion  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(asset, trade_day)
+    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, open, high, low, close,  volume, oi FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(
+        asset, trade_day)
     conn = engine.connect()
     df = pd.read_sql_query(stmt_1, conn)
     conn.close()
@@ -442,7 +444,8 @@ def get_prev_day_avg_volume(asset, trade_day):
 
 def get_daily_spot_ion_data(asset, trade_day):
     asset = helper_utils.get_nse_index_symbol(asset)
-    stmt_1 = "select timestamp, CONCAT(open, '|', high, '|', low, '|', close) as ion  from minute_data where symbol = '{0}' and date = date('{1}') order by timestamp asc"
+    #stmt_1 = "select timestamp, CONCAT(open, '|', high, '|', low, '|', close) as ion  from minute_data where symbol = '{0}' and date = date('{1}') order by timestamp asc"
+    stmt_1 = "select timestamp, open, high, low, close  from minute_data where symbol = '{0}' and date = date('{1}') order by timestamp asc"
     conn = engine.connect()
     df = pd.read_sql_query(stmt_1.format(asset, trade_day), conn)
     conn.close()

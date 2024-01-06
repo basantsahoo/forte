@@ -1,5 +1,5 @@
 from entities.trading_day import TradeDateTime
-from option_market.building_blocks import Cell, OptionIon, SpotIon
+from option_market.building_blocks import OptionCell, OptionIon, SpotIon, SpotCell
 
 
 class FeedThrottler:
@@ -17,7 +17,10 @@ class FeedThrottler:
 
     def update_ion_cell(self, current_frame, instrument, ion):
         if instrument not in self.ion_dict:
-            ion_cell = Cell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.volume_delta_mode)
+            if ion.category == 'option':
+                ion_cell = OptionCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.volume_delta_mode)
+            else:
+                ion_cell = SpotCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.volume_delta_mode)
             ion_cell.update_ion(ion)
             self.ion_dict[instrument] = ion_cell
         else:
@@ -73,6 +76,13 @@ class FeedThrottler:
             self.update_ion_cell(current_frame, instrument, ion)
 
 """
+
+class SpotFeedThrottler(FeedThrottler):
+    def push(self):
+        if self.ion_dict:
+            self.matrix.add_spot_cells(self.current_date, list(self.ion_dict.values()))
+            self.ion_dict = {}
+
 
 class OptionFeedThrottler(FeedThrottler):
     def push(self):

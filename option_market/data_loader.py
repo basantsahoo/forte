@@ -23,6 +23,7 @@ class SpotIonBuilder:
 
 class MultiDayOptionDataLoader:
     def __init__(self, asset="NIFTY", trade_days=[]):
+        self.asset = asset
         self.option_ions = OrderedDict()
         self.spot_ions = OrderedDict()
         self.last_ts = None
@@ -45,22 +46,24 @@ class MultiDayOptionDataLoader:
             curr_ts = next_option_feed['timestamp']
             #print(self.last_ts, curr_ts)
 
-            if self.last_ts is not None and curr_ts != self.last_ts:
+            if curr_ts != self.last_ts:
                 #print('inside loop')
 
                 try:
-                    next_spot_feed = self.spot_ions[day_key].get(self.last_ts, {'instrument': 'spot', 'timestamp': self.last_ts, 'trade_date': day_key, 'ion': '0|0|0|0'})
+                    next_spot_feed = self.spot_ions[day_key].get(curr_ts, {'instrument': 'spot', 'timestamp': self.last_ts, 'trade_date': day_key, 'ion': '0|0|0|0'})
+                    next_spot_feed['asset'] = self.asset
                     self.last_ts = curr_ts
-                    return {'feed_type': 'spot', 'feed_list': [next_spot_feed]}
+                    return {'feed_type': 'spot', 'asset': self.asset, 'data': [next_spot_feed]}
                 except:
                     pass
             next_feed = self.option_ions[day_key].pop(0)
+            next_feed['asset'] = self.asset
             self.last_ts = curr_ts
 
             if not self.option_ions[day_key]:
                 del self.option_ions[day_key]
                 del self.spot_ions[day_key]
-            return {'feed_type': 'option', 'feed_list': [next_feed]}
+            return {'feed_type': 'option', 'asset': self.asset, 'data': [next_feed]}
 
         else:
             self.data_present = False

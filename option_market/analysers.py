@@ -4,7 +4,7 @@ from config import oi_denomination
 import numpy as np
 from option_market.technical.cross_over import OptionVolumeIndicator
 
-class CellAnalyser:
+class OptionCellAnalyser:
     def __init__(self, cell):
         self.cell = cell
 
@@ -45,6 +45,19 @@ class CellAnalyser:
             self.cell.analytics['cumulative_volume'] = self.cell.ion.volume
             self.cell.analytics['vwap'] = self.cell.ion.price
             self.cell.analytics['vwap_delta'] = 0
+
+    def update_analytics(self, field, value):
+        self.cell.analytics[field] = value
+
+class SpotCellAnalyser:
+    def __init__(self, cell):
+        self.cell = cell
+
+    def compute(self):
+        if self.cell.elder_sibling is not None:
+            self.cell.analytics['price_delta'] = self.cell.ion.close - self.cell.elder_sibling.ion.close
+        else:
+            self.cell.analytics['price_delta'] = 0
 
     def update_analytics(self, field, value):
         self.cell.analytics[field] = value
@@ -111,7 +124,7 @@ class IntradayCrossAssetAnalyser:
             t_2_call_oi = call_oi_series[-2] if len(call_oi_series) > 2 else start_call_oi
             t_2_put_oi = put_oi_series[-2] if len(put_oi_series) > 2 else start_put_oi
             t_2_total_oi = total_oi_series[-2] if len(total_oi_series) > 2 else start_total_oi
-
+            print('prev_median_total_volume', prev_median_total_volume)
             call_volume_scale = OptionVolumeIndicator.calc_scale(call_volume_series, prev_median_total_volume * 0.5,
                                                           day_normalization_factor)
             put_volume_scale = OptionVolumeIndicator.calc_scale(put_volume_series, prev_median_total_volume * 0.5,
