@@ -19,6 +19,7 @@ class OptionAssetBook:
         self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
         avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
         self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)
+        self.spot_book.day_change_notification(trade_day)
         #self.spot_book.set_transition_matrix()
 
     def spot_feed_stream(self, feed_list):

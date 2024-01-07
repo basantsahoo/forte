@@ -254,7 +254,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     def eval_entry_criteria(self):
         test_criteria = self.trade_eval
-        curr_ts = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
+        curr_ts = self.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         if not test_criteria:
             return True
         #print(criteria)

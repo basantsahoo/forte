@@ -168,3 +168,11 @@ class OptionMatrix:
             self.signal_generator.generate()
 
 
+    def get_last_tick(self, inst):
+        day_capsule = self.get_day_capsule(self.current_date)
+        instrument_capsule = day_capsule.trading_data.get(inst)
+        last_tick = instrument_capsule.last_tick
+        candle = last_tick.ion.to_candle()
+        candle['timestamp'] = last_tick.timestamp
+        return candle
+

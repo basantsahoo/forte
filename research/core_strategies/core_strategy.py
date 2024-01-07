@@ -45,6 +45,7 @@ class BaseStrategy:
                  trade_cut_off_time=60,
                  force_exit_ts = None
     ):
+        print('entry_signal_queues====',entry_signal_queues)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.symbol = symbol
         self.order_type = order_type
@@ -161,15 +162,15 @@ class BaseStrategy:
 
     def get_last_tick(self, instr='SPOT'):
         if self.inst_is_option(instr):
-            last_candle = self.asset_book.option_processor.get_last_tick(instr)
+            last_candle = self.asset_book.option_matrix.get_last_tick(instr)
         else:
-            last_candle = self.asset_book.spot_processor.last_tick
+            last_candle = self.asset_book.spot_book.spot_processor.last_tick
         return last_candle
 
     def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
         for trigger in triggers:
             if self.record_metric:
-                mkt_parms = self.asset_book.activity_log.get_market_params()
+                mkt_parms = self.asset_book.spot_book.activity_log.get_market_params()
                 if self.signal_params:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
@@ -177,7 +178,7 @@ class BaseStrategy:
         updated_symbol = self.asset_book.asset + "_" + trade_inst if self.inst_is_option(trade_inst) else self.asset_book.asset
         cover = triggers[0].get('cover', 0)
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'legs': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
-        print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_processor.last_tick['timestamp']))
+        print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))
         self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
 
     def trigger_exit(self, signal_info):
@@ -293,7 +294,7 @@ class BaseStrategy:
     def pre_signal_filter(self, signal={}):
         satisfied = not self.signal_filters
         if not satisfied:
-            market_params = self.asset_book.activity_log.get_market_params()
+            market_params = self.asset_book.spot_book.activity_log.get_market_params()
             #print(market_params)
             d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure',0)
 
@@ -319,7 +320,7 @@ class BaseStrategy:
         #print('inside record_params', matched_pattern)
         #print(self.market_book.activity_log.locate_price_region())
         if self.record_metric:
-            price_region = self.asset_book.activity_log.locate_price_region()
+            price_region = self.asset_book.spot_book.activity_log.locate_price_region()
             for key, val in price_region.items():
                 self.signal_params['pat_' + key] = val
             for pattern_queue_item in self.entry_signal_pipeline.neuron_dict.values():

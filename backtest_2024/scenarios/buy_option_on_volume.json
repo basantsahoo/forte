@@ -4,15 +4,15 @@
       "id":"HighCallVolumeBuy",
       "class":"HighCallVolumeBuy",
       "symbol": "NIFTY",
-      "exit_time":[300, 300],
+      "exit_time":[15, 15],
       "order_type":"BUY",
       "spot_instruments":[],
       "derivative_instruments":[],
-      "max_signal": 5,
+      "max_signal": 10,
       "triggers_per_signal": 1,
-      "spot_short_targets": [0.002,0.002, 0.002, 0.002],
+      "spot_short_targets": [],
       "spot_short_stop_losses":[{"category":"signal_queue","mapped_object": 1,"mapped_fn":"get_signal_high", "kwargs":{}},0.0005, 0.0005,0.0005],
-      "instr_targets":[0.1,0.1, 0.1, 0.1],
+      "instr_targets":[0.12,0.12, 0.12, 0.12 ],
       "instr_stop_losses":[0.04,0.04, 0.04, 0.04],
       "instr_to_trade" : [["OTM", 1, "CE"]],
       "entry_signal_queues": [
@@ -27,15 +27,15 @@
             },
             "signal_type": "BULLISH_MOMENTUM",
             "trade_eval": [],
-            "min_activation_strength": 2,
-            "max_activation_strength": 8,
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
             "flush_hist": false,
             "activation_subscriptions": [],
             "signal_subscriptions": [],
             "high_threshold_subscriptions": [],
             "low_threshold_subscriptions": [],
             "reversal_subscriptions": [],
-            "register_instr": false,
+            "register_instr": true,
             "update_watcher_info": {},
             "reset_watcher_info": {},
             "neuron_log": true
@@ -44,12 +44,7 @@
         }
       ],
       "trade_controllers": [
-      {
-        "type": "DownController",
-        "signal_type": "CANDLE_SIGNAL",
-        "roll_factor": 0.0005,
-	    "pnl_multiplier":5
-      }
+
       ],
       "entry_switch": {
         },
@@ -59,12 +54,12 @@
     }
   ],
   "run_params": {
-    "test_days": ["2023-12-28"],
-    "for_past_days": 60,
-    "to_date": "2023-12-28",
+    "test_days": [],
+    "for_past_days": 15,
+    "to_date": "2023-12-27",
     "candle_sw": 0,
     "week_days": [],
-    "record_metric": true,
+    "record_metric": false,
     "insight_log": false,
     "send_to_oms": false
   }

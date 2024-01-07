@@ -45,7 +45,6 @@ class SpotBook:
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
-        self.trade_day = None
         self.mc = MarkovChainSecondLevel()
         self.last_periodic_update = None
         self.periodic_update_sec = 60
@@ -55,12 +54,15 @@ class SpotBook:
             #print(feed)
             self.spot_minute_data_stream(feed)
 
+    def day_change_notification(self, trade_day):
+        self.set_key_levels()
+
     def set_key_levels(self):
-        self.weekly_pivots = get_pivot_points(get_prev_week_candle(self.asset, self.trade_day))
-        self.yday_profile = get_nth_day_profile_data(self.asset, self.trade_day, 1).to_dict('records')[0]
-        self.day_before_profile = get_nth_day_profile_data(self.asset, self.trade_day, 2).to_dict('records')[0]
+        self.weekly_pivots = get_pivot_points(get_prev_week_candle(self.asset, self.asset_book.market_book.trade_day))
+        self.yday_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 1).to_dict('records')[0]
+        self.day_before_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 2).to_dict('records')[0]
         self.intraday_waves = {}
-        prev_key_levels = get_prev_day_key_levels(self.asset, self.trade_day)
+        prev_key_levels = get_prev_day_key_levels(self.asset, self.asset_book.market_book.trade_day)
 
         range_to_watch = [self.yday_profile['low'] * 0.97, self.yday_profile['high'] * 1.03]
         existing_supports = json.loads(prev_key_levels[1])

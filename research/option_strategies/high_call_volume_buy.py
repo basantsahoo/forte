@@ -12,7 +12,7 @@ class HighCallVolumeBuy(BaseStrategy):
 
 
     def register_instrument(self, signal):
-        if (signal['category'], signal['indicator']) == get_signal_key('TECH_PRICE_BELOW_EMA_5'):
+        if (signal.category, signal.indicator) == get_signal_key('BULLISH_MOMENTUM'):
             self.derivative_instruments = []
             last_tick = self.get_last_tick('SPOT')
             ltp = last_tick['close']

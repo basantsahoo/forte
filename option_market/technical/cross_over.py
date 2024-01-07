@@ -121,15 +121,17 @@ class OptionMomemntumIndicator:
 
     def evaluate(self, option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta):
         #print(option_volume_scale, cross_asset_price_delta)
-        if option_volume_scale > 1.5:
+        trigger_vol_scale = 3
+        price_change_th = 0.7
+        if option_volume_scale > trigger_vol_scale:
             pos_price_change_list = [x for x in list(cross_asset_price_delta.values()) if x > 0]
             negative_price_change_reverse_asset_list = [x for x in list(reverse_cross_asset_price_delta.values()) if x < 0]
-            if len(pos_price_change_list) > 0.5 * len(list(cross_asset_price_delta.values())) and \
-                len(negative_price_change_reverse_asset_list) > 0.5 * len(list(reverse_cross_asset_price_delta.values())):
+            if len(pos_price_change_list) > price_change_th * len(list(cross_asset_price_delta.values())) and \
+                len(negative_price_change_reverse_asset_list) > price_change_th * len(list(reverse_cross_asset_price_delta.values())):
                 print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
 
                 info = self.info_fn()
-                signal = Signal(asset=info['asset'], category=self.name, instrument="",
-                             indicator='', strength=1, signal_time=info['timestamp'],
+                signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
+                             indicator=self.name, strength=1, signal_time=info['timestamp'],
                              notice_time=info['timestamp'], info=info)
                 self.call_back_fn(signal)

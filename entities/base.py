@@ -41,7 +41,7 @@ class BaseSignal:
 class Signal(BaseSignal):
     def __init__(self,
                  asset:Optional[str],
-                 category: Literal["PRICE_ACTION_PATTERN", "TECHNICAL", "PRICE"],
+                 category: Literal["PRICE_ACTION_PATTERN", "TECHNICAL", "PRICE", "OPTION"],
                  indicator: str,
                  instrument: Literal['SPOT', "OPTION"],
                  signal_time: Optional[int],

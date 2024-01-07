@@ -54,14 +54,14 @@ class StartegyBackTester:
                 end = datetime.now()
                 print('strategy init took', (end - start).total_seconds())
             market_book.strategy_manager = strategy_manager
-            start = datetime.now()
             data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
             while data_loader.data_present:
                 feed_ = data_loader.generate_next_feed()
                 if feed_:
+                    pm.feed_stream(feed_)
                     market_book.feed_stream(feed_)
-                    time.sleep(0.005)
-
+                    #time.sleep(0.005)
+            print(pm.position_book.items())
             try:
                 for strategy_tuple, trade_details in pm.position_book.items():
                     #print(strategy)
@@ -74,6 +74,7 @@ class StartegyBackTester:
                         _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                         _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
                         trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
+                        print(trigger_details)
                         _tmp = {**_tmp, **trigger_details}
                         signal_custom_details = strategy_signal_generator.tradable_signals[trade_id].custom_features
                         signal_params = ['pattern_height']
@@ -94,7 +95,7 @@ class StartegyBackTester:
 
         end_time = datetime.now()
         print((end_time - start_time).total_seconds())
-        # print(results)
+        print(results)
         return results
 
 
@@ -118,20 +119,6 @@ class StartegyBackTester:
         return final_result
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     argv = sys.argv[1:]
     kwargs = {kw[0]: kw[1] for kw in [ar.split('=') for ar in argv if ar.find('=') > 0]}
@@ -150,6 +137,7 @@ if __name__ == '__main__':
     back_tester = StartegyBackTester(strat_config)
     results = back_tester.run()
     results = pd.DataFrame(results)
+    print('results=====',results)
     part_results = results  # [['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
     print('total P&L', part_results['realized_pnl'].sum())
     part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))

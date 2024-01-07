@@ -15,7 +15,7 @@ human_machine_signal_map = {
     'TICK_PRICE_SIGNAL': ('PRICE', 'TICK_PRICE'),
     'CANDLE_SIGNAL': ('PRICE', 'CANDLE'),
     'STRAT_EMA_BREAK_DOWN_5': ('STRAT', 'EMA_BREAK_DOWN_5_ENTRY'),
-
+    'BULLISH_MOMENTUM': ('OPTION', 'BULLISH_MOMENTUM'),
     'WEEKLY_LEVEL_VA_H_POC_MID': ('WEEKLY_LEVEL_REACH', 'va_h_poc_mid')
 }
 

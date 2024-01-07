@@ -142,8 +142,11 @@ class OptionSignalGenerator:
 
         put_vwap = {inst: inst_data['vwap_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'PE'}
         call_vwap = {inst: inst_data['vwap_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'CE'}
-        self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_vwap, put_vwap)
-        self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_vwap, call_vwap)
+        put_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'PE'}
+        call_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'CE'}
+
+        self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_price_delta, put_price_delta)
+        self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
 
     def run_external_generators_old(self):
         if self.option_matrix.last_time_stamp is not None:
@@ -166,7 +169,7 @@ class OptionSignalGenerator:
 
     def dispatch_signal(self, signal):
         #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
-        print('------------------------------------', signal.category)
+        print('------------------------------------', signal.indicator)
         if self.signal_dispatcher:
             self.signal_dispatcher(signal)
 

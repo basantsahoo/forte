@@ -32,6 +32,19 @@ class AlgoPortfolioManager:
         #pass
         self.set_dummy_broker()
 
+    def feed_stream(self, feed):
+        if feed['feed_type'] == 'spot':
+            for data_item in feed['data']:
+                self.ltps[feed['asset']] = data_item['close']
+                self.last_times[feed['asset']] = data_item['timestamp']
+        if feed['feed_type'] == 'option':
+            for data_item in feed['data']:
+                symbol = feed['asset'] + "_" + data_item['instrument']
+                self.ltps[symbol] = data_item['close']
+                self.last_times[symbol] = data_item['timestamp']
+        self.evaluate_risk()
+        self.monitor_position()
+
     def price_input(self, input):
         #print('price input', datetime.fromtimestamp(input['timestamp']), "======", input)
         self.ltps[input['symbol']] = input['close']

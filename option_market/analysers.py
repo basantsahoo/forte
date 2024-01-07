@@ -184,6 +184,7 @@ class IntradayCrossAssetAnalyser:
                 # 'vol_scale': np.round(float(cell.ion.volume / median_volume), 2),
                 #'price_delta': np.round(cell.analytics.get('price_delta', 0), 2),
                 'vwap_delta': np.round(cell.analytics['vwap_delta'], 2),
+                'price_delta': np.round(cell.analytics['price_delta'], 2),
             }
 
         self.capsule.analytics[timestamp] = change_dct

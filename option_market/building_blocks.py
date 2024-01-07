@@ -7,12 +7,14 @@ class Capsule:
         self.analytics = {}
         self.transposed_data = {}
         self.cross_analyser = None
+        self.last_tick = None
 
     def in_trading_data(self, key):
         return key in list(self.trading_data.keys())
 
     def insert_trading_data(self, key, data):
         self.trading_data[key] = data
+        self.last_tick = data
 
     def insert_analytics(self, key, data):
         self.analytics[key] = data
@@ -148,6 +150,9 @@ class OptionIon:
             return self.price
         elif field == 'volume':
             return self.volume
+
+    def to_candle(self):
+        return {'open': self.price, 'high': self.price, 'low': self.price, 'close': self.price}
 
     @classmethod
     def from_raw(cls, ion_data):
