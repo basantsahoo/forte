@@ -10,11 +10,10 @@ import traceback
 import math
 
 from backtest.settings import reports_dir
-from backtest.bt_strategies import *
 from dynamics.profile.market_profile import HistMarketProfileService
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
-from arc.market_book import MarketBook
+from arc_old_keep.market_book import MarketBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
 from arc.strategy_manager import StrategyManager
@@ -163,8 +162,6 @@ if __name__ == '__main__':
         strat_config_file = 'bkp_cheap_option.json'
     strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios/" + strat_config_file
     #strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios_yaml/" + strat_config_file
-    import yaml
-    from loaders.yml_loader import YAMLLoader
     with open(strat_config_path, 'r') as bt_config:
         strat_config = json.load(bt_config)
         #strat_config = yaml.load(bt_config, YAMLLoader)

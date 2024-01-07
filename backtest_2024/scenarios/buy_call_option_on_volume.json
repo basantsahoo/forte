@@ -12,8 +12,8 @@
       "triggers_per_signal": 1,
       "spot_short_targets": [],
       "spot_short_stop_losses":[{"category":"signal_queue","mapped_object": 1,"mapped_fn":"get_signal_high", "kwargs":{}},0.0005, 0.0005,0.0005],
-      "instr_targets":[0.12,0.12, 0.12, 0.12 ],
-      "instr_stop_losses":[0.04,0.04, 0.04, 0.04],
+      "instr_targets":[0.1,0.1, 0.1, 0.1],
+      "instr_stop_losses":[0.04, 0.04, 0.04, 0.04],
       "instr_to_trade" : [["OTM", 1, "CE"]],
       "entry_signal_queues": [
         {
@@ -23,7 +23,7 @@
               "q_type": "stream",
               "size": 1000,
               "unique_only": true,
-              "validity_period": 40
+              "validity_period": 10
             },
             "signal_type": "BULLISH_MOMENTUM",
             "trade_eval": [],
@@ -55,8 +55,8 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 15,
-    "to_date": "2023-12-27",
+    "for_past_days": 45,
+    "to_date": "2023-11-30",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": false,

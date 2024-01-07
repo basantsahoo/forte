@@ -35,26 +35,39 @@ class FeedThrottler:
         for instrument_data in instrument_data_list:
             trade_date = instrument_data['trade_date']
             self.current_date = trade_date
+            self.check_time_to_push(instrument_data['timestamp'])
             epoc_minute = TradeDateTime.get_epoc_minute(instrument_data['timestamp'])
             current_frame = int(int(epoc_minute/(self.aggregation_factor * 60)) * self.aggregation_factor * 60)
+            """
             if self.last_frame_start != current_frame:
                 #print(current_frame)
                 self.push()
                 self.pushed_frame_start = self.last_frame_start
                 self.last_frame_start = current_frame
-            instrument = instrument_data['instrument']
-            if instrument == 'spot':
-                ion = SpotIon.from_raw(instrument_data['ion'])
-            else:
-                ion = OptionIon.from_raw(instrument_data['ion'])
-                closing_oi = self.matrix.closing_oi[self.matrix.current_date].get(instrument, 0)
-                if closing_oi:
-                    ion.past_closing_oi = closing_oi
-                else: #Set closing oi as current oi becuase data is not present earlier
-                    ion.past_closing_oi = ion.oi
-                    self.matrix.closing_oi[self.matrix.current_date][instrument] = ion.oi
-                # ion.past_avg_volume = self.matrix.avg_volumes[self.matrix.current_date].get(instrument,1)
-            self.update_ion_cell(current_frame, instrument, ion)
+            """
+            if current_frame >= self.last_frame_start:
+                instrument = instrument_data['instrument']
+                if instrument == 'spot':
+                    ion = SpotIon.from_raw(instrument_data['ion'])
+                else:
+                    ion = OptionIon.from_raw(instrument_data['ion'])
+                    closing_oi = self.matrix.closing_oi[self.matrix.current_date].get(instrument, 0)
+                    if closing_oi:
+                        ion.past_closing_oi = closing_oi
+                    else: #Set closing oi as current oi becuase data is not present earlier
+                        ion.past_closing_oi = ion.oi
+                        self.matrix.closing_oi[self.matrix.current_date][instrument] = ion.oi
+                    # ion.past_avg_volume = self.matrix.avg_volumes[self.matrix.current_date].get(instrument,1)
+                self.update_ion_cell(current_frame, instrument, ion)
+
+    def check_time_to_push(self, timestamp):
+        epoc_minute = TradeDateTime.get_epoc_minute(timestamp)
+        current_frame = int(int(epoc_minute / (self.aggregation_factor * 60)) * self.aggregation_factor * 60)
+        if self.last_frame_start != current_frame:
+            # print(current_frame)
+            self.push()
+            self.pushed_frame_start = self.last_frame_start
+            self.last_frame_start = current_frame
 
     def push(self):
         if self.ion_dict:

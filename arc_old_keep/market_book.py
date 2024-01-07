@@ -2,9 +2,7 @@ import numpy as np
 from datetime import datetime
 import time
 from dynamics.profile import utils as profile_utils
-from dynamics.constants import INDICATOR_TREND
-from arc.strategy_manager import StrategyManager
-from arc.asset_book import AssetBook
+from arc_old_keep.asset_book import AssetBook
 from entities.trading_day import TradeDateTime
 
 class MarketBook:

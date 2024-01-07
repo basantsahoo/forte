@@ -51,6 +51,7 @@ class StrategyManager:
     def on_minute_data_post(self, asset):
         strategies = self.get_strategies_by_symbol(asset)
         for strategy in strategies:
+            #strategy.on_minute_data_pre()
             strategy.on_minute_data_post()
 
     def register_signal(self, signal):

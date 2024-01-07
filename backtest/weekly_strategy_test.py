@@ -10,11 +10,9 @@ import traceback
 import math
 
 from backtest.settings import reports_dir
-from backtest.bt_strategies import *
-from dynamics.profile.market_profile import HistMarketProfileService
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
-from arc.insight_weekly import InsightBook
+from arc_old_keep.insight_weekly import InsightBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
 

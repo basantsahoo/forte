@@ -4,7 +4,7 @@ from datetime import datetime
 import time
 from arc.algo_portfolio import AlgoPortfolioManager
 #from infrastructure.arc.insight import InsightBook
-from arc.insight import InsightBook
+from arc_old_keep.insight import InsightBook
 import helper.utils as helper_utils
 #from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 

@@ -128,7 +128,7 @@ class OptionMomemntumIndicator:
             negative_price_change_reverse_asset_list = [x for x in list(reverse_cross_asset_price_delta.values()) if x < 0]
             if len(pos_price_change_list) > price_change_th * len(list(cross_asset_price_delta.values())) and \
                 len(negative_price_change_reverse_asset_list) > price_change_th * len(list(reverse_cross_asset_price_delta.values())):
-                print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
+                #print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
 
                 info = self.info_fn()
                 signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",

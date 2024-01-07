@@ -64,6 +64,11 @@ class OptionMatrix:
         self.volume_delta_mode = volume_delta_mode
         self.print_cross_stats = print_cross_stats
 
+    def frame_change_action(self, timestamp):
+        self.spot_throttler.check_time_to_push(timestamp)
+        self.option_data_throttler.check_time_to_push(timestamp)
+        self.data_throttler.check_time_to_push(timestamp)
+
     def process_avg_volume(self, trade_date, inst_vol_list):
         self.avg_volumes[trade_date] = {}
         for inst_vol in inst_vol_list:
@@ -88,13 +93,16 @@ class OptionMatrix:
                     self.closing_oi[trade_date][inst] = 0
 
     def process_option_feed(self, instrument_data_list):
+        #print('process_option_feed+++++++++++++++++')
         self.check_adjust_closing_oi(instrument_data_list[0]['trade_date'])
         self.current_date = instrument_data_list[0]['trade_date']
         self.option_data_throttler.throttle(instrument_data_list)
 
     def process_spot_feed(self, instrument_data_list):
+        #print('process_spot_feed+++++++++++++++++')
         self.current_date = instrument_data_list[0]['trade_date']
         self.spot_throttler.throttle(instrument_data_list)
+
 
     def process_feed_without_signal(self, instrument_data_list):
         self.check_adjust_closing_oi(instrument_data_list[0]['trade_date'])
@@ -116,7 +124,9 @@ class OptionMatrix:
     def add_spot_cells(self, trade_date, cell_list):
         self.counter += 1
         if cell_list:
+
             self.last_time_stamp = cell_list[0].timestamp
+            #print('add_spot_cells++++', self.last_time_stamp)
         timestamp_set = set()
         if not self.spot_capsule.in_trading_data(trade_date):
             capsule = Capsule()
@@ -176,3 +186,5 @@ class OptionMatrix:
         candle['timestamp'] = last_tick.timestamp
         return candle
 
+    def subscribe_to_clock(self, clock):
+        clock.subscribe_to_frame_change(self.frame_change_action)

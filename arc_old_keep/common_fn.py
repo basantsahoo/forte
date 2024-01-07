@@ -2,7 +2,6 @@ import numpy as np
 import json
 from datetime import datetime
 import time
-from collections import OrderedDict
 from talib import stream
 
 from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
@@ -11,8 +10,6 @@ from dynamics.profile import utils as profile_utils
 from dynamics.constants import INDICATOR_TREND
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.trend.intraday_trend import IntradayTrendCalculator
-from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
-from dynamics.patterns.trend_detector import TrendDetector
 from dynamics.patterns.candle_pattern_detector import CandlePatternDetector
 from servers.server_settings import cache_dir
 # Transitions
@@ -21,20 +18,20 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import MarketActivity
-from arc.intraday_option_processor import IntradayOptionProcessor
+from arc_old_keep.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
-from arc.weekly_processor import WeeklyProcessor
-from db.market_data import get_prev_week_minute_data_by_start_day, get_curr_week_minute_data_by_start_day
-from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 
-
-class InsightBook:
-    def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0, insight_log=False):
+class CommonFN:
+    def __init__(self, ticker, trade_day=None, record_metric=True, candle_sw=0):
         self.spot_processor = SpotProcessor(self, ticker)
         self.option_processor = IntradayOptionProcessor(self, ticker)
         self.candle_5_processor = CandleProcessor(self, 5, 0)
         self.candle_15_processor = CandleProcessor(self, 15, 0)
+        # self.candle_5_processor.on_new_candle = self.on_new_5_min_candle
+        #self.candle_15_processor.on_new_candle = self.on_new_15_min_candle
+        #self.candle_5_queue = []
+        #self.candle_15_queue = []
         self.trend = {}
         self.activity_log = MarketActivity(self)
         self.inflex_detector = PriceInflexDetectorForTrend(ticker, fpth=0.001, spth = 0.001,  callback=None)
@@ -51,7 +48,6 @@ class InsightBook:
         self.strategies = []
         self.ticker = ticker
         self.record_metric = record_metric
-        self.log_enabled = insight_log
         self.run_aggregator=False
         self.curr_tpo = None
         #self.last_tick = None
@@ -62,7 +58,6 @@ class InsightBook:
         self.transition_data = {}
         self.mc = MarkovChainSecondLevel()
         self.state_prob_calculator = EmpiricalDistribution(self.transition_data)
-        self.weekly_processor = WeeklyProcessor(self, ticker)
         if trade_day is not None:
             self.set_day_tpos(trade_day)
             self.set_key_levels()
@@ -89,7 +84,6 @@ class InsightBook:
         self.market_start_ts = start_ts
         self.market_close_ts = end_ts
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
-        #self.set_key_levels()
 
     def set_key_levels(self):
         ticker = self.ticker
@@ -98,13 +92,14 @@ class InsightBook:
         self.day_before_profile = get_nth_day_profile_data(ticker, self.trade_day, 2).to_dict('records')[0]
         self.intraday_waves = {}
         prev_key_levels = get_prev_day_key_levels(ticker, self.trade_day)
-
         range_to_watch = [self.yday_profile['low'] * 0.97, self.yday_profile['high'] * 1.03]
         existing_supports = json.loads(prev_key_levels[1])
+        #print(existing_supports)
         existing_resistances = json.loads(prev_key_levels[2])
         self.supports_to_watch = [x for x in existing_supports if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
         self.resistances_to_watch = [x for x in existing_resistances if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
-        self.weekly_processor.set_up(self.trade_day)
+        #print('self.supports_to_watch' , self.supports_to_watch)
+        #print('self.resistances_to_watch', self.resistances_to_watch)
 
     def set_transition_matrix(self):
         self.state_generator = DayFullStateGenerator(self.ticker, self.trade_day, self.yday_profile)
@@ -114,9 +109,8 @@ class InsightBook:
             self.transition_data = MCPreprocessor().get_processed_data(data, symbol=self.ticker, start_tpo=1, end_tpo=None)
             self.mc.from_data(self.transition_data, "unique_transitions_fill_break")
             self.state_prob_calculator = EmpiricalDistribution(self.transition_data,"unique_transitions_fill_break")
-        except Exception as e:
-            print('Exception in set_transition_matrix')
-            print(e)
+        except:
+            pass
 
     def add_strategy(self, strategy_class, strategy_kwarg={}):
         strategy = strategy_class(self, **strategy_kwarg)
@@ -126,24 +120,25 @@ class InsightBook:
         self.strategies.append(strategy)
 
     def remove_strategy(self, strategy_to_remove):
-        print('remove_strategy', len(self.strategies))
         for strategy in self.strategies:
             if strategy.id == strategy_to_remove.id:
-                #strategy.insight_book = None
+                strategy.insight_book = None
                 self.strategies.remove(strategy)
                 break
-        print('remove_strategy', len(self.strategies))
 
     def update_periodic(self):
         #print('update periodic')
         self.intraday_trend.calculate_measures()
         self.activity_log.update_periodic()
+        #print(self.market_insights)
         #print('self.intraday_trend.trend_params', self.intraday_trend.trend_params)
-        pass
+        #self.market_insights = {**self.market_insights, **self.intraday_trend.trend_params}
+
 
     def set_up_strategies(self):
         self.activity_log.set_up()
         for strategy in self.strategies:
+            print('strategy setup+++++')
             strategy.set_up()
 
     def hist_spot_feed(self, hist_feed):
@@ -159,21 +154,20 @@ class InsightBook:
             self.spot_processor.process_minute_data(price)
         #self.last_tick = feed_small
         self.set_curr_tpo(epoch_minute)
-        self.update_state_transition()
         self.activity_log.update_last_candle()
         self.activity_log.determine_level_break(epoch_tick_time)
         if self.last_periodic_update is None:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
+        self.update_state_transition()
         self.set_up_strategies()
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()
         for candle_detector in self.candle_pattern_detectors:
             candle_detector.evaluate(notify=False)
-        self.spot_processor.process_spot_signals(notify=False)
 
     def spot_minute_data_stream(self, price, iv=None):
-        #print('insight price_input_stream++++++++++++++++++++++++++++++++++++ insight book')
+        #print('insight price_input_stream+++++ insight book')
         epoch_tick_time = price['timestamp']
         epoch_minute = int(epoch_tick_time // 60 * 60) + 1
         key_list = ['timestamp','open', 'high', "low", "close"]
@@ -185,10 +179,7 @@ class InsightBook:
         #self.market_data[epoch_minute] = feed_small
         self.spot_processor.process_minute_data(price)
         self.set_curr_tpo(epoch_minute)
-        for strategy in self.strategies:
-            strategy.on_minute_data_pre()
-        self.update_state_transition()
-        if len(self.spot_processor.spot_ts.items()) == 1: #== 2 : #and self.open_type is None:
+        if len(self.spot_processor.spot_ts.items()) == 2 : #and self.open_type is None:
             #self.activity_log.determine_day_open()
             self.set_up_strategies()
         self.activity_log.update_last_candle()
@@ -198,28 +189,20 @@ class InsightBook:
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
-        self.inflex_detector.on_price_update([price['timestamp'], price['close']])
-        #print('input price', [price['timestamp'], price['close']])
-
-        self.trend_detector.evaluate()
+        self.update_state_transition()
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()
-        for pattern_detector in self.price_action_pattern_detectors:
-            #print('pattern_detector.evaluate')
-            pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
-            #print('candle patterns=====')
             candle_detector.evaluate()
-        self.spot_processor.process_spot_signals()
-        self.weekly_processor.process_minute_data(price)
+
         #self.activity_log.process()
 
         for strategy in self.strategies:
             strategy.process_custom_signal()
-            strategy.on_minute_data_post()
+            strategy.evaluate()
 
     def option_minute_data_stream(self, option_data):
-        #print('option price_input_stream+++++++++++++++++++++++++++++++++++++++++++++++++++++++++ insight book')
+        #print('price_input_stream+++++ insight book')
         epoch_tick_time = option_data['timestamp']
         if not self.day_setup_done:
             self.set_trade_date_from_time(epoch_tick_time)
@@ -228,7 +211,7 @@ class InsightBook:
     def hist_option_feed(self, hist_feed):
         for option_data in hist_feed:
             self.option_processor.process_input_stream(option_data, notify=False)
-
+            
     def update_state_transition(self):
         last_state = self.state_generator.curr_state
         if last_state == '':
@@ -246,9 +229,6 @@ class InsightBook:
 
     def pattern_signal(self, signal):
         #print(signal)
-        if signal['category'] == 'WEEKLY_LEVEL_REACH':
-            #print('pattern_signal+++++++++++', signal)
-            pass
         self.activity_log.register_signal(signal)
         if signal['indicator'] == INDICATOR_TREND:
             #print('TREND+++++', signal)
@@ -283,46 +263,7 @@ class InsightBook:
             self.pm.data_interface.notify_pattern_signal(self.ticker, signal)
 
         #print('self.intraday_trend')
-
-
-    def get_signal_generator_from_id(self, strat_id):
-        strategy_signal_generator = None
-        for strategy in self.strategies:
-            if strategy.is_aggregator:
-                strategy_signal_generator = strategy.get_signal_generator_from_id(strat_id)
-            elif strategy.id == strat_id:
-                    strategy_signal_generator = strategy
-            if strategy_signal_generator is not None:
-                break
-        return strategy_signal_generator
-
-    def market_close_for_day(self):
-        for strategy in self.strategies:
-            strategy.market_close_for_day()
-        self.pm.market_close_for_day()
-
-    def clean(self):
-        self.inflex_detector = None
-        for detector in self.price_action_pattern_detectors:
-            detector.insight_book = None
-        for detector in self.candle_pattern_detectors:
-            detector.insight_book = None
-        self.price_action_pattern_detectors = []
-        self.candle_pattern_detectors = []
-
-        self.trend_detector.insight_book = None
-        self.trend_detector = None
-        self.intraday_trend.insight_book = None
-        self.intraday_trend = None
-        self.market_data = None
-        self.pm = None
-        self.profile_processor = None
-        self.strategies = []
-        self.state_generator = None
-        self.transition_data = {}
-        self.mc = None
-        self.state_prob_calculator = None
-
+        #print(self.market_insights)
 
     def get_prior_wave(self, epoch_minute=None):
         all_waves_end_time = list(self.intraday_waves.keys())
@@ -330,37 +271,21 @@ class InsightBook:
         wave_idx = profile_utils.get_next_lowest_index(all_waves_end_time, epoch_minute) if epoch_minute else -1
         return self.intraday_waves[all_waves_end_time[wave_idx]]
 
-    def get_prev_sph(self):
+    def get_dist_prev_sph(self):
         last_wave = self.get_prior_wave()
-        #return {'level': max(last_wave['start'], last_wave['end'])}
-        return max(last_wave['start'], last_wave['end'])
+        return {'level': max(last_wave['start'], last_wave['end'])}
 
-    def get_prev_spl(self):
+    def get_dist_prev_spl(self):
         last_wave = self.get_prior_wave()
-        #return {'level': min(last_wave['start'], last_wave['end'])}
-        return min(last_wave['start'], last_wave['end'])
+        return {'level': min(last_wave['start'], last_wave['end'])}
 
-    def get_n_candle_body_target_up(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
-        small_candles = candle_processor.get_last_n_candles(n)
-        big_candle = convert_to_candle(small_candles)
-        body = big_candle['high'] - big_candle['low']
-        return big_candle['high'] + body
-
-    def get_n_candle_body_target_down(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
-        small_candles = candle_processor.get_last_n_candles(n)
-        big_candle = convert_to_candle(small_candles)
-        body = big_candle['high'] - big_candle['low']
-        return big_candle['low'] - body
-
-    def get_last_n_candle_high(self, period=5, n=1):
+    def get_dist_last_n_candle_high(self, period=5, n=1):
         candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         return big_candle['high']
 
-    def get_last_n_candle_low(self, period=5, n=1):
+    def get_dist_last_n_candle_low(self, period=5, n=1):
         candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
@@ -377,6 +302,17 @@ class InsightBook:
         output = stream.SMA(close, timeperiod=period)
         return output
 
+    def get_signal_generator_from_id(self, strat_id):
+        strategy_signal_generator = None
+        for strategy in self.strategies:
+            if strategy.is_aggregator:
+                strategy_signal_generator = strategy.get_signal_generator_from_id(strat_id)
+            elif strategy.id == strat_id:
+                    strategy_signal_generator = strategy
+            if strategy_signal_generator is not None:
+                break
+        return strategy_signal_generator
+
     def get_inflex_pattern_df(self, period=None):
         return self.inflex_detector
 
@@ -386,3 +322,26 @@ class InsightBook:
 
     def get_time_since_market_open(self):
         return (self.spot_processor.last_tick['timestamp'] - self.market_start_ts) / 60
+
+    def clean(self):
+        self.inflex_detector = None
+        for detector in self.price_action_pattern_detectors:
+            detector.insight_book = None
+        for detector in self.candle_pattern_detectors:
+            detector.insight_book = None
+        self.price_action_pattern_detectors = []
+        self.candle_pattern_detectors = []
+
+        self.trend_detector.insight_book = None
+        self.trend_detector = None
+        self.intraday_trend.insight_book = None
+        self.intraday_trend = None
+        self.market_data = None
+        self.market_insights = {}
+        self.pm = None
+        self.profile_processor = None
+        self.strategies = []
+        self.state_generator = None
+        self.transition_data = {}
+        self.mc = None
+        self.state_prob_calculator = None

@@ -111,7 +111,7 @@ class IntradayCrossAssetAnalyser:
             prev_call_median_volume = sum([value for key, value in self.avg_volumes.items() if key[-2::] == 'CE'])
             prev_put_median_volume = sum([value for key, value in self.avg_volumes.items() if key[-2::] == 'PE'])
             prev_median_total_volume = prev_call_median_volume + prev_put_median_volume
-            day_normalization_factor = 1 if len(total_volume_series) < 3000 else (np.median(total_volume_series) / prev_median_total_volume)
+            day_normalization_factor = 1 if len(total_volume_series) < 30 else (np.median(total_volume_series) / prev_median_total_volume)
 
             start_call_oi = self.get_total_call_closing_oi()
             start_put_oi = self.get_total_put_closing_oi()

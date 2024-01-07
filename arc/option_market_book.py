@@ -2,7 +2,6 @@ import numpy as np
 from datetime import datetime
 import time
 from dynamics.profile import utils as profile_utils
-from dynamics.constants import INDICATOR_TREND
 from arc.strategy_manager import StrategyManager
 from arc.option_asset_book import OptionAssetBook
 from entities.trading_day import TradeDateTime
@@ -47,16 +46,18 @@ class OptionMarketBook:
         if self.trade_day != feed['data'][0]['trade_date']:
             self.do_day_set_up(feed['data'][0]['trade_date'])
         if feed['feed_type'] == 'spot':
-            self.asset_books[feed['asset']].spot_feed_stream(feed['data'])
+            self.asset_books[feed['asset']].spot_feed_stream_1(feed['data'])
             self.set_curr_tpo(feed['data'][0]['timestamp'])
-            self.strategy_manager.on_minute_data_pre(feed['asset'])
+            #self.strategy_manager.on_minute_data_pre(feed['asset'])
+            self.asset_books[feed['asset']].spot_feed_stream_2(feed['data'])
             if not self.strategy_setup_done:
                 self.set_up_strategies()
                 self.strategy_setup_done = True
             self.strategy_manager.process_custom_signal()
-            self.strategy_manager.on_minute_data_post(feed['asset'])
         elif feed['feed_type'] == 'option':
             self.asset_books[feed['asset']].option_feed_stream(feed['data'])
+            #self.strategy_manager.on_minute_data_post(feed['asset'])
+        #print('market_book feed_stream', feed)
 
     def do_day_set_up(self, trade_day):
         self.trade_day = trade_day
@@ -75,52 +76,14 @@ class OptionMarketBook:
 
         self.day_setup_done = True
 
-    def update_periodic(self):
-        #print('update periodic')
-        for asset_book in self.asset_books.values():
-            print(asset_book)
-            asset_book.update_periodic()
-
     def set_up_strategies(self):
-        self.strategy_manager.set_up_strategies()
+        if not self.strategy_setup_done:
+            self.strategy_manager.set_up_strategies()
+            self.strategy_setup_done = True
+
 
     def get_asset_book(self, symbol):
         return self.asset_books[symbol]
-
-    def spot_minute_data_stream(self, price, iv=None):
-        print('insight price_input_stream++++++++++++++++++++++++++++++++++++ insight book')
-        print(price)
-        epoch_tick_time = price['timestamp']
-        epoch_minute = int(epoch_tick_time // 60 * 60) + 1
-        key_list = ['timestamp','open', 'high', "low", "close"]
-        feed_small = {key: price[key] for key in key_list}
-        #self.last_tick = feed_small
-        #print(epoch_tick_time)
-        if not self.day_setup_done:
-            self.set_trade_date_from_time(epoch_tick_time)
-
-        self.last_tick_timestamp = max(self.last_tick_timestamp, epoch_tick_time)
-        #self.market_data[epoch_minute] = feed_small
-
-        asset_book = self.get_asset_book(price['symbol'])
-        if not asset_book.day_setup_done:
-            asset_book.set_trade_date_from_time(epoch_tick_time)
-        asset_book.spot_processor.process_minute_data(price)
-        self.set_curr_tpo(epoch_minute)
-        self.strategy_manager.on_minute_data_pre(price['symbol'])
-        asset_book.spot_minute_data_stream(price)
-        if not self.strategy_setup_done:
-            self.set_up_strategies()
-            self.strategy_setup_done = True
-        if self.last_periodic_update is None:
-            self.last_periodic_update = epoch_minute
-        if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
-            self.last_periodic_update = epoch_minute
-            self.update_periodic()
-        self.strategy_manager.process_custom_signal()
-        self.strategy_manager.on_minute_data_post()
-
-
 
     def pattern_signal(self, signal):
         self.strategy_manager.register_signal(signal)

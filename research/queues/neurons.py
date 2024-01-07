@@ -97,27 +97,6 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             self.post_log()
         return status_change
 
-    def check_activation_status_change_o(self):
-        print('check_activation_status_change')
-        registered = False
-        if (len(self.signal_queue.signals) >= self.min_activation_strength) and (len(self.signal_queue.signals) <= self.max_activation_strength):
-            new_status = True
-        else:
-            new_status = False
-        if new_status != self.active:
-            self.log("status changed. new activation stats=====", new_status)
-            if new_status:
-                if self.register_instr:
-                    self.manager.strategy.register_instrument(self.signal_queue.get_signal(-1))
-                    registered = True
-                self.create_watchers()
-            else:
-                self.remove_watchers()
-            self.active = new_status
-            self.forward_queue.append([self.forward_activation_status_change, new_status])
-            self.post_log()
-        if new_status and not registered and self.register_instr == 'always':
-            self.manager.strategy.register_instrument(self.signal_queue.get_signal(-1))
 
     def create_watchers(self):
         if self.update_watcher_info:

@@ -45,7 +45,7 @@ class BaseStrategy:
                  trade_cut_off_time=60,
                  force_exit_ts = None
     ):
-        print('entry_signal_queues====',entry_signal_queues)
+        #print('entry_signal_queues====',entry_signal_queues)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.symbol = symbol
         self.order_type = order_type
@@ -118,7 +118,7 @@ class BaseStrategy:
 
     def initiate_signal_trades(self):
         print('initiate_signal_trades+++++++++++++++++')
-        print(self.spot_instruments)
+        #print(self.spot_instruments)
         print(self.derivative_instruments)
         all_inst = self.spot_instruments + self.derivative_instruments
         for trade_inst in all_inst:
@@ -179,6 +179,8 @@ class BaseStrategy:
         cover = triggers[0].get('cover', 0)
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'legs': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))
+        print('at Same time Option Matrix clock================',
+              datetime.fromtimestamp(self.asset_book.option_matrix.last_time_stamp))
         self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
 
     def trigger_exit(self, signal_info):

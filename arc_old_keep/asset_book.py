@@ -1,14 +1,11 @@
 import numpy as np
 import json
 from datetime import datetime
-import time
-from collections import OrderedDict
 from talib import stream
 
 from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
 from helper.utils import get_pivot_points, convert_to_candle
 from dynamics.profile import utils as profile_utils
-from dynamics.constants import INDICATOR_TREND
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
@@ -21,7 +18,7 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import AssetActivityLog
-from arc.intraday_option_processor import IntradayOptionProcessor
+from arc_old_keep.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
 from entities.trading_day import TradeDateTime

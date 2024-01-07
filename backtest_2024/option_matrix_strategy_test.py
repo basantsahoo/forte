@@ -21,6 +21,7 @@ import helper.utils as helper_utils
 from arc.strategy_manager import StrategyManager
 from entities.trading_day import TradeDateTime, NearExpiryWeek
 from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
+from option_market.exclude_trade_days import exclude_trade_days
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 
@@ -61,7 +62,7 @@ class StartegyBackTester:
                     pm.feed_stream(feed_)
                     market_book.feed_stream(feed_)
                     #time.sleep(0.005)
-            print(pm.position_book.items())
+            #print(pm.position_book.items())
             try:
                 for strategy_tuple, trade_details in pm.position_book.items():
                     #print(strategy)
@@ -112,6 +113,7 @@ class StartegyBackTester:
                 start_date_index = min(end_date_index + for_past_days, len(all_days))
                 days = all_days[end_date_index:start_date_index]
                 days = [x for x in days if (datetime.strptime(x, '%Y-%m-%d').strftime('%A') if type(x) == str else x.strftime('%A')) in self.strat_config['run_params']['week_days']] if self.strat_config['run_params']['week_days'] else days
+                days = [x for x in days if x.strftime('%Y-%m-%d') not in exclude_trade_days['NIFTY']]
                 print(days)
                 self.strat_config['run_params']['test_days'] = days
             result = self.back_test(symbol)
@@ -129,7 +131,7 @@ if __name__ == '__main__':
         strat_config_file = args[0]
     else:
         #strat_config_file = 'ema_act_with_reverse_tick_nifty.json'
-        strat_config_file = 'buy_option_on_volume.json'
+        strat_config_file = 'buy_call_option_on_volume.json'
     strat_config_path = str(Path(__file__).resolve().parent) + "/scenarios/" + strat_config_file
     with open(strat_config_path, 'r') as bt_config:
         strat_config = json.load(bt_config)

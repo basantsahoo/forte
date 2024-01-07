@@ -1,14 +1,10 @@
 import numpy as np
 import json
-from datetime import datetime
-import time
-from collections import OrderedDict
 from talib import stream
 
 from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
 from helper.utils import get_pivot_points, convert_to_candle
 from dynamics.profile import utils as profile_utils
-from dynamics.constants import INDICATOR_TREND
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
@@ -21,7 +17,7 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import AssetActivityLog
-from arc.intraday_option_processor import IntradayOptionProcessor
+from arc_old_keep.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
 from entities.base import BaseSignal, Signal
@@ -49,10 +45,24 @@ class SpotBook:
         self.last_periodic_update = None
         self.periodic_update_sec = 60
 
-    def feed_stream(self, feed_list):
+    def feed_stream_2(self, feed_list):
+        """
         for feed in feed_list:
             #print(feed)
+            self.spot_processor.process_minute_data(feed)
+        """
+        pass
+    def feed_stream_1(self, feed_list):
+        for feed in feed_list:
+            #print(feed)
+            self.spot_processor.process_minute_data(feed)
             self.spot_minute_data_stream(feed)
+
+    def frame_change_action(self, timestamp):
+        pass
+
+    def subscribe_to_clock(self, clock):
+        clock.subscribe_to_frame_change(self.frame_change_action)
 
     def day_change_notification(self, trade_day):
         self.set_key_levels()
@@ -160,7 +170,6 @@ class SpotBook:
         epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
         key_list = ['timestamp','open', 'high', "low", "close"]
         feed_small = {key: price[key] for key in key_list}
-        self.spot_processor.process_minute_data(price)
         #self.activity_log.update_last_candle()
         #self.activity_log.determine_level_break(epoch_tick_time)
         if self.last_periodic_update is None:
