@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 import json
 import requests
 from urllib import parse
@@ -12,6 +14,7 @@ from infrastructure.fyers.settings import (
 )
 import pyotp
 import hashlib
+from servers.server_settings import token_dir
 # https://github.com/FyersDev/fyers-api-sample-code/blob/sample_v3/v3/python/login/auto_login_totp.py
 
 # Client Info (ENTER YOUR OWN INFO HERE!! Data varies from users and app types)
@@ -147,56 +150,84 @@ def validate_authcode(app_id_hash, auth_code):
     except Exception as e:
         return [ERROR, e]
 
+def genereate_token():
+    fyer_access_token = ''
+    try:
+        send_otp_result = send_login_otp(fy_id=FY_ID, app_id=APP_ID_TYPE)
+        if send_otp_result[0] != SUCCESS:
+            print(f"send_login_otp failure - {send_otp_result[1]}")
+            sys.exit()
+        else:
+            print("send_login_otp success")
+
+        request_key = send_otp_result[1]
+        if send_otp_result[0] != SUCCESS:
+            return ''
+        totp = pyotp.TOTP(totp_key).now()
+        verify_totp_result = verify_totp(request_key=request_key, totp=totp)
+        if verify_totp_result[0] != SUCCESS:
+            print(f"verify_totp_result failure - {verify_totp_result[1]}")
+            sys.exit()
+        else:
+            print("verify_totp_result success")
+
+        request_key_2 = verify_totp_result[1]
+        verify_pin_result = verify_PIN(request_key=request_key_2, pin=pin)
+
+        if verify_pin_result[0] != SUCCESS:
+            print(f"verify_pin_result failure - {verify_pin_result[1]}")
+            sys.exit()
+        else:
+            print("verify_pin_result success")
+
+        token_result = token(
+            fy_id=FY_ID, app_id=app_id.split("-")[0], redirect_uri=redirect_uri, app_type=APP_TYPE,
+            access_token=verify_pin_result[1]
+        )
+        if token_result[0] != SUCCESS:
+            print(f"token_result failure - {token_result[1]}")
+            sys.exit()
+        else:
+            print("token_result success")
+
+
+        # Step 6 - Get API V2 access token from validating auth code
+        auth_code = token_result[1]
+        m = hashlib.sha256()
+        string_to_hash = app_id + ":" + secret_key
+        string_to_hash = string_to_hash.encode('utf-8')
+        m.update(string_to_hash)
+        app_id_hash =  m.hexdigest()
+
+        validate_authcode_result = validate_authcode(
+            app_id_hash=app_id_hash, auth_code=auth_code
+        )
+        #print(validate_authcode_result)
+        fyer_access_token = validate_authcode_result[1]
+    except:
+        pass
+    f = open(token_dir + "token.txt", "w")
+    f.write(fyer_access_token)
+    f.close()
+
+
+
 def get_access_token():
-    send_otp_result = send_login_otp(fy_id=FY_ID, app_id=APP_ID_TYPE)
-    if send_otp_result[0] != SUCCESS:
-        print(f"send_login_otp failure - {send_otp_result[1]}")
-        sys.exit()
+    token = None
+    try:
+        fl = token_dir + "token.txt"
+        t = datetime.fromtimestamp(os.path.getmtime(fl))
+        hours = divmod((datetime.now() - t).total_seconds(), 3600)
+        if hours[0] >= 3:
+            os.remove(fl)
+        else:
+            f = open(fl, "r")
+            token = f.read()
+            f.close()
+    except Exception as e:
+        print(e)
+    if token:
+        return token
     else:
-        print("send_login_otp success")
-
-    request_key = send_otp_result[1]
-    if send_otp_result[0] != SUCCESS:
-        return ''
-    totp = pyotp.TOTP(totp_key).now()
-    verify_totp_result = verify_totp(request_key=request_key, totp=totp)
-    if verify_totp_result[0] != SUCCESS:
-        print(f"verify_totp_result failure - {verify_totp_result[1]}")
-        sys.exit()
-    else:
-        print("verify_totp_result success")
-
-    request_key_2 = verify_totp_result[1]
-    verify_pin_result = verify_PIN(request_key=request_key_2, pin=pin)
-
-    if verify_pin_result[0] != SUCCESS:
-        print(f"verify_pin_result failure - {verify_pin_result[1]}")
-        sys.exit()
-    else:
-        print("verify_pin_result success")
-
-    token_result = token(
-        fy_id=FY_ID, app_id=app_id.split("-")[0], redirect_uri=redirect_uri, app_type=APP_TYPE,
-        access_token=verify_pin_result[1]
-    )
-    if token_result[0] != SUCCESS:
-        print(f"token_result failure - {token_result[1]}")
-        sys.exit()
-    else:
-        print("token_result success")
-
-
-    # Step 6 - Get API V2 access token from validating auth code
-    auth_code = token_result[1]
-    m = hashlib.sha256()
-    string_to_hash = app_id + ":" + secret_key
-    string_to_hash = string_to_hash.encode('utf-8')
-    m.update(string_to_hash)
-    app_id_hash =  m.hexdigest()
-
-    validate_authcode_result = validate_authcode(
-        app_id_hash=app_id_hash, auth_code=auth_code
-    )
-    #print(validate_authcode_result)
-    access_token = validate_authcode_result[1]
-    return access_token
+        genereate_token()
+        return get_access_token()

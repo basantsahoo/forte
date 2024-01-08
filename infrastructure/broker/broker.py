@@ -21,8 +21,8 @@ class BrokerLive:
 
     def get_funds(self):
         funds_resp = self.fyers_feed.fyers.funds()
-        print('get_funds', funds_resp)
-        print(funds_resp['fund_limit'])
+        #print('get_funds', funds_resp)
+        print('get_funds=====', funds_resp['fund_limit'])
         total_funds = 0
         for bal in funds_resp['fund_limit']:
             if bal['title'] in ['Limit at start of the day', 'Realized Profit and Loss']:
