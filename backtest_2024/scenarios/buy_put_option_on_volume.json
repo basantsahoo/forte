@@ -8,7 +8,7 @@
       "order_type":"BUY",
       "spot_instruments":[],
       "derivative_instruments":[],
-      "max_signal": 10,
+      "max_signal": 600,
       "triggers_per_signal": 1,
       "spot_short_targets": [],
       "spot_short_stop_losses":[],
@@ -28,17 +28,17 @@
             "signal_type": "BEARISH_MOMENTUM",
             "trade_eval": [],
             "min_activation_strength": 1,
-            "max_activation_strength": 1,
+            "max_activation_strength": 10000,
             "flush_hist": false,
             "activation_subscriptions": [],
             "signal_subscriptions": [],
             "high_threshold_subscriptions": [],
             "low_threshold_subscriptions": [],
             "reversal_subscriptions": [],
-            "register_instr": true,
+            "register_instr": "always",
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": true
+            "neuron_log": false
           },
           "apply_pre_filter": true
         }
@@ -50,7 +50,7 @@
         },
       "signal_filters" : [
       ],
-      "risk_limits": ["max_movement > 80", "total_losses < -35"]
+      "risk_limits": ["max_movement > 80", "total_losses < -350000"]
     }
   ],
   "run_params": {
@@ -59,8 +59,8 @@
     "to_date": "2023-12-27",
     "candle_sw": 0,
     "week_days": [],
-    "record_metric": false,
+    "record_metric": true,
     "insight_log": false,
-    "send_to_oms": true
+    "send_to_oms": false
   }
 }

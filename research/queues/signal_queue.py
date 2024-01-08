@@ -23,6 +23,7 @@ class SignalQueue:
 
     def new_signal(self, signal):
         if self.unique_only and (signal.signal_time == self.last_signal_time):
+            print('received duplicate signal')
             return False
         else:
             if self.meets_threshold(signal):

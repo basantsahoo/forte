@@ -25,8 +25,8 @@ class AlgoPortfolioManager:
 
     """required for storing trades in trader db"""
     def set_dummy_broker(self):
-        #pass
-        self.dummy_broker = DummyBroker()
+        pass
+        #self.dummy_broker = DummyBroker()
 
     def set_live(self):
         #pass
@@ -63,7 +63,7 @@ class AlgoPortfolioManager:
 
     def strategy_entry_signal(self, signal_info, option_signal=False):
         print('########################################## algo port strategy_entry_signal')
-        print("algo port signal info===", signal_info)
+        #print("algo port signal info===", signal_info)
 
         symbol = signal_info['symbol']
         strategy_id = signal_info['strategy_id']
@@ -94,11 +94,11 @@ class AlgoPortfolioManager:
                 self.position_book[(symbol, strategy_id, signal_id)]['order_book'].append([self.last_times[symbol], trigger_seq, order_type, qty, self.ltps[symbol]])
                 if self.dummy_broker is not None:
                     self.dummy_broker.place_order(strategy_id, signal_id, trigger_seq, symbol, side, self.ltps[symbol], qty, trade_date, order_time)
-        print("algo port position book===", self.position_book)
+        #print("algo port position book===", self.position_book)
 
     def strategy_exit_signal(self, signal_info, candle=None, option_signal=False):
         print('##########################################algo port strategy_exit_signal')
-        print(signal_info)
+        #print(signal_info)
 
         symbol = signal_info['symbol']
         strategy_id = signal_info['strategy_id']

@@ -202,15 +202,23 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         res = {}
         pattern = self.signal_queue.get_signal(pos)
         if pattern.info.get('price_list', None) is not None:
-            res['pattern_price'] = pattern['info']['price_list']
+            res['pattern_price'] = pattern.info['price_list']
         if pattern.info.get('time_list', None) is not None:
-            res['pattern_time'] = pattern['info']['time_list']
+            res['pattern_time'] = pattern.info['time_list']
         if pattern.info.get('time', None) is not None:
-            res['pattern_time'] = pattern['info']['time']
+            res['pattern_time'] = pattern.info['time']
         if pattern.info.get('candle', None) is not None:
-            res['pattern_price'] = pattern['info']['candle']
+            res['pattern_price'] = pattern.info['candle']
         if pattern.info.get('time_list', None) is not None:
-            res['pattern_time'] = pattern['info']['time_list']
+            res['pattern_time'] = pattern.info['time_list']
+        if pattern.info.get('call_volume_scale', None) is not None:
+            res['call_volume_scale'] = pattern.info['call_volume_scale']
+        if pattern.info.get('put_volume_scale', None) is not None:
+            res['put_volume_scale'] = pattern.info['put_volume_scale']
+        if pattern.info.get('sum_call_volume', None) is not None:
+            res['sum_call_volume'] = pattern.info['sum_call_volume']
+        if pattern.info.get('sum_put_volume', None) is not None:
+            res['sum_put_volume'] = pattern.info['sum_put_volume']
 
         if hasattr(pattern, 'strike'):
             res['strike'] = pattern['strike']

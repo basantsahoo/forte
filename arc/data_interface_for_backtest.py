@@ -8,7 +8,7 @@ class AlgorithmBacktestIterface:
         self.market_cache = Cache(cache_dir + 'oms_cache')
         self.oms_manager = OMSManager(place_live_orders=True, market_cache=self.market_cache)
 
-    def notify_pattern_signal(self, ticker, pattern, pattern_match_idx):
+    def notify_pattern_signal(self, ticker, pattern, pattern_match_idx=None):
         pass
 
     def place_entry_order(self, symbol, order_side, qty, strategy_id, order_id, order_type, option_flag,cover ):

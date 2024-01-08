@@ -7,7 +7,7 @@ from collections import OrderedDict
 from entities.trading_day import TradeDateTime
 from tabulate import tabulate
 from talib import stream
-from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator, OptionMomemntumIndicator
+from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator, OptionMomentumIndicator
 from config import oi_denomination
 from beepy import beep
 from subprocess import call
@@ -27,13 +27,21 @@ class OptionSignalGenerator:
         self.put_down_cross_over = DownCrossOver('PUT_DOWN_CROSS', 0.05, call_back_fn=self.dispatch_signal)
         self.build_up_calculator = BuildUpFollowingMomentum('BUILDUP', call_back_fn=self.dispatch_signal)
         self.option_volume_indicator = OptionVolumeIndicator('OPTION_VOLUME', call_back_fn=self.dispatch_signal)
-        self.bullish_option_momentum_indicator = OptionMomemntumIndicator('BULLISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
-        self.bearish_option_momentum_indicator = OptionMomemntumIndicator('BEARISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
+        self.bullish_option_momentum_indicator = OptionMomentumIndicator('BULLISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
+        self.bearish_option_momentum_indicator = OptionMomentumIndicator('BEARISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
         self.signal_dispatcher = None
 
     def get_info(self):
+        day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
+        aggregate_stats = day_capsule.cross_analyser.get_aggregate_stats(self.option_matrix.last_time_stamp)
+
         return {'timestamp': self.option_matrix.last_time_stamp,
-                'asset': self.option_matrix.asset}
+                'asset': self.option_matrix.asset,
+                'call_volume_scale':aggregate_stats['call_volume_scale'],
+                'put_volume_scale': aggregate_stats['put_volume_scale'],
+                'sum_call_volume': aggregate_stats['sum_call_volume'],
+                'sum_put_volume': aggregate_stats['sum_put_volume']
+                }
     def generate(self):
         #self.print_instant_info()
         self.print_stats()

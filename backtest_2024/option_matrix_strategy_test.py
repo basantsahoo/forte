@@ -58,7 +58,7 @@ class StartegyBackTester:
             data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
             while data_loader.data_present:
                 feed_ = data_loader.generate_next_feed()
-                print(feed_)
+                #print(feed_)
                 if feed_:
                     pm.feed_stream(feed_)
                     market_book.feed_stream(feed_)
@@ -76,7 +76,7 @@ class StartegyBackTester:
                         _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                         _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
                         trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
-                        print(trigger_details)
+                        #print(trigger_details)
                         _tmp = {**_tmp, **trigger_details}
                         signal_custom_details = strategy_signal_generator.tradable_signals[trade_id].custom_features
                         signal_params = ['pattern_height']
@@ -97,7 +97,7 @@ class StartegyBackTester:
 
         end_time = datetime.now()
         print((end_time - start_time).total_seconds())
-        print(results)
+        #print(results)
         return results
 
 

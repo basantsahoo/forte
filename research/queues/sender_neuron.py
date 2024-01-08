@@ -28,7 +28,7 @@ class SenderNeuron:
             #print(self.forward_queue)
             self.feed_forward_log(msg)
         for fwd in self.forward_queue:
-            print(fwd)
+            #print(fwd)
             fn = fwd[0]
             args = fwd[1]
             if type(args) == bool or type(args) == Signal:

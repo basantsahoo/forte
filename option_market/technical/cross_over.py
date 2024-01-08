@@ -1,10 +1,17 @@
 import numpy as np
 from entities.base import Signal
+from pathlib import Path
+import json
 """
 class Signal:
     def __init__(self, name):
         self.name = name
 """
+signal_config_path = str(Path(__file__).resolve().parent.parent.parent) + "/live_algo/" + 'signal_parameters.json'
+with open(signal_config_path, 'r') as sig_cong:
+    signal_config = json.load(sig_cong)
+
+
 class DownCrossOver:
     def __init__(self, name, threshold=0.05, call_back_fn=None):
         self.name = name
@@ -112,7 +119,7 @@ class OptionVolumeIndicator:
 
 
 
-class OptionMomemntumIndicator:
+class OptionMomentumIndicator_used:
     def __init__(self, name, info_fn=None, call_back_fn=None):
         self.name = name
         self.call_back_fn = call_back_fn
@@ -131,7 +138,37 @@ class OptionMomemntumIndicator:
                 #print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
 
                 info = self.info_fn()
+
                 signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
                              indicator=self.name, strength=1, signal_time=info['timestamp'],
                              notice_time=info['timestamp'], info=info)
+                self.call_back_fn(signal)
+
+
+class OptionMomentumIndicator:
+    def __init__(self, name, info_fn=None, call_back_fn=None):
+        self.name = name
+        self.call_back_fn = call_back_fn
+        self.info_fn = info_fn
+        self.last_signal_idx = 0
+
+    def evaluate(self, option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta):
+        # print(option_volume_scale, cross_asset_price_delta)
+        trigger_vol_scale = signal_config['trigger_vol_scale']
+        price_change_th = signal_config['price_change_th']
+
+        if option_volume_scale > trigger_vol_scale:
+            pos_price_change_list = [x for x in list(cross_asset_price_delta.values()) if x > 0]
+            negative_price_change_reverse_asset_list = [x for x in list(reverse_cross_asset_price_delta.values()) if
+                                                        x < 0]
+            dir_pos_price_pct = float(len(pos_price_change_list)/len(list(cross_asset_price_delta.values())))
+            dir_inv_neg_price_pct = float(len(negative_price_change_reverse_asset_list) / len(list(reverse_cross_asset_price_delta.values())))
+            if dir_pos_price_pct >= price_change_th and dir_inv_neg_price_pct >= price_change_th:
+                # print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
+
+                info = self.info_fn()
+
+                signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
+                                indicator=self.name, strength=1, signal_time=info['timestamp'],
+                                notice_time=info['timestamp'], info=info)
                 self.call_back_fn(signal)

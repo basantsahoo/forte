@@ -149,6 +149,8 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['total_addition'] = np.round((total_oi_series[-1] - t_2_total_oi) / start_total_oi, 4)
             self.aggregate_stats[ts]['call_volume_scale'] = call_volume_scale
             self.aggregate_stats[ts]['put_volume_scale'] = put_volume_scale
+            self.aggregate_stats[ts]['sum_call_volume'] = call_volume_series[-1]
+            self.aggregate_stats[ts]['sum_put_volume'] = put_volume_series[-1]
             self.aggregate_stats[ts]['total_volume_scale'] = total_volume_scale
             self.aggregate_stats[ts]['pcr_minus_1'] = np.round(poi_put_oi / poi_call_oi - 1, 2)
 
