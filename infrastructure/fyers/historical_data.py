@@ -3,7 +3,9 @@ from fyers_api import accessToken
 from fyers_api.Websocket import ws
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from infrastructure.fyers.authenication import get_access_token
+#from infrastructure.fyers.authenication import get_access_token
+#3from infrastructure.fyers.authenication_v3 import get_access_token
+from infrastructure.fyers.auto_login import get_access_token
 from fyers_api import fyersModel
 from infrastructure.fyers.settings import app_id
 from servers.server_settings import log_dir

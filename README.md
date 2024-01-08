@@ -325,3 +325,11 @@ python backtest/strategy_test.py ema_act_with_reverse_tick_nifty.json
 8000 -  api
 8080 - socket
 ```
+
+
+###
+```
+
+Last workin selenium 
+selenium-4.0.0
+```

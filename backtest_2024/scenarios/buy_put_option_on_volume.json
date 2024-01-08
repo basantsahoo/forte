@@ -55,8 +55,8 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 45,
-    "to_date": "2023-11-30",
+    "for_past_days": 15,
+    "to_date": "2023-12-27",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": false,

@@ -34,7 +34,8 @@ CROS_DEFAULTS={
 }
 
 live_feed = True
-chromedriver = './executables/chromedriver'
+#chromedriver = './executables/chromedriver'
+chromedriver = './executables/Google Chrome for Testing'
 market_profile_db = './data/market_profile.db'
 cache_dir = str(Path(__file__).parent.parent) + '/cache/'
 reports_dir = str(Path(__file__).parent.parent) + '/reports/'
