@@ -64,7 +64,7 @@ class OptionAssetBook:
 
     def pattern_signal(self, signal: BaseSignal):
         #print('asset book pattern_signal')
-        self.market_book.pattern_signal(signal)
+        self.market_book.pattern_signal(self.asset, signal)
 
     def frame_change_action(self, timestamp):
         self.option_matrix.frame_change_action(timestamp)

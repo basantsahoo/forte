@@ -201,7 +201,7 @@ class SpotBook:
             self.activity_log.update_sp_trend(signal.info['trend'])
             for wave in signal.info['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
-        self.asset_book.market_book.pattern_signal(signal)
+        self.asset_book.pattern_signal(signal)
 
 
     def clean(self):

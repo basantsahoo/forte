@@ -32,7 +32,7 @@ async def refresh(ns):
             ns.refresh()
             ns.processor.refresh()
             ns.option_processor.refresh()
-        await asyncio.sleep(15*60)
+        await asyncio.sleep(10*60)
         #loop.stop()
         #sys.exit()
 

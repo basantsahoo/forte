@@ -43,11 +43,12 @@ class OptionMarketBook:
             self.last_tick_timestamp = self.tpo_brackets[0]
 
     def feed_stream(self, feed):
-        if self.trade_day != feed['data'][0]['trade_date']:
-            self.do_day_set_up(feed['data'][0]['trade_date'])
+        if self.trade_day != feed['data'][-1]['trade_date']:
+            self.do_day_set_up(feed['data'][-1]['trade_date'])
         if feed['feed_type'] == 'spot':
+            self.set_curr_tpo(feed['data'][-1]['timestamp'])
             self.asset_books[feed['asset']].spot_feed_stream_1(feed['data'])
-            self.set_curr_tpo(feed['data'][0]['timestamp'])
+
             #self.strategy_manager.on_minute_data_pre(feed['asset'])
             self.asset_books[feed['asset']].spot_feed_stream_2(feed['data'])
             if not self.strategy_setup_done:
@@ -85,7 +86,7 @@ class OptionMarketBook:
     def get_asset_book(self, symbol):
         return self.asset_books[symbol]
 
-    def pattern_signal(self, signal):
+    def pattern_signal(self, asset, signal):
         self.strategy_manager.register_signal(signal)
 
         """
@@ -110,7 +111,7 @@ class OptionMarketBook:
             #strategy.process_signal(pattern, pattern_match_idx)
         """
         if self.pm.data_interface is not None:
-            self.pm.data_interface.notify_pattern_signal(self.ticker, signal)
+            self.pm.data_interface.notify_pattern_signal(asset, signal)
 
         #print('self.intraday_trend')
 
@@ -121,6 +122,7 @@ class OptionMarketBook:
 
 
     def set_curr_tpo(self, epoch_minute):
+        print('set_curr_tpo+++++++++++++++++++++', epoch_minute)
         ts_idx = profile_utils.get_next_lowest_index(self.tpo_brackets, epoch_minute)
         ts_idx = 13 if ts_idx < 0 else ts_idx + 1
         self.curr_tpo = ts_idx

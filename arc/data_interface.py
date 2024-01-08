@@ -1,4 +1,4 @@
-from arc.algo_settings import algorithm_setup
+from live_algo.algo_settings import algorithm_setup
 import json
 from datetime import datetime
 import time

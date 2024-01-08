@@ -58,6 +58,7 @@ class StartegyBackTester:
             data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
             while data_loader.data_present:
                 feed_ = data_loader.generate_next_feed()
+                print(feed_)
                 if feed_:
                     pm.feed_stream(feed_)
                     market_book.feed_stream(feed_)

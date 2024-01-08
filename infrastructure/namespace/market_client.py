@@ -1,6 +1,6 @@
 import time
 import socketio
-from arc.algo_settings import algorithm_setup
+from live_algo.algo_settings import algorithm_setup
 import asyncio
 
 enabled_symbols = list(algorithm_setup.keys())
@@ -89,9 +89,9 @@ class MarketClient(socketio.ClientNamespace):
 class OptionMatrixMarketClient(MarketClient):
     def request_data(self):
         for symbol in self.subscribed_symbols:
-            self.emit('get_hist_option_data', symbol)
-            time.sleep(2)
             self.emit('get_hist_spot_data', symbol)
+            time.sleep(2)
+            self.emit('get_hist_option_data', symbol)
             time.sleep(2)
         for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
