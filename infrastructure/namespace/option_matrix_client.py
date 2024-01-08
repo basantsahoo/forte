@@ -31,7 +31,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
         self.request_hist_data = ns.request_hist_data
         self.request_live_data = ns.request_live_data
         self.trade_day = None
-        self.hist_loaded = False
+        self.hist_loaded = True
 
     def refresh(self):
         self.algo_interface.clean()

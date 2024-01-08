@@ -311,6 +311,8 @@ python servers/run_test_fetcher.py
 python market/manage.py runserver --norealod
 or cd forte/market
 python manage.py runserver --noreload
+python servers/run_option_matrix.py
+
 
 download data scripts are in scheduler and run by rest api through scheduler/jobs
 

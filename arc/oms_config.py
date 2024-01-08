@@ -1,4 +1,4 @@
-strategy_regulator={
+strategy_regulator_o={
     'DT_SELL': {'BASANT_FYERS': {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
     'DTBRK_BUY': {'BASANT_FYERS': {'scale':1, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
     'CDLHIKKAKE_BUY': {'BASANT_FYERS': {'scale':2, 'instruments': ['OPT','FUT'], 'strike' : 'ATM'}},
@@ -7,6 +7,10 @@ strategy_regulator={
     'OPTION_CHEAP': {'BASANT_FYERS': {'scale':2, 'instruments': ['OPT'], 'strike' : 'ATM'}},
     'OPTION_SELL': {'BASANT_FYERS': {'scale':1, 'instruments': ['OPT'], 'strike' : 'ATM'}},
     'BELOWVAFRI': {'BASANT_FYERS': {'scale':1, 'instruments': ['OPT'], 'strike' : 'ATM'}},
+}
+
+strategy_regulator={
+    'HighPutVolumeBuy': {'BASANT_FYERS': {'scale':1, 'instruments': ['OPT'], 'strike' : 'ATM'}},
 }
 
 

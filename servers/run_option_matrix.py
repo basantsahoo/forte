@@ -17,7 +17,7 @@ sio = socketio.Client(reconnection_delay=5)
 async def start():
     ns = OptionMatrixClient('/oms')
     sio.register_namespace(ns)
-    connect_to_oms()
+    #connect_to_oms()
     ns.connect_feed()
 
 
