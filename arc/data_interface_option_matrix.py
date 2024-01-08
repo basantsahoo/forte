@@ -3,11 +3,15 @@ import json
 from datetime import datetime
 import time
 from arc.algo_portfolio import AlgoPortfolioManager
+from arc.oms_manager import OMSManager
 from arc.option_market_book import OptionMarketBook
 from arc.strategy_manager import StrategyManager
 import helper.utils as helper_utils
 from pathlib import Path
 from entities.trading_day import TradeDateTime
+from servers.server_settings import cache_dir
+from diskcache import Cache
+from arc.oms_manager import OMSManager
 
 strat_config_path = str(Path(__file__).resolve().parent.parent) + "/live_algo/" + 'deployed_strategies.json'
 with open(strat_config_path, 'r') as bt_config:
@@ -27,6 +31,8 @@ class AlgorithmIterface:
         self.portfolio_manager = None
         self.last_epoc_minute_data = {}
         self.setup_in_progress = False
+        market_cache = Cache(cache_dir + 'oms_cache')
+        self.oms_manager = OMSManager(place_live_orders=True, market_cache=market_cache)
         #self.set_trade_date_from_time(1656386364) #remove this -- it's only for test
         print('new data interface created++++++')
 
@@ -121,8 +127,10 @@ class AlgorithmIterface:
                           'option_flag':option_flag,
                           'cover': cover
                           }
-        if self.socket.hist_loaded:
-            self.socket.on_oms_entry_order(order_info)
+            resp = self.oms_manager.place_entry_order(order_info)
+            print(resp)
+            # Use following instead of oms_manager if oms server is running separately
+            #self.socket.on_oms_entry_order(order_info)
 
 
     def place_exit_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ):
@@ -136,8 +144,11 @@ class AlgorithmIterface:
                           'order_type': order_type,
                           'option_flag': option_flag
                           }
+            resp = self.oms_manager.place_exit_order(order_info)
+            print(resp)
 
-            self.socket.on_oms_exit_order(order_info)
+            # Use following instead of oms_manager if oms server is running separately
+            #self.socket.on_oms_exit_order(order_info)
 
     def notify_pattern_signal(self, ticker, pattern, pattern_match_idx=None):
         #print('notify_pattern_signal', pattern, pattern_match_idx)

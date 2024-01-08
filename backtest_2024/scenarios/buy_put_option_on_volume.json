@@ -61,6 +61,6 @@
     "week_days": [],
     "record_metric": false,
     "insight_log": false,
-    "send_to_oms": false
+    "send_to_oms": true
   }
 }

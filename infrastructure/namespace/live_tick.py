@@ -25,7 +25,7 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         self.option_processor = OptionProfileService(market_cache=self.market_cache)
         self.processor.socket = self
         self.option_processor.socket = self
-        #self.portfolio_manager = OMSPortfolioManager(place_live_orders=True, market_cache=self.market_cache)
+        #self.portfolio_manager = OMSManager(place_live_orders=True, market_cache=self.market_cache)
         #print(self.market_cache.get('trends'))
         self.hist_insight = self.market_cache.get('hist_insight', [])
         self.latest_option_data = self.market_cache.get('latest_option_data', {})

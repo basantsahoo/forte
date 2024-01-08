@@ -1,7 +1,7 @@
 import socketio
 import json
 import time
-from arc.oms_portfolio import OMSPortfolioManager
+from arc.oms_manager import OMSManager
 from infrastructure.market_profile_enabler import TickMarketProfileEnablerService
 from infrastructure.namespace.auth_mixin import AuthMixin
 from dynamics.profile.utils import NpEncoder
@@ -23,7 +23,7 @@ class OMSNamespace(socketio.AsyncNamespace, AuthMixin):
         ns.on_set_trade_date = self.on_set_trade_date
         self.request_data = ns.request_data
         self.market_cache = Cache(cache_dir + 'oms_cache')
-        self.portfolio_manager = OMSPortfolioManager(place_live_orders=True, market_cache=self.market_cache)
+        self.portfolio_manager = OMSManager(place_live_orders=True, market_cache=self.market_cache)
         self.processor = TickMarketProfileEnablerService(market_cache=self.market_cache)
         self.processor.socket = self
 

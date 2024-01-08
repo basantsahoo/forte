@@ -6,7 +6,7 @@ from arc.dummy_broker import DummyBroker
 from arc import oms_config
 
 
-class OMSPortfolioManager:
+class OMSManager:
     def __init__(self, place_live_orders=False, trade_date=None, data_interface=None, market_cache=None):
         self.trade_date = trade_date
         self.ltps = {}
