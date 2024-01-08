@@ -42,7 +42,7 @@ class AlgorithmIterface:
         start_time = datetime.now()
         assets = list(set([strategy['symbol'] for strategy in strat_config['strategies']]))
         self.portfolio_manager = AlgoPortfolioManager(place_live_orders=False, data_interface=self)
-        market_book = OptionMarketBook(trade_day, assets=assets, record_metric=False, live_mode=True)
+        market_book = OptionMarketBook(trade_day, assets=assets, record_metric=False, live_mode=True, volume_delta_mode=True)
         self.market_book = market_book
         market_book.pm = self.portfolio_manager
         strategy_manager = StrategyManager(market_book=market_book, record_metric=False)
