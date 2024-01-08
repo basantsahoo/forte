@@ -38,7 +38,7 @@
             "register_instr": true,
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": true
+            "neuron_log": false
           },
           "apply_pre_filter": true
         }

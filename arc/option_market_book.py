@@ -122,7 +122,7 @@ class OptionMarketBook:
 
 
     def set_curr_tpo(self, epoch_minute):
-        print('set_curr_tpo+++++++++++++++++++++', epoch_minute)
+        #print('set_curr_tpo+++++++++++++++++++++', epoch_minute)
         ts_idx = profile_utils.get_next_lowest_index(self.tpo_brackets, epoch_minute)
         ts_idx = 13 if ts_idx < 0 else ts_idx + 1
         self.curr_tpo = ts_idx

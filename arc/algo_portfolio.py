@@ -45,23 +45,6 @@ class AlgoPortfolioManager:
         self.evaluate_risk()
         self.monitor_position()
 
-    def price_input(self, input):
-        #print('price input', datetime.fromtimestamp(input['timestamp']), "======", input)
-        self.ltps[input['symbol']] = input['close']
-        self.last_times[input['symbol']] = input['timestamp']
-        self.evaluate_risk()
-        self.monitor_position()
-
-    def option_price_input(self, option_data):
-        ts = option_data['timestamp']
-        option_recs = option_data['records']
-        for instrument, data in option_recs.items():
-            symbol = option_data['symbol'] + "_" + instrument
-            self.last_times[symbol] = ts
-            self.ltps[symbol] = data['close'] if 'close' in data else data['ltp']
-        self.evaluate_risk()
-        self.monitor_position()
-
     def monitor_position(self):
         pass
 

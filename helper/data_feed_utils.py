@@ -1,5 +1,5 @@
 import pandas as pd
-
+from entities.trading_day import TradeDateTime
 
 def convert_to_option_ion(feed):
     feed['ion'] = '|'.join([str(feed['close']), str(feed['volume']), str(feed['oi'])])
@@ -18,7 +18,7 @@ def convert_hist_option_feed(feed, trade_day):
     for rec in recs:
         fdd = {
             'instrument': str(rec['strike']) + "_" + rec['type'],
-            'timestamp': rec['ltt'],
+            'timestamp': TradeDateTime.get_epoc_minute(rec['ltt']),
             'trade_date': trade_day,
             'close': rec['ltp'],
             'volume': rec['volume'],
@@ -40,7 +40,7 @@ def convert_hist_spot_feed(feed, trade_day):
     for ts, rec in recs.items():
         fdd = {
             'instrument': 'spot',
-            'timestamp': int(ts),
+            'timestamp': TradeDateTime.get_epoc_minute(int(ts)),
             'trade_date': trade_day,
             'open': rec['open'],
             'high': rec['high'],

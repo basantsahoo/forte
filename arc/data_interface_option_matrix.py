@@ -41,8 +41,8 @@ class AlgorithmIterface:
         print('set_trade_date+++++++')
         start_time = datetime.now()
         assets = list(set([strategy['symbol'] for strategy in strat_config['strategies']]))
-        self.portfolio_manager = AlgoPortfolioManager(place_live_orders=True, data_interface=self)
-        market_book = OptionMarketBook(trade_day, assets=assets, record_metric=False)
+        self.portfolio_manager = AlgoPortfolioManager(place_live_orders=False, data_interface=self)
+        market_book = OptionMarketBook(trade_day, assets=assets, record_metric=False, live_mode=True)
         self.market_book = market_book
         market_book.pm = self.portfolio_manager
         strategy_manager = StrategyManager(market_book=market_book, record_metric=False)
@@ -61,14 +61,14 @@ class AlgorithmIterface:
         print('setup time', (end_time - start_time).total_seconds())
 
     def set_trade_date_from_time(self, epoch_tick_time):
-        print('set_trade_date_from_time+++++++')
+        #print('set_trade_date_from_time+++++++')
         start_time = datetime.now()
         trade_day = helper_utils.day_from_epoc_time(epoch_tick_time)
         self.set_trade_date(trade_day)
 
 
     def on_hist_spot_data(self, hist_feed):
-        print('dis +++++ on_hist_price +++++')
+        #print('on_hist_spot_data', hist_feed)
         symbol = hist_feed['asset']
         hist = hist_feed['data']
         pm_feed = {'feed_type': hist_feed['feed_type'], 'asset': hist_feed['asset'], 'data': hist_feed['data'][-1::]}
@@ -77,16 +77,17 @@ class AlgorithmIterface:
         self.market_book.feed_stream(hist_feed)
 
     def on_hist_option_data(self, hist_feed):
+        #print('on_hist_option_data', hist_feed)
         symbol = hist_feed['asset']+"_O"
         hist = hist_feed['data']
         pm_feed = {'feed_type': hist_feed['feed_type'], 'asset': hist_feed['asset'], 'data': hist_feed['data'][-1::]}
         self.last_epoc_minute_data[symbol] = hist[-1]
         self.portfolio_manager.feed_stream(pm_feed)
-        time.sleep(0.5)
         self.market_book.feed_stream(hist_feed)
 
 
     def on_spot_tick_data(self, feed):
+        #print('on_spot_tick_data', feed)
         epoch_minute = TradeDateTime.get_epoc_minute(['data'][0]['timestamp'])
         symbol = feed['asset']
         if self.setup_in_progress:
@@ -102,38 +103,41 @@ class AlgorithmIterface:
 
 
     def on_option_tick_data(self, feed):
+        #print('on_option_tick_data', feed)
         if self.setup_in_progress:
             return
         self.market_book.feed_stream(feed)
         self.portfolio_manager.feed_stream(feed)
 
     def place_entry_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ,cover):
-        print('place_entry_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type,option_flag,cover)
-        order_info = {'symbol': symbol,
-                      'order_side':order_side,
-                      'qty': qty,
-                      'strategy_id': strategy_id,
-                      'order_id': order_id,
-                      'order_type': order_type,
-                      'option_flag':option_flag,
-                      'cover': cover
-                      }
-
-        self.socket.on_oms_entry_order(order_info)
+        if self.socket.hist_loaded:
+            print('place_entry_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type,option_flag,cover)
+            order_info = {'symbol': symbol,
+                          'order_side':order_side,
+                          'qty': qty,
+                          'strategy_id': strategy_id,
+                          'order_id': order_id,
+                          'order_type': order_type,
+                          'option_flag':option_flag,
+                          'cover': cover
+                          }
+        if self.socket.hist_loaded:
+            self.socket.on_oms_entry_order(order_info)
 
 
     def place_exit_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ):
-        print('place_exit_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type)
-        order_info = {'symbol': symbol,
-                      'order_side':order_side,
-                      'qty': qty,
-                      'strategy_id': strategy_id,
-                      'order_id': order_id,
-                      'order_type': order_type,
-                      'option_flag': option_flag
-                      }
+        if self.socket.hist_loaded:
+            print('place_exit_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type)
+            order_info = {'symbol': symbol,
+                          'order_side':order_side,
+                          'qty': qty,
+                          'strategy_id': strategy_id,
+                          'order_id': order_id,
+                          'order_type': order_type,
+                          'option_flag': option_flag
+                          }
 
-        self.socket.on_oms_exit_order(order_info)
+            self.socket.on_oms_exit_order(order_info)
 
     def notify_pattern_signal(self, ticker, pattern, pattern_match_idx=None):
         #print('notify_pattern_signal', pattern, pattern_match_idx)
