@@ -219,6 +219,20 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             res['sum_call_volume'] = pattern.info['sum_call_volume']
         if pattern.info.get('sum_put_volume', None) is not None:
             res['sum_put_volume'] = pattern.info['sum_put_volume']
+        if pattern.info.get('call_volume_scale_day', None) is not None:
+            res['call_volume_scale_day'] = pattern.info['call_volume_scale_day']
+        if pattern.info.get('put_volume_scale_day', None) is not None:
+            res['put_volume_scale_day'] = pattern.info['put_volume_scale_day']
+        if pattern.info.get('median_call_volume', None) is not None:
+            res['median_call_volume'] = pattern.info['median_call_volume']
+        if pattern.info.get('median_put_volume', None) is not None:
+            res['median_put_volume'] = pattern.info['median_put_volume']
+        if pattern.info.get('pcr_minus_1', None) is not None:
+            res['pcr_minus_1'] = pattern.info['pcr_minus_1']
+        if pattern.info.get('dir_pos_price_pct', None) is not None:
+            res['dir_pos_price_pct'] = pattern.info['dir_pos_price_pct']
+        if pattern.info.get('dir_inv_neg_price_pct', None) is not None:
+            res['dir_inv_neg_price_pct'] = pattern.info['dir_inv_neg_price_pct']
 
         if hasattr(pattern, 'strike'):
             res['strike'] = pattern['strike']

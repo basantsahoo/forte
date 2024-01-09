@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 project_path = str(Path(__file__).resolve().parent.parent.parent)
 sys.path.insert(1, project_path)
-
+from infrastructure.truedata.settings import option_chain_length as chain_length
 
 import time
 import pandas as pd
@@ -47,7 +47,7 @@ def download(trade_days=[], symbols=[]):
     if len(symbols) == 0:
         symbols = [helper_utils.get_nse_index_symbol(symbol) for symbol in default_symbols]
     TD_object = TD(td_settings.user_name, td_settings.pass_word, live_port=None, historical_api=True)
-    chain_length = {'NIFTY': 15, 'BANKNIFTY': 40}
+    #chain_length = {'NIFTY': 15, 'BANKNIFTY': 40}
     engine = get_db_engine()
     conn = engine.connect()
 
@@ -57,7 +57,7 @@ def download(trade_days=[], symbols=[]):
             last_date = get_last_option_loaded_date(helper_utils.get_nse_index_symbol(symbol))
             print('last_date=================', symbol, " " , last_date)
             if last_date is None:
-                last_date = datetime(2023, 7, 7).date()
+                last_date = datetime(2023, 7, 17).date()
             # print(last_date)
             curr_date = datetime.now().date()
             delta = curr_date - last_date

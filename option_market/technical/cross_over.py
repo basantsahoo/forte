@@ -154,8 +154,8 @@ class OptionMomentumIndicator:
 
     def evaluate(self, option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta):
         # print(option_volume_scale, cross_asset_price_delta)
-        trigger_vol_scale = signal_config['trigger_vol_scale']
-        price_change_th = signal_config['price_change_th']
+        trigger_vol_scale = signal_config['triggers']['trigger_vol_scale']
+        price_change_th = signal_config['triggers']['price_change_th']
 
         if option_volume_scale > trigger_vol_scale:
             pos_price_change_list = [x for x in list(cross_asset_price_delta.values()) if x > 0]
@@ -167,8 +167,42 @@ class OptionMomentumIndicator:
                 # print(option_volume_scale, cross_asset_price_delta, reverse_cross_asset_price_delta)
 
                 info = self.info_fn()
+                info['dir_pos_price_pct'] = dir_pos_price_pct
+                info['dir_inv_neg_price_pct'] = dir_inv_neg_price_pct
 
                 signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
                                 indicator=self.name, strength=1, signal_time=info['timestamp'],
                                 notice_time=info['timestamp'], info=info)
                 self.call_back_fn(signal)
+
+
+class PutBuyIndicator:
+    def __init__(self, name, info_fn=None, call_back_fn=None):
+        self.name = name
+        self.call_back_fn = call_back_fn
+        self.info_fn = info_fn
+        self.last_signal_idx = 0
+
+    def evaluate(self, put_volume_scale, call_volume_scale, put_price_delta, call_price_delta):
+        # print(option_volume_scale, cross_asset_price_delta)
+        put_call_volume_scale_diff = put_volume_scale - call_volume_scale
+        pos_price_change_list = [x for x in list(put_price_delta.values()) if x > 0]
+        negative_price_change_reverse_asset_list = [x for x in list(call_price_delta.values()) if x < 0]
+        dir_pos_price_pct = float(len(pos_price_change_list) / len(list(put_price_delta.values())))
+        dir_inv_neg_price_pct = float(len(negative_price_change_reverse_asset_list) / len(list(call_price_delta.values())))
+
+        criteria_met = False
+        for trigger_criteria in signal_config['put_buy']:
+            if (put_volume_scale > trigger_criteria['put_volume_scale']['min'] and put_volume_scale <= trigger_criteria['put_volume_scale']['max']) \
+                    and (put_call_volume_scale_diff > trigger_criteria['put_call_volume_scale_diff']['min'] and put_call_volume_scale_diff <= trigger_criteria['put_call_volume_scale_diff']['max']):
+                criteria_met = criteria_met or True
+
+        if criteria_met:
+            info = self.info_fn()
+            info['dir_pos_price_pct'] = dir_pos_price_pct
+            info['dir_inv_neg_price_pct'] = dir_inv_neg_price_pct
+
+            signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
+                            indicator=self.name, strength=1, signal_time=info['timestamp'],
+                            notice_time=info['timestamp'], info=info)
+            self.call_back_fn(signal)

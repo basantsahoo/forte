@@ -18,6 +18,7 @@ import os
 import psutil
 from apscheduler.schedulers.background import BackgroundScheduler
 import pytz
+from infrastructure.truedata.settings import option_chain_length
 
 tz_ist = pytz.timezone('Asia/Kolkata')
 
@@ -139,8 +140,8 @@ class TrueDataLiveFeed(socketio.ClientNamespace):
         req_id_futs = self.td_scoket.start_live_data(all_index_futs)
         time.sleep(1)
         print('Starting option chain.... ')
-        nifty_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('NIFTY'), nifty_expiry_dt, chain_length=15, bid_ask=True)
-        bnf_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('BANKNIFTY'), bank_nifty_expiry_dt, chain_length=40, bid_ask=True)
+        nifty_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('NIFTY'), nifty_expiry_dt, chain_length=option_chain_length['NIFTY'], bid_ask=True)
+        bnf_chain = self.td_scoket.start_option_chain(helper_utils.get_oc_symbol('BANKNIFTY'), bank_nifty_expiry_dt, chain_length=option_chain_length['BANKNIFTY'], bid_ask=True)
         time.sleep(1)
         self.live_data_objs['NIFTY'] = nifty_chain.get_option_chain().to_dict('records')
         self.live_data_objs['BANKNIFTY'] = bnf_chain.get_option_chain().to_dict('records')

@@ -23,6 +23,7 @@ class OptionAssetBook:
         self.clock.subscribe_to_frame_change(self.frame_change_action)
         closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
         closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
+        #print(closing_oi_df.to_dict('records'))
         self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
         avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
         self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)

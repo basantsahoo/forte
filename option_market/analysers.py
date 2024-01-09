@@ -8,20 +8,16 @@ class OptionCellAnalyser:
     def __init__(self, cell):
         self.cell = cell
 
-    def compute_o(self):
-        if self.cell.elder_sibling is not None:
-            self.cell.analytics['price_delta'] = self.cell.ion.price - self.cell.elder_sibling.ion.price
-            self.cell.analytics['oi_delta'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
-            self.cell.analytics['oi_delta_pct'] = np.round(self.cell.analytics['oi_delta']/self.cell.ion.oi, 2)
-            self.cell.analytics['volume'] = self.cell.ion.volume
-
 
     def compute(self):
+        #print(self.cell.__dict__)
+        #print(self.cell.ion.__dict__)
+
         if self.cell.elder_sibling is not None:
             self.cell.analytics['price_delta'] = self.cell.ion.price - self.cell.elder_sibling.ion.price
             self.cell.analytics['oi_delta'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
             self.cell.analytics['day_oi_delta'] = self.cell.ion.oi - self.cell.ion.past_closing_oi
-            self.cell.analytics['day_oi_delta_pct'] = np.round(self.cell.analytics['day_oi_delta']/self.cell.ion.past_closing_oi, 2)
+            self.cell.analytics['day_oi_delta_pct'] = np.round(self.cell.analytics['day_oi_delta']/self.cell.ion.past_closing_oi, 2) if self.cell.ion.past_closing_oi else 0
             #self.cell.analytics['volume_scale'] = self.cell.ion.volume/self.cell.ion.past_avg_volume
             self.cell.analytics['max_oi'] = max(self.cell.ion.oi, self.cell.elder_sibling.analytics['max_oi'])
             self.cell.analytics['cumulative_volume'] = self.cell.ion.volume + self.cell.elder_sibling.analytics['cumulative_volume']
@@ -36,10 +32,12 @@ class OptionCellAnalyser:
             self.cell.analytics['vwap_delta'] = self.cell.analytics['vwap'] - self.cell.elder_sibling.analytics['vwap']
 
         else:
+            #print(self.cell.__dict__)
+            #print(self.cell.ion.__dict__)
             self.cell.analytics['price_delta'] = 0
             self.cell.analytics['oi_delta'] = 0
             self.cell.analytics['day_oi_delta'] = self.cell.ion.oi - self.cell.ion.past_closing_oi
-            self.cell.analytics['day_oi_delta_pct'] = np.round(self.cell.analytics['day_oi_delta']/self.cell.ion.past_closing_oi, 2)
+            self.cell.analytics['day_oi_delta_pct'] = np.round(self.cell.analytics['day_oi_delta']/self.cell.ion.past_closing_oi, 2) if self.cell.ion.past_closing_oi else 0
             #self.cell.analytics['volume_scale'] = self.cell.ion.volume/self.cell.ion.past_avg_volume
             self.cell.analytics['max_oi'] = self.cell.ion.oi
             self.cell.analytics['cumulative_volume'] = self.cell.ion.volume
@@ -111,7 +109,7 @@ class IntradayCrossAssetAnalyser:
             prev_call_median_volume = sum([value for key, value in self.avg_volumes.items() if key[-2::] == 'CE'])
             prev_put_median_volume = sum([value for key, value in self.avg_volumes.items() if key[-2::] == 'PE'])
             prev_median_total_volume = prev_call_median_volume + prev_put_median_volume
-            day_normalization_factor = 1 if len(total_volume_series) < 30 else (np.median(total_volume_series) / prev_median_total_volume)
+            day_normalization_factor = 1 #if len(total_volume_series) < 30 else (np.median(total_volume_series) / prev_median_total_volume)
 
             start_call_oi = self.get_total_call_closing_oi()
             start_put_oi = self.get_total_put_closing_oi()
@@ -149,10 +147,17 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['total_addition'] = np.round((total_oi_series[-1] - t_2_total_oi) / start_total_oi, 4)
             self.aggregate_stats[ts]['call_volume_scale'] = call_volume_scale
             self.aggregate_stats[ts]['put_volume_scale'] = put_volume_scale
+            self.aggregate_stats[ts]['total_volume_scale'] = total_volume_scale
             self.aggregate_stats[ts]['sum_call_volume'] = call_volume_series[-1]
             self.aggregate_stats[ts]['sum_put_volume'] = put_volume_series[-1]
-            self.aggregate_stats[ts]['total_volume_scale'] = total_volume_scale
+            self.aggregate_stats[ts]['median_call_volume'] = np.median(call_volume_series)
+            self.aggregate_stats[ts]['median_put_volume'] = np.median(put_volume_series)
             self.aggregate_stats[ts]['pcr_minus_1'] = np.round(poi_put_oi / poi_call_oi - 1, 2)
+            self.aggregate_stats[ts]['call_volume_scale_day'] = OptionVolumeIndicator.calc_scale(call_volume_series, np.median(call_volume_series),
+                                                          day_normalization_factor)
+            self.aggregate_stats[ts]['put_volume_scale_day'] = OptionVolumeIndicator.calc_scale(put_volume_series, np.median(put_volume_series),
+                                                          day_normalization_factor)
+
 
             self.calc_cross_instrument_stats(ts)
 
@@ -176,7 +181,7 @@ class IntradayCrossAssetAnalyser:
             change_dct[cell.instrument] = {
                 'oi_dlt': np.round(cell.analytics['oi_delta']/oi_denomination, 4),
                 'day_oi_delta_pct': cell.analytics.get('day_oi_delta_pct', None),
-                'oi_drop': np.round(cell.ion.oi / cell.analytics['max_oi'] - 1, 2),
+                'oi_drop': np.round(cell.ion.oi / cell.analytics['max_oi'] - 1, 2) if cell.analytics['max_oi'] else 0,
                 'oi_share': cell.analytics.get('oi_share', None), #np.round(float(cell.ion.oi/ts_oi), 4),
                 'oi_share_chg': cell.analytics.get('oi_share', 0) - cell.elder_sibling.analytics.get('oi_share', 0) if cell.elder_sibling else 0,
                 'oi_build_up_factor': np.round((cell.ion.oi - cell.ion.past_closing_oi)/start_total_oi, 4),

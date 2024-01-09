@@ -246,6 +246,7 @@ def locate_point(df, threshold):
 
 
 def get_option_strike(ltp, money_ness, level, kind):
+    print('get_option_strike....', ltp, money_ness, level, kind)
     atm_strike = round(ltp / 100) * 100
     level = -100 * level if kind == 'PE' else level * 100
     otm_strike = atm_strike + level

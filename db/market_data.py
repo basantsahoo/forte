@@ -402,7 +402,7 @@ def get_daily_option_data(asset, trade_day, data='close', kind=None):
 def get_daily_option_ion_data(asset, trade_day):
     asset = helper_utils.get_nse_index_symbol(asset)
     stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, CONCAT(close, '|', volume, '|', oi) as ion  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(asset, trade_day)
-    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, open, high, low, close,  volume, oi FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(
+    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, open, high, low, close,  volume, oi FROM option_data where oi > 0 and underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(
         asset, trade_day)
     conn = engine.connect()
     df = pd.read_sql_query(stmt_1, conn)

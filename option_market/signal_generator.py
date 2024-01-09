@@ -7,7 +7,8 @@ from collections import OrderedDict
 from entities.trading_day import TradeDateTime
 from tabulate import tabulate
 from talib import stream
-from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator, OptionMomentumIndicator
+from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator, \
+    OptionMomentumIndicator, PutBuyIndicator
 from config import oi_denomination
 from beepy import beep
 from subprocess import call
@@ -29,6 +30,7 @@ class OptionSignalGenerator:
         self.option_volume_indicator = OptionVolumeIndicator('OPTION_VOLUME', call_back_fn=self.dispatch_signal)
         self.bullish_option_momentum_indicator = OptionMomentumIndicator('BULLISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
         self.bearish_option_momentum_indicator = OptionMomentumIndicator('BEARISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
+        self.put_buy_indicator = PutBuyIndicator('BEARISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
         self.signal_dispatcher = None
 
     def get_info(self):
@@ -40,7 +42,12 @@ class OptionSignalGenerator:
                 'call_volume_scale':aggregate_stats['call_volume_scale'],
                 'put_volume_scale': aggregate_stats['put_volume_scale'],
                 'sum_call_volume': aggregate_stats['sum_call_volume'],
-                'sum_put_volume': aggregate_stats['sum_put_volume']
+                'sum_put_volume': aggregate_stats['sum_put_volume'],
+                'call_volume_scale_day': aggregate_stats['call_volume_scale_day'],
+                'put_volume_scale_day': aggregate_stats['put_volume_scale_day'],
+                'median_call_volume': aggregate_stats['median_call_volume'],
+                'median_put_volume': aggregate_stats['median_put_volume'],
+                'pcr_minus_1': aggregate_stats['pcr_minus_1'],
                 }
     def generate(self):
         #self.print_instant_info()
@@ -154,7 +161,9 @@ class OptionSignalGenerator:
         call_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'CE'}
 
         self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_price_delta, put_price_delta)
-        self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
+        #self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
+        self.put_buy_indicator.evaluate(aggregate_stats['put_volume_scale'], aggregate_stats['call_volume_scale'], put_price_delta, call_price_delta)
+
 
     def run_external_generators_old(self):
         if self.option_matrix.last_time_stamp is not None:

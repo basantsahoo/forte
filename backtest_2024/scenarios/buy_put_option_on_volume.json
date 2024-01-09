@@ -14,7 +14,7 @@
       "spot_short_stop_losses":[],
       "instr_targets":[0.1,0.1, 0.1, 0.1],
       "instr_stop_losses":[0.04, 0.04, 0.04, 0.04],
-      "instr_to_trade" : [["OTM", 1, "PE"]],
+      "instr_to_trade" : [["ITM", 1, "PE"]],
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -55,8 +55,8 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 10,
-    "to_date": "2023-12-27",
+    "for_past_days": 60,
+    "to_date": "2023-12-28",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,

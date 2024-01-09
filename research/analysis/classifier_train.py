@@ -222,7 +222,7 @@ def pre_process(x_input):
     """
     feature_union = FeatureUnion(transformer_list=[
         ('numprocessor', NumericProcessor()),
-        ('open_type', cat_transformer),
+        #('open_type', cat_transformer),
     ])
     preprocessor = Pipeline([('union', feature_union)])
     X = preprocessor.fit_transform(x_input)

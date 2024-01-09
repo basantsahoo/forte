@@ -243,17 +243,18 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 group_wise_summary(report, df_i, target, 'strength')
                 """
                 filter = {}
-                all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind'], filter=filter)
+                #all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind'], filter=filter)
+                all_group_summary(report, df_i, target, ['week_day', 'tpo'], filter=filter)
 
                 #filter = {'week_day': 'Friday', 'open_type': 'GAP_DOWN', 'kind':'CE'}
                 group_wise_summary(report, df_i, target, 'week_day', filter=filter)
-                group_wise_summary(report, df_i, target, 'open_type', filter=filter)
+                #group_wise_summary(report, df_i, target, 'open_type', filter=filter)
                 group_wise_summary(report, df_i, target, 'tpo', filter=filter)
-                group_wise_summary(report, df_i, target, 'kind', filter=filter)
+                #group_wise_summary(report, df_i, target, 'kind', filter=filter)
                 #group_wise_summary(report, df_i, target, 'money_ness', filter=filter)
                 #group_wise_summary(report, df_i, target, 'strength', filter=filter)
 
-                add_strategy_details(report,df_i,target,filter=filter)
+                add_strategy_details(report, df_i, target, filter=filter)
                 """
                 box_plot(report, df_i, target)
                 plot_histogram(report, df_i, target)

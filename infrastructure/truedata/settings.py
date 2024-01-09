@@ -8,3 +8,5 @@ historical_port = 8092
 
 #https://myapi.fyers.in/dashboard/
 #https://subscriptions.fyers.in/status/
+
+option_chain_length = {'NIFTY': 20, 'BANKNIFTY': 50}
