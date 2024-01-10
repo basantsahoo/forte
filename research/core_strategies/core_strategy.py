@@ -167,6 +167,13 @@ class BaseStrategy:
             last_candle = self.asset_book.spot_book.spot_processor.last_tick
         return last_candle
 
+    def get_closest_instrument(self, instr='SPOT'):
+        if self.inst_is_option(instr):
+            instr = self.asset_book.option_matrix.get_closest_instrument(instr)
+        else:
+            instr = instr
+        return instr
+
     def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
         for trigger in triggers:
             if self.record_metric:

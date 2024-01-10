@@ -41,8 +41,10 @@ class Trade:
 
     def get_trade_legs(self):
         next_trigger = len(self.legs) + 1
+        #Can contain None because it's inside expander
         legs = [self.get_trades(trd_idx) for trd_idx in range(next_trigger, next_trigger + self.max_legs)]
         for leg in legs:
+            #if leg is not None:
             self.legs[leg['seq']] = leg
         return legs
 
@@ -50,6 +52,13 @@ class Trade:
         instr = self.trade_inst
         market_view = self.strategy.get_market_view(instr)
         last_candle = self.strategy.get_last_tick(instr)
+        if not last_candle:
+            print('last_candle not found for', instr)
+            self.trade_inst = self.strategy.get_closest_instrument(instr)
+            instr = self.trade_inst
+            last_candle = self.strategy.get_last_tick(instr)
+            print('Now instr is ', instr)
+
         last_spot_candle = self.strategy.get_last_tick('SPOT')
         spot_targets = self.calculate_target('SPOT', self.strategy.spot_long_targets) if market_view == 'LONG' else self.calculate_target('SPOT', self.strategy.spot_short_targets)
         spot_stop_losses = self.calculate_target('SPOT', self.strategy.spot_long_stop_losses) if market_view == 'LONG' else self.calculate_target('SPOT', self.strategy.spot_short_stop_losses)

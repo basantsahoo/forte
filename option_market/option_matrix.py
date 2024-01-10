@@ -185,10 +185,22 @@ class OptionMatrix:
     def get_last_tick(self, inst):
         day_capsule = self.get_day_capsule(self.current_date)
         instrument_capsule = day_capsule.trading_data.get(inst)
-        last_tick = instrument_capsule.last_tick
-        candle = last_tick.ion.to_candle()
-        candle['timestamp'] = last_tick.timestamp
-        return candle
+        if instrument_capsule:
+            last_tick = instrument_capsule.last_tick
+            candle = last_tick.ion.to_candle()
+            candle['timestamp'] = last_tick.timestamp
+            return candle
+        else:
+            return None
+
+    def get_closest_instrument(self, inst):
+        #print('get_closest_instrument+++++++', inst)
+        inst_strike = int(inst[:-3])
+        day_capsule = self.get_day_capsule(self.current_date)
+        instruments = day_capsule.transposed_data[self.last_time_stamp].keys()
+        strikes = [int(tmp_inst[:-3]) for tmp_inst in instruments if tmp_inst[-2::] == inst[-2::]]
+        desired_strike = [strike for strike in strikes if abs(inst_strike-strike) == min([abs(inst_strike)-strike for strike in strikes])][0]
+        return str(desired_strike) + "_" + inst[-2::]
 
     def subscribe_to_clock(self, clock):
         clock.subscribe_to_frame_change(self.frame_change_action)

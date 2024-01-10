@@ -138,6 +138,7 @@ def get_cleaned_results():
     df['return_pct'] = df['realized_pnl']/df['entry_price']
     del df['un_realized_pnl']
     del df['realized_pnl']
+    df = df[df['tpo'] < 13]
     return df
 
 def analysis(df):
