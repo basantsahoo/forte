@@ -58,7 +58,7 @@ class SpotBook:
             self.spot_processor.process_minute_data(feed)
             self.spot_minute_data_stream(feed)
 
-    def frame_change_action(self, timestamp):
+    def frame_change_action(self, current_frame, next_frame):
         pass
 
     def subscribe_to_clock(self, clock):

@@ -76,7 +76,7 @@ class OptionProfileService:
             last_close = get_last_minute_data(symbol, expiry_week.last_expiry_end.date_string)
             spot_price = last_close['close'].to_list()[-1]
             symbol_spot_data = {'prev_day_close': spot_price}
-            highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(symbol,symbol_spot_data)
+            highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(symbol, symbol_spot_data)
             self.strike_levels[symbol] = {}
             self.strike_levels[symbol]['highest_strike'] = highest_strike
             self.strike_levels[symbol]['lowest_strike'] = lowest_strike
@@ -139,7 +139,9 @@ class OptionProfileService:
             hist_df = df[['strike', 'type','volume', 'oi', 'oi_change', 'IV', 'ltp', 'ltt']]
             symbol_option_data['hist'][epoch_minute] = hist_df.to_dict('records')
             #highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(data_dict['symbol'], self.spot_data[data_dict['symbol']])
+
             (highest_strike, lowest_strike) = (self.strike_levels[data_dict['symbol']]['highest_strike'], self.strike_levels[data_dict['symbol']]['lowest_strike'])
+            print(highest_strike, lowest_strike)
             df['strike'] = df['strike'].astype(int)
             df = df[(df['strike'] <= highest_strike) & (df['strike'] >= lowest_strike)]
             tmp_data = df[['strike', 'type','ltt','volume', 'oi', 'oi_change', 'IV', 'delta', 'gamma', 'theta', 'ltp']]
@@ -177,9 +179,9 @@ class OptionProfileService:
         print('get_hist_data+++++++++++++++++++++++++++++++++++++++++++')
         hist_data = self.option_data.get(ticker, {}).get('hist', None)
         root_symbol = helper_utils.root_symbol(ticker)
-        highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(root_symbol, self.spot_data[root_symbol])
-        #highest_strike = 48600 #math.ceil((self.spot_data[root_symbol]['day_high'] * 1.06) / 100) * 100
-        #lowest_strike = 45700 #math.floor((self.spot_data[root_symbol]['day_low'] * 0.94) / 100) * 100
+        highest_strike, lowest_strike = self.strike_levels[root_symbol]['highest_strike'], self.strike_levels[root_symbol]['lowest_strike']
+        #highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(root_symbol, self.spot_data[root_symbol])
+        print(highest_strike, lowest_strike)
 
         if hist_data is not None:
             tmp_data = []

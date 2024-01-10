@@ -335,3 +335,5 @@ python backtest/strategy_test.py ema_act_with_reverse_tick_nifty.json
 Last workin selenium 
 selenium-4.0.0
 ```
+
+https://niftybull.fibery.io/Technical_Design/New-whiteboard-68

@@ -28,7 +28,7 @@ class Clock:
             frame = int(input_time_stamp / self.interval) * self.interval
             if frame > self.current_frame:
                 for change_subscription in self.frame_change_subscriptions:
-                    change_subscription(frame)
+                    change_subscription(self.current_frame, frame)
                 self.set_frame(input_time_stamp)
 
     def subscribe_to_frame_change(self, callback):

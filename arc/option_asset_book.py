@@ -38,6 +38,7 @@ class OptionAssetBook:
             self.clock.check_frame_change(feed['timestamp'])
             #print('option_matrix.process_spot_feed start')
             self.option_matrix.process_spot_feed(feed_list)
+            #print('spot_feed_stream_1++++++++++++++++++ 222')
             #print('option_matrix.process_spot_feed end')
             self.spot_book.feed_stream_1(feed_list)
             #print('spot_book.feed_stream_1 end')
@@ -54,9 +55,15 @@ class OptionAssetBook:
             self.last_periodic_update = self.clock.current_frame
             self.spot_book.update_periodic()
 
-
     def option_feed_stream(self, feed_list):
+        from datetime import datetime
         feed_list = [convert_to_option_ion(feed) for feed in feed_list]
+        data_dct = {ion_d['instrument']: ion_d['oi'] for ion_d in feed_list}
+        """
+        print("**************************************")
+        print(datetime.now())
+        print("Tick data===========", data_dct)
+        """
         self.option_matrix.process_option_feed(feed_list)
 
 
@@ -67,8 +74,10 @@ class OptionAssetBook:
         #print('asset book pattern_signal')
         self.market_book.pattern_signal(self.asset, signal)
 
-    def frame_change_action(self, timestamp):
-        self.option_matrix.frame_change_action(timestamp)
-        self.spot_book.frame_change_action(timestamp)
+    def frame_change_action(self, current_frame, next_frame):
+        print('frame_change_action++++++++++++++++++ 111')
+        self.option_matrix.frame_change_action(current_frame, next_frame)
+        print('frame_change_action++++++++++++++++++ 222')
+        self.spot_book.frame_change_action(current_frame, next_frame)
         self.market_book.strategy_manager.on_minute_data_pre(self.asset)
         self.market_book.strategy_manager.on_minute_data_post(self.asset)

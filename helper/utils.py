@@ -2,6 +2,7 @@ import pytz
 from datetime import datetime
 import numpy as np
 import math
+from infrastructure.truedata.settings import option_chain_length
 symbol_map = {'NIFTY': {'index':'NIFTY 50', 'option_chain': 'NIFTY', 'fyers_index': 'NSE:NIFTY50-INDEX', 'td_index':'NIFTY 50'},
               'BANKNIFTY': {'index':'NIFTY BANK', 'option_chain': 'BANKNIFTY', 'fyers_index': 'NSE:NIFTYBANK-INDEX', 'td_index':'NIFTY BANK'}
               }
@@ -277,7 +278,7 @@ def determine_level_reach(level, candle):
     return ol > 0
 
 def get_strike_levels_from_spot(symbol, symbol_spot_data):
-    strike_level = 40 if 'BANK' in symbol else 15
+    strike_level = option_chain_length['BANKNIFTY'] if 'BANK' in symbol else option_chain_length['NIFTY']
     highest_strike = (math.ceil(symbol_spot_data['prev_day_close'] / 100) + int(strike_level/2)) * 100
     lowest_strike = (math.floor(symbol_spot_data['prev_day_close'] / 100) - int(strike_level/2)) * 100
     return highest_strike, lowest_strike

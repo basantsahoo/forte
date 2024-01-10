@@ -64,10 +64,12 @@ class OptionMatrix:
         self.volume_delta_mode = volume_delta_mode
         self.print_cross_stats = print_cross_stats
 
-    def frame_change_action(self, timestamp):
-        self.spot_throttler.check_time_to_push(timestamp)
-        self.option_data_throttler.check_time_to_push(timestamp)
-        self.data_throttler.check_time_to_push(timestamp)
+    def frame_change_action(self, current_frame, next_frame):
+        self.last_time_stamp = current_frame
+        print('option matrix, frame_change_action++++')
+        self.spot_throttler.check_time_to_push(next_frame)
+        self.option_data_throttler.check_time_to_push(next_frame)
+        self.data_throttler.check_time_to_push(next_frame)
 
     def process_avg_volume(self, trade_date, inst_vol_list):
         self.avg_volumes[trade_date] = {}
@@ -125,7 +127,8 @@ class OptionMatrix:
         self.counter += 1
         if cell_list:
 
-            self.last_time_stamp = cell_list[0].timestamp
+            #self.last_time_stamp = cell_list[0].timestamp
+            pass
             #print('add_spot_cells++++', self.last_time_stamp)
         timestamp_set = set()
         if not self.spot_capsule.in_trading_data(trade_date):
@@ -144,7 +147,8 @@ class OptionMatrix:
     def add_cells(self, trade_date, cell_list):
         self.counter += 1
         if cell_list:
-            self.last_time_stamp = cell_list[0].timestamp
+            #self.last_time_stamp = cell_list[0].timestamp
+            pass
             #print(self.counter)
             """
             if self.last_time_stamp == 1703843580:

@@ -27,7 +27,7 @@ hist_fetcher = HistoricalDataFetcher()
 """
 
  #['NSE:NIFTY50-INDEX']
-symbol = 'BANKNIFTY'
+symbol = 'NIFTY'
 def get_avg_volume_data_o(symbol):
     engine = get_db_engine()
     conn = engine.connect()

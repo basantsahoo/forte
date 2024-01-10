@@ -88,23 +88,23 @@ class AlgorithmIterface:
         hist = hist_feed['data']
         pm_feed = {'feed_type': hist_feed['feed_type'], 'asset': hist_feed['asset'], 'data': hist_feed['data'][-1::]}
         self.last_epoc_minute_data[symbol] = hist[-1]
+        #print(self.last_epoc_minute_data[symbol])
         self.portfolio_manager.feed_stream(pm_feed)
         self.market_book.feed_stream(hist_feed)
 
 
     def on_spot_tick_data(self, feed):
-        #print('on_spot_tick_data', feed)
-        epoch_minute = TradeDateTime.get_epoc_minute(['data'][0]['timestamp'])
+        epoch_minute = TradeDateTime.get_epoc_minute(feed['data'][0]['timestamp'])
         symbol = feed['asset']
         if self.setup_in_progress:
             return
         if self.last_epoc_minute_data[symbol]['timestamp'] is None:
-            self.last_epoc_minute_data[symbol] = feed
+            self.last_epoc_minute_data[symbol] = feed['data'][0]
             return
         # new minute started so send previous minute data to insight book
         if epoch_minute > self.last_epoc_minute_data[symbol]['timestamp']:
             self.market_book.feed_stream(feed)
-        self.last_epoc_minute_data[symbol] = feed
+        self.last_epoc_minute_data[symbol] = feed['data'][0]
         self.portfolio_manager.feed_stream(feed)
 
 
