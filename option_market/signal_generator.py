@@ -48,6 +48,8 @@ class OptionSignalGenerator:
                 'median_call_volume': aggregate_stats['median_call_volume'],
                 'median_put_volume': aggregate_stats['median_put_volume'],
                 'pcr_minus_1': aggregate_stats['pcr_minus_1'],
+                'call_volume_scale_day_2': aggregate_stats['call_volume_scale_day_2'],
+                'put_volume_scale_day_2': aggregate_stats['put_volume_scale_day_2'],
                 }
     def generate(self):
         #self.print_instant_info()
@@ -139,7 +141,11 @@ class OptionSignalGenerator:
             ['Buildup', aggregate_stats['call_build_up'], aggregate_stats['put_build_up'], aggregate_stats['total_build_up']],
             ['Addition(T-1)', aggregate_stats['call_addition'], aggregate_stats['put_addition'], aggregate_stats['total_addition']],
             ['Volume', aggregate_stats['call_volume_scale'], aggregate_stats['put_volume_scale'], aggregate_stats['total_volume_scale']],
-            ['pcr_minus_1', '', '', aggregate_stats['pcr_minus_1']]
+            ['pcr_minus_1', '', '', aggregate_stats['pcr_minus_1']],
+            ['regime', '', '', aggregate_stats['regime']],
+            ['near strike vol rat', '', '', aggregate_stats['roll_near_vol_pcr']],
+            ['far strike vol rat', '', '', aggregate_stats['roll_far_vol_pcr']],
+            ['vol spread rat', '', '', aggregate_stats['roll_vol_spread_pcr']],
         ]
         return table
 

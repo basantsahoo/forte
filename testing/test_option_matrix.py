@@ -43,13 +43,13 @@ while data_loader.data_present:
     feed_ = data_loader.generate_next_feed()
     if feed_:
         feed_type = feed_['feed_type']
-        feed_list = feed_['feed_list']
+        feed_list = feed_['data']
         if feed_type == 'option':
             option_matrix.process_option_feed(feed_list)
 
         if feed_type == 'spot':
-            #print(feed_list)
-            #option_matrix.process_feed_without_signal(feed_list)
+            print(feed_list)
+            option_matrix.process_spot_feed(feed_list)
             pass
         #option_matrix.generate_signal()
 

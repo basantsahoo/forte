@@ -1,7 +1,7 @@
 {
   "triggers": {
-    "trigger_vol_scale": 0,
-    "price_change_th": 0
+    "trigger_vol_scale": 3,
+    "price_change_th": 0.7
   },
   "put_buy": [{
     "put_volume_scale": {"min": 0, "max": 0.5},

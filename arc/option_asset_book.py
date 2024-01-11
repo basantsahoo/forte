@@ -75,9 +75,9 @@ class OptionAssetBook:
         self.market_book.pattern_signal(self.asset, signal)
 
     def frame_change_action(self, current_frame, next_frame):
-        print('frame_change_action++++++++++++++++++ 111')
+        #print('frame_change_action++++++++++++++++++ 111')
         self.option_matrix.frame_change_action(current_frame, next_frame)
-        print('frame_change_action++++++++++++++++++ 222')
+        #print('frame_change_action++++++++++++++++++ 222')
         self.spot_book.frame_change_action(current_frame, next_frame)
         self.market_book.strategy_manager.on_minute_data_pre(self.asset)
         self.market_book.strategy_manager.on_minute_data_post(self.asset)

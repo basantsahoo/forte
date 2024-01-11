@@ -70,7 +70,7 @@ class FeedThrottler:
 
 class SpotFeedThrottler(FeedThrottler):
     def push(self):
-        print('SpotFeedThrottler push++++++++++')
+        #print('SpotFeedThrottler push++++++++++')
         if self.ion_dict:
             self.matrix.add_spot_cells(self.current_date, list(self.ion_dict.values()))
             self.ion_dict = {}
@@ -78,7 +78,7 @@ class SpotFeedThrottler(FeedThrottler):
 
 class OptionFeedThrottler(FeedThrottler):
     def push(self):
-        print('OptionFeedThrottler push++++++++++')
+        #print('OptionFeedThrottler push++++++++++')
         if self.ion_dict:
             self.matrix.add_cells(self.current_date, list(self.ion_dict.values()))
             self.ion_dict = {}

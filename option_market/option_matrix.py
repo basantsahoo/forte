@@ -4,7 +4,7 @@ capsule (
     trading_data:{
         '2023-12-01':capsule(
                         trading_data:{
-                            '4200_CE':capsule(
+                            '42000_CE':capsule(
                                           trading_data:{
                                               epoc1: cell(
                                                         ion
@@ -15,7 +15,7 @@ capsule (
                         },
                         transposed_data: {
                             epoc1: {
-                                '4200_CE': cell
+                                '42000_CE': cell
                             }
                         },
                         cross_analyser: None
@@ -33,7 +33,7 @@ from db.market_data import get_daily_option_ion_data
 from collections import OrderedDict
 from entities.trading_day import TradeDateTime, NearExpiryWeek
 from option_market.building_blocks import Capsule
-from option_market.analysers import IntradayCrossAssetAnalyser
+from option_market.intraday_cross_analyser import IntradayCrossAssetAnalyser
 #from option_market.analysers import OptionMatrixAnalyser
 from option_market.throttlers import OptionFeedThrottler, FeedThrottler, SpotFeedThrottler
 from option_market.signal_generator import OptionSignalGenerator
@@ -66,7 +66,7 @@ class OptionMatrix:
 
     def frame_change_action(self, current_frame, next_frame):
         self.last_time_stamp = current_frame
-        print('option matrix, frame_change_action++++')
+        #print('option matrix, frame_change_action++++')
         self.spot_throttler.check_time_to_push(next_frame)
         self.option_data_throttler.check_time_to_push(next_frame)
         self.data_throttler.check_time_to_push(next_frame)
@@ -160,10 +160,12 @@ class OptionMatrix:
         timestamp_set = set()
         if not self.capsule.in_trading_data(trade_date):
             capsule = Capsule()
-            cross_analyser = IntradayCrossAssetAnalyser(capsule, self.avg_volumes[trade_date], self.closing_oi[trade_date])
+            day_spot_capsule = self.get_day_spot_capsule(trade_date)
+            cross_analyser = IntradayCrossAssetAnalyser(capsule, day_spot_capsule, self.avg_volumes[trade_date], self.closing_oi[trade_date])
             capsule.cross_analyser = cross_analyser
             self.capsule.insert_trading_data(trade_date, capsule)
         day_capsule = self.get_day_capsule(trade_date)
+
         for cell in cell_list:
             if not day_capsule.in_trading_data(cell.instrument):
                 day_capsule.insert_trading_data(cell.instrument, Capsule())

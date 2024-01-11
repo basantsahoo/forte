@@ -256,6 +256,25 @@ def get_option_strike(ltp, money_ness, level, kind):
     return strike
 
 
+def create_strike_groups(ltp, kind, instruments):
+    points = 3
+    print('get_option_strike....', ltp, kind)
+    atm_strike = round(ltp / 100) * 100
+    each_side = round((points-1)/2)
+    far_strikes = []
+    nearby_strikes = [atm_strike - (x + 1) * 100 for x in range(each_side)] + [atm_strike] + [atm_strike + (x + 1) * 100 for x in range(each_side)]
+    if kind == 'PE':
+        far_strikes = list(set([instrument['strike'] for instrument in instruments if instrument['strike'] < min(nearby_strikes)]))
+    if kind == 'CE':
+        far_strikes = list(set([instrument['strike'] for instrument in instruments if instrument['strike'] > max(nearby_strikes)]))
+    far_strikes.sort()
+    grps = {
+        'near_instruments': [str(x) + "_" + kind for x in nearby_strikes],
+        'far_instruments': [str(x) + "_" + kind for x in far_strikes]
+    }
+    return grps
+
+
 def determine_day_open(open_candle, profile): ## this is definitive
     open_low = open_candle['open']
     open_high = open_candle['open']
