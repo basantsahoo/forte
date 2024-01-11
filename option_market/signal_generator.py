@@ -50,6 +50,16 @@ class OptionSignalGenerator:
                 'pcr_minus_1': aggregate_stats['pcr_minus_1'],
                 'call_volume_scale_day_2': aggregate_stats['call_volume_scale_day_2'],
                 'put_volume_scale_day_2': aggregate_stats['put_volume_scale_day_2'],
+
+                'regime': aggregate_stats['regime'],
+                'market_entrant': aggregate_stats['market_entrant'],
+                'call_entrant': aggregate_stats['call_entrant'],
+                'put_entrant': aggregate_stats['put_entrant'],
+                'transition': aggregate_stats['transition'],
+                'roll_near_vol_pcr': aggregate_stats['roll_near_vol_pcr'],
+                'roll_far_vol_pcr': aggregate_stats['roll_far_vol_pcr'],
+                'roll_vol_spread_pcr': aggregate_stats['roll_vol_spread_pcr'],
+
                 }
     def generate(self):
         #self.print_instant_info()

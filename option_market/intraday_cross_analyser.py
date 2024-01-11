@@ -150,15 +150,20 @@ class IntradayCrossAssetAnalyser:
             print(self.aggregate_stats[ts]['far_call_oi_share'], self.aggregate_stats[ts]['far_put_oi_share'])
             n_period_stats = self.get_n_period_stats(ts)
             self.aggregate_stats[ts]['regime'] = n_period_stats['regime']
+            self.aggregate_stats[ts]['market_entrant'] = n_period_stats['market_entrant']
+            self.aggregate_stats[ts]['call_entrant'] = n_period_stats['call_entrant']
+            self.aggregate_stats[ts]['put_entrant'] = n_period_stats['put_entrant']
+            self.aggregate_stats[ts]['transition'] = n_period_stats['transition']
             self.aggregate_stats[ts]['roll_near_vol_pcr'] = n_period_stats['roll_near_vol_pcr']
             self.aggregate_stats[ts]['roll_far_vol_pcr'] = n_period_stats['roll_far_vol_pcr']
             self.aggregate_stats[ts]['roll_vol_spread_pcr'] = n_period_stats['roll_vol_spread_pcr']
+
             ## Addition
             ## calculate n period open interest change
             self.calc_cross_instrument_stats(ts)
 
 
-    def get_n_period_stats(self, ts, n_period=5):
+    def get_n_period_stats(self, ts, n_period=3):
         all_ts = list(self.aggregate_stats.keys())
         filtered_ts = [x for x in all_ts if x<= ts]
         filtered_ts.sort()
@@ -167,26 +172,36 @@ class IntradayCrossAssetAnalyser:
         n_period_call_oi_change = sum([period_aggr_stats['call_addition'] for period_aggr_stats in n_period_aggr_stats])
         n_period_put_oi_change = sum([period_aggr_stats['put_addition'] for period_aggr_stats in n_period_aggr_stats])
         n_period_total_oi_change = sum([period_aggr_stats['total_addition'] for period_aggr_stats in n_period_aggr_stats])
-        if n_period_call_oi_change > 0 and n_period_put_oi_change > 0:
+
+        build_up_theshold = 0.5/100
+
+        call_build_up_dir = int(abs(n_period_call_oi_change) > build_up_theshold) * np.sign(n_period_call_oi_change)
+        put_build_up_dir = int(abs(n_period_put_oi_change) > build_up_theshold) * np.sign(n_period_put_oi_change)
+        if call_build_up_dir > 0 and put_build_up_dir > 0:
             regime = "both_build_up"
-        elif n_period_call_oi_change <= 0 and n_period_put_oi_change:
-            regime = "both_covering"
-        elif n_period_call_oi_change > 0 and n_period_put_oi_change < 0:
-            regime = "put_to_call_trans"
-        elif n_period_call_oi_change < 0 and n_period_put_oi_change > 0:
-            regime = "call_to_put_trans"
-        elif n_period_call_oi_change > 0 and n_period_total_oi_change > 0:
-            regime = "call_build_up"
-        elif n_period_call_oi_change < 0 and n_period_total_oi_change < 0:
-            regime = "call_covering"
-        elif n_period_put_oi_change > 0 and n_period_total_oi_change > 0:
-            regime = "put_build_up"
-        elif n_period_put_oi_change < 0 and n_period_total_oi_change < 0:
+        elif call_build_up_dir > 0 and put_build_up_dir == 0:
+            regime = "call_buildup"
+        elif call_build_up_dir == 0 and put_build_up_dir > 0:
+            regime = "put_buildup"
+        elif call_build_up_dir == 0 and put_build_up_dir == 0:
+            regime = "neutral"
+        elif call_build_up_dir == 0 and put_build_up_dir < 0:
             regime = "put_covering"
-        else:
-            regime = 'unknown'
+        elif call_build_up_dir < 0 and put_build_up_dir == 0:
+            regime = "call_covering"
+        elif call_build_up_dir < 0 and put_build_up_dir < 0:
+            regime = "both_covering"
+        elif (call_build_up_dir < 0) and put_build_up_dir > 0:
+            regime = "call_to_put_trans"
+        elif (call_build_up_dir > 0) and put_build_up_dir < 0:
+            regime = "put_to_call_trans"
+        print(call_build_up_dir, put_build_up_dir)
         stats= {}
         stats['regime'] = regime
+        stats['market_entrant'] = n_period_total_oi_change
+        stats['call_entrant'] = n_period_call_oi_change
+        stats['put_entrant'] = n_period_put_oi_change
+        stats['transition'] = (n_period_put_oi_change - n_period_call_oi_change) if  n_period_put_oi_change > n_period_total_oi_change else 0
         stats['roll_near_vol_pcr'] = np.round(np.mean([period_aggr_stats['near_vol_pcr'] for period_aggr_stats in n_period_aggr_stats]), 2)
         stats['roll_far_vol_pcr'] = np.round(np.mean([period_aggr_stats['far_vol_pcr'] for period_aggr_stats in n_period_aggr_stats]), 2)
         stats['roll_vol_spread_pcr'] = np.round(np.mean([period_aggr_stats['vol_spread_pcr'] for period_aggr_stats in n_period_aggr_stats]), 2)
@@ -226,7 +241,7 @@ class IntradayCrossAssetAnalyser:
                 'oi_build_up_factor': np.round((cell.ion.oi - cell.ion.past_closing_oi)/start_total_oi, 4),
                 'vol_share': cell.analytics.get('vol_share', None),
                 'vol_share_change': cell.analytics['vol_share_change'],
-                'vol_share_flow': np.round(sum(vol_share_change_series[-5::]), 4),
+                'vol_share_flow': np.round(sum(vol_share_change_series[-3::]), 4),
                 # 'vol_scale': np.round(float(cell.ion.volume / median_volume), 2),
                 #'price_delta': np.round(cell.analytics.get('price_delta', 0), 2),
                 'vwap_delta': np.round(cell.analytics['vwap_delta'], 2),
