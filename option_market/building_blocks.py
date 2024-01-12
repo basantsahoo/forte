@@ -81,6 +81,7 @@ class OptionCell:
         self.instrument = instrument
         self.ion = None
         self.analytics = {}
+        self.ledger = {}
         self.elder_sibling = elder_sibling
         self.analyser = OptionCellAnalyser(self)
         self.volume_delta_mode = volume_delta_mode

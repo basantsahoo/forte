@@ -113,28 +113,12 @@ class IntradayCrossAssetAnalyser:
             ### Calculate Regime
             spot_ltp = self.get_spot_ltp(ts)
             all_instruments = self.get_all_option_instruments()
-
-
             put_groups = create_strike_groups(spot_ltp, 'PE', all_instruments)
             call_groups = create_strike_groups(spot_ltp, 'CE', all_instruments)
-            #print(put_groups)
-            #print(call_groups)
             near_put_volume = sum([cell.ion.volume for cell in ts_data.values() if cell.instrument in put_groups['near_instruments']])
             far_put_volume = sum([cell.ion.volume for cell in ts_data.values() if cell.instrument in put_groups['far_instruments']])
             near_call_volume = sum([cell.ion.volume for cell in ts_data.values() if cell.instrument in call_groups['near_instruments']])
             far_call_volume = sum([cell.ion.volume for cell in ts_data.values() if cell.instrument in call_groups['far_instruments']])
-
-            self.aggregate_stats[ts]['near_put_volume_share'] = np.round(near_put_volume / total_volume_series[-1], 4)
-            self.aggregate_stats[ts]['far_put_volume_share'] = np.round(far_put_volume / total_volume_series[-1], 4)
-            self.aggregate_stats[ts]['near_call_volume_share'] = np.round(near_call_volume / total_volume_series[-1], 4)
-            self.aggregate_stats[ts]['far_call_volume_share'] = np.round(far_call_volume / total_volume_series[-1], 4)
-
-            print(self.aggregate_stats[ts]['near_call_volume_share'], self.aggregate_stats[ts]['near_put_volume_share'])
-            print(self.aggregate_stats[ts]['far_call_volume_share'], self.aggregate_stats[ts]['far_put_volume_share'])
-
-            self.aggregate_stats[ts]['near_vol_pcr'] = np.round(self.aggregate_stats[ts]['near_put_volume_share']/self.aggregate_stats[ts]['near_call_volume_share'], 2)
-            self.aggregate_stats[ts]['far_vol_pcr'] = np.round(self.aggregate_stats[ts]['far_put_volume_share'] / self.aggregate_stats[ts]['far_call_volume_share'], 2)
-            self.aggregate_stats[ts]['vol_spread_pcr'] = np.round((self.aggregate_stats[ts]['near_put_volume_share'] - self.aggregate_stats[ts]['far_put_volume_share']) / (self.aggregate_stats[ts]['near_call_volume_share'] - self.aggregate_stats[ts]['far_call_volume_share']), 2)
 
             near_put_oi = sum([cell.ion.oi for cell in ts_data.values() if cell.instrument in put_groups['near_instruments']])
             far_put_oi = sum([cell.ion.oi for cell in ts_data.values() if cell.instrument in put_groups['far_instruments']])
@@ -145,6 +129,28 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['far_put_oi_share'] = np.round(far_put_oi / total_oi_series[-1], 4)
             self.aggregate_stats[ts]['near_call_oi_share'] = np.round(near_call_oi / total_oi_series[-1], 4)
             self.aggregate_stats[ts]['far_call_oi_share'] = np.round(far_call_oi / total_oi_series[-1], 4)
+
+            self.aggregate_stats[ts]['near_put_volume_share'] = np.round(near_put_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['near_put_oi_share']
+            self.aggregate_stats[ts]['far_put_volume_share'] = np.round(far_put_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['far_put_oi_share']
+            self.aggregate_stats[ts]['near_call_volume_share'] = np.round(near_call_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['near_call_oi_share']
+            self.aggregate_stats[ts]['far_call_volume_share'] = np.round(far_call_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['far_call_oi_share']
+
+            print(self.aggregate_stats[ts]['near_call_volume_share'], self.aggregate_stats[ts]['near_put_volume_share'])
+            print(self.aggregate_stats[ts]['far_call_volume_share'], self.aggregate_stats[ts]['far_put_volume_share'])
+            print('spread====', self.aggregate_stats[ts]['near_call_volume_share'] - self.aggregate_stats[ts]['far_call_volume_share'])
+            self.aggregate_stats[ts]['call_vol_spread'] = np.round(self.aggregate_stats[ts]['near_call_volume_share'] - self.aggregate_stats[ts]['far_call_volume_share'], 2)
+            self.aggregate_stats[ts]['put_vol_spread'] = np.round(self.aggregate_stats[ts]['near_put_volume_share'] - self.aggregate_stats[ts]['far_put_volume_share'], 2)
+            both_near_oi_share = (self.aggregate_stats[ts]['near_put_oi_share'] + self.aggregate_stats[ts]['near_call_oi_share'])
+            both_far_oi_share = (self.aggregate_stats[ts]['far_put_oi_share'] + self.aggregate_stats[ts]['far_call_oi_share'])
+            both_near_volume_share = (self.aggregate_stats[ts]['near_put_volume_share'] + self.aggregate_stats[ts]['near_call_volume_share'])
+            both_far_volume_share = (self.aggregate_stats[ts]['far_put_volume_share'] + self.aggregate_stats[ts]['far_call_volume_share'])
+
+            self.aggregate_stats[ts]['total_vol_spread'] = np.round(both_near_volume_share/both_near_oi_share - both_far_volume_share/both_far_oi_share, 2)
+            self.aggregate_stats[ts]['near_vol_pcr'] = np.round(self.aggregate_stats[ts]['near_put_volume_share']/self.aggregate_stats[ts]['near_call_volume_share'], 2)
+            self.aggregate_stats[ts]['far_vol_pcr'] = np.round(self.aggregate_stats[ts]['far_put_volume_share'] / self.aggregate_stats[ts]['far_call_volume_share'], 2)
+            self.aggregate_stats[ts]['vol_spread_pcr'] = np.round((self.aggregate_stats[ts]['near_put_volume_share'] - self.aggregate_stats[ts]['far_put_volume_share']) / (self.aggregate_stats[ts]['near_call_volume_share'] - self.aggregate_stats[ts]['far_call_volume_share']), 2)
+
+
             print("----------oi----------")
             print(self.aggregate_stats[ts]['near_call_oi_share'], self.aggregate_stats[ts]['near_put_oi_share'])
             print(self.aggregate_stats[ts]['far_call_oi_share'], self.aggregate_stats[ts]['far_put_oi_share'])
@@ -157,6 +163,17 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['roll_near_vol_pcr'] = n_period_stats['roll_near_vol_pcr']
             self.aggregate_stats[ts]['roll_far_vol_pcr'] = n_period_stats['roll_far_vol_pcr']
             self.aggregate_stats[ts]['roll_vol_spread_pcr'] = n_period_stats['roll_vol_spread_pcr']
+            ledger_stats = self.get_ledger_stats(ts)
+            self.aggregate_stats[ts]['ledger'] = ledger_stats
+            """
+            self.aggregate_stats[ts]['ledger']['total_pnl'] = ledger_stats['total_pnl']
+            self.aggregate_stats[ts]['ledger']['call_pnl'] = ledger_stats['call_pnl']
+            self.aggregate_stats[ts]['ledger']['put_pnl'] = ledger_stats['put_pnl']
+            self.aggregate_stats[ts]['ledger']['max_total_investment'] = ledger_stats['max_total_investment']
+            self.aggregate_stats[ts]['ledger']['max_call_investment'] = ledger_stats['max_call_investment']
+            self.aggregate_stats[ts]['ledger']['max_put_investment'] = ledger_stats['max_put_investment']
+            self.aggregate_stats[ts]['ledger']['total_profit'] = ledger_stats['total_profit']
+            """
 
             ## Addition
             ## calculate n period open interest change
@@ -207,12 +224,42 @@ class IntradayCrossAssetAnalyser:
         stats['roll_vol_spread_pcr'] = np.round(np.mean([period_aggr_stats['vol_spread_pcr'] for period_aggr_stats in n_period_aggr_stats]), 2)
         return stats
 
+    def get_ledger_stats(self, ts):
 
-    def calculate_regime(self, timestamp_list=[]):
         transposed_data = self.option_capsule.transposed_data
-        #print('timestamp_list=====', timestamp_list)
-        if not timestamp_list:
-            timestamp_list = transposed_data.keys()
+        ts_data = transposed_data[ts]
+        call_pnl = sum([cell.ledger['total_pnl'] for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
+        put_pnl = sum([cell.ledger['total_pnl'] for cell in ts_data.values() if cell.instrument[-2::] == 'PE'])
+        total_pnl = call_pnl + put_pnl
+        call_cum_investment = sum([cell.ledger['cum_investment'] for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
+        put_cum_investment = sum([cell.ledger['cum_investment'] for cell in ts_data.values() if cell.instrument[-2::] == 'PE'])
+        total_cum_investment = call_cum_investment + put_cum_investment
+
+        stats= {}
+        stats['total_pnl'] = total_pnl
+        stats['call_pnl'] = call_pnl
+        stats['put_pnl'] = put_pnl
+        stats['total_cum_investment'] = total_cum_investment
+        stats['call_cum_investment'] = call_cum_investment
+        stats['put_cum_investment'] = put_cum_investment
+
+        ts_history = [x for x in list(self.aggregate_stats.keys()) if x < ts]
+        if ts_history:
+            previous_ts = max(ts_history)
+            previous_ledger = self.aggregate_stats[previous_ts]['ledger']
+            stats['max_total_investment'] = max(total_cum_investment, previous_ledger['max_total_investment'])
+            stats['max_call_investment'] = max(call_cum_investment, previous_ledger['max_call_investment'])
+            stats['max_put_investment'] = max(put_cum_investment, previous_ledger['max_put_investment'])
+        else:
+            stats['max_total_investment'] = total_cum_investment
+            stats['max_call_investment'] = call_cum_investment
+            stats['max_put_investment'] = put_cum_investment
+
+        stats['total_profit'] = np.round(total_pnl/stats['max_total_investment'],2)
+        stats['call_profit'] = np.round(call_pnl / stats['max_call_investment'], 2)
+        stats['put_profit'] = np.round(put_pnl / stats['max_put_investment'], 2)
+        return stats
+
 
 
     def calc_cross_instrument_stats(self, timestamp):

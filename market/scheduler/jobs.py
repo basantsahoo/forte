@@ -31,8 +31,8 @@ def restart_process():
 def start():
 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(td_download_spot_data.run, 'cron', day_of_week='mon-sun', hour='9', minute='13')
-    scheduler.add_job(td_download_option_data.run2, 'cron', day_of_week='mon-sun', hour='9', minute='17')
+    scheduler.add_job(td_download_spot_data.run, 'cron', day_of_week='mon-sun', hour='8', minute='5')
+    scheduler.add_job(td_download_option_data.run2, 'cron', day_of_week='mon-sun', hour='8', minute='8')
     scheduler.add_job(calculate_historical_measures.run, 'cron', day_of_week='mon-sun', hour='2', minute='1')
     scheduler.add_job(calculate_support_resistance.run, 'cron', day_of_week='mon-sun', hour='2', minute='10')
     scheduler.add_job(historical_profile.run, 'cron', day_of_week='mon-sun', hour='2', minute='20')

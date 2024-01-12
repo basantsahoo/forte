@@ -153,9 +153,11 @@ class OptionSignalGenerator:
             ['Volume', aggregate_stats['call_volume_scale'], aggregate_stats['put_volume_scale'], aggregate_stats['total_volume_scale']],
             ['pcr_minus_1', '', '', aggregate_stats['pcr_minus_1']],
             ['regime', '', '', aggregate_stats['regime']],
+            ['Vol Spread', aggregate_stats['call_vol_spread'], aggregate_stats['put_vol_spread'], aggregate_stats['total_vol_spread']],
             ['near strike vol rat', '', '', aggregate_stats['roll_near_vol_pcr']],
             ['far strike vol rat', '', '', aggregate_stats['roll_far_vol_pcr']],
             ['vol spread rat', '', '', aggregate_stats['roll_vol_spread_pcr']],
+            ['Profitability', aggregate_stats['ledger']['total_profit'], aggregate_stats['ledger']['call_profit'], aggregate_stats['ledger']['put_profit']],
         ]
         return table
 
