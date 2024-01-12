@@ -38,10 +38,10 @@ class OptionCellAnalyser:
             self.cell.ledger['prev_owap'] = self.cell.elder_sibling.ledger['owap']
             self.cell.ledger['prev_cum_investment'] = self.cell.elder_sibling.ledger['cum_investment']
             self.cell.ledger['prev_max_investment'] = self.cell.elder_sibling.ledger['max_investment']
-            self.cell.ledger['prev_realized_pnl'] = self.cell.elder_sibling.ledger['prev_realized_pnl']
+            self.cell.ledger['prev_realized_pnl'] = self.cell.elder_sibling.ledger['realized_pnl']
 
         else:
-            if self.cell.instrument == '21700_CE':
+            if self.cell.instrument == '21700_PE':
                 print('first item')
                 print('self.cell.ion.oi==', self.cell.ion.oi)
             #print(self.cell.__dict__)
@@ -76,7 +76,7 @@ class OptionCellAnalyser:
         self.cell.ledger['un_realized_pnl'] = self.cell.ledger['net_qty'] * (self.cell.ledger['owap'] - self.cell.ledger['price'])
         self.cell.ledger['total_pnl'] = self.cell.ledger['realized_pnl'] + self.cell.ledger['un_realized_pnl']
         self.cell.ledger['percent_pnl'] = np.round(self.cell.ledger['total_pnl'] / self.cell.ledger['max_investment'],2)
-        if self.cell.instrument == '21700_CE':
+        if self.cell.instrument == '21700_PE':
             print('*****************************')
             print('qty=====', self.cell.ledger['qty'])
             print('price=====', self.cell.ledger['price'])

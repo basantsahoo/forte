@@ -5,6 +5,7 @@ from option_market.utils import get_average_volume_for_day
 from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion
 from entities.base import BaseSignal
 from arc.clock import Clock
+from entities.trading_day import NearExpiryWeek, TradeDateTime
 
 class OptionAssetBook:
     def __init__(self, market_book, asset):
@@ -21,10 +22,13 @@ class OptionAssetBook:
         self.clock = Clock()
         self.clock.initialize_from_trade_day(trade_day)
         self.clock.subscribe_to_frame_change(self.frame_change_action)
-        closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
-        closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
-        #print(closing_oi_df.to_dict('records'))
-        self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
+        if NearExpiryWeek(TradeDateTime(trade_day), self.asset).start_date.date_string != trade_day:
+            closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
+            closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
+            #print(closing_oi_df.to_dict('records'))
+            self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
+        else:
+            self.option_matrix.process_closing_oi(trade_day, [])
         avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
         self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)
         self.spot_book.day_change_notification(trade_day)
