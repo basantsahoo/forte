@@ -41,9 +41,11 @@ class OptionCellAnalyser:
             self.cell.ledger['prev_realized_pnl'] = self.cell.elder_sibling.ledger['realized_pnl']
 
         else:
+            """
             if self.cell.instrument == '21700_PE':
                 print('first item')
                 print('self.cell.ion.oi==', self.cell.ion.oi)
+            """
             #print(self.cell.__dict__)
             #print(self.cell.ion.__dict__)
             self.cell.analytics['price_delta'] = 0
@@ -76,6 +78,7 @@ class OptionCellAnalyser:
         self.cell.ledger['un_realized_pnl'] = self.cell.ledger['net_qty'] * (self.cell.ledger['owap'] - self.cell.ledger['price'])
         self.cell.ledger['total_pnl'] = self.cell.ledger['realized_pnl'] + self.cell.ledger['un_realized_pnl']
         self.cell.ledger['percent_pnl'] = np.round(self.cell.ledger['total_pnl'] / self.cell.ledger['max_investment'],2)
+        """
         if self.cell.instrument == '21700_PE':
             print('*****************************')
             print('qty=====', self.cell.ledger['qty'])
@@ -87,7 +90,7 @@ class OptionCellAnalyser:
             print('un_realized_pnl=====', self.cell.ledger['un_realized_pnl'])
             print('total_pnl=====', self.cell.ledger['total_pnl'])
             print('percent_pnl=====', self.cell.ledger['percent_pnl'])
-
+        """
     def update_analytics(self, field, value):
         self.cell.analytics[field] = value
 

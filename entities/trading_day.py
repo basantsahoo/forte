@@ -91,6 +91,18 @@ class TradeDateTime:
         self.market_start_epoc = int(time.mktime(time.strptime(market_start_time, "%Y-%m-%d %H:%M:%S")))
         self.market_end_epoc = int(time.mktime(time.strptime(market_end_time, "%Y-%m-%d %H:%M:%S")))
 
+    def __eq__(self, other):
+        if self.ordinal == other.ordinal:
+            return True
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.ordinal)
+
+    def __lt__(self, other):
+        return self.ordinal < other.ordinal
+
 
 class NearExpiryWeek:
     def __init__(self, trade_date_time=None, asset="NIFTY"):
@@ -117,7 +129,7 @@ class NearExpiryWeek:
             day.trade_d2e = len(all_days) - idx - 1
             day.cal_d2e = (self.end_date.date_time - day.date_time).days
             self.all_trade_days.append(day)
-
+        self.all_trade_days.sort()
 
     @staticmethod
     def get_asset_expiry_dates(asset):
@@ -131,4 +143,16 @@ class NearExpiryWeek:
             sym_future_expiry_dates = []
         return [TradeDateTime(x) for x in sym_future_expiry_dates]
 
+    def __eq__(self, other) :
+        if self.start_date.ordinal == other.start_date.ordinal \
+                and self.end_date.ordinal == other.end_date.ordinal \
+                and self.asset == other.asset:
+            return True
+        else:
+            return False
 
+    def __hash__(self):
+        return hash(self.asset + self.start_date.date_string)
+
+    def __lt__(self, other):
+        return self.start_date.ordinal < other.start_date.ordinal

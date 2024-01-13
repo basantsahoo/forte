@@ -31,7 +31,7 @@ class IntradayCrossAssetAnalyser:
         #print(timestamp_list)
         for ts in timestamp_list:
             t_time = TradeDateTime(ts)
-            print('time ==========================================================================',
+            print('compute_stats time ==========================================================================',
                   t_time.date_time.hour, ":", t_time.date_time.minute)
 
             self.aggregate_stats[ts] = {}
@@ -236,7 +236,7 @@ class IntradayCrossAssetAnalyser:
             regime = "call_to_put_trans"
         elif (call_build_up_dir > 0) and put_build_up_dir < 0:
             regime = "put_to_call_trans"
-        print(call_build_up_dir, put_build_up_dir)
+        #print(call_build_up_dir, put_build_up_dir)
         stats= {}
         stats['regime'] = regime
         stats['market_entrant'] = n_period_total_oi_change
@@ -283,9 +283,14 @@ class IntradayCrossAssetAnalyser:
         stats['total_profit'] = np.round(total_pnl/stats['max_total_investment'],2)
         stats['call_profit'] = np.round(call_pnl / stats['max_call_investment'], 2)
         stats['put_profit'] = np.round(put_pnl / stats['max_put_investment'], 2)
+        """
         print("put_pnl=====", put_pnl)
         print("max_put_investment=====", stats['max_put_investment'])
         print("put_profit=====", stats['put_profit'])
+        print("call_pnl=====", call_pnl)
+        print("max_call_investment=====", stats['max_call_investment'])
+        print("call_profit=====", stats['call_profit'])
+        """
         return stats
 
 

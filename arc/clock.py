@@ -31,5 +31,10 @@ class Clock:
                     change_subscription(self.current_frame, frame)
                 self.set_frame(input_time_stamp)
 
+    def on_day_change(self, trade_day):
+        print('*******************************on_day_change***********************')
+        self.initialize_from_trade_day(trade_day)
+        self.check_frame_change(self.start_frame)
+
     def subscribe_to_frame_change(self, callback):
         self.frame_change_subscriptions.append(callback)

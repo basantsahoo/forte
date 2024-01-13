@@ -12,16 +12,20 @@ class OptionAssetBook:
         self.market_book = market_book
         self.asset = asset
         self.spot_book = SpotBook(self, asset)
-        self.clock = Clock()
+        self.clock = None
         self.option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1, live_mode=market_book.live_mode, volume_delta_mode=market_book.volume_delta_mode, print_cross_stats=market_book.print_cross_stats)
         self.option_matrix.signal_generator.signal_dispatcher = self.pattern_signal
         self.last_periodic_update = None
         self.periodic_update_sec = 60
 
     def day_change_notification(self, trade_day):
-        self.clock = Clock()
-        self.clock.initialize_from_trade_day(trade_day)
-        self.clock.subscribe_to_frame_change(self.frame_change_action)
+        if self.clock is None:
+            self.clock = Clock()
+            self.clock.initialize_from_trade_day(trade_day)
+            self.clock.subscribe_to_frame_change(self.frame_change_action)
+        else:
+            self.clock.on_day_change(trade_day)
+
         if NearExpiryWeek(TradeDateTime(trade_day), self.asset).start_date.date_string != trade_day:
             closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
             closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]

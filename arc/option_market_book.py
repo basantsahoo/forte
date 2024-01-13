@@ -43,7 +43,10 @@ class OptionMarketBook:
             self.last_tick_timestamp = self.tpo_brackets[0]
 
     def feed_stream(self, feed):
+        #print("new feed")
+        #print(feed['data'][-1])
         if self.trade_day != feed['data'][-1]['trade_date']:
+            print('trade dat change')
             self.do_day_set_up(feed['data'][-1]['trade_date'])
         if feed['feed_type'] == 'spot':
             self.set_curr_tpo(feed['data'][-1]['timestamp'])
@@ -61,6 +64,7 @@ class OptionMarketBook:
         #print('market_book feed_stream', feed)
 
     def do_day_set_up(self, trade_day):
+        print('do_day_set_up++++++++++', trade_day)
         self.trade_day = trade_day
         start_str = trade_day + " 09:15:00"
         ib_end_str = trade_day + " 10:15:00"
@@ -74,7 +78,6 @@ class OptionMarketBook:
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
         for asset_book in self.asset_books.values():
             asset_book.day_change_notification(trade_day)
-
         self.day_setup_done = True
 
     def set_up_strategies(self):

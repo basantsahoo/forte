@@ -168,7 +168,7 @@ class OptionSignalGenerator:
 
     def run_external_generators(self):
         if self.option_matrix.last_time_stamp is not None:
-            print(TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
+            print('run_external_generators, ', TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
         call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
         put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()

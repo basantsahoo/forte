@@ -47,7 +47,6 @@ print("month end==", expiry_week.moth_end_expiry)
 """
 
 from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
-from option_market.analysers import OptionMatrixAnalyser
 from option_market.exclude_trade_days import exclude_trade_days
 
 days = get_all_trade_dates_between_two_dates(asset, expiry_week.start_date.date_string, expiry_week.end_date.date_string)
