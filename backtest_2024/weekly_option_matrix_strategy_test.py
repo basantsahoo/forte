@@ -39,7 +39,7 @@ class WeeklyStartegyBackTester:
             print(week.start_date.date_string)
         for week in weeks:
             week.get_all_trade_days()
-            market_book = OptionMarketBook(week.start_date.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False))
+            market_book = OptionMarketBook(week.start_date.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=True)
             place_live = False
             interface = None
             if self.strat_config['run_params'].get("send_to_oms", False):
@@ -76,8 +76,9 @@ class WeeklyStartegyBackTester:
                     trade_id = strategy_tuple[2]
                     strategy_signal_generator = strategy_manager.get_deployed_strategy_from_id(strategy_id)
                     for leg_id, leg_info in position.items():
-                        _tmp = {'day': week.start_date.date_string, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
-                        _tmp['week_day'] = datetime.strptime(week.start_date.date_string, '%Y-%m-%d').strftime('%A') if type(week.start_date.date_string) == str else week.start_date.date_string.strftime('%A')
+                        day = TradeDateTime(leg_info['entry_time']).date_string
+                        _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+                        _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
                         trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
                         #print(trigger_details)
                         _tmp = {**_tmp, **trigger_details}
@@ -93,7 +94,7 @@ class WeeklyStartegyBackTester:
                         results.append(_tmp)
             except Exception as e:
 
-                print('error on', week.start_date.date_string)
+                print('error on', day)
                 print(e)
                 print(traceback.format_exc())
             # print(results)

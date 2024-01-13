@@ -28,8 +28,40 @@ class Capsule:
         if self.cross_analyser is not None:
             self.cross_analyser.compute()
 
+class Cell:
 
-class SpotCell:
+    def update_ion(self, new_ion):
+        self.ion = new_ion
+        """
+        if self.timestamp == 1703131200 and self.instrument=='48600_CE':
+            print(self.ion.oi)
+        """
+
+    def get_elder_sibling(self, parent):
+        sibling = None
+        all_keys = list(parent.trading_data.keys())
+        ts_before_now = [key for key in all_keys if key < self.timestamp]
+        if ts_before_now:
+            prev_ts = max(ts_before_now)
+            sibling = parent.trading_data[prev_ts]
+        return sibling
+
+    def fresh_born(self, matrix, trade_date):
+        try:
+            parent = matrix.get_instrument_capsule(trade_date, self.instrument)
+            sibling = self.get_elder_sibling(parent)
+            if sibling is None:
+                parent = matrix.get_prev_day_instrument_capsule(trade_date, self.instrument)
+                sibling = self.get_elder_sibling(parent)
+            self.elder_sibling = sibling
+        except:
+            pass
+
+    def analyse(self):
+        self.analyser.compute()
+
+
+class SpotCell(Cell):
     def __init__(self, timestamp=None, instrument=None, elder_sibling=None, volume_delta_mode=False):
         """
         :param timestamp:  required for instrument time series
@@ -44,15 +76,6 @@ class SpotCell:
         self.analyser = SpotCellAnalyser(self)
         self.volume_delta_mode = volume_delta_mode
 
-    def update_ion(self, new_ion):
-        self.ion = new_ion
-
-    def fresh_born(self, parent):
-        try:
-            self.elder_sibling = self.get_elder_sibling(parent)
-        except:
-            pass
-
     def validate_ion_data(self):
         if self.elder_sibling is not None:
             if not self.ion.price_is_valid():
@@ -62,15 +85,8 @@ class SpotCell:
                 self.ion.close = self.elder_sibling.ion.close
         self.analyse()
 
-    def get_elder_sibling(self, parent):
-        all_keys = list(parent.trading_data.keys())
-        prev_key = max([key for key in all_keys if key < self.timestamp])
-        return parent.trading_data[prev_key]
 
-    def analyse(self):
-        self.analyser.compute()
-
-class OptionCell:
+class OptionCell(Cell):
     def __init__(self, timestamp=None, instrument=None, elder_sibling=None, volume_delta_mode=False):
         """
         :param timestamp:  required for instrument time series
@@ -86,18 +102,6 @@ class OptionCell:
         self.analyser = OptionCellAnalyser(self)
         self.volume_delta_mode = volume_delta_mode
 
-    def update_ion(self, new_ion):
-        self.ion = new_ion
-        """
-        if self.timestamp == 1703131200 and self.instrument=='48600_CE':
-            print(self.ion.oi)
-        """
-
-    def fresh_born(self, parent):
-        try:
-            self.elder_sibling = self.get_elder_sibling(parent)
-        except:
-            pass
 
     def validate_ion_data(self):
         if self.elder_sibling is not None:
@@ -113,15 +117,15 @@ class OptionCell:
                 #self.ion.oi_delta = self.ion.oi - self.elder_sibling.ion.oi
         self.analyse()
 
-    def get_elder_sibling(self, parent):
-        all_keys = list(parent.trading_data.keys())
-        prev_key = max([key for key in all_keys if key < self.timestamp])
-        return parent.trading_data[prev_key]
-
-    def analyse(self):
-        self.analyser.compute()
-
-
+    """
+    def get_elder_sibling(self, matrix, trade_date):
+        parent = matrix.get_instrument_capsule(trade_date, self.instrument)
+        sibling = self.ask_parent_for_sibling(parent)
+        if sibling is None:
+            parent = matrix.get_prev_day_instrument_capsule(trade_date, self.instrument)
+            sibling = self.ask_parent_for_sibling(parent)
+        return sibling
+    """
 
 
 class OptionIon:

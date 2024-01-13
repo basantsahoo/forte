@@ -122,16 +122,23 @@ class OptionMatrix:
     def get_instrument_capsule(self, trade_date, instrument):
         return self.capsule.trading_data[trade_date].trading_data[instrument]
 
+    def get_prev_day_instrument_capsule(self, trade_date, instrument):
+        all_days = [TradeDateTime(day) for day in list(self.capsule.trading_data.keys())]
+        filtered_days = [day for day in all_days if day.ordinal < TradeDateTime(trade_date).ordinal]
+        filtered_days.sort()
+        if filtered_days:
+            instrument_capsule = self.get_instrument_capsule(filtered_days[-1].date_string, instrument)
+            return instrument_capsule
+        else:
+            instrument_capsule = self.get_prev_day_instrument_capsule(filtered_days[-1].date_string, instrument)
+
+        return instrument_capsule
+
     def get_spot_instrument_capsule(self, trade_date, instrument):
         return self.spot_capsule.trading_data[trade_date].trading_data[instrument]
 
     def add_spot_cells(self, trade_date, cell_list):
         self.counter += 1
-        if cell_list:
-
-            #self.last_time_stamp = cell_list[0].timestamp
-            pass
-            #print('add_spot_cells++++', self.last_time_stamp)
         timestamp_set = set()
         if not self.spot_capsule.in_trading_data(trade_date):
             capsule = Capsule()
@@ -142,7 +149,7 @@ class OptionMatrix:
                 day_capsule.insert_trading_data(cell.instrument, Capsule())
             instrument_capsule = self.get_spot_instrument_capsule(trade_date, cell.instrument)
             instrument_capsule.insert_trading_data(cell.timestamp, cell)
-            cell.fresh_born(instrument_capsule)
+            cell.fresh_born(self, trade_date)
             cell.validate_ion_data()
             timestamp_set.add(cell.timestamp)
 
@@ -174,7 +181,7 @@ class OptionMatrix:
             instrument_capsule = self.get_instrument_capsule(trade_date, cell.instrument)
             instrument_capsule.insert_trading_data(cell.timestamp, cell)
             day_capsule.insert_transposed_data(cell.timestamp, cell.instrument, cell)
-            cell.fresh_born(instrument_capsule)
+            cell.fresh_born(self, trade_date)
             cell.validate_ion_data()
             timestamp_set.add(cell.timestamp)
         if self.instant_compute:
