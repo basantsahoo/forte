@@ -5,6 +5,7 @@ from dynamics.profile import utils as profile_utils
 from arc.strategy_manager import StrategyManager
 from arc.option_asset_book import OptionAssetBook
 from entities.trading_day import TradeDateTime
+from arc.time_book import TimeBook
 
 class OptionMarketBook:
     def __init__(self,
@@ -37,7 +38,7 @@ class OptionMarketBook:
         self.last_tick_timestamp = None
         for asset in assets:
             self.asset_books[asset] = OptionAssetBook(self, asset)
-
+        self.time_book = TimeBook(self)
         if trade_day is not None:
             self.do_day_set_up(trade_day)
             self.last_tick_timestamp = self.tpo_brackets[0]
@@ -45,6 +46,7 @@ class OptionMarketBook:
     def feed_stream(self, feed):
         #print("new feed")
         #print(feed['data'][-1])
+        self.time_book.check_frame_change(feed['data'][-1]['timestamp'])
         if self.trade_day != feed['data'][-1]['trade_date']:
             print('trade dat change')
             self.do_day_set_up(feed['data'][-1]['trade_date'])
