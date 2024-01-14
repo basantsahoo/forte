@@ -249,7 +249,8 @@ class OptionSignalGenerator:
 
     def dispatch_signal(self, signal):
         #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
-        print('------------------------------------', signal.indicator)
+        if signal.indicator != 'PCR_MINUS_1':
+            print('------------------------------------', signal.indicator)
         if self.signal_dispatcher:
             self.signal_dispatcher(signal)
 

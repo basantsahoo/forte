@@ -71,6 +71,7 @@ class QNetwork:
 
     def register_signal(self, signal):
         for q_id, queue_item in self.neuron_dict.items():
+            #print('neuron network register_signal+++++++++', queue_item['neuron'].id)
             for watcher in queue_item['neuron'].watcher_list:
                 if (signal.category, signal.indicator) == watcher.signal_type:
                     watcher.receive_signal(signal)
@@ -86,6 +87,7 @@ class QNetwork:
 
     # Entry signal is and
     def evaluate_entry_signals(self):
+        #print('neuron network evaluate_entry_signals+++++++++')
         passed = True
         for q_id, queue_item in self.neuron_dict.items():
             queue = queue_item['neuron']
@@ -114,10 +116,11 @@ class QNetwork:
 
     # Exit signal is or
     def evaluate_exit_signals(self):
+        #print('neuron network evaluate_exit_signals+++++++++')
         passed = False
         for queue_item in self.neuron_dict.values():
             queue = queue_item['neuron']
-            res = queue.eval_exit_criteria()
+            res = queue.has_signal() and queue.eval_exit_criteria()
             if res:
                 queue.flush()
             passed = passed or res

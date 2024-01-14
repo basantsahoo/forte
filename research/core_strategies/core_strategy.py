@@ -245,6 +245,7 @@ class BaseStrategy:
             trade.register_signal(signal)
 
     def evaluate_entry_signals(self):
+        print('core strategy evaluate_entry_signals')
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
@@ -303,7 +304,7 @@ class BaseStrategy:
         for trade_id, trade in self.tradable_signals.items():
             trade.close_on_spot_tg_sl()
 
-    def pre_signal_filter(self, signal={}):
+    def pre_signal_filter(self, signal):
         satisfied = not self.signal_filters
         if not satisfied:
             market_params = self.asset_book.spot_book.activity_log.get_market_params()

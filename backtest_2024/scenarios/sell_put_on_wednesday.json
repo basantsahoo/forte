@@ -2,7 +2,7 @@
   "strategies":[
     {
       "id":"DayBeforeExpiry",
-      "class":"DayBeforeExpiry",
+      "class":"OptionSell",
       "symbol": "NIFTY",
       "exit_time":[],
       "carry_forward": true,
@@ -41,7 +41,7 @@
             "register_instr": false,
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": false
+            "neuron_log": true
           },
           "apply_pre_filter": true
         },
@@ -67,7 +67,7 @@
             "register_instr": "always",
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": false
+            "neuron_log": true
           },
           "apply_pre_filter": true
         }
@@ -75,14 +75,14 @@
       "exit_criteria_list": [
         {
           "neuron_info": {
-            "id": 0,
+            "id": 3,
             "signal_queue_info": {
-              "q_type": "stream",
+              "q_type": "fixed",
               "size": 1,
               "unique_only": true,
               "validity_period": 3
             },
-            "signal_type": "THURSDAY_9_20",
+            "signal_type": "THURSDAY_09_20",
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -95,7 +95,7 @@
             "register_instr": false,
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": false
+            "neuron_log": true
           },
           "apply_pre_filter": true
         }

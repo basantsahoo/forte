@@ -20,6 +20,7 @@ human_machine_signal_map = {
     'BEARISH_MOMENTUM': ('OPTION_MARKET', 'BEARISH_MOMENTUM'),
     'PCR_MINUS_1': ('OPTION_MARKET', 'PCR_MINUS_1'),
     'WEDNESDAY_15_15': ('TIME_SIGNAL', 'WEDNESDAY_15_15'),
+    'THURSDAY_09_20': ('TIME_SIGNAL', 'THURSDAY_09_20'),
 }
 
 human_machine_target_map = {
