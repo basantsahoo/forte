@@ -1,4 +1,3 @@
-import time
 from entities.base import Signal
 from entities.trading_day import TradeDateTime
 
@@ -21,11 +20,12 @@ class TimeBook:
         else:
             frame = int(input_time_stamp / self.interval) * self.interval
             if frame > self.current_frame:
-                d_t = TradeDateTime(self.current_frame).time_string
+                d_t = TradeDateTime(self.current_frame).weekday_name + "_" + TradeDateTime(self.current_frame).time_string[:-3]
+                d_t = d_t.upper().replace(":", "_")
 
-                signal = Signal(asset='GLOBAL', category='TIME_SIGNAL', instrument="",
+                signal = Signal(asset='GLOBAL', category='TIME_SIGNAL', instrument=None,
                                 indicator=d_t, strength=1, signal_time=self.current_frame,
                                 notice_time=self.current_frame, info={})
-                print('time_signal=====', signal)
+                print('time_signal=====', signal.__dict__)
                 self.market_book.pattern_signal('GLOBAL', signal)
                 self.set_frame(input_time_stamp)

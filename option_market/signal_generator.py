@@ -12,7 +12,7 @@ from option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMo
 from config import oi_denomination
 from beepy import beep
 from subprocess import call
-
+from entities.base import Signal
 
 class OptionSignalGenerator:
     def __init__(self, matrix, live_mode=False):
@@ -37,7 +37,27 @@ class OptionSignalGenerator:
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
         aggregate_stats = day_capsule.cross_analyser.get_aggregate_stats(self.option_matrix.last_time_stamp)
 
-        return {'timestamp': self.option_matrix.last_time_stamp,
+        call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
+        put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()
+        call_volume_series = day_capsule.cross_analyser.get_total_call_volume_series()
+        put_volume_series = day_capsule.cross_analyser.get_total_put_volume_series()
+        cross_stats = day_capsule.cross_analyser.get_cross_instrument_stats(self.option_matrix.last_time_stamp)
+
+        put_vwap = {inst: inst_data['vwap_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'PE'}
+        call_vwap = {inst: inst_data['vwap_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'CE'}
+
+        put_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if
+                           inst[-2::] == 'PE'}
+        call_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if
+                            inst[-2::] == 'CE'}
+
+        put_pos_change_list = [x for x in list(put_price_delta.values()) if x > 0]
+        call_pos_change_list = [x for x in list(call_price_delta.values()) if x > 0]
+
+        put_pos_price_pct = float(len(put_pos_change_list) / len(list(put_price_delta.values())))
+        call_pos_price_pct = float(len(call_pos_change_list) / len(list(call_price_delta.values())))
+
+        info =  {'timestamp': self.option_matrix.last_time_stamp,
                 'asset': self.option_matrix.asset,
                 'call_volume_scale':aggregate_stats['call_volume_scale'],
                 'put_volume_scale': aggregate_stats['put_volume_scale'],
@@ -50,7 +70,6 @@ class OptionSignalGenerator:
                 'pcr_minus_1': aggregate_stats['pcr_minus_1'],
                 'call_volume_scale_day_2': aggregate_stats['call_volume_scale_day_2'],
                 'put_volume_scale_day_2': aggregate_stats['put_volume_scale_day_2'],
-
                 'regime': aggregate_stats['regime'],
                 'market_entrant': aggregate_stats['market_entrant'],
                 'call_entrant': aggregate_stats['call_entrant'],
@@ -59,8 +78,24 @@ class OptionSignalGenerator:
                 'roll_near_vol_pcr': aggregate_stats['roll_near_vol_pcr'],
                 'roll_far_vol_pcr': aggregate_stats['roll_far_vol_pcr'],
                 'roll_vol_spread_pcr': aggregate_stats['roll_vol_spread_pcr'],
+                'put_pos_price_pct': put_pos_price_pct,
+                'call_pos_price_pct': call_pos_price_pct,
+                'call_vol_spread': aggregate_stats['call_vol_spread'],
+                'put_vol_spread': aggregate_stats['put_vol_spread'],
+                'total_vol_spread': aggregate_stats['total_vol_spread'],
+                'total_profit': aggregate_stats['ledger']['total_profit'],
+                'call_profit': aggregate_stats['ledger']['call_profit'],
+                'put_profit': aggregate_stats['ledger']['put_profit'],
+                'near_put_oi_share': aggregate_stats['near_put_oi_share'],
+                'far_put_oi_share': aggregate_stats['far_put_oi_share'],
+                'near_call_oi_share': aggregate_stats['near_call_oi_share'],
+                'far_call_oi_share': aggregate_stats['far_call_oi_share'],
 
-                }
+             }
+
+        return info
+
+
     def generate(self):
         #self.print_instant_info()
         self.print_stats()
@@ -185,7 +220,11 @@ class OptionSignalGenerator:
         self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_price_delta, put_price_delta)
         self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
         #self.put_buy_indicator.evaluate(aggregate_stats['put_volume_scale'], aggregate_stats['call_volume_scale'], put_price_delta, call_price_delta)
-
+        info = self.get_info()
+        signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
+                        indicator="PCR_MINUS_1", strength=info['pcr_minus_1'], signal_time=info['timestamp'],
+                        notice_time=info['timestamp'], info=info)
+        self.dispatch_signal(signal)
 
     def run_external_generators_old(self):
         if self.option_matrix.last_time_stamp is not None:
@@ -205,13 +244,11 @@ class OptionSignalGenerator:
         self.build_up_calculator.evaluate(spot_series, call_oi_series, put_oi_series)
         self.option_volume_indicator.evaluate(call_volume_series, put_volume_series)
 
-
     def dispatch_signal(self, signal):
         #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
         print('------------------------------------', signal.indicator)
         if self.signal_dispatcher:
             self.signal_dispatcher(signal)
-
 
     def generate_intra_day_call_oi_drop_signal(self):
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)

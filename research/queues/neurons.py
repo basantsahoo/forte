@@ -198,6 +198,11 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         else:
             self.log(last_tick_time, "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
+    def add_attribute(self, pattern, attribute, res):
+        if pattern.info.get(attribute, None) is not None:
+            res[attribute] = pattern.info[attribute]
+        return res
+
     def get_attributes(self, pos=-1):
         res = {}
         pattern = self.signal_queue.get_signal(pos)
@@ -209,26 +214,20 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             res['pattern_time'] = pattern.info['time']
         if pattern.info.get('candle', None) is not None:
             res['pattern_price'] = pattern.info['candle']
-        if pattern.info.get('time_list', None) is not None:
-            res['pattern_time'] = pattern.info['time_list']
-        if pattern.info.get('call_volume_scale', None) is not None:
-            res['call_volume_scale'] = pattern.info['call_volume_scale']
-        if pattern.info.get('put_volume_scale', None) is not None:
-            res['put_volume_scale'] = pattern.info['put_volume_scale']
-        if pattern.info.get('sum_call_volume', None) is not None:
-            res['sum_call_volume'] = pattern.info['sum_call_volume']
-        if pattern.info.get('sum_put_volume', None) is not None:
-            res['sum_put_volume'] = pattern.info['sum_put_volume']
-        if pattern.info.get('call_volume_scale_day', None) is not None:
-            res['call_volume_scale_day'] = pattern.info['call_volume_scale_day']
-        if pattern.info.get('put_volume_scale_day', None) is not None:
-            res['put_volume_scale_day'] = pattern.info['put_volume_scale_day']
-        if pattern.info.get('median_call_volume', None) is not None:
-            res['median_call_volume'] = pattern.info['median_call_volume']
-        if pattern.info.get('median_put_volume', None) is not None:
-            res['median_put_volume'] = pattern.info['median_put_volume']
-        if pattern.info.get('pcr_minus_1', None) is not None:
-            res['pcr_minus_1'] = pattern.info['pcr_minus_1']
+        option_attributes = ['call_volume_scale', 'put_volume_scale', 'sum_call_volume', 'sum_put_volume',
+                             'call_volume_scale_day', 'put_volume_scale_day', 'median_call_volume'
+                             'median_put_volume', 'pcr_minus_1', 'regime', 'market_entrant', 'call_entrant',
+                             'put_entrant', 'transition', 'roll_near_vol_pcr', 'roll_far_vol_pcr', 'roll_vol_spread_pcr',
+                             'put_pos_price_pct', 'call_pos_price_pct', 'call_vol_spread', 'put_vol_spread',
+                             'total_vol_spread', 'total_profit', 'call_profit', 'put_profit', 'near_put_oi_share',
+                             'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share', '',]
+        for attribute in option_attributes:
+            self.add_attribute(pattern,attribute, res)
+
+        if pattern.info.get('dir_pos_price_pct', None) is not None:
+            res['dir_pos_price_pct'] = pattern.info['dir_pos_price_pct']
+
+
         if pattern.info.get('dir_pos_price_pct', None) is not None:
             res['dir_pos_price_pct'] = pattern.info['dir_pos_price_pct']
         if pattern.info.get('dir_inv_neg_price_pct', None) is not None:

@@ -134,6 +134,9 @@ def download(trade_days=[], symbols=[]):
                                 #print(tmp)
                                 converted.append(tmp)
                         df = pd.DataFrame(converted)
+                        if option_symbol == 'NIFTY23101919500CE':
+                            df.to_csv('option_data_nifty.csv')
+                        df.drop_duplicates(subset=['option_symbol', 'timestamp'], keep="first", inplace=True)
                         df.to_sql('option_data', conn, if_exists="append", index=False, method="multi", chunksize=500, dtype={"option_symbol": VARCHAR(length=40), "date":DATE, "underlying": VARCHAR(length=30)})
                     except Exception as e:
                         print(traceback.format_exc())
@@ -158,4 +161,4 @@ def run2():
     download()
 
 #download()
-#download(trade_days=['2023-12-21'], symbols=['BANKNIFTY'])
+#download(trade_days=['2023-09-28'], symbols=['BANKNIFTY'])

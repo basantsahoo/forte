@@ -1,0 +1,96 @@
+{
+  "strategies":[
+    {
+      "id":"DayBeforeExpiry",
+      "class":"DayBeforeExpiry",
+      "symbol": "NIFTY",
+      "exit_time":[],
+      "carry_forward": true,
+      "order_type":"SELL",
+      "spot_instruments":[],
+      "derivative_instruments":[],
+      "max_signal": 1,
+      "triggers_per_signal": 1,
+      "spot_short_targets": [],
+      "spot_short_stop_losses":[],
+      "instr_targets":[0.5,0.5, 0.5, 0.5],
+      "instr_stop_losses":[0.3, 0.3, 0.3, 0.3],
+      "instr_to_trade" : [["OTM", 1, "PE"]],
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 3
+            },
+            "signal_type": "WEDNESDAY_15_15",
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": "always",
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+      ],
+      "exit_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 3
+            },
+            "signal_type": "THURSDAY_9_20",
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+      ],
+
+      "trade_controllers": [
+
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+      ],
+      "risk_limits": ["max_movement > 80", "total_losses < -350000"]
+    }
+  ],
+  "run_params": {
+    "test_days": [],
+    "for_past_days": 30,
+    "to_date": "2023-12-28",
+    "candle_sw": 0,
+    "week_days": [],
+    "record_metric": true,
+    "insight_log": false,
+    "send_to_oms": false
+  }
+}

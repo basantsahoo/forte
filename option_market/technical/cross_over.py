@@ -139,7 +139,7 @@ class OptionMomentumIndicator_used:
 
                 info = self.info_fn()
 
-                signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
+                signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
                              indicator=self.name, strength=1, signal_time=info['timestamp'],
                              notice_time=info['timestamp'], info=info)
                 self.call_back_fn(signal)
@@ -170,7 +170,7 @@ class OptionMomentumIndicator:
                 info['dir_pos_price_pct'] = dir_pos_price_pct
                 info['dir_inv_neg_price_pct'] = dir_inv_neg_price_pct
 
-                signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
+                signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
                                 indicator=self.name, strength=1, signal_time=info['timestamp'],
                                 notice_time=info['timestamp'], info=info)
                 self.call_back_fn(signal)
@@ -202,7 +202,7 @@ class PutBuyIndicator:
             info['dir_pos_price_pct'] = dir_pos_price_pct
             info['dir_inv_neg_price_pct'] = dir_inv_neg_price_pct
 
-            signal = Signal(asset=info['asset'], category='OPTION', instrument="OPTION",
+            signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
                             indicator=self.name, strength=1, signal_time=info['timestamp'],
                             notice_time=info['timestamp'], info=info)
             self.call_back_fn(signal)

@@ -16,3 +16,4 @@ from research.weekly_strategies.weekly_sell import WeeklySell
 
 from research.option_strategies.high_call_volume_buy import HighCallVolumeBuy
 from research.option_strategies.high_put_volume_buy import HighPutVolumeBuy
+from research.option_strategies.day_before_expiry import DayBeforeExpiry

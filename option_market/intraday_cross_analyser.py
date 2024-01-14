@@ -130,6 +130,9 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['near_call_oi_share'] = np.round(near_call_oi / total_oi_series[-1], 4)
             self.aggregate_stats[ts]['far_call_oi_share'] = np.round(far_call_oi / total_oi_series[-1], 4)
 
+            self.aggregate_stats[ts]['put_oi_spread'] = self.aggregate_stats[ts]['near_put_oi_share'] - self.aggregate_stats[ts]['far_put_oi_share']
+            self.aggregate_stats[ts]['call_oi_spread'] = self.aggregate_stats[ts]['near_call_oi_share'] - self.aggregate_stats[ts]['far_call_oi_share']
+
             self.aggregate_stats[ts]['near_put_volume_share'] = np.round(near_put_volume / total_volume_series[-1], 4)
             self.aggregate_stats[ts]['far_put_volume_share'] = np.round(far_put_volume / total_volume_series[-1], 4)
             self.aggregate_stats[ts]['near_call_volume_share'] = np.round(near_call_volume / total_volume_series[-1], 4)

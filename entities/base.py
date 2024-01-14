@@ -40,10 +40,10 @@ class BaseSignal:
 
 class Signal(BaseSignal):
     def __init__(self,
-                 asset:Optional[str],
-                 category: Literal["PRICE_ACTION_PATTERN", "TECHNICAL", "PRICE", "OPTION"],
+                 asset: Optional[str],
+                 category: Literal["PRICE_ACTION_PATTERN", "TECHNICAL", "PRICE", "OPTION_MARKET", "TIME_SIGNAL"],
                  indicator: str,
-                 instrument: Literal['SPOT', "OPTION"],
+                 instrument: Optional[Literal['SPOT', "OPTION"]],
                  signal_time: Optional[int],
                  notice_time: Optional[int],
                  strength: Optional[Union[int, float]],
