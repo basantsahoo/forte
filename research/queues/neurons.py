@@ -192,7 +192,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         self.log("FEED FORWARD LOG", msg)
 
     def communication_log(self, info):
-        last_tick_time = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         if info['code'] not in ['watcher_update_signal', 'watcher_reset_signal']:
             self.log(last_tick_time, "COM  LOG", 'From Neuron id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
         else:
@@ -220,7 +220,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
                              'put_entrant', 'transition', 'roll_near_vol_pcr', 'roll_far_vol_pcr', 'roll_vol_spread_pcr',
                              'put_pos_price_pct', 'call_pos_price_pct', 'call_vol_spread', 'put_vol_spread',
                              'total_vol_spread', 'total_profit', 'call_profit', 'put_profit', 'near_put_oi_share',
-                             'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share', '',]
+                             'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share', 'put_oi_spread', 'call_oi_spread']
         for attribute in option_attributes:
             self.add_attribute(pattern,attribute, res)
 
@@ -281,7 +281,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     def eval_exit_criteria(self):
         criteria = self.trade_eval
-        curr_ts = self.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
+        curr_ts = self.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         #print('eval_exit_criteria', criteria)
         if not criteria:
             return True

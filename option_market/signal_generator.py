@@ -91,6 +91,8 @@ class OptionSignalGenerator:
                 'near_call_oi_share': aggregate_stats['near_call_oi_share'],
                 'far_call_oi_share': aggregate_stats['far_call_oi_share'],
 
+                'put_oi_spread': aggregate_stats['put_oi_spread'],
+                'call_oi_spread': aggregate_stats['call_oi_spread'],
              }
 
         return info
@@ -203,7 +205,8 @@ class OptionSignalGenerator:
 
     def run_external_generators(self):
         if self.option_matrix.last_time_stamp is not None:
-            print('run_external_generators, ', TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
+            #print('run_external_generators, ', TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
+            pass
         day_capsule = self.option_matrix.get_day_capsule(self.option_matrix.current_date)
         call_oi_series = day_capsule.cross_analyser.get_total_call_oi_series()
         put_oi_series = day_capsule.cross_analyser.get_total_put_oi_series()

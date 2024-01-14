@@ -32,7 +32,7 @@ class IntradayCrossAssetAnalyser:
         for ts in timestamp_list:
             t_time = TradeDateTime(ts)
             print('compute_stats time ==========================================================================',
-                  t_time.date_time.hour, ":", t_time.date_time.minute)
+                  t_time.date_time_string)
 
             self.aggregate_stats[ts] = {}
             ts_data = transposed_data[ts]

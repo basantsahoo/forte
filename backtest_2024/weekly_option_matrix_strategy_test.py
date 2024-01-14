@@ -39,7 +39,7 @@ class WeeklyStartegyBackTester:
             print(week.start_date.date_string)
         for week in weeks:
             week.get_all_trade_days()
-            market_book = OptionMarketBook(week.start_date.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=True)
+            market_book = OptionMarketBook(week.start_date.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False)
             place_live = False
             interface = None
             if self.strat_config['run_params'].get("send_to_oms", False):

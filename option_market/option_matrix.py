@@ -66,7 +66,7 @@ class OptionMatrix:
 
 
     def frame_change_action(self, current_frame, next_frame):
-        print('----------------frame_change_action', TradeDateTime(current_frame).date_time_string)
+        #print('----------------frame_change_action', TradeDateTime(current_frame).date_time_string)
         self.last_time_stamp = current_frame
         #print('option matrix, frame_change_action++++')
         self.spot_throttler.check_time_to_push(next_frame)

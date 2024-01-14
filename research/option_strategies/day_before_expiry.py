@@ -12,7 +12,10 @@ class DayBeforeExpiry(BaseStrategy):
 
 
     def register_instrument(self, signal):
-        if (signal.category, signal.indicator) == get_signal_key('WEDNESDAY_15_15'):
+        print((signal.category, signal.indicator))
+        print(get_signal_key('PCR_MINUS_1'))
+        print(self.instr_to_trade)
+        if (signal.category, signal.indicator) == get_signal_key(self.register_signal_category):
             self.derivative_instruments = []
             last_tick = self.get_last_tick('SPOT')
             ltp = last_tick['close']

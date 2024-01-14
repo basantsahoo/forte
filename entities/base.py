@@ -33,10 +33,6 @@ class BaseSignal:
     def is_trend_signal(self):
         return self.indicator == "INDICATOR_TREND"
 
-        pat = {'category': 'PRICE', 'indicator': 'TICK_PRICE', 'strength': 1,
-               'signal_time': self.last_tick['timestamp'], 'notice_time': self.last_tick['timestamp'],
-               'info': self.last_tick}
-
 
 class Signal(BaseSignal):
     def __init__(self,

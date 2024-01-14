@@ -1,11 +1,14 @@
 from entities.base import Signal
 class SenderNeuron:
     def forward_signal(self, signal={}):
+        print('forward_signal++++++++', signal)
         reset_info = {'code': 'reset_signal', 'n_id': self.id}
         for channel in self.reset_on_new_signal_channels:
+            print(channel)
             channel(reset_info)
         signal_info = {'code': 'queue_signal', 'n_id': self.id, "signal": signal}
         for channel in self.signal_forward_channels:
+            print(channel)
             channel(signal_info)
 
     def forward_activation_status_change(self, status):

@@ -13,9 +13,11 @@
       "triggers_per_signal": 1,
       "spot_short_targets": [],
       "spot_short_stop_losses":[],
-      "instr_targets":[0.5,0.5, 0.5, 0.5],
-      "instr_stop_losses":[0.3, 0.3, 0.3, 0.3],
+      "instr_targets":[0.9,0.9, 0.9, 0.9],
+      "instr_stop_losses":[2, 2, 2, 2],
       "instr_to_trade" : [["OTM", 1, "PE"]],
+      "cover": 200,
+      "register_signal_category": "PCR_MINUS_1",
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -36,6 +38,32 @@
             "high_threshold_subscriptions": [],
             "low_threshold_subscriptions": [],
             "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        },
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 2
+            },
+            "signal_type": "PCR_MINUS_1",
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [0],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
             "register_instr": "always",
             "update_watcher_info": {},
             "reset_watcher_info": {},
@@ -44,7 +72,7 @@
           "apply_pre_filter": true
         }
       ],
-      "exit_signal_queues": [
+      "exit_criteria_list": [
         {
           "neuron_info": {
             "id": 0,
@@ -85,7 +113,7 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 30,
+    "for_past_days": 3,
     "to_date": "2023-12-28",
     "candle_sw": 0,
     "week_days": [],

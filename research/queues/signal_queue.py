@@ -22,6 +22,7 @@ class SignalQueue:
         return meets_high and meets_low
 
     def new_signal(self, signal):
+        print('check new signal', signal)
         if self.unique_only and (signal.signal_time == self.last_signal_time):
             print('received duplicate signal')
             return False

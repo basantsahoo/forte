@@ -39,6 +39,8 @@ class BaseStrategy:
                  instr_targets = [], #[0.002,0.003, 0.004, 0.005],
                  instr_stop_losses = [], #[-0.001,-0.002, -0.002,-0.002]
                  instr_to_trade=[],
+                 cover = 0,
+                 register_signal_category=None,
                  trade_controllers=[],
                  entry_switch={},
                  risk_limits=[],
@@ -68,6 +70,7 @@ class BaseStrategy:
         self.instr_targets = [side * abs(x) for x in instr_targets]
         self.instr_stop_losses = [-1 * side * abs(x) for x in instr_stop_losses]
         self.instr_to_trade = instr_to_trade
+        self.register_signal_category = register_signal_category
         self.weekdays_allowed = weekdays_allowed
         self.activated = True
         self.is_aggregator = False
@@ -82,7 +85,7 @@ class BaseStrategy:
         self.trade_cut_off_time = trade_cut_off_time
         self.carry_forward = carry_forward
         self.force_exit_ts=force_exit_ts
-        self.cover = 200 if self.derivative_instruments and self.order_type == 'SELL' else 0
+        self.cover = cover #200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
         #print('Add entry queue')
