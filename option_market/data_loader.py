@@ -7,6 +7,7 @@ from collections import OrderedDict
 class OptionIonBuilder:
     def __init__(self, asset, trade_day):
         ion_data_df = get_daily_option_ion_data(asset, trade_day)
+        ion_data_df
         ion_data_df['trade_date'] = trade_day
         self.ion_data = ion_data_df.to_dict("records")
         #print('total option records====', len(self.ion_data))

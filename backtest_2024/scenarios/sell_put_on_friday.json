@@ -13,9 +13,9 @@
       "triggers_per_signal": 1,
       "spot_short_targets": [],
       "spot_short_stop_losses":[],
-      "instr_targets":[0.9,0.9, 0.9, 0.9],
-      "instr_stop_losses":[2, 2, 2, 2],
-      "instr_to_trade" : [["ATM", 1, "PE"]],
+      "instr_targets":[0.5,0.5, 0.5, 0.5],
+      "instr_stop_losses":[1, 1, 1, 1],
+      "instr_to_trade" : [["ITM", 1, "PE"]],
       "cover": 200,
       "register_signal_category": "PCR_MINUS_1",
       "entry_signal_queues": [
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 3
             },
-            "signal_type": "WEDNESDAY_15_20",
+            "signal_type": "FRIDAY_15_20",
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -82,7 +82,7 @@
               "unique_only": true,
               "validity_period": 3
             },
-            "signal_type": "THURSDAY_14_25",
+            "signal_type": "MONDAY_09_45",
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,

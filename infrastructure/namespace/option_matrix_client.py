@@ -6,13 +6,14 @@ import pandas as pd
 from infrastructure.namespace.market_client import OptionMatrixMarketClient
 from servers.server_settings import feed_socket_service
 enabled_symbols = list(algorithm_setup.keys())
-from entities.trading_day import TradeDateTime
+from entities.trading_day import TradeDateTime, NearExpiryWeek
 from helper.data_feed_utils import convert_hist_option_feed, convert_hist_spot_feed
 sio = socketio.Client(reconnection_delay=5)
 from arc.data_interface_option_matrix import AlgorithmIterface
 from dynamics.profile.utils import NpEncoder
 from option_market.data_loader import MultiDayOptionDataLoader, DayHistTickDataLoader
 import functools
+
 
 class OptionMatrixClient(socketio.ClientNamespace):
     def __init__(self, namespace=None, asset='NIFTY'):
@@ -28,32 +29,55 @@ class OptionMatrixClient(socketio.ClientNamespace):
         ns.on_tick_data = self.on_tick_data
         ns.on_hist = self.on_hist
         self.hist_tick_data_loader = DayHistTickDataLoader(asset=asset)
-        self.request_hist_data = ns.request_hist_data
+        self.request_day_hist_data = ns.request_hist_data
         self.request_live_data = ns.request_live_data
         self.trade_day = None
-        self.hist_loaded = False
+        self.hist_loaded = True
 
     def refresh(self):
         self.algo_interface.clean()
         self.algo_interface = AlgorithmIterface(self)
 
-
     def on_set_trade_date(self, trade_day):
         self.trade_day = trade_day
         print('algo client set_trade_day', trade_day)
         self.algo_interface.set_trade_date(trade_day)
-        self.request_hist_data()
+        #self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True)
+        self.request_day_hist_data()
+
+    def on_set_trade_date_2(self, trade_day):
+        self.trade_day = trade_day
+        print('algo client set_trade_day', trade_day)
+        week = NearExpiryWeek(TradeDateTime(trade_day))
+        prev_trade_days_of_week = week.get_prev_trade_days_of_week(TradeDateTime(trade_day))
+        if False: #prev_trade_days_of_week:
+            self.algo_interface.load_system(process_signal_switch=False)
+            week_data_loader = MultiDayOptionDataLoader(asset=self.asset, trade_days=[t_day.date_string for t_day in prev_trade_days_of_week])
+            while week_data_loader.data_present:
+                feed_ = week_data_loader.generate_next_feed()
+                if feed_:
+                    if feed_:
+                        if feed_['feed_type'] == 'spot':
+                            self.algo_interface.on_hist_spot_data(feed_)
+                        elif feed_['feed_type'] == 'option':
+                            self.algo_interface.on_hist_option_data(feed_)
+        self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True)
+        self.request_day_hist_data()
 
     def on_hist(self, feed):
         feed = json.loads(feed)
         print('on_hist+++++++++')
         feed = convert_hist_spot_feed(feed, self.trade_day)
+        self.hist_loaded = False
         self.hist_tick_data_loader.set_spot_ion_data(self.trade_day, feed['data'])
+
 
     def on_hist_option_data(self, feed):
         feed = convert_hist_option_feed(feed, self.trade_day)
         print('hist option data+++++++++++++++++++++')
+        self.hist_loaded = False
         self.hist_tick_data_loader.set_option_ion_data(self.trade_day, feed['data'])
+
         self.process_hist_tick_data()
 
     def process_hist_tick_data(self):

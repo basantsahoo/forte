@@ -198,7 +198,7 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
     """
 
     async def on_get_hist_option_data(self, sid, ticker):
-        print("JOIN OPTION FEED BY USER", helper_utils.root_symbol(ticker))
+        print("JOIN HIST OPTION FEED BY USER", helper_utils.root_symbol(ticker))
         start_time = datetime.now()
         hist_data = self.option_processor.get_hist_data(helper_utils.get_oc_symbol(ticker))
         t_df = pd.DataFrame(hist_data)

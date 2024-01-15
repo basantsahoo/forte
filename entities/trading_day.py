@@ -131,6 +131,13 @@ class NearExpiryWeek:
             self.all_trade_days.append(day)
         self.all_trade_days.sort()
 
+    def get_prev_trade_days_of_week(self, trade_date_time):
+        if not self.all_trade_days:
+            self.get_all_trade_days()
+        days = [t_day for t_day in self.all_trade_days if t_day < trade_date_time]
+        days.sort()
+        return days
+
     @staticmethod
     def get_asset_expiry_dates(asset):
         if helper_utils.get_nse_index_symbol(asset) == helper_utils.get_nse_index_symbol("NIFTY"):
