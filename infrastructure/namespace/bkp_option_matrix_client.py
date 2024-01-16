@@ -38,20 +38,20 @@ class OptionMatrixClient(socketio.ClientNamespace):
         self.algo_interface.clean()
         self.algo_interface = AlgorithmIterface(self)
 
-    def on_set_trade_date_o(self, trade_day):
+    def on_set_trade_date(self, trade_day):
         self.trade_day = trade_day
         print('algo client set_trade_day', trade_day)
         self.algo_interface.set_trade_date(trade_day)
         #self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True)
         self.request_day_hist_data()
 
-    def on_set_trade_date(self, trade_day):
+    def on_set_trade_date_2(self, trade_day):
         self.trade_day = trade_day
         print('algo client set_trade_day', trade_day)
         week = NearExpiryWeek(TradeDateTime(trade_day))
         prev_trade_days_of_week = week.get_prev_trade_days_of_week(TradeDateTime(trade_day))
         if prev_trade_days_of_week:
-            self.algo_interface.load_system(process_signal_switch=False, volume_delta_mode=False)
+            self.algo_interface.load_system(process_signal_switch=False)
             week_data_loader = MultiDayOptionDataLoader(asset=self.asset, trade_days=[t_day.date_string for t_day in prev_trade_days_of_week])
             while week_data_loader.data_present:
                 feed_ = week_data_loader.generate_next_feed()
@@ -61,7 +61,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
                             self.algo_interface.on_hist_spot_data(feed_)
                         elif feed_['feed_type'] == 'option':
                             self.algo_interface.on_hist_option_data(feed_)
-        self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True, volume_delta_mode=True)
+        self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True)
         self.request_day_hist_data()
 
     def on_hist(self, feed):

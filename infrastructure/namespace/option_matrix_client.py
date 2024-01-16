@@ -16,7 +16,7 @@ import functools
 
 
 class OptionMatrixClient(socketio.ClientNamespace):
-    def __init__(self, namespace=None, asset='NIFTY'):
+    def __init__(self, namespace=None, asset='NIFTY', full_week=False):
         socketio.ClientNamespace.__init__(self, namespace)
         self.asset = asset
         self.algo_interface = AlgorithmIterface(self)
@@ -25,7 +25,10 @@ class OptionMatrixClient(socketio.ClientNamespace):
         self.c_sio.register_namespace(ns)
         ns.on_all_option_data = self.on_option_tick_data
         ns.on_hist_option_data = self.on_hist_option_data
-        ns.on_set_trade_date = self.on_set_trade_date
+        if full_week:
+            ns.on_set_trade_date = self.on_set_trade_date_w_hist
+        else:
+            ns.on_set_trade_date = self.on_set_trade_date
         ns.on_tick_data = self.on_tick_data
         ns.on_hist = self.on_hist
         self.hist_tick_data_loader = DayHistTickDataLoader(asset=asset)
@@ -45,13 +48,13 @@ class OptionMatrixClient(socketio.ClientNamespace):
         #self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True)
         self.request_day_hist_data()
 
-    def on_set_trade_date_2(self, trade_day):
+    def on_set_trade_date_w_hist(self, trade_day):
         self.trade_day = trade_day
         print('algo client set_trade_day', trade_day)
         week = NearExpiryWeek(TradeDateTime(trade_day))
         prev_trade_days_of_week = week.get_prev_trade_days_of_week(TradeDateTime(trade_day))
         if prev_trade_days_of_week:
-            self.algo_interface.load_system(process_signal_switch=False)
+            self.algo_interface.load_system(process_signal_switch=False, volume_delta_mode=False)
             week_data_loader = MultiDayOptionDataLoader(asset=self.asset, trade_days=[t_day.date_string for t_day in prev_trade_days_of_week])
             while week_data_loader.data_present:
                 feed_ = week_data_loader.generate_next_feed()
@@ -61,7 +64,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
                             self.algo_interface.on_hist_spot_data(feed_)
                         elif feed_['feed_type'] == 'option':
                             self.algo_interface.on_hist_option_data(feed_)
-        self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True)
+        self.algo_interface.load_system(trade_day=trade_day, process_signal_switch=True, volume_delta_mode=True)
         self.request_day_hist_data()
 
     def on_hist(self, feed):
