@@ -3,7 +3,7 @@ from option_market.building_blocks import OptionCell, OptionIon, SpotIon, SpotCe
 
 
 class FeedThrottler:
-    def __init__(self, matrix, feed_speed, throttle_speed=0, volume_delta_mode=False):
+    def __init__(self, matrix, feed_speed, throttle_speed=0):
         self.matrix = matrix
         self.feed_speed = feed_speed if feed_speed > 1 else 1
         self.throttle_speed = throttle_speed if throttle_speed > 1 else 1
@@ -13,14 +13,13 @@ class FeedThrottler:
         self.last_frame_start = None
         self.ion_dict = {}
         self.current_date = None
-        self.volume_delta_mode = volume_delta_mode
 
     def update_ion_cell(self, current_frame, instrument, ion):
         if instrument not in self.ion_dict:
             if ion.category == 'option':
-                ion_cell = OptionCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.volume_delta_mode)
+                ion_cell = OptionCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.matrix.volume_delta_mode)
             else:
-                ion_cell = SpotCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.volume_delta_mode)
+                ion_cell = SpotCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.matrix.volume_delta_mode)
             ion_cell.update_ion(ion)
             self.ion_dict[instrument] = ion_cell
         else:

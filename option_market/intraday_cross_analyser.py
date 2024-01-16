@@ -78,7 +78,7 @@ class IntradayCrossAssetAnalyser:
                                                              day_normalization_factor)
             total_volume_scale = OptionVolumeIndicator.calc_scale(total_volume_series, prev_median_total_volume,
                                              day_normalization_factor)
-
+            """
             print('prev_median_total_volume =====', prev_median_total_volume)
             print('call_volume =====', call_volume_series[-1])
             print('put_volume =====', put_volume_series[-1])
@@ -86,7 +86,7 @@ class IntradayCrossAssetAnalyser:
             print('call_volume_scale =====', call_volume_scale)
             print('put_volume_scale =====', put_volume_scale)
             print('total_volume_scale =====', total_volume_scale)
-
+            """
             self.aggregate_stats[ts]['max_call_oi'] = np.round(max(call_oi_series) / oi_denomination, 2)
             self.aggregate_stats[ts]['max_put_oi'] = np.round(max(put_oi_series) / oi_denomination, 2)
             self.aggregate_stats[ts]['max_total_oi'] = np.round(max_total_oi / oi_denomination, 2)
@@ -145,10 +145,12 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['far_put_volume_share'] = np.round(far_put_volume / total_volume_series[-1], 4)
             self.aggregate_stats[ts]['near_call_volume_share'] = np.round(near_call_volume / total_volume_series[-1], 4)
             self.aggregate_stats[ts]['far_call_volume_share'] = np.round(far_call_volume / total_volume_series[-1], 4)
+            """
             print('near_call_volume =====', near_call_volume)
             print('near_call_volume_share=====', self.aggregate_stats[ts]['near_call_volume_share'], self.aggregate_stats[ts]['near_call_volume_share']/self.aggregate_stats[ts]['near_call_oi_share'])
             print('near_put_volume =====', near_put_volume)
             print('far_call_volume_share=====', self.aggregate_stats[ts]['far_call_volume_share'], self.aggregate_stats[ts]['far_call_volume_share']/self.aggregate_stats[ts]['far_call_oi_share'])
+            """
             self.aggregate_stats[ts]['near_put_volume_share_per_oi'] = np.round(near_put_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['near_put_oi_share']
             self.aggregate_stats[ts]['far_put_volume_share_per_oi'] = np.round(far_put_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['far_put_oi_share']
             self.aggregate_stats[ts]['near_call_volume_share_per_oi'] = np.round(near_call_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['near_call_oi_share']

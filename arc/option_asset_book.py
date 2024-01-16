@@ -74,6 +74,9 @@ class OptionAssetBook:
         """
         self.option_matrix.process_option_feed(feed_list)
 
+    def set_volume_delta_mode(self, volume_delta_mode):
+        self.option_matrix.volume_delta_mode = volume_delta_mode
+
 
     def clean(self):
         self.spot_book.clean()

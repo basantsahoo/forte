@@ -24,6 +24,11 @@ class OptionCellAnalyser:
 
             #print(self.cell.instrument, self.cell.analytics['cumulative_volume'])
             if self.cell.elder_sibling.analytics['cumulative_volume']:
+                """
+                print("self.cell.elder_sibling.analytics['cumulative_volume']")
+                print(self.cell.ion.volume)
+                print(self.cell.elder_sibling.analytics['cumulative_volume'])
+                """
                 self.cell.analytics['vwap'] = (self.cell.ion.price * self.cell.ion.volume
                                                + self.cell.elder_sibling.analytics['vwap']
                                                * self.cell.elder_sibling.analytics['cumulative_volume'])/(self.cell.ion.volume + self.cell.elder_sibling.analytics['cumulative_volume'])

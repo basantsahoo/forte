@@ -66,12 +66,12 @@ class AlgorithmIterface:
         end_time = datetime.now()
         print('setup time', (end_time - start_time).total_seconds())
 
-    def load_system(self, trade_day=None, process_signal_switch=False):
+    def load_system(self, trade_day=None, process_signal_switch=False, volume_delta_mode=False):
         start_time = datetime.now()
         if not self.systems_loaded:
             assets = list(set([strategy['symbol'] for strategy in strat_config['strategies']]))
             self.portfolio_manager = AlgoPortfolioManager(place_live_orders=False, data_interface=self)
-            market_book = OptionMarketBook(trade_day=trade_day, assets=assets, record_metric=False, live_mode=True, volume_delta_mode=True)
+            market_book = OptionMarketBook(trade_day=trade_day, assets=assets, record_metric=False, live_mode=True, volume_delta_mode=volume_delta_mode)
             self.market_book = market_book
             market_book.pm = self.portfolio_manager
             strategy_manager = StrategyManager(market_book=market_book, record_metric=False)
@@ -86,6 +86,7 @@ class AlgorithmIterface:
                 print('all strategy added+++++')
             self.systems_loaded = True
         self.market_book.strategy_manager.process_signal_switch = process_signal_switch
+        self.market_book.set_volume_delta_mode(volume_delta_mode)
         self.trade_day = trade_day
         if trade_day is not None:
             self.market_book.do_day_set_up(trade_day)

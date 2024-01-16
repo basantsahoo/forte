@@ -53,9 +53,9 @@ class OptionMatrix:
         #self.matrix_analyser = OptionMatrixAnalyser(self)
         self.current_date = None
         self.signal_generator = OptionSignalGenerator(self, live_mode)
-        self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
-        self.data_throttler = FeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
-        self.spot_throttler = SpotFeedThrottler(self, feed_speed, throttle_speed, volume_delta_mode)
+        self.option_data_throttler = OptionFeedThrottler(self, feed_speed, throttle_speed)
+        self.data_throttler = FeedThrottler(self, feed_speed, throttle_speed)
+        self.spot_throttler = SpotFeedThrottler(self, feed_speed, throttle_speed)
         self.avg_volumes = {}
         self.closing_oi = {}
         self.live_mode = live_mode

@@ -82,6 +82,10 @@ class OptionMarketBook:
             asset_book.day_change_notification(trade_day)
         self.day_setup_done = True
 
+    def set_volume_delta_mode(self, volume_delta_mode):
+        for asset_book in self.asset_books.values():
+            asset_book.set_volume_delta_mode(volume_delta_mode)
+
     def set_up_strategies(self):
         if not self.strategy_setup_done:
             self.strategy_manager.set_up_strategies()
