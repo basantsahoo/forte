@@ -199,6 +199,7 @@ class OptionSignalGenerator:
             ['far strike vol rat', '', '', aggregate_stats['roll_far_vol_pcr']],
             ['vol spread rat', '', '', aggregate_stats['roll_vol_spread_pcr']],
             ['Profitability', aggregate_stats['ledger']['call_profit'], aggregate_stats['ledger']['put_profit'], aggregate_stats['ledger']['total_profit']],
+            ['Profitability (Day)', aggregate_stats['ledger']['day_call_profit'], aggregate_stats['ledger']['day_put_profit'], aggregate_stats['ledger']['day_total_profit']],
         ]
         return table
 

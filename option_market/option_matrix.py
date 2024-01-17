@@ -97,7 +97,7 @@ class OptionMatrix:
                     self.closing_oi[trade_date][inst] = 0
 
     def process_option_feed(self, instrument_data_list):
-        #print('process_option_feed+++++++++++++++++')
+        #print('process_option_feed+++++++++++++++++', instrument_data_list)
         self.check_adjust_closing_oi(instrument_data_list[0]['trade_date'])
         self.current_date = instrument_data_list[0]['trade_date']
         self.option_data_throttler.throttle(instrument_data_list)

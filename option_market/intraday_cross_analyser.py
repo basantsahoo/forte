@@ -270,7 +270,6 @@ class IntradayCrossAssetAnalyser:
         ts_data = transposed_data[ts]
         call_pnl = sum([cell.ledger['total_pnl'] for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
         put_pnl = sum([cell.ledger['total_pnl'] for cell in ts_data.values() if cell.instrument[-2::] == 'PE'])
-
         total_pnl = call_pnl + put_pnl
         call_cum_investment = sum([cell.ledger['cum_investment'] for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
         put_cum_investment = sum([cell.ledger['cum_investment'] for cell in ts_data.values() if cell.instrument[-2::] == 'PE'])
@@ -299,6 +298,30 @@ class IntradayCrossAssetAnalyser:
         stats['total_profit'] = np.round(total_pnl/stats['max_total_investment'],2)
         stats['call_profit'] = np.round(call_pnl / stats['max_call_investment'], 2)
         stats['put_profit'] = np.round(put_pnl / stats['max_put_investment'], 2)
+        ######## Daily PNL ###########
+        day_call_pnl = sum([cell.day_ledger['total_pnl'] for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
+        day_put_pnl = sum([cell.day_ledger['total_pnl'] for cell in ts_data.values() if cell.instrument[-2::] == 'PE'])
+
+        day_total_pnl = day_call_pnl + day_put_pnl
+        day_call_cum_investment = sum([cell.day_ledger['cum_investment'] for cell in ts_data.values() if cell.instrument[-2::] == 'CE'])
+        day_put_cum_investment = sum([cell.day_ledger['cum_investment'] for cell in ts_data.values() if cell.instrument[-2::] == 'PE'])
+        day_total_cum_investment = day_call_cum_investment + day_put_cum_investment
+
+        if ts_history and TradeDateTime(max(ts_history)).date_string == TradeDateTime(ts).date_string:
+            previous_ts = max(ts_history)
+            previous_ledger = self.aggregate_stats[previous_ts]['ledger']
+            stats['day_max_total_investment'] = max(day_total_cum_investment, previous_ledger['day_max_total_investment'])
+            stats['day_max_call_investment'] = max(day_call_cum_investment, previous_ledger['day_max_call_investment'])
+            stats['day_max_put_investment'] = max(day_put_cum_investment, previous_ledger['day_max_put_investment'])
+        else:
+            stats['day_max_total_investment'] = day_total_cum_investment
+            stats['day_max_call_investment'] = day_call_cum_investment
+            stats['day_max_put_investment'] = day_put_cum_investment
+
+        stats['day_total_profit'] = np.round(day_total_pnl/stats['day_max_total_investment'],2)
+        stats['day_call_profit'] = np.round(day_call_pnl / stats['day_max_call_investment'], 2)
+        stats['day_put_profit'] = np.round(day_put_pnl / stats['day_max_put_investment'], 2)
+
         """
         print("put_pnl=====", put_pnl)
         print("max_put_investment=====", stats['max_put_investment'])

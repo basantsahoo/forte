@@ -62,12 +62,13 @@ class Cell:
 
 
 class SpotCell(Cell):
-    def __init__(self, timestamp=None, instrument=None, elder_sibling=None, volume_delta_mode=False):
+    def __init__(self, trade_date, timestamp, instrument, elder_sibling=None, volume_delta_mode=False):
         """
         :param timestamp:  required for instrument time series
         :param instrument: required for cross section of time stamp
         :param elder_sibling: required for updating values
         """
+        self.trade_date = trade_date
         self.timestamp = timestamp
         self.instrument = instrument
         self.ion = None
@@ -87,17 +88,19 @@ class SpotCell(Cell):
 
 
 class OptionCell(Cell):
-    def __init__(self, timestamp=None, instrument=None, elder_sibling=None, volume_delta_mode=False):
+    def __init__(self, trade_date, timestamp, instrument, elder_sibling=None, volume_delta_mode=False):
         """
         :param timestamp:  required for instrument time series
         :param instrument: required for cross section of time stamp
         :param elder_sibling: required for updating values
         """
+        self.trade_date = trade_date
         self.timestamp = timestamp
         self.instrument = instrument
         self.ion = None
         self.analytics = {}
         self.ledger = {}
+        self.day_ledger = {}
         self.elder_sibling = elder_sibling
         self.analyser = OptionCellAnalyser(self)
         self.volume_delta_mode = volume_delta_mode

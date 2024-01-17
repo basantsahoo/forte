@@ -8,8 +8,11 @@ class OptionCellAnalyser:
     def __init__(self, cell):
         self.cell = cell
 
-
     def compute(self):
+        self.compute_stats()
+        self.compute_day_ledger()
+
+    def compute_stats(self):
         #print(self.cell.__dict__)
         #print(self.cell.ion.__dict__)
 
@@ -36,7 +39,7 @@ class OptionCellAnalyser:
                 self.cell.analytics['vwap'] = self.cell.ion.price
             self.cell.analytics['vwap_delta'] = self.cell.analytics['vwap'] - self.cell.elder_sibling.analytics['vwap']
 
-            self.cell.ledger['price'] = (self.cell.ion.price + self.cell.elder_sibling.ion.price)*0.5
+            self.cell.ledger['price'] = (self.cell.ion.price + self.cell.elder_sibling.ion.price) * 0.5
             self.cell.ledger['qty'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
             self.cell.ledger['net_qty'] = self.cell.ion.oi
             self.cell.ledger['prev_net_qty'] = self.cell.elder_sibling.ledger['net_qty']
@@ -44,6 +47,7 @@ class OptionCellAnalyser:
             self.cell.ledger['prev_cum_investment'] = self.cell.elder_sibling.ledger['cum_investment']
             self.cell.ledger['prev_max_investment'] = self.cell.elder_sibling.ledger['max_investment']
             self.cell.ledger['prev_realized_pnl'] = self.cell.elder_sibling.ledger['realized_pnl']
+
 
         else:
             """
@@ -71,6 +75,8 @@ class OptionCellAnalyser:
             self.cell.ledger['prev_cum_investment'] = 0
             self.cell.ledger['prev_max_investment'] = 0
             self.cell.ledger['prev_realized_pnl'] = 0
+
+
         #Trader P&L Calc
 
         self.cell.ledger['add_qty'] = self.cell.ledger['qty'] if self.cell.ledger['qty'] > 0 else 0
@@ -84,7 +90,7 @@ class OptionCellAnalyser:
         self.cell.ledger['total_pnl'] = self.cell.ledger['realized_pnl'] + self.cell.ledger['un_realized_pnl']
         self.cell.ledger['percent_pnl'] = np.round(self.cell.ledger['total_pnl'] / self.cell.ledger['max_investment'],2)
         """
-        if self.cell.instrument == '21700_PE':
+        if self.cell.instrument == '21900_PE':
             print('*****************************')
             print('qty=====', self.cell.ledger['qty'])
             print('price=====', self.cell.ledger['price'])
@@ -96,8 +102,53 @@ class OptionCellAnalyser:
             print('total_pnl=====', self.cell.ledger['total_pnl'])
             print('percent_pnl=====', self.cell.ledger['percent_pnl'])
         """
+
+    def compute_day_ledger(self):
+        if self.cell.elder_sibling is not None and self.cell.elder_sibling.trade_date == self.cell.trade_date:
+            self.cell.day_ledger['price'] = (self.cell.ion.price + self.cell.elder_sibling.ion.price) * 0.5
+            self.cell.day_ledger['qty'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
+            self.cell.day_ledger['net_qty'] = self.cell.ion.oi
+            self.cell.day_ledger['prev_net_qty'] = self.cell.elder_sibling.day_ledger['net_qty']
+            self.cell.day_ledger['prev_owap'] = self.cell.elder_sibling.day_ledger['owap']
+            self.cell.day_ledger['prev_cum_investment'] = self.cell.elder_sibling.day_ledger['cum_investment']
+            self.cell.day_ledger['prev_max_investment'] = self.cell.elder_sibling.day_ledger['max_investment']
+            self.cell.day_ledger['prev_realized_pnl'] = self.cell.elder_sibling.day_ledger['realized_pnl']
+        else:
+            self.cell.day_ledger['price'] = self.cell.ion.price
+            self.cell.day_ledger['qty'] = self.cell.ion.oi
+            self.cell.day_ledger['net_qty'] = self.cell.ion.oi
+            self.cell.day_ledger['prev_net_qty'] = 0
+            self.cell.day_ledger['prev_owap'] = 0
+            self.cell.day_ledger['prev_cum_investment'] = 0
+            self.cell.day_ledger['prev_max_investment'] = 0
+            self.cell.day_ledger['prev_realized_pnl'] = 0
+
+        self.cell.day_ledger['add_qty'] = self.cell.day_ledger['qty'] if self.cell.day_ledger['qty'] > 0 else 0
+        self.cell.day_ledger['reduce_qty'] = abs(self.cell.day_ledger['qty']) if self.cell.day_ledger['qty'] < 0 else 0
+        self.cell.day_ledger['owap'] = (self.cell.day_ledger['add_qty'] * self.cell.day_ledger['price'] + self.cell.day_ledger['prev_net_qty']*self.cell.day_ledger['prev_owap'])/(self.cell.day_ledger['prev_net_qty'] + self.cell.day_ledger['add_qty'])
+        self.cell.day_ledger['investment'] = self.cell.day_ledger['qty'] * self.cell.day_ledger['price']
+        self.cell.day_ledger['cum_investment'] = self.cell.day_ledger['prev_cum_investment'] + self.cell.day_ledger['investment']
+        self.cell.day_ledger['max_investment'] = max(self.cell.day_ledger['cum_investment'], self.cell.day_ledger['prev_max_investment'])
+        self.cell.day_ledger['realized_pnl'] = self.cell.day_ledger['prev_realized_pnl'] + self.cell.day_ledger['reduce_qty'] * (self.cell.day_ledger['prev_owap'] - self.cell.day_ledger['price'])
+        self.cell.day_ledger['un_realized_pnl'] = self.cell.day_ledger['net_qty'] * (self.cell.day_ledger['owap'] - self.cell.day_ledger['price'])
+        self.cell.day_ledger['total_pnl'] = self.cell.day_ledger['realized_pnl'] + self.cell.day_ledger['un_realized_pnl']
+        self.cell.day_ledger['percent_pnl'] = np.round(self.cell.day_ledger['total_pnl'] / self.cell.day_ledger['max_investment'], 2)
+        """
+        if self.cell.instrument == '21900_PE':
+            print('*****************************')
+            print('qty=====', self.cell.day_ledger['qty'])
+            print('price=====', self.cell.day_ledger['price'])
+            print('investment=====', self.cell.day_ledger['investment'])
+            print('cum_investment=====', self.cell.day_ledger['cum_investment'])
+            print('max_investment=====', self.cell.day_ledger['max_investment'])
+            print('realized_pnl=====', self.cell.day_ledger['realized_pnl'])
+            print('un_realized_pnl=====', self.cell.day_ledger['un_realized_pnl'])
+            print('total_pnl=====', self.cell.day_ledger['total_pnl'])
+            print('percent_pnl=====', self.cell.day_ledger['percent_pnl'])
+        """
     def update_analytics(self, field, value):
         self.cell.analytics[field] = value
+
 
 class SpotCellAnalyser:
     def __init__(self, cell):

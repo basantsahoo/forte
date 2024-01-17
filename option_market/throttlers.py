@@ -14,12 +14,12 @@ class FeedThrottler:
         self.ion_dict = {}
         self.current_date = None
 
-    def update_ion_cell(self, current_frame, instrument, ion):
+    def update_ion_cell(self, trade_date, current_frame, instrument, ion):
         if instrument not in self.ion_dict:
             if ion.category == 'option':
-                ion_cell = OptionCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.matrix.volume_delta_mode)
+                ion_cell = OptionCell(trade_date=trade_date, timestamp=current_frame, instrument=instrument, volume_delta_mode=self.matrix.volume_delta_mode)
             else:
-                ion_cell = SpotCell(timestamp=current_frame, instrument=instrument, volume_delta_mode=self.matrix.volume_delta_mode)
+                ion_cell = SpotCell(trade_date=trade_date, timestamp=current_frame, instrument=instrument, volume_delta_mode=self.matrix.volume_delta_mode)
             ion_cell.update_ion(ion)
             self.ion_dict[instrument] = ion_cell
         else:
@@ -51,7 +51,7 @@ class FeedThrottler:
                         ion.past_closing_oi = ion.oi
                         self.matrix.closing_oi[self.matrix.current_date][instrument] = ion.oi
                     # ion.past_avg_volume = self.matrix.avg_volumes[self.matrix.current_date].get(instrument,1)
-                self.update_ion_cell(current_frame, instrument, ion)
+                self.update_ion_cell(trade_date, current_frame, instrument, ion)
 
     def check_time_to_push(self, next_frame):
         epoc_minute = TradeDateTime.get_epoc_minute(next_frame)
