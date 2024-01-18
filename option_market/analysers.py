@@ -21,7 +21,6 @@ class OptionCellAnalyser:
             self.cell.analytics['oi_delta'] = self.cell.ion.oi - self.cell.elder_sibling.ion.oi
             self.cell.analytics['day_oi_delta'] = self.cell.ion.oi - self.cell.ion.past_closing_oi
             self.cell.analytics['day_oi_delta_pct'] = np.round(self.cell.analytics['day_oi_delta']/self.cell.ion.past_closing_oi, 2) if self.cell.ion.past_closing_oi else 0
-            #self.cell.analytics['volume_scale'] = self.cell.ion.volume/self.cell.ion.past_avg_volume
             self.cell.analytics['max_oi'] = max(self.cell.ion.oi, self.cell.elder_sibling.analytics['max_oi'])
             self.cell.analytics['cumulative_volume'] = self.cell.ion.volume + self.cell.elder_sibling.analytics['cumulative_volume']
 
@@ -75,8 +74,10 @@ class OptionCellAnalyser:
             self.cell.ledger['prev_cum_investment'] = 0
             self.cell.ledger['prev_max_investment'] = 0
             self.cell.ledger['prev_realized_pnl'] = 0
-
-
+        """
+        if self.cell.ion.oi < 0:
+            print('\007')
+        """
         #Trader P&L Calc
 
         self.cell.ledger['add_qty'] = self.cell.ledger['qty'] if self.cell.ledger['qty'] > 0 else 0

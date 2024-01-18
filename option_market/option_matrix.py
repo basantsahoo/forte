@@ -37,7 +37,7 @@ from option_market.intraday_cross_analyser import IntradayCrossAssetAnalyser
 #from option_market.analysers import OptionMatrixAnalyser
 from option_market.throttlers import OptionFeedThrottler, FeedThrottler, SpotFeedThrottler
 from option_market.signal_generator import OptionSignalGenerator
-
+from option_market.building_blocks import OptionCell, OptionIon
 from option_market.data_loader import MultiDayOptionDataLoader
 from entities.trading_day import TradeDateTime
 from tabulate import tabulate
@@ -103,7 +103,7 @@ class OptionMatrix:
         self.option_data_throttler.throttle(instrument_data_list)
 
     def process_spot_feed(self, instrument_data_list):
-        #print('process_spot_feed+++++++++++++++++')
+        #print('process_spot_feed+++++++++++++++++', instrument_data_list)
         self.current_date = instrument_data_list[0]['trade_date']
         self.spot_throttler.throttle(instrument_data_list)
 
@@ -114,15 +114,40 @@ class OptionMatrix:
         self.data_throttler.throttle(instrument_data_list)
 
     def get_day_capsule(self, trade_date):
-        return self.capsule.trading_data[trade_date]
+        return self.capsule.trading_data.get(trade_date, None)
 
     def get_day_spot_capsule(self, trade_date):
         return self.spot_capsule.trading_data[trade_date]
 
     def get_instrument_capsule(self, trade_date, instrument):
-        return self.capsule.trading_data[trade_date].trading_data[instrument]
+
+        if instrument in ['spot']:
+            return self.get_day_spot_capsule(trade_date).trading_data[instrument]
+        else:
+            return self.capsule.trading_data[trade_date].trading_data[instrument]
+
+    def get_prev_day(self, trade_date):
+        all_days = [TradeDateTime(day) for day in list(self.capsule.trading_data.keys())]
+        filtered_days = [day for day in all_days if day.ordinal < TradeDateTime(trade_date).ordinal]
+        filtered_days.sort()
+        if filtered_days:
+            return filtered_days[-1].date_string
+        else:
+            return None
 
     def get_prev_day_instrument_capsule(self, trade_date, instrument):
+        prev_day = self.get_prev_day(trade_date)
+
+        if prev_day is not None:
+            instrument_capsule = self.get_instrument_capsule(prev_day, instrument)
+            if instrument_capsule is None:
+                instrument_capsule = self.get_prev_day_instrument_capsule(prev_day, instrument)
+        else:
+            instrument_capsule = None
+        return instrument_capsule
+
+
+    def get_prev_day_instrument_capsule_o(self, trade_date, instrument):
         all_days = [TradeDateTime(day) for day in list(self.capsule.trading_data.keys())]
         filtered_days = [day for day in all_days if day.ordinal < TradeDateTime(trade_date).ordinal]
         filtered_days.sort()
@@ -183,9 +208,45 @@ class OptionMatrix:
             day_capsule.insert_transposed_data(cell.timestamp, cell.instrument, cell)
             cell.fresh_born(self, trade_date)
             cell.validate_ion_data()
+            cell.analyse()
             timestamp_set.add(cell.timestamp)
-        if self.instant_compute:
-            day_capsule.cross_analyser.compute(list(timestamp_set))
+        ts_list = list(timestamp_set)
+        ts_list.sort()
+        #self.create_dummy_cells(ts_list)
+        day_capsule.cross_analyser.compute(ts_list)
+
+    def create_dummy_cells(self, ts_list):
+        day_capsule = self.get_day_capsule(self.current_date)
+        prev_day = self.get_prev_day(self.current_date)
+        prev_day_capsule = self.get_day_capsule(prev_day)
+
+        for ts in ts_list:
+            curr_time_insts = list(day_capsule.transposed_data[ts].keys())
+            ts_history = [x for x in list(day_capsule.transposed_data.keys()) if x < ts]
+            missing_cells = []
+            if ts_history:
+                all_cells_in_prev_time = list(day_capsule.transposed_data[max(ts_history)].values())
+                missing_cells = [cell for cell in all_cells_in_prev_time if cell.instrument not in curr_time_insts]
+            elif prev_day_capsule is not None:
+                ts_history = [x for x in list(prev_day_capsule.transposed_data.keys()) if x < ts]
+                all_cells_in_prev_time = list(prev_day_capsule.transposed_data[max(ts_history)].values())
+                missing_cells = [cell for cell in all_cells_in_prev_time if cell.instrument not in curr_time_insts]
+
+            for m_cell in missing_cells:
+                cell = OptionCell(self.current_date, ts, m_cell.instrument, None, m_cell.volume_delta_mode)
+                if not day_capsule.in_trading_data(cell.instrument):
+                    day_capsule.insert_trading_data(cell.instrument, Capsule())
+                cell.ion = OptionIon(None, None, None)
+                cell.fresh_born(self, self.current_date)
+                cell.validate_ion_data()
+                cell.ion = self.option_data_throttler.apply_closing_oi(cell.ion, cell.instrument)
+                cell.ion.volume = 0
+                #print(cell.ion.__dict__)
+                cell.analyse()
+                instrument_capsule = self.get_instrument_capsule(self.current_date, m_cell.instrument)
+                instrument_capsule.insert_trading_data(cell.timestamp, cell)
+                day_capsule.insert_transposed_data(cell.timestamp, cell.instrument, cell)
+
 
     def generate_signal(self):
         if self.instant_compute:

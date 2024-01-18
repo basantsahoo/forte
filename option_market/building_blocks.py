@@ -1,3 +1,4 @@
+import traceback
 from collections import OrderedDict
 from option_market.analysers import OptionCellAnalyser, SpotCellAnalyser
 
@@ -39,14 +40,17 @@ class Cell:
 
     def get_elder_sibling(self, parent):
         sibling = None
-        all_keys = list(parent.trading_data.keys())
-        ts_before_now = [key for key in all_keys if key < self.timestamp]
-        if ts_before_now:
-            prev_ts = max(ts_before_now)
-            sibling = parent.trading_data[prev_ts]
+        if parent is not None:
+            all_keys = list(parent.trading_data.keys())
+            #print(all_keys)
+            ts_before_now = [key for key in all_keys if key < self.timestamp]
+            if ts_before_now:
+                prev_ts = max(ts_before_now)
+                sibling = parent.trading_data[prev_ts]
         return sibling
 
     def fresh_born(self, matrix, trade_date):
+
         try:
             parent = matrix.get_instrument_capsule(trade_date, self.instrument)
             sibling = self.get_elder_sibling(parent)
@@ -54,7 +58,10 @@ class Cell:
                 parent = matrix.get_prev_day_instrument_capsule(trade_date, self.instrument)
                 sibling = self.get_elder_sibling(parent)
             self.elder_sibling = sibling
-        except:
+        except Exception as e:
+
+            print('except in fresh_born ' + self.instrument, e)
+            #traceback.format_exc()
             pass
 
     def analyse(self):
@@ -118,7 +125,8 @@ class OptionCell(Cell):
             if self.volume_delta_mode:
                 self.ion.volume = self.ion.ref_volume - self.elder_sibling.ion.ref_volume
                 #self.ion.oi_delta = self.ion.oi - self.elder_sibling.ion.oi
-        self.analyse()
+
+
 
     """
     def get_elder_sibling(self, matrix, trade_date):
@@ -139,7 +147,6 @@ class OptionIon:
         self.oi = oi
         self.ref_volume = volume
         self.past_closing_oi = 0
-        self.past_avg_volume = 0
         #self.oi_delta = 0
 
     def price_is_valid(self):

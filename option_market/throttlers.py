@@ -28,7 +28,14 @@ class FeedThrottler:
                 ion.volume = ion.volume + ion_cell.ion.volume
             ion_cell.update_ion(ion)
 
-
+    def apply_closing_oi(self, ion, instrument):
+        closing_oi = self.matrix.closing_oi[self.matrix.current_date].get(instrument, 0)
+        if closing_oi:
+            ion.past_closing_oi = closing_oi
+        else:  # Set closing oi as current oi becuase data is not present earlier
+            ion.past_closing_oi = ion.oi
+            self.matrix.closing_oi[self.matrix.current_date][instrument] = ion.oi
+        return ion
 
     def throttle(self, instrument_data_list):
 
@@ -44,13 +51,15 @@ class FeedThrottler:
                     ion = SpotIon.from_raw(instrument_data['ion'])
                 else:
                     ion = OptionIon.from_raw(instrument_data['ion'])
+                    ion = self.apply_closing_oi(ion, instrument)
+                    """
                     closing_oi = self.matrix.closing_oi[self.matrix.current_date].get(instrument, 0)
                     if closing_oi:
                         ion.past_closing_oi = closing_oi
                     else: #Set closing oi as current oi becuase data is not present earlier
                         ion.past_closing_oi = ion.oi
                         self.matrix.closing_oi[self.matrix.current_date][instrument] = ion.oi
-                    # ion.past_avg_volume = self.matrix.avg_volumes[self.matrix.current_date].get(instrument,1)
+                    """
                 self.update_ion_cell(trade_date, current_frame, instrument, ion)
 
     def check_time_to_push(self, next_frame):
