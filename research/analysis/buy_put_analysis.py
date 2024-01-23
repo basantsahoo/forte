@@ -112,24 +112,48 @@ def get_cleaned_results():
             pass
     select_cols = [
                 'day',
-                'strategy',
-                'entry_time',
-                'entry_price',
-                'realized_pnl',
-                'un_realized_pnl',
-                'week_day',
-                'tpo',
-                'call_volume_scale',
-                'put_volume_scale',
-                'sum_call_volume',
-                'sum_put_volume',
-                'call_volume_scale_day',
-                'put_volume_scale_day',
-                'median_call_volume',
-                'median_put_volume',
-                'pcr_minus_1',
-                'dir_pos_price_pct',
-                'dir_inv_neg_price_pct',
+            'strategy',
+            'entry_time',
+            'entry_price',
+            'realized_pnl',
+            'un_realized_pnl',
+            'week_day',
+            'tpo',
+            'call_volume_scale',
+            'put_volume_scale',
+            'sum_call_volume',
+            'sum_put_volume',
+            'call_volume_scale_day',
+            'put_volume_scale_day',
+            'pcr_minus_1',
+            'regime',
+            'market_entrant',
+            'call_entrant',
+            'put_entrant',
+            'transition',
+            'roll_near_vol_pcr',
+            'roll_far_vol_pcr',
+            'roll_vol_spread_pcr',
+            'put_pos_price_pct',
+            'call_pos_price_pct',
+            'call_vol_spread',
+            'put_vol_spread',
+            'total_vol_spread',
+            'total_profit',
+            'call_profit',
+            'put_profit',
+            'day_total_profit',
+            'day_call_profit',
+            'day_put_profit',
+            'near_put_oi_share',
+            'far_put_oi_share',
+            'near_call_oi_share',
+            'far_call_oi_share',
+            'put_oi_spread',
+            'call_oi_spread',
+            'dir_pos_price_pct',
+            'dir_inv_neg_price_pct',
+            'pattern_location'
     ]
 
     df = df[select_cols]
@@ -148,19 +172,43 @@ def analysis(df):
     descriptive_analysis.perform_analysis_strategies(df, 'return_pct', exclude_vars_in_analysis)
 
     exclude_vars = ['day', 'symbol', 'signal_id', 'strategy', 'entry_time', 'infl_0', 'infl_n', 'entry_price', 'trigger_time']
-    corr_vars = ['call_volume_scale',
-                'put_volume_scale',
-                'sum_call_volume',
-                'sum_put_volume',
-                'call_volume_scale_day',
-                'put_volume_scale_day',
-                'median_put_volume',
-                'median_call_volume',
-                'pcr_minus_1',
-                'dir_pos_price_pct',
-                'dir_inv_neg_price_pct'
+    corr_vars = [
+        'call_volume_scale',
+        'put_volume_scale',
+        'sum_call_volume',
+        'sum_put_volume',
+        'call_volume_scale_day',
+        'put_volume_scale_day',
+        'pcr_minus_1',
+        'market_entrant',
+        'call_entrant',
+        'put_entrant',
+        'transition',
+        'roll_near_vol_pcr',
+        'roll_far_vol_pcr',
+        'roll_vol_spread_pcr',
+        'put_pos_price_pct',
+        'call_pos_price_pct',
+        'call_vol_spread',
+        'put_vol_spread',
+        'total_vol_spread',
+        'total_profit',
+        'call_profit',
+        'put_profit',
+        'day_total_profit',
+        'day_call_profit',
+        'day_put_profit',
+        'near_put_oi_share',
+        'far_put_oi_share',
+        'near_call_oi_share',
+        'far_call_oi_share',
+        'put_oi_spread',
+        'call_oi_spread',
+        'dir_pos_price_pct',
+        'dir_inv_neg_price_pct',
+        'pattern_location'
                  ]
-    class_vars = [ 'week_day', 'tpo']
+    class_vars = [ 'week_day', 'tpo', 'regime']
     strategies = df['strategy'].unique()
     root_strategies = set([x.split("_")[0] for x in strategies])
     print('total patterns matched___', len(list(root_strategies)))
@@ -190,3 +238,11 @@ def run():
     #portfolio_performance(df)
     analysis(df)
 
+"""
+Notes : With the above analysis for trade every minute, 
+1. both_covering and put_covering regime showed highest loss. 
+This means when there is put covering loss is maximum
+
+2. call_to_put_trans and put_to_call_trans shows best regimes 
+
+"""

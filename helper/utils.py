@@ -240,9 +240,13 @@ def convert_to_candle(lst):
     return candle
 
 def locate_point(df, threshold):
-    above = len(np.array(df.index[df.Close > threshold]))
-    below = len(np.array(df.index[df.Close <= threshold]))
-    pct = (1 - above / (above + below)) * 100
+    pct = -1
+    try:
+        above = len(np.array(df.index[df.Close > threshold]))
+        below = len(np.array(df.index[df.Close <= threshold]))
+        pct = (1 - above / (above + below)) * 100
+    except:
+        pass
     return pct
 
 

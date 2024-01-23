@@ -212,7 +212,8 @@ class OptionMatrix:
             timestamp_set.add(cell.timestamp)
         ts_list = list(timestamp_set)
         ts_list.sort()
-        #self.create_dummy_cells(ts_list)
+        #print('create dummy cells', ts_list)
+        self.create_dummy_cells(ts_list)
         day_capsule.cross_analyser.compute(ts_list)
 
     def create_dummy_cells(self, ts_list):
@@ -233,6 +234,7 @@ class OptionMatrix:
                 missing_cells = [cell for cell in all_cells_in_prev_time if cell.instrument not in curr_time_insts]
 
             for m_cell in missing_cells:
+                print("missing_cells====", m_cell.instrument)
                 cell = OptionCell(self.current_date, ts, m_cell.instrument, None, m_cell.volume_delta_mode)
                 if not day_capsule.in_trading_data(cell.instrument):
                     day_capsule.insert_trading_data(cell.instrument, Capsule())

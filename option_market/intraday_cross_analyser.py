@@ -230,7 +230,7 @@ class IntradayCrossAssetAnalyser:
         n_period_put_oi_change = sum([period_aggr_stats['put_addition'] for period_aggr_stats in n_period_aggr_stats])
         n_period_total_oi_change = sum([period_aggr_stats['total_addition'] for period_aggr_stats in n_period_aggr_stats])
 
-        build_up_theshold = 0.5/100
+        build_up_theshold = 0.1/100
 
         call_build_up_dir = int(abs(n_period_call_oi_change) > build_up_theshold) * np.sign(n_period_call_oi_change)
         put_build_up_dir = int(abs(n_period_put_oi_change) > build_up_theshold) * np.sign(n_period_put_oi_change)

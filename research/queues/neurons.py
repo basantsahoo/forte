@@ -221,10 +221,13 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
                              'median_put_volume', 'pcr_minus_1', 'regime', 'market_entrant', 'call_entrant',
                              'put_entrant', 'transition', 'roll_near_vol_pcr', 'roll_far_vol_pcr', 'roll_vol_spread_pcr',
                              'put_pos_price_pct', 'call_pos_price_pct', 'call_vol_spread', 'put_vol_spread',
-                             'total_vol_spread', 'total_profit', 'call_profit', 'put_profit', 'near_put_oi_share',
-                             'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share', 'put_oi_spread', 'call_oi_spread']
+                             'total_vol_spread', 'total_profit', 'call_profit', 'put_profit', 'day_total_profit',
+                             'day_call_profit','day_put_profit', 'near_put_oi_share', 'far_put_oi_share',
+                             'near_call_oi_share', 'far_call_oi_share', 'put_oi_spread', 'call_oi_spread',
+                             'near_call_volume_share_per_oi', 'near_put_volume_share_per_oi',
+                             'far_call_volume_share_per_oi', 'far_put_volume_share_per_oi']
         for attribute in option_attributes:
-            self.add_attribute(pattern,attribute, res)
+            self.add_attribute(pattern, attribute, res)
 
         if pattern.info.get('dir_pos_price_pct', None) is not None:
             res['dir_pos_price_pct'] = pattern.info['dir_pos_price_pct']
@@ -243,7 +246,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             res['money_ness'] = pattern['money_ness']
 
         if res.get('pattern_price', None):
-            pattern_df = self.manager.strategy.asset_book.get_inflex_pattern_df().dfstock_3
+            pattern_df = self.manager.strategy.asset_book.spot_book.get_inflex_pattern_df().dfstock_3
             pattern_location = locate_point(pattern_df, max(res['pattern_price']))
             res['pattern_location'] = pattern_location
         if pattern.info.get('price_list', None) is not None:

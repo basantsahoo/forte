@@ -56,7 +56,8 @@ class OptionSignalGenerator:
 
         put_pos_price_pct = float(len(put_pos_change_list) / len(list(put_price_delta.values())))
         call_pos_price_pct = float(len(call_pos_change_list) / len(list(call_price_delta.values())))
-
+        day_spot_capsule = self.option_matrix.get_spot_instrument_capsule(self.option_matrix.current_date, 'spot')
+        print(day_spot_capsule.last_tick.ion.to_candle())
         info =  {'timestamp': self.option_matrix.last_time_stamp,
                 'asset': self.option_matrix.asset,
                 'call_volume_scale':aggregate_stats['call_volume_scale'],
@@ -86,6 +87,9 @@ class OptionSignalGenerator:
                 'total_profit': aggregate_stats['ledger']['total_profit'],
                 'call_profit': aggregate_stats['ledger']['call_profit'],
                 'put_profit': aggregate_stats['ledger']['put_profit'],
+                'day_total_profit': aggregate_stats['ledger']['day_total_profit'],
+                'day_call_profit': aggregate_stats['ledger']['day_call_profit'],
+                'day_put_profit': aggregate_stats['ledger']['day_put_profit'],
                 'near_put_oi_share': aggregate_stats['near_put_oi_share'],
                 'far_put_oi_share': aggregate_stats['far_put_oi_share'],
                 'near_call_oi_share': aggregate_stats['near_call_oi_share'],
@@ -93,7 +97,13 @@ class OptionSignalGenerator:
 
                 'put_oi_spread': aggregate_stats['put_oi_spread'],
                 'call_oi_spread': aggregate_stats['call_oi_spread'],
-             }
+                'price_list': [day_spot_capsule.last_tick.ion.to_candle()['close']],
+                'near_call_volume_share_per_oi': aggregate_stats['near_call_volume_share_per_oi'],
+                'near_put_volume_share_per_oi': aggregate_stats['near_put_volume_share_per_oi'],
+                'far_call_volume_share_per_oi': aggregate_stats['far_call_volume_share_per_oi'],
+                'far_put_volume_share_per_oi': aggregate_stats['far_put_volume_share_per_oi'],
+
+        }
 
         return info
 

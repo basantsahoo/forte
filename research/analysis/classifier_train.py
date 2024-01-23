@@ -205,10 +205,11 @@ def pre_process(x_input):
 
     #x_input['open_type'] = ordinal_encoder(categories=[open_type_order]).fit_transform(x_input['open_type'])
     cat_transformer = make_column_transformer(
-        (OrdinalEncoder(categories=[open_type_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['open_type']),
+        #(OrdinalEncoder(categories=[open_type_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['open_type']),
         #(OrdinalEncoder(categories=[money_ness_order], handle_unknown="use_encoded_value", unknown_value=np.nan), ['money_ness']),
         (OneHotEncoder(), ['week_day']),
-        (OneHotEncoder(), ['kind']),
+        (OneHotEncoder(), ['regime']),
+        #(OneHotEncoder(), ['kind']),
         #(OneHotEncoder(), ['money_ness']),
         remainder="drop"
     )
@@ -222,14 +223,18 @@ def pre_process(x_input):
     """
     feature_union = FeatureUnion(transformer_list=[
         ('numprocessor', NumericProcessor()),
-        #('open_type', cat_transformer),
+        ('open_type', cat_transformer),
     ])
     preprocessor = Pipeline([('union', feature_union)])
     X = preprocessor.fit_transform(x_input)
+    #print(X)
     feature_names = preprocessor.named_steps['union'].get_feature_names_out()
-
     feature_names = [x.split('__')[-1] for x in feature_names]
-    df = pd.DataFrame(X, columns=feature_names)
+    print(type(X))
+    df = pd.DataFrame(X.todense())
+    #df = pd.DataFrame(X)
+    print(df.shape)
+    df.columns =feature_names
     return df
 
 
@@ -263,8 +268,13 @@ def evaluate_features(x_input, y_input):
 
 
 def train(data_set, target, exclude_variables=[]):
+    data_set.replace([np.inf, -np.inf], np.nan, inplace=True)
     if 'tpo' in data_set.columns.to_list():
         data_set = data_set.dropna(subset=['tpo'])
+    if 'roll_far_vol_pcr' in data_set.columns.to_list():
+        data_set = data_set.dropna(subset=['roll_far_vol_pcr'])
+    if 'roll_vol_spread_pcr' in data_set.columns.to_list():
+        data_set = data_set.dropna(subset=['roll_vol_spread_pcr'])
 
     data_set[target] = data_set[target].apply(lambda x : int(x > 0))
     y_input = data_set[target]
@@ -292,7 +302,7 @@ def train(data_set, target, exclude_variables=[]):
     #evaluate_features(X_train, y_train)
     #model = train_svc_model(X_train, y_train)
 
-    print(X_test.tail())
+    #print(X_test.tail())
     model = train_et_bs_model(X_train, y_train)
     #model = train_et_bs_model(X_test, y_test)
 

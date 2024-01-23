@@ -202,6 +202,8 @@ class SpotIon:
         elif field == 'open':
             return self.open
 
+    def to_candle(self):
+        return {'open': self.open, 'high': self.high, 'low': self.low, 'close': self.close}
 
     @classmethod
     def from_raw(cls, ion_data):

@@ -17,7 +17,7 @@ from sklearn.preprocessing import LabelEncoder
 CAT_NUM_LABEL = []
 
 # Categorical variables with text label
-CAT_TXT_LABEL = ['week_day','open_type', 'strategy', 'money_ness', 'kind']
+CAT_TXT_LABEL = ['week_day', 'open_type', 'strategy', 'money_ness', 'kind', 'regime']
 
 # High dimensional categorical variables
 CAT_HIGH_DIM = []
@@ -101,6 +101,8 @@ class NumericProcessor(BaseEstimator):
         cont_vars = [ x for x in raw_df.columns.tolist() if x not in cat_vars]
         raw_df[cont_vars] = raw_df[cont_vars].fillna(-100)
         selected_df = raw_df[cont_vars]
+        #print(selected_df.head())
+        #selected_df.to_csv('selected_df.csv')
         self.feature_list = selected_df.columns.tolist()
         return selected_df
 
