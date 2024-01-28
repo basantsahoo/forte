@@ -177,7 +177,7 @@ class SpotBook:
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
-        self.inflex_detector.on_price_update([price['timestamp'], price['close']])
+        #self.inflex_detector.on_price_update([price['timestamp'], price['close']])
         #self.trend_detector.evaluate()
         self.candle_5_processor.create_candles()
         self.candle_15_processor.create_candles()
