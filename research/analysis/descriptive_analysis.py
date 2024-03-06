@@ -40,6 +40,14 @@ def plot_table(report, df):
     report.savefig()
     plt.close()
 
+def plot_table_large(report, df):
+    fig, ax = plt.subplots(figsize=(12, 8))
+    ax.axis('tight')
+    ax.axis('off')
+    the_table = ax.table(cellText=df.values, colLabels=df.columns, loc='center')
+    report.savefig()
+    plt.close()
+
 def add_text_page(report, txt):
     firstPage = plt.figure(figsize=(11.69, 8.27))
     firstPage.clf()
@@ -47,7 +55,7 @@ def add_text_page(report, txt):
     report.savefig()
     plt.close()
 
-def all_group_summary(report, df_i,target, grp_list, filter={}):
+def cross_group_summary(report, df_i,target, grp_list, filter={}):
     for key, value in filter.items():
         df_i = df_i[df_i[key] == value]
 
@@ -55,31 +63,83 @@ def all_group_summary(report, df_i,target, grp_list, filter={}):
     # day_wise_df = df_i.groupby(['strategy', 'support_ind',]).agg({target: ['count', 'mean', 'min', 'max']})
     day_wise_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
     day_wise_df = day_wise_df.reset_index().round(2)
-    day_wise_df.to_csv('reports/all_group_summary.csv')
-    plot_table(report, day_wise_df)
+    day_wise_df.to_csv('reports/cross_group_summary.csv')
+    plot_table_large(report, day_wise_df)
 
 
 def group_wise_summary(report, df_i,target, grp, filter={}):
     for key, value in filter.items():
         df_i = df_i[df_i[key] == value]
 
-    day_wise_df = df_i.groupby([grp]).agg({target: ['count', 'mean', 'min', 'max']})
+    day_wise_df = df_i.groupby([grp]).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
     # day_wise_df = df_i.groupby(['strategy', 'support_ind',]).agg({target: ['count', 'mean', 'min', 'max']})
-    day_wise_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
+    day_wise_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max', '+ve']
     day_wise_df = day_wise_df.reset_index().round(3)
-    aggregate_df = df_i.groupby(['strategy']).agg({target: ['count', 'mean', 'min', 'max']})
+    aggregate_df = df_i.groupby(['strategy']).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
 
-    aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max']
+    aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max', '+ve']
     aggregate_df = aggregate_df.reset_index().round(3)
     print('aggregate_df+++++++++++++++++')
     print(aggregate_df)
     aggr_values = list(aggregate_df.iloc[0])
     aggr_values[0] = 'Total'
     day_wise_df.loc[len(day_wise_df.index)] = aggr_values
+    day_wise_df['acc'] = day_wise_df['+ve']/day_wise_df['count']
+    day_wise_df['acc'] = day_wise_df['acc'].round(2)
     plot_table(report, day_wise_df)
 
+bin_dict = {
+    'day_put_profit': [-2, -1.5, -1.4, -1.3, -1.2, -1.1, -1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2,
+                       -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+}
 
-def add_strategy_details(report, df_i, target,filter={}):
+
+def get_bins(df_i, grp, q=20):
+    quantiles = np.linspace(0, 1, q + 1) if is_integer(q) else q
+    x = df_i[grp].to_list()
+    x_np = np.asarray(x)
+    x_np = x_np[~np.isnan(x_np)]
+    bins = bin_dict.get(grp, [])
+    bins = bins or np.quantile(x_np, quantiles)
+    """
+    lowest = min(df_i[grp].to_list())
+    highest = max(df_i[grp].to_list())
+    
+    bins = bin_dict.get(grp, [])
+    bins = bins or np.arange(lowest, highest, (highest-lowest)/20)
+    """
+    return bins
+
+def bin_wise_summary(report, df_i, target, grp, filter={}):
+    for key, value in filter.items():
+        df_i = df_i[df_i[key] == value]
+
+    bins = bin_dict.get(grp, [])
+    if bins:
+        day_wise_df = df_i.groupby(pd.cut(df_i[grp], bins, duplicates="drop")).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
+    else:
+        bins = get_bins(df_i, grp)
+        day_wise_df = df_i.groupby(pd.cut(df_i[grp], bins, duplicates="drop")).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
+        #day_wise_df = df_i.groupby(pd.qcut(df_i[grp], 20, duplicates="drop")).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
+    #day_wise_df = df_i.groupby(pd.qcut(df_i[grp], 20, duplicates="drop")).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
+    # day_wise_df = df_i.groupby(['strategy', 'support_ind',]).agg({target: ['count', 'mean', 'min', 'max']})
+    day_wise_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max', '+ve']
+    day_wise_df = day_wise_df.reset_index().round(3)
+    aggregate_df = df_i.groupby(['strategy']).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
+
+    aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max', '+ve']
+    aggregate_df = aggregate_df.reset_index().round(3)
+    print('aggregate_df+++++++++++++++++')
+    print(aggregate_df)
+    aggr_values = list(aggregate_df.iloc[0])
+    aggr_values[0] = 'Total'
+    day_wise_df.loc[len(day_wise_df.index)] = aggr_values
+    day_wise_df['acc'] = day_wise_df['+ve']/day_wise_df['count']
+    day_wise_df['acc'] = day_wise_df['acc'].round(2)
+    plot_table_large(report, day_wise_df)
+
+
+def add_strategy_details(report, df_i, target, filter={}):
     total_days = len(df_i['day'].unique())
     for key, value in filter.items():
         df_i = df_i[df_i[key] == value]
@@ -207,6 +267,7 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
     #data_set = data_set[data_set['pattern_quad'] > -1000]
 
     cols =  [x for x in data_set.columns if x not in exclude_variables]
+    print(cols)
     data_set = data_set[cols]
     description = data_set.describe()
     #print(description)
@@ -243,9 +304,22 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 group_wise_summary(report, df_i, target, 'strength')
                 """
                 filter = {}
-                #all_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind'], filter=filter)
-                all_group_summary(report, df_i, target, ['week_day', 'tpo'], filter=filter)
-
+                #cross_group_summary(report, df_i, target, ['week_day','open_type', 'tpo','kind'], filter=filter)
+                #cross_group_summary(report, df_i, target, ['week_day', 'tpo'], filter=filter)
+                bin_wise_summary(report, df_i, target, 'day_put_profit', filter=filter)
+                bin_wise_summary(report, df_i, target, 'day_call_profit', filter=filter)
+                bin_wise_summary(report, df_i, target, 'day_total_profit', filter=filter)
+                bin_wise_summary(report, df_i, target, 'vol_rat', filter=filter)
+                bin_wise_summary(report, df_i, target, 'pcr_minus_1', filter=filter)
+                bin_wise_summary(report, df_i, target, 'put_call_vol_scale_diff', filter=filter)
+                bin_wise_summary(report, df_i, target, 'call_entrant', filter=filter)
+                bin_wise_summary(report, df_i, target, 'put_entrant', filter=filter)
+                bin_wise_summary(report, df_i, target, 'transition', filter=filter)
+                bin_wise_summary(report, df_i, target, 'near_put_oi_share', filter=filter)
+                bin_wise_summary(report, df_i, target, 'far_put_oi_share', filter=filter)
+                bin_wise_summary(report, df_i, target, 'near_call_oi_share', filter=filter)
+                bin_wise_summary(report, df_i, target, 'far_call_oi_share', filter=filter)
+                #bin_wise_summary(report, df_i, target, 'pattern_location', filter=filter)
                 #filter = {'week_day': 'Friday', 'open_type': 'GAP_DOWN', 'kind':'CE'}
                 group_wise_summary(report, df_i, target, 'week_day', filter=filter)
                 #group_wise_summary(report, df_i, target, 'open_type', filter=filter)
@@ -299,6 +373,100 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                     plot_scatter(report, df_t, col, target, 1)
                 """
                 #print(day_wise_df[day_wise_df['support_ind']==0].to_string())
+
+
+def param_search(data_set, target, exclude_variables=[]):
+    print('perform_analysis_strategies descriptive++++++++')
+    cols =  [x for x in data_set.columns if x not in exclude_variables]
+    data_set = data_set[cols]
+
+    data_set['root_strategy'] = data_set['strategy'].apply(lambda x: x.split("_")[0])
+    root_strategies = list(set(data_set['root_strategy'].to_list()))
+    root_strategies.sort()
+    final_results = []
+    for root_strategy in root_strategies:
+        strategies = list(set(data_set[data_set['root_strategy'] == root_strategy]['strategy'].to_list()))
+        strategies.sort()
+        for strategy in strategies:
+            print('analysing strategy++++++++++++++++++++++++++++++++++++++++++++', strategy)
+            df_i = data_set[data_set['strategy'] == strategy]
+            filter = {}
+            grp_list = ['day_put_profit', 'day_call_profit', 'day_total_profit', 'vol_rat', 'pcr_minus_1', 'put_call_vol_scale_diff', 'call_entrant', 'put_entrant', 'transition', 'near_put_oi_share', 'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share']
+            results = search_grid(df_i, target, grp_list, filter={})
+            final_results = final_results + results
+            #group_wise_summary(report, df_i, target, 'regime', filter=filter)
+    return final_results
+
+
+from pandas.core.dtypes.common import (
+    DT64NS_DTYPE,
+    ensure_platform_int,
+    is_bool_dtype,
+    is_categorical_dtype,
+    is_datetime64_dtype,
+    is_datetime64tz_dtype,
+    is_datetime_or_timedelta_dtype,
+    is_extension_array_dtype,
+    is_integer,
+    is_list_like,
+    is_numeric_dtype,
+    is_scalar,
+    is_timedelta64_dtype,
+)
+from pandas.core.dtypes.generic import ABCSeries
+from pandas.core.dtypes.missing import isna
+from itertools import combinations, product
+
+def generate_range_from_bins(bins):
+    ranges = []
+
+    for i in range(len(bins) - 1):
+        start = bins[i]
+        end = bins[i + 1]
+        ranges.append((start, end))
+    return ranges
+
+
+
+def search_grid(df_i, target, grp_list, filter={}):
+
+    for key, value in filter.items():
+        df_i = df_i[df_i[key] == value]
+    print(len(df_i['day'].unique()))
+    column_range_dict = {}
+    comb_of_columns = list(combinations(grp_list, 3))
+    #print(comb_grps)
+    for grp in grp_list:
+        bins = get_bins(df_i, grp)
+        ranges = generate_range_from_bins(bins)
+        column_range_dict[grp] = [{'col': grp, 'low': min(rng), 'high': max(rng)} for rng in ranges ]
+    #print(range_dict)
+    results = []
+    for comb_grp in comb_of_columns[0:100]:
+        list_of_ranges = [ column_range_dict[grp] for grp in comb_grp]
+        all_possible_comb_range_of_comb_grp = list(product(*list_of_ranges))
+        #print(all_possible_comb_range_of_comb_grp)
+        for comb_col_range in all_possible_comb_range_of_comb_grp:
+            df_tmp = df_i.copy()
+            for col_range in comb_col_range:
+                df_tmp = df_tmp[df_tmp[col_range['col']] >= col_range['low']]
+                df_tmp = df_tmp[df_tmp[col_range['col']] < col_range['high']]
+            aggregate_df = df_tmp.groupby(['strategy']).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
+            aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max', '+ve']
+            aggregate_df = aggregate_df.reset_index().round(3)
+            aggregate_df['acc'] = aggregate_df['+ve'] / aggregate_df['count']
+            aggregate_df['acc'] = aggregate_df['acc'].round(2)
+            if aggregate_df.shape[0] > 0:
+                aggregate_rec = aggregate_df.to_dict('records')[0]
+                aggregate_rec['day_count'] = len(df_tmp['day'].unique())
+                for i in range(len(comb_col_range)):
+                    col_range = comb_col_range[i]
+                    aggregate_rec['col_' + str(i)] = col_range['col']
+                    aggregate_rec['col_' + str(i) + '_low'] = col_range['low']
+                    aggregate_rec['col_' + str(i) + '_high'] = col_range['high']
+                results.append(aggregate_rec)
+    return results
+
 
 def perform_analysis(data_set, target, exclude_variables=[]):
     print('perform_analysis descriptive++++++++')

@@ -231,7 +231,7 @@ class OptionSignalGenerator:
         put_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'PE'}
         call_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'CE'}
 
-        self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_price_delta, put_price_delta)
+        #self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_price_delta, put_price_delta)
         self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
         #self.put_buy_indicator.evaluate(aggregate_stats['put_volume_scale'], aggregate_stats['call_volume_scale'], put_price_delta, call_price_delta)
         info = self.get_info()

@@ -4,9 +4,9 @@
       "id":"HighPutVolumeBuy",
       "class":"HighPutVolumeBuy",
       "symbol": "NIFTY",
-      "exit_time":[15, 15],
-      "order_type":"BUY",
-      "spot_instruments":[],
+      "exit_time":[45, 45],
+      "order_type":"SELL",
+      "spot_instruments":["SPOT"],
       "derivative_instruments":[],
       "max_signal": 600,
       "triggers_per_signal": 1,
@@ -14,7 +14,7 @@
       "spot_short_stop_losses":[],
       "instr_targets":[2],
       "instr_stop_losses":[],
-      "instr_to_trade" : [["ITM", 1, "PE"]],
+      "instr_to_trade" : [],
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -50,7 +50,7 @@
         },
       "signal_filters" : [
       ],
-      "risk_limits": ["max_movement > 80", "total_losses < -350000"]
+      "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }
   ],
   "run_params": {

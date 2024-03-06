@@ -200,6 +200,23 @@ class BaseStrategy:
         signal_info['symbol'] = updated_symbol
         self.asset_book.market_book.pm.strategy_exit_signal(signal_info, option_signal=self.inst_is_option(instrument))
 
+    def get_lowest_candle(self):
+        lowest_candle = None
+        for (ts,candle) in reversed(self.asset_book.spot_book.market_data.items()):
+            #print(candle)
+            if candle['low'] == self.asset_book.market_book.range['low']:
+                lowest_candle = candle
+                break
+        return lowest_candle
+
+    def trigger_exit_at_low(self, signal_info):
+        signal_info['strategy_id'] = self.id
+        instrument = signal_info['symbol']
+        updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
+        signal_info['symbol'] = updated_symbol
+        lowest_candle = self.get_lowest_candle()
+        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=lowest_candle)
+
     def manage_risk(self):
         spot_movements = []
         for trade in self.tradable_signals.values():

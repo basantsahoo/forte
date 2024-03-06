@@ -276,6 +276,7 @@ def get_all_trade_dates_between_two_dates(symbol, start_date, end_date):
     symbol = helper_utils.get_nse_index_symbol(symbol)
     conn = engine.connect()
     stmt_1 = "select distinct date from minute_data where symbol = '{0}' and date>= '{1}' and date <= '{2}' order by date"
+    #print(stmt_1.format(symbol, start_date, end_date))
     rs = conn.execute(stmt_1.format(symbol, start_date, end_date))
     days = list(rs)
     days = [x[0] for x in days]

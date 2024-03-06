@@ -63,8 +63,8 @@ class WeeklyStartegyBackTester:
                 feed_ = data_loader.generate_next_feed()
                 #print(feed_)
                 if feed_:
-                    pm.feed_stream(feed_)
                     market_book.feed_stream(feed_)
+                    pm.feed_stream(feed_)
                     #time.sleep(0.005)
             #print(pm.position_book.items())
             try:

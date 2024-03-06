@@ -60,8 +60,9 @@ class StartegyBackTester:
                 feed_ = data_loader.generate_next_feed()
                 #print(feed_)
                 if feed_:
-                    pm.feed_stream(feed_)
+                    #pm.feed_stream(feed_)
                     market_book.feed_stream(feed_)
+                    pm.feed_stream(feed_)
                     #time.sleep(0.005)
             #print(pm.position_book.items())
             try:
@@ -97,7 +98,7 @@ class StartegyBackTester:
 
         end_time = datetime.now()
         print((end_time - start_time).total_seconds())
-        #print(results)
+        print(results[0])
         return results
 
 

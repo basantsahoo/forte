@@ -69,7 +69,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
 
     def on_hist(self, feed):
         feed = json.loads(feed)
-        print('on_hist+++++++++')
+        print('on_hist+++++++++', feed)
         feed = convert_hist_spot_feed(feed, self.trade_day)
         self.hist_loaded = False
         self.hist_tick_data_loader.set_spot_ion_data(self.trade_day, feed['data'])

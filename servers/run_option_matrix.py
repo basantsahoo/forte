@@ -12,7 +12,7 @@ import time
 from servers.server_settings import oms_service
 
 sio = socketio.Client(reconnection_delay=5)
-full_week = True
+full_week = False
 
 async def start():
     ns = OptionMatrixClient('/oms', full_week=full_week)

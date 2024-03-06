@@ -337,3 +337,8 @@ selenium-4.0.0
 ```
 
 https://niftybull.fibery.io/Technical_Design/New-whiteboard-68
+https://tradingstrategy.ai/about
+pip install fastquant
+
+python backtest_2024/option_matrix_strategy_test.py option_market_impact_spot.json
+python backtest_2024/ml.py
