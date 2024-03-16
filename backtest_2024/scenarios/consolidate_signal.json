@@ -1,0 +1,67 @@
+{
+  "strategies":[
+    {
+      "id":"HighPutVolumeBuy",
+      "class":"HighPutVolumeBuy",
+      "symbol": "NIFTY",
+      "exit_time":[45, 45],
+      "exit_at":null,
+      "order_type":"SELL",
+      "spot_instruments":["SPOT"],
+      "derivative_instruments":[],
+      "max_signal": 600,
+      "triggers_per_signal": 1,
+      "spot_short_targets": [],
+      "spot_short_stop_losses":[],
+      "instr_targets":[2],
+      "instr_stop_losses":[],
+      "instr_to_trade" : [],
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1000,
+              "unique_only": true,
+              "validity_period": 10
+            },
+            "signal_type": "BEARISH_MOMENTUM",
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 10000,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": "always",
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+      ],
+      "trade_controllers": [
+
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+      ],
+      "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
+    }
+  ],
+  "run_params": {
+    "test_days": [],
+    "for_past_days": 60,
+    "to_date": "2023-12-28",
+    "candle_sw": 0,
+    "week_days": [],
+    "record_metric": true,
+    "insight_log": false,
+    "send_to_oms": false
+  }
+}

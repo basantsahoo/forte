@@ -2,19 +2,7 @@ import sys
 from pathlib import Path
 project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
-from config import get_expiry_date
-from db.market_data import get_prev_week_minute_data_by_start_day, get_curr_week_minute_data_by_start_day, get_all_trade_dates_between_two_dates
-from dynamics.profile.weekly_profile import WeeklyMarketProfileService
-from dynamics.profile.market_profile import HistMarketProfileService
-from datetime import datetime, date
-from servers.server_settings import reports_dir
-import pandas as pd
-import numpy as np
-import traceback
-from config import default_symbols
-from helper.utils import determine_day_open, determine_level_reach, get_overlap, get_percentile, candle_reversal_score
-from dynamics.profile.utils import get_next_lowest_index, get_next_highest_index
-from helper.time_utils import epoch_to_ordinal
+from db.market_data import get_all_trade_dates_between_two_dates
 
 from entities.trading_day import TradeDateTime, NearExpiryWeek
 day = "2023-09-01"
@@ -46,8 +34,8 @@ print("end==", expiry_week.end_date.date_string)
 print("month end==", expiry_week.moth_end_expiry)
 """
 
-from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
-from option_market.exclude_trade_days import exclude_trade_days
+from dynamics.option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
+from dynamics.option_market.exclude_trade_days import exclude_trade_days
 
 days = get_all_trade_dates_between_two_dates(asset, expiry_week.start_date.date_string, expiry_week.end_date.date_string)
 days_formatted = [day.strftime('%Y-%m-%d') for day in days if day.strftime('%Y-%m-%d') not in exclude_trade_days[asset]]

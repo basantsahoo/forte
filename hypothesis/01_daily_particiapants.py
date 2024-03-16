@@ -6,8 +6,8 @@ project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 asset = "NIFTY"
 from entities.trading_day import NearExpiryWeek
-from option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix, OptionSignalGenerator
-from option_market.exclude_trade_days import exclude_trade_days
+from dynamics.option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix
+from dynamics.option_market.exclude_trade_days import exclude_trade_days
 
 
 expiry_dates = NearExpiryWeek.get_asset_expiry_dates(asset)

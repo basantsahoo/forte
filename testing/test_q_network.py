@@ -1,5 +1,4 @@
-from research.queues.neuron_network import QNetwork
-from research.queues.neurons import Neuron
+from strat_machine.queues import QNetwork
 import json
 strat_config_file = '/backtest/scenarios/ema_act_2_tick_watcher_redesign.json'
 

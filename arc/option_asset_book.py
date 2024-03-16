@@ -1,7 +1,7 @@
 from arc.spot_book import SpotBook
-from option_market.option_matrix import OptionMatrix
+from dynamics.option_market.option_matrix import OptionMatrix
 from db.market_data import get_prev_day_avg_volume
-from option_market.utils import get_average_volume_for_day
+from dynamics.option_market.utils import get_average_volume_for_day
 from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion
 from entities.base import BaseSignal
 from arc.clock import Clock
@@ -92,7 +92,6 @@ class OptionAssetBook:
             self.spot_book.update_periodic()
 
     def option_feed_stream(self, feed_list):
-        from datetime import datetime
         feed_list = [convert_to_option_ion(feed) for feed in feed_list]
         data_dct = {ion_d['instrument']: ion_d['oi'] for ion_d in feed_list}
         """

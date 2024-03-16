@@ -15,27 +15,25 @@ from arc.option_market_book import OptionMarketBook
 from db.market_data import (get_all_days)
 import helper.utils as helper_utils
 from arc.strategy_manager import StrategyManager
-from entities.trading_day import TradeDateTime, NearExpiryWeek
-from dynamics.option_market.option_matrix import MultiDayOptionDataLoader
+from entities.trading_day import TradeDateTime
+from dynamics.option_market.data_loader import MultiDayOptionDataLoader
 from dynamics.option_market.exclude_trade_days import exclude_trade_days
+from backtest_2024.bt_strategies import *
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 
 
-class WeeklyStartegyBackTester:
+class StartegyBackTester:
     def __init__(self, strat_config):
         self.strat_config = strat_config
 
     def back_test(self, asset):
         results = []
         start_time = datetime.now()
-        weeks = list(set([NearExpiryWeek(TradeDateTime(day)) for day in self.strat_config['run_params']['test_days']]))
-        weeks.sort()
-        for week in weeks:
-            print(week.start_date.date_string)
-        for week in weeks:
-            week.get_all_trade_days()
-            market_book = OptionMarketBook(week.start_date.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False)
+        for day in self.strat_config['run_params']['test_days']:
+            in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
+            t_day = in_day.date_string
+            market_book = OptionMarketBook(in_day.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False))
             place_live = False
             interface = None
             if self.strat_config['run_params'].get("send_to_oms", False):
@@ -54,11 +52,12 @@ class WeeklyStartegyBackTester:
                 end = datetime.now()
                 print('strategy init took', (end - start).total_seconds())
             market_book.strategy_manager = strategy_manager
-            data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day.date_string for t_day in week.all_trade_days])
+            data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
             while data_loader.data_present:
                 feed_ = data_loader.generate_next_feed()
                 #print(feed_)
                 if feed_:
+                    #pm.feed_stream(feed_)
                     market_book.feed_stream(feed_)
                     pm.feed_stream(feed_)
                     #time.sleep(0.005)
@@ -72,7 +71,6 @@ class WeeklyStartegyBackTester:
                     trade_id = strategy_tuple[2]
                     strategy_signal_generator = strategy_manager.get_deployed_strategy_from_id(strategy_id)
                     for leg_id, leg_info in position.items():
-                        day = TradeDateTime(leg_info['entry_time']).date_string
                         _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                         _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
                         trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
@@ -97,7 +95,7 @@ class WeeklyStartegyBackTester:
 
         end_time = datetime.now()
         print((end_time - start_time).total_seconds())
-        #print(results)
+        print(results[0])
         return results
 
 
@@ -137,7 +135,7 @@ if __name__ == '__main__':
     with open(strat_config_path, 'r') as bt_config:
         strat_config = json.load(bt_config)
 
-    back_tester = WeeklyStartegyBackTester(strat_config)
+    back_tester = StartegyBackTester(strat_config)
     results = back_tester.run()
     results = pd.DataFrame(results)
     print('results=====',results)

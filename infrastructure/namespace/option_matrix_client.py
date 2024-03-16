@@ -2,7 +2,6 @@ import time
 import socketio
 from live_algo.algo_settings import algorithm_setup
 import json
-import pandas as pd
 from infrastructure.namespace.market_client import OptionMatrixMarketClient
 from servers.server_settings import feed_socket_service
 enabled_symbols = list(algorithm_setup.keys())
@@ -10,9 +9,7 @@ from entities.trading_day import TradeDateTime, NearExpiryWeek
 from helper.data_feed_utils import convert_hist_option_feed, convert_hist_spot_feed
 sio = socketio.Client(reconnection_delay=5)
 from arc.data_interface_option_matrix import AlgorithmIterface
-from dynamics.profile.utils import NpEncoder
-from option_market.data_loader import MultiDayOptionDataLoader, DayHistTickDataLoader
-import functools
+from dynamics.option_market.data_loader import MultiDayOptionDataLoader, DayHistTickDataLoader
 
 
 class OptionMatrixClient(socketio.ClientNamespace):
