@@ -13,11 +13,12 @@ from research.analysis import weekly_path_analysis
 from research.analysis import visualize_pattern_ema
 from research.analysis import buy_put_analysis
 from research.analysis import option_market_imapct_spot_analysis
+from research.analysis import option_market_imapct_spot_at_low_analysis
 #strategy_analysis_revised.run()
 #combined_analysis.run()
 #option_strategy_analysis.run()
 #ema_5_strategy_analysis.run()
 #visualize_pattern_ema.run()
 #weekly_path_analysis.run()
-option_market_imapct_spot_analysis.run()
+option_market_imapct_spot_at_low_analysis.run()
 

@@ -5,7 +5,7 @@ import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D
 from servers.server_settings import reports_dir
 from sklearn.linear_model import LinearRegression
-
+from research.analysis.binning import get_bins, bin_dict
 
 def box_plot(report, df, metric, title=None):
     # Plot day average  and perform anova of k-means
@@ -40,11 +40,14 @@ def plot_table(report, df):
     report.savefig()
     plt.close()
 
-def plot_table_large(report, df):
+def plot_table_large(report, df, title=""):
     fig, ax = plt.subplots(figsize=(12, 8))
+    #fig.clf()
+    #fig.text(0.4, 0.9, 'test +++++', transform=fig.transFigure, size=24, ha="center")
     ax.axis('tight')
     ax.axis('off')
     the_table = ax.table(cellText=df.values, colLabels=df.columns, loc='center')
+    ax.title.set_text(title)
     report.savefig()
     plt.close()
 
@@ -88,27 +91,6 @@ def group_wise_summary(report, df_i,target, grp, filter={}):
     day_wise_df['acc'] = day_wise_df['acc'].round(2)
     plot_table(report, day_wise_df)
 
-bin_dict = {
-    'day_put_profit': [-2, -1.5, -1.4, -1.3, -1.2, -1.1, -1, -0.9, -0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2,
-                       -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-}
-
-
-def get_bins(df_i, grp, q=20):
-    quantiles = np.linspace(0, 1, q + 1) if is_integer(q) else q
-    x = df_i[grp].to_list()
-    x_np = np.asarray(x)
-    x_np = x_np[~np.isnan(x_np)]
-    bins = bin_dict.get(grp, [])
-    bins = bins or np.quantile(x_np, quantiles)
-    """
-    lowest = min(df_i[grp].to_list())
-    highest = max(df_i[grp].to_list())
-    
-    bins = bin_dict.get(grp, [])
-    bins = bins or np.arange(lowest, highest, (highest-lowest)/20)
-    """
-    return bins
 
 def bin_wise_summary(report, df_i, target, grp, filter={}):
     for key, value in filter.items():
@@ -375,97 +357,12 @@ def perform_analysis_strategies(data_set, target, exclude_variables=[]):
                 #print(day_wise_df[day_wise_df['support_ind']==0].to_string())
 
 
-def param_search(data_set, target, exclude_variables=[]):
-    print('perform_analysis_strategies descriptive++++++++')
-    cols =  [x for x in data_set.columns if x not in exclude_variables]
-    data_set = data_set[cols]
-
-    data_set['root_strategy'] = data_set['strategy'].apply(lambda x: x.split("_")[0])
-    root_strategies = list(set(data_set['root_strategy'].to_list()))
-    root_strategies.sort()
-    final_results = []
-    for root_strategy in root_strategies:
-        strategies = list(set(data_set[data_set['root_strategy'] == root_strategy]['strategy'].to_list()))
-        strategies.sort()
-        for strategy in strategies:
-            print('analysing strategy++++++++++++++++++++++++++++++++++++++++++++', strategy)
-            df_i = data_set[data_set['strategy'] == strategy]
-            filter = {}
-            grp_list = ['day_put_profit', 'day_call_profit', 'day_total_profit', 'vol_rat', 'pcr_minus_1', 'put_call_vol_scale_diff', 'call_entrant', 'put_entrant', 'transition', 'near_put_oi_share', 'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share']
-            results = search_grid(df_i, target, grp_list, filter={})
-            final_results = final_results + results
-            #group_wise_summary(report, df_i, target, 'regime', filter=filter)
-    return final_results
-
-
-from pandas.core.dtypes.common import (
-    DT64NS_DTYPE,
-    ensure_platform_int,
-    is_bool_dtype,
-    is_categorical_dtype,
-    is_datetime64_dtype,
-    is_datetime64tz_dtype,
-    is_datetime_or_timedelta_dtype,
-    is_extension_array_dtype,
-    is_integer,
-    is_list_like,
-    is_numeric_dtype,
-    is_scalar,
-    is_timedelta64_dtype,
-)
-from pandas.core.dtypes.generic import ABCSeries
-from pandas.core.dtypes.missing import isna
-from itertools import combinations, product
-
-def generate_range_from_bins(bins):
-    ranges = []
-
-    for i in range(len(bins) - 1):
-        start = bins[i]
-        end = bins[i + 1]
-        ranges.append((start, end))
-    return ranges
 
 
 
-def search_grid(df_i, target, grp_list, filter={}):
 
-    for key, value in filter.items():
-        df_i = df_i[df_i[key] == value]
-    print(len(df_i['day'].unique()))
-    column_range_dict = {}
-    comb_of_columns = list(combinations(grp_list, 3))
-    #print(comb_grps)
-    for grp in grp_list:
-        bins = get_bins(df_i, grp)
-        ranges = generate_range_from_bins(bins)
-        column_range_dict[grp] = [{'col': grp, 'low': min(rng), 'high': max(rng)} for rng in ranges ]
-    #print(range_dict)
-    results = []
-    for comb_grp in comb_of_columns[0:100]:
-        list_of_ranges = [ column_range_dict[grp] for grp in comb_grp]
-        all_possible_comb_range_of_comb_grp = list(product(*list_of_ranges))
-        #print(all_possible_comb_range_of_comb_grp)
-        for comb_col_range in all_possible_comb_range_of_comb_grp:
-            df_tmp = df_i.copy()
-            for col_range in comb_col_range:
-                df_tmp = df_tmp[df_tmp[col_range['col']] >= col_range['low']]
-                df_tmp = df_tmp[df_tmp[col_range['col']] < col_range['high']]
-            aggregate_df = df_tmp.groupby(['strategy']).agg({target: ['count', 'mean', 'min', 'max', lambda series: len([x for x in series if x > 0])]})
-            aggregate_df.columns = ['count', 'pnl_avg', 'pnl_min', 'pnl_max', '+ve']
-            aggregate_df = aggregate_df.reset_index().round(3)
-            aggregate_df['acc'] = aggregate_df['+ve'] / aggregate_df['count']
-            aggregate_df['acc'] = aggregate_df['acc'].round(2)
-            if aggregate_df.shape[0] > 0:
-                aggregate_rec = aggregate_df.to_dict('records')[0]
-                aggregate_rec['day_count'] = len(df_tmp['day'].unique())
-                for i in range(len(comb_col_range)):
-                    col_range = comb_col_range[i]
-                    aggregate_rec['col_' + str(i)] = col_range['col']
-                    aggregate_rec['col_' + str(i) + '_low'] = col_range['low']
-                    aggregate_rec['col_' + str(i) + '_high'] = col_range['high']
-                results.append(aggregate_rec)
-    return results
+
+
 
 
 def perform_analysis(data_set, target, exclude_variables=[]):

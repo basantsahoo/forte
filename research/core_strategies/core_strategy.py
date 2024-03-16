@@ -22,6 +22,7 @@ class BaseStrategy:
                  spot_instruments = [], # Instruments that should be traded as linear can include FUT in future
                  derivative_instruments=[], # Instruments that should be traded as non options
                  exit_time=[10],
+                 exit_at=None,
                  carry_forward=False,
                  min_tpo=1,
                  max_tpo=13,
@@ -54,6 +55,7 @@ class BaseStrategy:
         self.spot_instruments = spot_instruments if spot_instruments else []
         self.derivative_instruments = derivative_instruments if derivative_instruments else []
         self.exit_time = exit_time
+        self.exit_at = exit_at
         self.min_tpo = min_tpo
         self.max_tpo = max_tpo
         self.record_metric = record_metric
@@ -194,28 +196,37 @@ class BaseStrategy:
         self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
 
     def trigger_exit(self, signal_info):
+        if self.exit_at is None:
+            self.trigger_exit_at_current(signal_info)
+        elif self.exit_at == 'low':
+            self.trigger_exit_at_low(signal_info)
+        elif self.exit_at == 'high':
+            self.trigger_exit_at_high(signal_info)
+
+    def trigger_exit_at_current(self, signal_info):
         signal_info['strategy_id'] = self.id
         instrument = signal_info['symbol']
         updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
         signal_info['symbol'] = updated_symbol
         self.asset_book.market_book.pm.strategy_exit_signal(signal_info, option_signal=self.inst_is_option(instrument))
 
-    def get_lowest_candle(self):
-        lowest_candle = None
-        for (ts,candle) in reversed(self.asset_book.spot_book.market_data.items()):
-            #print(candle)
-            if candle['low'] == self.asset_book.market_book.range['low']:
-                lowest_candle = candle
-                break
-        return lowest_candle
-
     def trigger_exit_at_low(self, signal_info):
         signal_info['strategy_id'] = self.id
         instrument = signal_info['symbol']
         updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
         signal_info['symbol'] = updated_symbol
-        lowest_candle = self.get_lowest_candle()
-        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=lowest_candle)
+        order_info = self.asset_book.market_book.pm.get_order_info_from_signal_info(signal_info)
+        lowest_candle = self.asset_book.get_lowest_candle(updated_symbol, after_ts=order_info['entry_time'], is_option=self.inst_is_option(instrument))
+        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=lowest_candle, option_signal=self.inst_is_option(instrument))
+
+    def trigger_exit_at_high(self, signal_info):
+        signal_info['strategy_id'] = self.id
+        instrument = signal_info['symbol']
+        updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
+        signal_info['symbol'] = updated_symbol
+        order_info = self.asset_book.market_book.pm.get_order_info_from_signal_info(signal_info)
+        highest_candle = self.asset_book.get_highest_candle(updated_symbol, after_ts=order_info['entry_time'], is_option=self.inst_is_option(instrument))
+        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=highest_candle, option_signal=self.inst_is_option(instrument))
 
     def manage_risk(self):
         spot_movements = []

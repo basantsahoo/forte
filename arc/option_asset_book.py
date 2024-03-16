@@ -18,6 +18,34 @@ class OptionAssetBook:
         self.last_periodic_update = None
         self.periodic_update_sec = 60
 
+    def get_lowest_candle(self, instr, after_ts=None, is_option=False):
+        lowest_candle = None
+        if not is_option:
+            inst_ts = self.spot_book.spot_processor.spot_ts.copy()
+            if after_ts is not None:
+                inst_ts = {key: val for (key, val) in inst_ts.items() if key > after_ts}
+            lowest = min([val['close'] for val in inst_ts.values()])
+            for (ts, candle) in reversed(inst_ts.items()):
+                # print(candle)
+                if candle['close'] == lowest:
+                    lowest_candle = candle
+                    break
+        return lowest_candle
+
+    def get_highest_candle(self, instr, after_ts=None, is_option=False):
+        highest_candle = None
+        if not is_option:
+            inst_ts = self.spot_book.spot_processor.spot_ts.copy()
+            if after_ts is not None:
+                inst_ts = {key: val for (key, val) in inst_ts.items() if key > after_ts}
+            highest = max([val['close'] for val in inst_ts.values()])
+            for (ts, candle) in reversed(inst_ts.items()):
+                # print(candle)
+                if candle['close'] == highest:
+                    highest_candle = candle
+                    break
+        return highest_candle
+
     def day_change_notification(self, trade_day):
         if self.clock is None:
             self.clock = Clock()

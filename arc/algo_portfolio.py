@@ -115,6 +115,7 @@ class AlgoPortfolioManager:
 
         if trigger_seq in self.position_book[(symbol, strategy_id, signal_id)]['position']:
             order_info = self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]
+            print('order_info=====', order_info)
             qty = order_info['qty'] if qty == 0 else qty
             order_id = order_info['order_id']
             exit_order_type = get_exit_order_type(order_info['side'])
@@ -130,6 +131,18 @@ class AlgoPortfolioManager:
                 self.place_oms_exit_order(strategy_id, symbol, exit_order_type, order_id, qty, option_signal)
             if self.dummy_broker is not None:
                 self.dummy_broker.place_order(strategy_id, signal_id, trigger_seq, symbol, exit_order_type, l_price, qty, trade_date, order_time)
+
+    def get_order_info_from_signal_info(self, signal_info):
+        symbol = signal_info['symbol']
+        strategy_id = signal_info['strategy_id']
+        signal_id = signal_info['signal_id']
+        trigger_seq = signal_info['leg_seq']
+        qty = signal_info['qty']
+        if trigger_seq in self.position_book[(symbol, strategy_id, signal_id)]['position']:
+            order_info = self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq]
+        else:
+            order_info = {}
+        return order_info
 
     def market_close_for_day(self):
         position_book = {}
