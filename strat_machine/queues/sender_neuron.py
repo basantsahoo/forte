@@ -1,7 +1,7 @@
 from entities.base import Signal
 class SenderNeuron:
     def forward_signal(self, signal={}):
-        print('forward_signal++++++++', signal)
+        #print('forward_signal++++++++', signal)
         reset_info = {'code': 'reset_signal', 'n_id': self.id}
         for channel in self.reset_on_new_signal_channels:
             print(channel)

@@ -26,7 +26,7 @@
               "unique_only": true,
               "validity_period": 10
             },
-            "signal_type": "BEARISH_MOMENTUM",
+            "signal_type": ["OPTION_MARKET", "BEARISH_MOMENTUM"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 10000,

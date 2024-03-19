@@ -17,7 +17,6 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import AssetActivityLog
-from arc_old_keep.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
 from entities.base import BaseSignal, Signal
@@ -28,16 +27,16 @@ class SpotBook:
         self.asset_book = asset_book
         self.asset = asset
         self.spot_processor = SpotProcessor(self)
-        self.option_processor = IntradayOptionProcessor(self, asset)
-        self.candle_1_processor = CandleProcessor(self, 1, 0)
+        #self.candle_1_processor = CandleProcessor(self, 1, 0)
         self.candle_5_processor = CandleProcessor(self, 5, 0)
-        self.candle_15_processor = CandleProcessor(self, 15, 0)
+        #self.candle_15_processor = CandleProcessor(self, 15, 0)
         self.state_generator = None
         self.trend = {}
         self.activity_log = AssetActivityLog(self)
         self.inflex_detector = PriceInflexDetectorForTrend(asset, fpth=0.001, spth = 0.001,  callback=None)
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
-        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=1)]
+        #self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
@@ -135,6 +134,7 @@ class SpotBook:
     def get_inflex_pattern_df(self, period=None):
         return self.inflex_detector
 
+    """
     def set_transition_matrix(self):
         self.state_generator = DayFullStateGenerator(self.asset, self.asset_book.market_book.trade_day, self.yday_profile)
         try:
@@ -163,7 +163,7 @@ class SpotBook:
                    signal_time=self.spot_processor.last_tick['timestamp'], notice_time=self.spot_processor.last_tick['timestamp'],
                    info={'probs': probs}, strength=0)
             self.pattern_signal(pat)
-
+    """
     def spot_minute_data_stream(self, price, iv=None):
         #print('Spot book of==', self.asset, " received price input===", price)
         epoch_tick_time = price['timestamp']
@@ -177,11 +177,14 @@ class SpotBook:
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
             self.last_periodic_update = epoch_minute
             self.update_periodic()
-        #self.inflex_detector.on_price_update([price['timestamp'], price['close']])
+        self.inflex_detector.on_price_update([price['timestamp'], price['close']])
         #self.trend_detector.evaluate()
         self.candle_5_processor.create_candles()
+        """
+        
         self.candle_15_processor.create_candles()
         self.candle_1_processor.create_candles()
+        """
         for pattern_detector in self.price_action_pattern_detectors:
             pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
@@ -190,7 +193,6 @@ class SpotBook:
         #self.activity_log.process()
 
     def pattern_signal(self, signal: BaseSignal):
-        #print(type(signal))
         #print(signal.category)
         if signal.is_option_signal():
             #print('pattern_signal+++++++++++', signal)

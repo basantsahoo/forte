@@ -10,8 +10,8 @@ pat_conf = {'len': 4, 'end_infl' : 'SPH'}
 
 
 class PriceActionPatternDetector:
-    def __init__(self, asset_book, period):
-        self.asset_book = asset_book
+    def __init__(self, spot_book, period):
+        self.spot_book = spot_book
         self.last_match = None
         self.period = period
         self.enabled_patterns = [PATTERN_DOUBLE_TOP]
@@ -219,7 +219,7 @@ class PriceActionPatternDetector:
 
 
     def reevaluate_pending_patterns(self):
-        pattern_df = self.asset_book.get_inflex_pattern_df(self.period).dfstock_3
+        pattern_df = self.spot_book.get_inflex_pattern_df(self.period).dfstock_3
         for infirm_pattern in self.infirm_patterns.copy():
             if self.pattern_broken(pattern_df, infirm_pattern):
                 self.infirm_patterns.remove(infirm_pattern)
@@ -227,28 +227,29 @@ class PriceActionPatternDetector:
                 matched_pattern = self.pattern_confirmed(pattern_df, infirm_pattern)
                 if len(matched_pattern) > 0:
                     # print('success on reevaluation', matched_pattern)
-                    pat = Signal(asset=self.asset_book.asset, category=PRICE_ACTION_INTRA_DAY, instrument="",
+                    pat = Signal(asset=self.spot_book.asset, category=PRICE_ACTION_INTRA_DAY, instrument="",
                                  indicator='INDICATOR_' + infirm_pattern['pattern'],
                                  signal=1,
                                  strength=0,
-                                 signal_time=matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.asset_book.spot_processor.last_tick['timestamp'],
-                                 notice_time=self.asset_book.spot_processor.last_tick['timestamp'],
+                                 signal_time=matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],
+                                 notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
                                  info=matched_pattern)
                     """
                     pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': 'INDICATOR_' + infirm_pattern['pattern'], 'signal': 1, 'strength': 0,
-                           'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.asset_book.spot_processor.last_tick['timestamp'],
-                           'notice_time': self.asset_book.spot_processor.last_tick['timestamp'],
+                           'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],
+                           'notice_time': self.spot_book.spot_processor.last_tick['timestamp'],
                            'info': matched_pattern}
                     """
                     #print('re evaluate 1++++')
-                    self.asset_book.pattern_signal(pat)
-                    #self.asset_book.pattern_signal(infirm_pattern['pattern'], matched_pattern)
+                    self.spot_book.pattern_signal(pat)
+                    #self.spot_book.pattern_signal(infirm_pattern['pattern'], matched_pattern)
                     self.infirm_patterns.remove(infirm_pattern)
                     # print('pending patterns after removal', self.infirm_patterns)
 
     def evaluate(self):
+        #print('evaluate+++++')
         self.reevaluate_pending_patterns()
-        pattern_df = self.asset_book.get_inflex_pattern_df(self.period).dfstock_3
+        pattern_df = self.spot_book.get_inflex_pattern_df(self.period).dfstock_3
         #print(pattern_df)
         if pattern_df is not None:# and pattern_df.shape[0] > 260: -- for testing only
             for pattern in self.enabled_patterns:
@@ -257,19 +258,19 @@ class PriceActionPatternDetector:
                     #print(matched_pattern)
                     #print(list(pattern_df.Time))
                     #print('evaluate 1++++')
-                    pat = Signal(asset=self.asset_book.asset, category=PRICE_ACTION_INTRA_DAY, instrument="",
+                    pat = Signal(asset=self.spot_book.asset, category=PRICE_ACTION_INTRA_DAY, instrument="",
                                  indicator='INDICATOR_' + pattern,
                                  signal=1,
                                  strength=0,
-                                 signal_time=matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.asset_book.spot_processor.last_tick['timestamp'],
-                                 notice_time=self.asset_book.spot_processor.last_tick['timestamp'],
+                                 signal_time=matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],
+                                 notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
                                  info=matched_pattern)
                     """
                     pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': 'INDICATOR_' + pattern, 'signal': 1, 'strength': 0,
-                           'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.asset_book.spot_processor.last_tick['timestamp'],
-                           'notice_time': self.asset_book.spot_processor.last_tick['timestamp'],
+                           'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],
+                           'notice_time': self.spot_book.spot_processor.last_tick['timestamp'],
                            'info': matched_pattern}
                     """
-                    self.asset_book.pattern_signal(pat)
+                    self.spot_book.pattern_signal(pat)
 
 

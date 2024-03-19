@@ -11,7 +11,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
     def __init__(self, manager, **kwargs):
         self.manager = manager
         self.id = kwargs['id']
-        self.signal_type = get_signal_key(kwargs['signal_type'])
+        self.signal_type = tuple(kwargs['signal_type']) #get_signal_key(kwargs['signal_type'])
         if self.signal_type is None:
             raise Exception('signal_type not found for', kwargs['signal_type'])
         self.min_activation_strength = kwargs['min_activation_strength']
@@ -285,7 +285,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         return res
 
     def eval_exit_criteria(self):
-        print(self.id,' exit_criteria  self.trade_eval++++++', self.trade_eval)
+        #print(self.id, ' exit_criteria  self.trade_eval++++++', self.trade_eval)
         criteria = self.trade_eval
         curr_ts = self.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         #print('eval_exit_criteria', criteria)

@@ -113,7 +113,7 @@ class StartegyBackTester:
                 days = all_days[end_date_index:start_date_index]
                 days = [x for x in days if (datetime.strptime(x, '%Y-%m-%d').strftime('%A') if type(x) == str else x.strftime('%A')) in self.strat_config['run_params']['week_days']] if self.strat_config['run_params']['week_days'] else days
                 days = [x for x in days if x.strftime('%Y-%m-%d') not in exclude_trade_days['NIFTY']]
-                print(days)
+                #print(days)
                 self.strat_config['run_params']['test_days'] = days
             result = self.back_test(symbol)
             final_result.extend(result)

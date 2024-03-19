@@ -2,11 +2,11 @@ from strat_machine.strategies.signal_setup import get_signal_key
 from strat_machine.queues.controllers import get_controller
 
 class Trade:
-    def __init__(self, strategy, t_id, trade_inst):
+    def __init__(self, strategy, t_id, trade_inst, triggers_per_signal):
         self.id = t_id
         self.strategy = strategy
         self.trade_completed = False
-        self.max_legs = 1
+        self.max_legs = triggers_per_signal
         self.legs = {}
         self.trade_inst = trade_inst
         self.custom_features = {}
@@ -43,6 +43,7 @@ class Trade:
         next_trigger = len(self.legs) + 1
         #Can contain None because it's inside expander
         legs = [self.get_trades(trd_idx) for trd_idx in range(next_trigger, next_trigger + self.max_legs)]
+        print('legs===============', legs)
         for leg in legs:
             #if leg is not None:
             self.legs[leg['seq']] = leg

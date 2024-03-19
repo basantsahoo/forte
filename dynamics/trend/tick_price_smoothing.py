@@ -382,7 +382,9 @@ class PriceInflexDetectorForTrend(PriceInflexDetector):
 
 
     def on_price_update(self, price_point):
-        self.dfstock_2 = self.dfstock_2.append([{'Time': price_point[0], 'Close': price_point[1]}], ignore_index=True)
+        self.dfstock_2 = pd.concat([self.dfstock_2, pd.DataFrame.from_records([{'Time': price_point[0], 'Close': price_point[1]}])], ignore_index=True)
+
+        #self.dfstock_2 = self.dfstock_2.append([{'Time': price_point[0], 'Close': price_point[1]}], ignore_index=True)
         if self.dfstock_2.shape[0] == 1:
             #print('all initialization here')
             self.dfstock_2['Inflex'] = ''

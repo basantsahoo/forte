@@ -84,7 +84,7 @@ class BuildUpFollowingMomentum:
         spot_momentum = SpotMomentumDetector.check_momentum(spot_series)
         call_build_up = OptionBuildupDetector.check_build_up(call_series)
         put_build_up = OptionBuildupDetector.check_build_up(put_series)
-        print(spot_momentum)
+        #print(spot_momentum)
         print('call == ', call_build_up)
         print('put == ', put_build_up)
 

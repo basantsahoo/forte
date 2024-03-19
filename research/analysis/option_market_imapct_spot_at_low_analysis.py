@@ -484,9 +484,9 @@ def scen_03():
     inflex_df = inflex_df[(inflex_df['put_call_vol_scale_diff'] >= 1.2) & (inflex_df['put_call_vol_scale_diff'] < 2)]
     inflex_df = inflex_df[(inflex_df['far_put_oi_share'] < 0.27) & (inflex_df['far_put_oi_share'] >= 0)]
 
-    print("******* Time DF *****")
+    print("******* Time DF Low analysis *****")
     basic_statistics(time_df)
-    print("******* Inflex DF *****")
+    print("******* Inflex DF Low analysis *****")
     basic_statistics(inflex_df)
     global strat_days
     strat_days = strat_days.union(set(inflex_df['day'].to_list()))

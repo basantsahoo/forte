@@ -5,6 +5,7 @@ from tabulate import tabulate
 from dynamics.option_market.technical.cross_over import DownCrossOver, BuildUpFollowingMomentum, OptionVolumeIndicator, \
     OptionMomentumIndicator, PutBuyIndicator
 from entities.base import Signal
+from dynamics.option_market.technical.put_buy_scenario import PutBuyScenario
 
 class OptionSignalGenerator:
     def __init__(self, matrix, live_mode=False):
@@ -23,6 +24,8 @@ class OptionSignalGenerator:
         self.bullish_option_momentum_indicator = OptionMomentumIndicator('BULLISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
         self.bearish_option_momentum_indicator = OptionMomentumIndicator('BEARISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
         self.put_buy_indicator = PutBuyIndicator('BEARISH_MOMENTUM', info_fn=self.get_info, call_back_fn=self.dispatch_signal)
+        self.put_buy_scen = PutBuyScenario( info_fn=self.get_info,
+                                                 call_back_fn=self.dispatch_signal)
         self.signal_dispatcher = None
 
     def get_info(self):
@@ -49,11 +52,12 @@ class OptionSignalGenerator:
         put_pos_price_pct = float(len(put_pos_change_list) / len(list(put_price_delta.values())))
         call_pos_price_pct = float(len(call_pos_change_list) / len(list(call_price_delta.values())))
         day_spot_capsule = self.option_matrix.get_spot_instrument_capsule(self.option_matrix.current_date, 'spot')
-        print(day_spot_capsule.last_tick.ion.to_candle())
+        #print(day_spot_capsule.last_tick.ion.to_candle())
         info =  {'timestamp': self.option_matrix.last_time_stamp,
                 'asset': self.option_matrix.asset,
                 'call_volume_scale':aggregate_stats['call_volume_scale'],
                 'put_volume_scale': aggregate_stats['put_volume_scale'],
+                'put_call_volume_scale_diff': aggregate_stats['put_volume_scale'] - aggregate_stats['call_volume_scale'],
                 'sum_call_volume': aggregate_stats['sum_call_volume'],
                 'sum_put_volume': aggregate_stats['sum_put_volume'],
                 'call_volume_scale_day': aggregate_stats['call_volume_scale_day'],
@@ -225,6 +229,7 @@ class OptionSignalGenerator:
 
         #self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_price_delta, put_price_delta)
         self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
+        self.put_buy_scen.evaluate()
         #self.put_buy_indicator.evaluate(aggregate_stats['put_volume_scale'], aggregate_stats['call_volume_scale'], put_price_delta, call_price_delta)
         info = self.get_info()
         signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
@@ -252,7 +257,7 @@ class OptionSignalGenerator:
 
     def dispatch_signal(self, signal):
         #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
-        if signal.indicator != 'PCR_MINUS_1':
+        if signal.indicator == 'PCR_MINUS_1_2':
             print('------------------------------------', signal.indicator)
         if self.signal_dispatcher:
             self.signal_dispatcher(signal)

@@ -3,12 +3,29 @@
     "trigger_vol_scale": 0,
     "price_change_th": 0
   },
-  "put_buy": [{
+  "put_buy_o": [{
     "put_volume_scale": {"min": 0, "max": 0.5},
     "put_call_volume_scale_diff": {"min": -3, "max": -0.7}
   },
   {
     "put_volume_scale": {"min": 4, "max": 4.5},
     "put_call_volume_scale_diff": {"min": 1, "max": 2}
-  }]
+  }],
+  "put_buy": [
+    {
+      "name": "PUT_BUY_TEST",
+      "criteria": {
+        "put_volume_scale": {"min": 0, "max": 5},
+        "put_call_volume_scale_diff": {"min": -30, "max": 7}
+      }
+    },
+    {
+      "name": "PUT_BUY_1",
+      "criteria": {
+        "put_volume_scale": {"min": 1.5, "max": 50},
+        "put_call_volume_scale_diff": {"min": 1, "max": 2},
+        "far_put_oi_share": {"min": 0, "max": 0.27}
+      }
+    }
+  ]
 }

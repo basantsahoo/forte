@@ -56,7 +56,7 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 60,
+    "for_past_days": 2,
     "to_date": "2023-12-28",
     "candle_sw": 0,
     "week_days": [],

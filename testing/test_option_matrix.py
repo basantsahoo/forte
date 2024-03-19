@@ -36,7 +36,7 @@ while data_loader.data_present:
             option_matrix.process_option_feed(feed_list)
 
         if feed_type == 'spot':
-            print(feed_list)
+            #print(feed_list)
             option_matrix.process_spot_feed(feed_list)
             pass
         #option_matrix.generate_signal()

@@ -1,4 +1,5 @@
-Running with support resistance calculated based on inflex point and gap up down, we see the following important differences
+Running with support resistance calculated based on inflex point and gap up down, we see the
+following important differences
 ======================================================================================
     resistance
 109  CDLXSIDEGAP3METHODS_15_SELL_10               1     11   8.022727  -11.75   39.45

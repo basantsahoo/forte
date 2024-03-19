@@ -91,7 +91,7 @@ class BaseStrategy:
             raise Exception("Triggers and targets of unequal size")
         #print('Add entry queue')
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)
-        #print('Add exit queue')
+        #print('Add exit queue', exit_criteria_list)
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
         self.asset_book = market_book.get_asset_book(self.symbol) if market_book is not None else None
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
@@ -141,7 +141,7 @@ class BaseStrategy:
     def add_tradable_signal(self, trade_inst):
         existing_signals = len(self.tradable_signals.keys())
         sig_key = 'SIG_' + str(existing_signals + 1)
-        self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst)
+        self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst, self.triggers_per_signal)
         return sig_key
 
 

@@ -106,7 +106,7 @@
         "type": "DownController",
         "signal_type": "CANDLE_SIGNAL",
         "roll_factor": 0.0005,
-	"pnl_multiplier":5
+	    "pnl_multiplier":5
       }
       ],
       "entry_switch": {

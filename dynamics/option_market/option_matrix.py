@@ -226,7 +226,7 @@ class OptionMatrix:
                 missing_cells = [cell for cell in all_cells_in_prev_time if cell.instrument not in curr_time_insts]
 
             for m_cell in missing_cells:
-                print("missing_cells====", m_cell.instrument)
+                #print("missing_cells====", m_cell.instrument)
                 cell = OptionCell(self.current_date, ts, m_cell.instrument, None, m_cell.volume_delta_mode)
                 if not day_capsule.in_trading_data(cell.instrument):
                     day_capsule.insert_trading_data(cell.instrument, Capsule())

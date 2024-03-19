@@ -17,3 +17,4 @@ from strat_machine.weekly_strategies.weekly_sell import WeeklySell
 from strat_machine.option_strategies.high_call_volume_buy import HighCallVolumeBuy
 from strat_machine.option_strategies.high_put_volume_buy import HighPutVolumeBuy
 from strat_machine.option_strategies.option_sell import OptionSell
+from strat_machine.option_strategies.option_buy import OptionBuy
