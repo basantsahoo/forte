@@ -337,7 +337,8 @@ class BaseStrategy:
             market_params = self.asset_book.spot_book.activity_log.get_market_params()
             #print(market_params)
             d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure',0)
-
+            price_location =  market_params.get('price_location', 50)
+            print('price_location+++++++++++++++++++', price_location)
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params.get('d2_cd_new_business_pressure',0)

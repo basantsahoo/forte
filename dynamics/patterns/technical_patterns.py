@@ -1,6 +1,6 @@
 inflex_config = {
     "NIFTY": {
-        'fpth' : 0.001, 'spth' : 0.001, 'tpth':  0.0015
+        'fpth' : 0.0005, 'spth' : 0.0005, 'tpth':  0.001
     },
     "BANKNIFTY": {
         'fpth' : 0.001, 'spth' : 0.001, 'tpth':  0.0015

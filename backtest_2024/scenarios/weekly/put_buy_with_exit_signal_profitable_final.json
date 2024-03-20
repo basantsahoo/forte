@@ -20,7 +20,7 @@
       "entry_signal_queues": [
         {
           "neuron_info": {
-            "id": 0,
+            "id": 1,
             "signal_queue_info": {
               "q_type": "fixed",
               "size": 1,
@@ -32,44 +32,19 @@
             "min_activation_strength": 1,
             "max_activation_strength": 1,
             "flush_hist": false,
-            "activation_subscriptions": [0],
-            "signal_subscriptions": [],
-            "high_threshold_subscriptions": [],
-            "low_threshold_subscriptions": [],
-            "reversal_subscriptions": [],
-            "register_instr": false,
-            "update_watcher_info": {},
-            "reset_watcher_info": {},
-            "neuron_log": false
-          },
-          "apply_pre_filter": true
-        },
-        {
-          "neuron_info": {
-            "id": 1,
-            "signal_queue_info": {
-              "q_type": "stream",
-              "size": 1,
-              "unique_only": true,
-              "validity_period": 375
-            },
-            "signal_type": ["TECHNICAL", "PRICE_BELOW_EMA_5"],
-            "trade_eval": [],
-            "min_activation_strength": 1,
-            "max_activation_strength": 1,
-            "flush_hist": true,
-            "activation_subscriptions": [0],
+            "activation_subscriptions": [],
             "signal_subscriptions": [],
             "high_threshold_subscriptions": [],
             "low_threshold_subscriptions": [],
             "reversal_subscriptions": [],
             "register_instr": "always",
-            "reset_watcher_info": {},
             "update_watcher_info": {},
+            "reset_watcher_info": {},
             "neuron_log": false
           },
           "apply_pre_filter": true
         }
+
       ],
       "exit_criteria_list": [
         {
