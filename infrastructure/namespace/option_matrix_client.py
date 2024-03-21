@@ -28,6 +28,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
             ns.on_set_trade_date = self.on_set_trade_date
         ns.on_tick_data = self.on_tick_data
         ns.on_hist = self.on_hist
+        ns.on_atm_option_feed = self.on_atm_option_feed
         self.hist_tick_data_loader = DayHistTickDataLoader(asset=asset)
         self.request_day_hist_data = ns.request_hist_data
         self.request_live_data = ns.request_live_data
@@ -66,7 +67,7 @@ class OptionMatrixClient(socketio.ClientNamespace):
 
     def on_hist(self, feed):
         feed = json.loads(feed)
-        print('on_hist+++++++++', feed)
+        print('on_hist+++++++++')#, feed)
         feed = convert_hist_spot_feed(feed, self.trade_day)
         self.hist_loaded = False
         self.hist_tick_data_loader.set_spot_ion_data(self.trade_day, feed['data'])
@@ -96,6 +97,10 @@ class OptionMatrixClient(socketio.ClientNamespace):
         if self.hist_loaded:
             feed = convert_hist_option_feed(feed, self.trade_day)
             self.algo_interface.on_option_tick_data(feed)
+
+    def on_atm_option_feed(self, feed):
+        #print('on_atm_option_feed++++++')
+        self.algo_interface.oms_manager.option_price_input(feed)
 
 
     def map_to_spot_recs(self, feed):

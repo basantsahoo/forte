@@ -46,6 +46,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         pass
 
     def receive_signal(self, signal):
+        print('queue receive_signal', signal.indicator)
         if self.dependency_satisfied():
             self.log('receive_signal', signal)
             self.add_to_signal_queue(signal)
@@ -53,6 +54,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     # Check if all the dependent neurons are active
     def dependency_satisfied(self):
+        print('queue receive_signal', 'check dependency_satisfied', self.activation_dependency.values())
         status = True
         for st in self.activation_dependency.values():
             status = status and st
@@ -62,9 +64,10 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
     def add_to_signal_queue(self, signal):
         new_signal = self.signal_queue.new_signal(signal)
         if new_signal:
-            #print('new signal')
+
             self.pending_trade_eval = True
             status_change = self.check_activation_status_change()
+            print('new signal ', status_change, status_change)
             self.register_instrument(status_change)
             self.forward_queue.append([self.forward_signal, signal])
             self.forward_queue.append([self.notify_threshold_change, {}])

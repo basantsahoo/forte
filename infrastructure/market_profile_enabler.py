@@ -211,7 +211,7 @@ class TickMarketProfileEnablerService(MarketProfileEnablerService):
             # print(minute_candle)
         """
         self.price_data[self.trade_day][inst['symbol']]['hist'][epoch_minute] = minute_candle
-        print('total data points ====', len(list(self.price_data[self.trade_day][inst['symbol']]['hist'].keys())))
+        print('total data points in market profile enabler====', len(list(self.price_data[self.trade_day][inst['symbol']]['hist'].keys())))
         if first:
             self.price_data[self.trade_day][inst['symbol']].update(minute_candle)
         else:

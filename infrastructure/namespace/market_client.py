@@ -98,3 +98,4 @@ class OptionMatrixMarketClient(MarketClient):
         for symbol in self.subscribed_symbols:
             self.emit('join_tick_feed', symbol)
             self.emit('join_options_feed', symbol)
+            self.emit('join_tick_feed', 'atm_option_room')

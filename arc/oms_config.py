@@ -11,6 +11,7 @@ strategy_regulator_o={
 
 strategy_regulator={
     'HighPutVolumeBuy': {'BASANT_FYERS': {'scale':1, 'instruments': ['OPT'], 'strike' : 'ATM'}},
+    'PutBuy': {'BASANT_FYERS': {'scale':2, 'instruments': ['OPT'], 'strike' : 'ITM'}},
 }
 
 

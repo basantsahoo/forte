@@ -7,6 +7,7 @@ class StrategyManager:
         self.process_signal_switch = True
 
     def add_strategy(self, strategy_class, strategy_kwarg={}):
+        print('StrategyManager add_strategy=============', strategy_class)
         strategy = strategy_class(self.market_book, **strategy_kwarg)
         if strategy.is_aggregator:
             self.run_aggregator = True

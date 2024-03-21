@@ -16,6 +16,7 @@
       "instr_targets":[2],
       "instr_stop_losses":[],
       "instr_to_trade" : [],
+      "register_signal_category": ["OPTION_MARKET", "BEARISH_MOMENTUM"],
       "entry_signal_queues": [
         {
           "neuron_info": {

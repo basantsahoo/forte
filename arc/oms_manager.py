@@ -88,6 +88,7 @@ class OMSManager:
         return self.prepare_positions()
 
     def option_price_input(self, input):
+        #print('option_price_input-----', input)
         for item in input:
             self.atm_options[item[0]] = {'strike': item[1], 'price':item[2], 'spot': item[3], 'expiry': item[4]}
             #print(self.atm_options)
@@ -131,6 +132,7 @@ class OMSManager:
         (inst,side) = self.get_instr_type(side, strategy_regulation['instruments'])
         key = index + "_" + inst
         instrument = self.atm_options[key].copy()
+        print('instrument------', instrument)
         instrument['underlying'] = index
         instrument['type'] = inst
         instrument['side'] = side

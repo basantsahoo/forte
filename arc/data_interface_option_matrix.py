@@ -11,7 +11,6 @@ from pathlib import Path
 from entities.trading_day import TradeDateTime
 from servers.server_settings import cache_dir
 from diskcache import Cache
-from arc.oms_manager import OMSManager
 
 strat_config_path = str(Path(__file__).resolve().parent.parent) + "/live_algo/" + 'deployed_strategies.json'
 with open(strat_config_path, 'r') as bt_config:
@@ -20,8 +19,9 @@ with open(strat_config_path, 'r') as bt_config:
 
 #from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 
-from research.option_strategies.high_call_volume_buy import HighCallVolumeBuy
-from research.option_strategies.high_put_volume_buy import HighPutVolumeBuy
+from strat_machine.option_strategies.high_call_volume_buy import HighCallVolumeBuy
+from strat_machine.option_strategies.high_put_volume_buy import HighPutVolumeBuy
+from strat_machine.option_strategies.option_buy import OptionBuy
 
 class AlgorithmIterface:
     def __init__(self, socket=None):
@@ -67,6 +67,7 @@ class AlgorithmIterface:
         print('setup time', (end_time - start_time).total_seconds())
 
     def load_system(self, trade_day=None, process_signal_switch=False, volume_delta_mode=False):
+        print('===================Algo interface load system====', process_signal_switch)
         start_time = datetime.now()
         if not self.systems_loaded:
             assets = list(set([strategy['symbol'] for strategy in strat_config['strategies']]))
@@ -83,7 +84,7 @@ class AlgorithmIterface:
                     strategy_class = eval(deployed_strategy['class'])
                     strategy_manager.add_strategy(strategy_class, deployed_strategy)
                 market_book.strategy_manager = strategy_manager
-                print('all strategy added+++++')
+                print('all strategy added 2+++++')
             self.systems_loaded = True
         self.market_book.strategy_manager.process_signal_switch = process_signal_switch
         self.market_book.set_volume_delta_mode(volume_delta_mode)
@@ -138,6 +139,7 @@ class AlgorithmIterface:
         self.portfolio_manager.feed_stream(feed)
 
     def place_entry_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ,cover):
+        print('place_entry_order in data interface')
         if self.socket.hist_loaded:
             print('place_entry_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type,option_flag,cover)
             order_info = {'symbol': symbol,

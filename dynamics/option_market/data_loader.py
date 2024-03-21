@@ -87,7 +87,7 @@ class DayHistTickDataLoader(MultiDayOptionDataLoader):
         max_ts = max(all_ts)
         last_data = [ion_d for ion_d in ion_data if ion_d['timestamp']==max_ts]
         data_dct = {ion_d['instrument']:ion_d['oi'] for ion_d in last_data}
-        print("last data===========", data_dct)
+        #print("last data===========", data_dct)
         self.data_present = True
 
     def set_spot_ion_data(self, trade_day, ion_data):
