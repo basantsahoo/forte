@@ -24,7 +24,15 @@
       "criteria": {
         "put_volume_scale": {"min": 2.3, "max": 50},
         "put_call_volume_scale_diff": {"min": 1.2, "max": 2},
-        "far_put_oi_share": {"min": 0, "max": 0.28}
+        "far_put_oi_share": {"min": 0, "max": 0.4}
+      }
+    },
+    {
+      "name": "CALL_BUY_1",
+      "criteria": {
+        "call_volume_scale": {"min": 3, "max": 50},
+        "put_call_volume_scale_diff": {"min": -2, "max": -1.2},
+        "far_call_oi_share": {"min": 0, "max": 0.3}
       }
     }
   ]

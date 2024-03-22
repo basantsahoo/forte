@@ -136,7 +136,7 @@ class BrokerLive:
 
         is_month_end = is_month_end_expiry(order_details['expiry'])
         #print('is_month_end', is_month_end)
-        exp = dt.strptime(order_details['expiry'], '%y%m%d').strftime('%y%-m%d') if not is_month_end else dt.strptime(order_details['expiry'], '%y%m%d').strftime('%y%b')
+        exp = dt.strptime(order_details['expiry'], '%y%m%d').strftime('%y%-m%d') if not is_month_end else dt.strptime(order_details['expiry'], '%y%m%d').strftime('%y%b').upper()
         sym = "NSE:" + order_details['underlying'] + exp + str(order_details['strike']) + order_details['type']
         data = {
             "symbol": sym, #'NSE:BANKNIFTY2260936000CE',

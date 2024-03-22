@@ -1,7 +1,7 @@
 {
   "strategies":[
     {
-      "id":"PutBuy",
+      "id":"CallBuy",
       "class":"OptionBuy",
       "symbol": "NIFTY",
       "exit_time":[45, 45, 45, 45],
@@ -15,8 +15,8 @@
       "spot_short_stop_losses":[],
       "instr_targets":[0.35, 0.25, 0.15, 0.4],
       "instr_stop_losses":[-0.18, -0.18, -0.18, -0.18],
-      "instr_to_trade" : [["ITM", 1, "PE"]],
-      "register_signal_category": ["OPTION_MARKET", "PUT_BUY_1"],
+      "instr_to_trade" : [["ITM", 1, "CE"]],
+      "register_signal_category": ["OPTION_MARKET", "CALL_BUY_1"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 10
             },
-            "signal_type": ["OPTION_MARKET", "PUT_BUY_1"],
+            "signal_type": ["OPTION_MARKET", "CALL_BUY_1"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -57,7 +57,7 @@
               "unique_only": true,
               "validity_period": 1
             },
-            "signal_type": ["CANDLE_1", "CDLDOJISTAR_BUY"],
+            "signal_type": ["CANDLE_1", "CDLDOJI_SELL"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -81,13 +81,13 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 5" }
+        {"op": "or", "logical_test": "price_location > 80" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }
   ],
   "run_params": {
-    "test_days": ["2023-10-18", "2023-10-20", "2023-11-02", "2023-11-23", "2023-10-19", "2023-12-20", "2023-11-09", "2023-11-22", "2023-10-25", "2023-10-30", "2023-11-01"],
+    "test_days": [],
     "for_past_days": 30,
     "to_date": "2024-03-18",
     "candle_sw": 0,
