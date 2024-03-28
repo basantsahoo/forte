@@ -16,7 +16,7 @@ class PutBuyScenario:
 
     def evaluate(self):
         info = self.info_fn()
-        for scenario in signal_config['put_buy']:
+        for scenario in signal_config['option_signals']:
             scenarion_met = True
             for param, range in scenario['criteria'].items():
                 param_val = info[param]

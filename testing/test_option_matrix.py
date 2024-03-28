@@ -3,12 +3,13 @@ from pathlib import Path
 project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 import numpy as np
-from dynamics.option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix
+from dynamics.option_market.option_matrix import  OptionMatrix
+from dynamics.option_market.data_loader import MultiDayOptionDataLoader
 from db.market_data import get_prev_day_avg_volume
 from dynamics.option_market.utils import get_average_volume_for_day
-
+from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion
 from entities.trading_day import TradeDateTime, NearExpiryWeek
-t_day = "2023-12-27"
+t_day = "2024-03-27"
 asset = "NIFTY"
 
 trading_day = TradeDateTime(t_day)
@@ -33,10 +34,14 @@ while data_loader.data_present:
         feed_type = feed_['feed_type']
         feed_list = feed_['data']
         if feed_type == 'option':
+            feed_list = [convert_to_option_ion(feed) for feed in feed_list]
+            print(feed_list)
             option_matrix.process_option_feed(feed_list)
+            option_matrix.frame_change_action(feed_list[0]['timestamp'], feed_list[0]['timestamp']+60)
 
         if feed_type == 'spot':
-            #print(feed_list)
+            feed_list = [convert_to_spot_ion(feed) for feed in feed_list]
+            print(feed_list)
             option_matrix.process_spot_feed(feed_list)
             pass
         #option_matrix.generate_signal()

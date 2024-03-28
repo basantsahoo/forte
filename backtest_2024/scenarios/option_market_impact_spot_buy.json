@@ -5,7 +5,7 @@
       "class":"OptionBuy",
       "symbol": "NIFTY",
       "exit_time":[45, 45],
-      "exit_at":"high",
+      "exit_at":null,
       "order_type":"BUY",
       "spot_instruments":["SPOT"],
       "derivative_instruments":[],

@@ -343,3 +343,22 @@ pip install fastquant
 
 python backtest_2024/option_matrix_strategy_test.py option_market_impact_spot.json
 python backtest_2024/ml.py
+
+
+
+### How to backtest
+1. Check what is the impact for a specific period by capturing signal. 
+Following generates a buy order every minute and captures the result
+python backtest_2024/strategy_test.py option_market_impact_spot_buy.json
+
+2. Capture the efficieny of the method by exiting at high or low
+python backtest_2024/strategy_test.py option_market_impact_spot_at_high.json
+   
+3. Idintify Condusive scenarios by looking at descriptive statistics or param grid search
+
+python backtest_2024/ml_inflex.py
+option_market_imapct_spot_at_high_analysis_latest.run()
+option_market_imapct_spot_at_high_analysis_latest.param_search()
+option_market_imapct_spot_at_high_analysis_latest.scenarios()
+
+

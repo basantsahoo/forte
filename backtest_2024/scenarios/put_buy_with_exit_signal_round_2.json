@@ -16,7 +16,7 @@
       "instr_targets":[0.35, 0.25, 0.15, 0.4],
       "instr_stop_losses":[-0.18, -0.18, -0.18, -0.18],
       "instr_to_trade" : [["ITM", 1, "PE"]],
-      "register_signal_category": ["OPTION_MARKET", "PUT_BUY_1"],
+      "register_signal_category": ["OPTION_MARKET", "PUT_BUY_3"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 10
             },
-            "signal_type": ["OPTION_MARKET", "PUT_BUY_1"],
+            "signal_type": ["OPTION_MARKET", "PUT_BUY_3"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -87,9 +87,9 @@
     }
   ],
   "run_params": {
-    "test_days": ["2024-03-27"],
-    "for_past_days": 25,
-    "to_date": "2023-09-01",
+    "test_days": [],
+    "for_past_days": 169,
+    "to_date": "2024-03-21",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,

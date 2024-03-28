@@ -31,67 +31,70 @@ class StartegyBackTester:
         results = []
         start_time = datetime.now()
         for day in self.strat_config['run_params']['test_days']:
-            in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
-            t_day = in_day.date_string
-            market_book = OptionMarketBook(in_day.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False))
-            place_live = False
-            interface = None
-            if self.strat_config['run_params'].get("send_to_oms", False):
-                interface = AlgorithmBacktestIterface()
-                place_live = True
-            pm = AlgoPortfolioManager(place_live, interface)
-            market_book.pm = pm
-            record_metric = self.strat_config['run_params'].get("record_metric", False)
-            strategy_manager = StrategyManager(market_book=market_book, record_metric=record_metric)
-            #story_book.profile_processor = processor
-            for deployed_strategy in self.strat_config['strategies']:
-                start = datetime.now()
-                #print('deployed_strategy=====', deployed_strategy)
-                strategy_class = eval(deployed_strategy['class'])
-                strategy_manager.add_strategy(strategy_class, deployed_strategy)
-                end = datetime.now()
-                print('strategy init took', (end - start).total_seconds())
-            market_book.strategy_manager = strategy_manager
-            data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
-            while data_loader.data_present:
-                feed_ = data_loader.generate_next_feed()
-                #print(feed_)
-                if feed_:
-                    #pm.feed_stream(feed_)
-                    market_book.feed_stream(feed_)
-                    pm.feed_stream(feed_)
-                    #time.sleep(0.005)
-            #print(pm.position_book.items())
             try:
-                for strategy_tuple, trade_details in pm.position_book.items():
-                    #print(strategy)
-                    position = trade_details['position']
-                    strategy_id = strategy_tuple[1]
-                    t_symbol = strategy_tuple[0]
-                    trade_id = strategy_tuple[2]
-                    strategy_signal_generator = strategy_manager.get_deployed_strategy_from_id(strategy_id)
-                    for leg_id, leg_info in position.items():
-                        _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
-                        _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
-                        trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
-                        #print(trigger_details)
-                        _tmp = {**_tmp, **trigger_details}
-                        signal_custom_details = strategy_signal_generator.tradable_signals[trade_id].custom_features
-                        signal_params = ['pattern_height']
-                        for signal_param in signal_params:
-                            if signal_param in signal_custom_details:
-                                _tmp[signal_param] = signal_custom_details[signal_param]
-                        if market_book.record_metric:
-                            params = strategy_signal_generator.params_repo.get((trade_id, leg_id), {})
-                            #print('params====', params)
-                            _tmp = {**_tmp, **params}
-                        results.append(_tmp)
-            except Exception as e:
+                in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
+                t_day = in_day.date_string
+                market_book = OptionMarketBook(in_day.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=True)
+                place_live = False
+                interface = None
+                if self.strat_config['run_params'].get("send_to_oms", False):
+                    interface = AlgorithmBacktestIterface()
+                    place_live = True
+                pm = AlgoPortfolioManager(place_live, interface)
+                market_book.pm = pm
+                record_metric = self.strat_config['run_params'].get("record_metric", False)
+                strategy_manager = StrategyManager(market_book=market_book, record_metric=record_metric)
+                #story_book.profile_processor = processor
+                for deployed_strategy in self.strat_config['strategies']:
+                    start = datetime.now()
+                    #print('deployed_strategy=====', deployed_strategy)
+                    strategy_class = eval(deployed_strategy['class'])
+                    strategy_manager.add_strategy(strategy_class, deployed_strategy)
+                    end = datetime.now()
+                    print('strategy init took', (end - start).total_seconds())
+                market_book.strategy_manager = strategy_manager
+                data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
+                while data_loader.data_present:
+                    feed_ = data_loader.generate_next_feed()
+                    #print(feed_)
+                    if feed_:
+                        #pm.feed_stream(feed_)
+                        market_book.feed_stream(feed_)
+                        pm.feed_stream(feed_)
+                        #time.sleep(0.005)
+                #print(pm.position_book.items())
+                try:
+                    for strategy_tuple, trade_details in pm.position_book.items():
+                        #print(strategy)
+                        position = trade_details['position']
+                        strategy_id = strategy_tuple[1]
+                        t_symbol = strategy_tuple[0]
+                        trade_id = strategy_tuple[2]
+                        strategy_signal_generator = strategy_manager.get_deployed_strategy_from_id(strategy_id)
+                        for leg_id, leg_info in position.items():
+                            _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+                            _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
+                            trigger_details = strategy_signal_generator.tradable_signals[trade_id].legs[leg_id]
+                            #print(trigger_details)
+                            _tmp = {**_tmp, **trigger_details}
+                            signal_custom_details = strategy_signal_generator.tradable_signals[trade_id].custom_features
+                            signal_params = ['pattern_height']
+                            for signal_param in signal_params:
+                                if signal_param in signal_custom_details:
+                                    _tmp[signal_param] = signal_custom_details[signal_param]
+                            if market_book.record_metric:
+                                params = strategy_signal_generator.params_repo.get((trade_id, leg_id), {})
+                                #print('params====', params)
+                                _tmp = {**_tmp, **params}
+                            results.append(_tmp)
+                except Exception as e:
 
-                print('error on', day)
-                print(e)
-                print(traceback.format_exc())
-            # print(results)
+                    print('error on', day)
+                    print(e)
+                    print(traceback.format_exc())
+                # print(results)
+            except:
+                pass
 
         end_time = datetime.now()
         print((end_time - start_time).total_seconds())
@@ -141,6 +144,8 @@ if __name__ == '__main__':
     print('results=====',results)
     part_results = results  # [['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
     print('total P&L', part_results['realized_pnl'].sum())
+    print('Accuracy', len([x for x in part_results['realized_pnl'].to_list() if x>0])/len(part_results['realized_pnl'].to_list()))
+    print('No of Days', len(part_results['day'].unique()))
     part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))
     part_results['exit_time_read'] = part_results['exit_time'].apply(lambda x: datetime.fromtimestamp(x) if not math.isnan(x) else x)
     search_days = results['day'].to_list()

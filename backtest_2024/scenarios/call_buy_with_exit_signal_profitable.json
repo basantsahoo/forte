@@ -13,10 +13,10 @@
       "triggers_per_signal": 4,
       "spot_short_targets": [],
       "spot_short_stop_losses":[],
-      "instr_targets":[0.35, 0.25, 0.15, 0.4],
+      "instr_targets":[0.2, 0.2, 0.2, 0.2],
       "instr_stop_losses":[-0.18, -0.18, -0.18, -0.18],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["OPTION_MARKET", "CALL_BUY_1"],
+      "register_signal_category": ["OPTION_MARKET", "CALL_BUY_4"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -26,9 +26,9 @@
               "q_type": "fixed",
               "size": 1,
               "unique_only": true,
-              "validity_period": 10
+              "validity_period": 30
             },
-            "signal_type": ["OPTION_MARKET", "CALL_BUY_1"],
+            "signal_type": ["OPTION_MARKET", "CALL_BUY_4"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -57,7 +57,7 @@
               "unique_only": true,
               "validity_period": 1
             },
-            "signal_type": ["CANDLE_1", "CDLDOJI_SELL"],
+            "signal_type": ["CANDLE_1", "CDLHIKKAKE_SELL"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -81,7 +81,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location > 80" }
+        {"op": "or", "logical_test": "price_location < 5" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }

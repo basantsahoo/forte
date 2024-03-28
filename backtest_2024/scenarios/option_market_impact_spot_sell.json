@@ -1,8 +1,8 @@
 {
   "strategies":[
     {
-      "id":"HighPutVolumeBuy",
-      "class":"HighPutVolumeBuy",
+      "id":"PutBuy",
+      "class":"OptionBuy",
       "symbol": "NIFTY",
       "exit_time":[45, 45],
       "exit_at":null,
@@ -16,7 +16,7 @@
       "instr_targets":[2],
       "instr_stop_losses":[],
       "instr_to_trade" : [],
-      "register_signal_category": ["OPTION_MARKET", "BEARISH_MOMENTUM"],
+      "register_signal_category": ["OPTION_MARKET", "PUT_BUY_TEST"],
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -27,7 +27,7 @@
               "unique_only": true,
               "validity_period": 10
             },
-            "signal_type": ["OPTION_MARKET", "BEARISH_MOMENTUM"],
+            "signal_type": ["OPTION_MARKET", "PUT_BUY_TEST"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 10000,
@@ -57,8 +57,8 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 60,
-    "to_date": "2023-12-28",
+    "for_past_days": 25,
+    "to_date": "2023-09-01",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,
