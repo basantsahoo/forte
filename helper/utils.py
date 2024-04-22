@@ -261,7 +261,8 @@ def get_option_strike(ltp, money_ness, level, kind):
 
 
 def create_strike_groups(ltp, kind, instruments):
-    points = 3
+    #points = 3
+    points = 1
     #print('get_option_strike....', ltp, kind)
     atm_strike = round(ltp / 100) * 100
     each_side = round((points-1)/2)

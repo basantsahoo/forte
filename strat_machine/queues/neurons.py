@@ -228,7 +228,21 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
                              'day_call_profit','day_put_profit', 'near_put_oi_share', 'far_put_oi_share',
                              'near_call_oi_share', 'far_call_oi_share', 'put_oi_spread', 'call_oi_spread',
                              'near_call_volume_share_per_oi', 'near_put_volume_share_per_oi',
-                             'far_call_volume_share_per_oi', 'far_put_volume_share_per_oi']
+                             'far_call_volume_share_per_oi', 'far_put_volume_share_per_oi',
+                             'call_drop',
+                             'put_drop',
+                             'r_near_put_volume_per_oi',
+                             'r_far_put_volume_per_oi',
+                             'r_near_call_volume_per_oi',
+                             'r_far_call_volume_per_oi',
+                             'r_total_call_volume_per_oi',
+                             'r_total_put_volume_per_oi',
+                             'r_call_vol_spread',
+                             'r_put_vol_spread',
+                             'near_vol_pcr',
+                             'far_vol_pcr',
+                             'r_total_vol_pcr',
+                             ]
         for attribute in option_attributes:
             self.add_attribute(pattern, attribute, res)
 

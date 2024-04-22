@@ -15,83 +15,13 @@ def save_back_test_results():
     #pd.DataFrame(results).to_csv(reports_dir + 'SMACrossBuy_nifty_results.csv')
 """
 def load_time_results():
-    df = pd.read_csv(reports_dir + 'low_inflex/' + 'option_market_impact_spot.csv')
+    df = pd.read_csv(reports_dir + 'Inflex_analysis/low_inflex/bear_market/' + 'option_market_impact_spot_sell.csv')
     return df
 
 def load_inflex_results():
-    df = pd.read_csv(reports_dir + 'low_inflex/' + 'option_market_impact_spot_at_inflex.csv')
+    df = pd.read_csv(reports_dir + 'Inflex_analysis/low_inflex/bear_market/' + 'option_market_impact_spot_at_low.csv')
     return df
 
-
-def create_drawdowns(equity_curve):
-    """
-    Calculate the largest peak-to-trough drawdown of the PnL curve
-    as well as the duration of the drawdown. Requires that the
-    pnl_returns is a pandas Series.
-
-    Parameters:
-    pnl - A pandas Series representing period percentage returns.
-
-    Returns:
-    drawdown, duration - Highest peak-to-trough drawdown and duration.
-    """
-
-    # Calculate the cumulative returns curve
-    # and set up the High Water Mark
-    # Then create the drawdown and duration series
-    hwm = [0]
-    eq_idx = equity_curve.index
-    drawdown = pd.Series(index = eq_idx)
-    duration = pd.Series(index = eq_idx)
-
-    # Loop over the index range
-    for t in range(1, len(eq_idx)):
-        cur_hwm = max(hwm[t-1], equity_curve[t])
-        hwm.append(cur_hwm)
-        drawdown[t]= hwm[t] - equity_curve[t]
-        duration[t]= 0 if drawdown[t] == 0 else duration[t-1] + 1
-    return drawdown.max(), duration.max()
-
-
-def plot_curve(df):
-    periods = 252  # days
-    sharpe_ratio = np.sqrt(periods) * (np.mean(df['return'])) / np.std(df['return'])
-    print('sharpe_ratio ++++', sharpe_ratio)
-    drawdown = create_drawdowns(df['equity_curve'])
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    plt.plot(df.index, df['close'])
-    plt.ylabel('close price')
-    plt.xlabel("day")
-    plt.xticks(rotation=90)
-    ax2 = ax.twinx()
-    # make a plot with different y-axis using second axis object
-    ax2.plot(df.index, df['equity_curve'], color="red", marker="o", markersize=2)
-    ax2.set_ylabel("equity", color="red", fontsize=14)
-
-    plt.title("Equity curve")
-    plt.text(0.6, 1.1, 'sharpe ratio = ' + str(sharpe_ratio), transform=ax.transAxes)
-    plt.text(0.01, 1.05, 'Max drawdown = ' + str(drawdown[0]), transform=ax.transAxes)
-    plt.text(0.01, 1.1, 'Max drawdown period = ' + str(drawdown[1]), transform=ax.transAxes)
-    plt.show()
-
-
-def portfolio_performance(df):
-    print('portfolio_performance=================================================')
-    df = df[['day', 'entry_price', 'realized_pnl']].copy()
-    df_1 = df.groupby(['day']).agg({'realized_pnl': ['sum'], 'entry_price':['mean']}).reset_index()
-    df_1.columns = ['day', 'realized_pnl', 'close']
-    df = df_1
-    df['return'] = df['realized_pnl'] / df['close']
-    df['cum_return'] = df['return'].cumsum()
-    df['equity_curve'] = (1.0 + df['cum_return'])
-    df.set_index('day', inplace=True)
-    #print(df)
-    periods = 252 #days
-    sharpe_ratio = np.sqrt(periods) * (np.mean(df['return'])) / np.std(df['return'])
-    print('sharpe_ratio ===========================================================', sharpe_ratio)
-    plot_curve(df)
 
 
 def basic_statistics(df):
@@ -162,7 +92,21 @@ def get_cleaned_results(df):
             'near_put_volume_share_per_oi',
             'far_call_volume_share_per_oi',
             'far_put_volume_share_per_oi',
-            'pattern_location'
+            'pattern_location',
+            'call_drop',
+            'put_drop',
+            'r_near_put_volume_per_oi',
+            'r_far_put_volume_per_oi',
+            'r_near_call_volume_per_oi',
+            'r_far_call_volume_per_oi',
+            'r_total_call_volume_per_oi',
+            'r_total_put_volume_per_oi',
+            'r_call_vol_spread',
+            'r_put_vol_spread',
+            'near_vol_pcr',
+            'far_vol_pcr',
+            'r_total_vol_pcr',
+
     ]
     min_buffer = 0
     df = df[select_cols]
@@ -354,36 +298,6 @@ def scen_8():
     global strat_days
     strat_days = strat_days.union(set(df['day'].to_list()))
 
-"""
-def create_hyperparams_grid(X,y):
-    graph_x = []
-    graph_y = []
-    graph_z = []
-    for alpha_value in np.arange(-5.0,2.0,0.7):
-        alpha_value = pow(10,alpha_value)
-        graph_x_row = []
-        graph_y_row = []
-        graph_z_row = []
-        for gamma_value in np.arange(0.0,20,2):
-            hyperparams = (alpha_value,gamma_value)
-            rmse = KRR_function(hyperparams,X,y)
-            graph_x_row.append(alpha_value)
-            graph_y_row.append(gamma_value)
-            graph_z_row.append(rmse)
-        graph_x.append(graph_x_row)
-        graph_y.append(graph_y_row)
-        graph_z.append(graph_z_row)
-        print('')
-    graph_x=np.array(graph_x)
-    graph_y=np.array(graph_y)
-    graph_z=np.array(graph_z)
-    min_z = np.min(graph_z)
-    pos_min_z = np.argwhere(graph_z == np.min(graph_z))[0]
-    print('Minimum RMSE: %.4f' %(min_z))
-    print('Optimum alpha: %f' %(graph_x[pos_min_z[0],pos_min_z[1]]))
-    print('Optimum gamma: %f' %(graph_y[pos_min_z[0],pos_min_z[1]]))
-    return graph_x,graph_y,graph_z
-"""
 
 def param_search():
     time_df = load_time_results()

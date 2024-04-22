@@ -27,7 +27,7 @@ class SpotBook:
         self.asset_book = asset_book
         self.asset = asset
         self.spot_processor = SpotProcessor(self)
-        #self.candle_1_processor = CandleProcessor(self, 1, 0)
+        self.candle_1_processor = CandleProcessor(self, 1, 0)
         self.candle_5_processor = CandleProcessor(self, 5, 0)
         #self.candle_15_processor = CandleProcessor(self, 15, 0)
         self.state_generator = None
@@ -35,6 +35,7 @@ class SpotBook:
         self.activity_log = AssetActivityLog(self)
         self.inflex_detector = PriceInflexDetectorForTrend(asset, fpth=0.001, spth = 0.001,  callback=None)
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=1), CandlePatternDetector(self, period=2), CandlePatternDetector(self, period=5)]
         self.candle_pattern_detectors = [CandlePatternDetector(self, period=1)]
         #self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
         self.trend_detector = TrendDetector(self, period=1)
@@ -179,6 +180,7 @@ class SpotBook:
             self.update_periodic()
         self.inflex_detector.on_price_update([price['timestamp'], price['close']])
         #self.trend_detector.evaluate()
+        self.candle_1_processor.create_candles()
         self.candle_5_processor.create_candles()
         """
         
@@ -204,6 +206,7 @@ class SpotBook:
             for wave in signal.info['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
         self.asset_book.pattern_signal(signal)
+
 
 
     def clean(self):

@@ -1,8 +1,8 @@
 {
   "strategies":[
     {
-      "id":"HighPutVolumeBuy",
-      "class":"HighPutVolumeBuy",
+      "id":"PutBuy2",
+      "class":"OptionBuy",
       "symbol": "NIFTY",
       "exit_time":[45, 45],
       "exit_at":null,
@@ -14,22 +14,24 @@
       "spot_short_targets": [],
       "spot_short_stop_losses":[],
       "instr_targets":[2],
-      "instr_stop_losses":[],
+      "instr_stop_losses":[1],
       "instr_to_trade" : [],
+      "register_signal_category": ["OPTION_MARKET", "PUT_BUY_TEST"],
+
       "entry_signal_queues": [
         {
           "neuron_info": {
-            "id": 0,
+            "id": 1,
             "signal_queue_info": {
               "q_type": "stream",
               "size": 1000,
               "unique_only": true,
               "validity_period": 10
             },
-            "signal_type": "BEARISH_MOMENTUM",
+            "signal_type": ["OPTION_MARKET", "PUT_BUY_TEST"],
             "trade_eval": [],
             "min_activation_strength": 1,
-            "max_activation_strength": 10000,
+            "max_activation_strength": 1,
             "flush_hist": false,
             "activation_subscriptions": [],
             "signal_subscriptions": [],
@@ -39,7 +41,7 @@
             "register_instr": "always",
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": false
+            "neuron_log": true
           },
           "apply_pre_filter": true
         }
@@ -55,7 +57,7 @@
     }
   ],
   "run_params": {
-    "test_days": [],
+    "test_days": ["2024-03-27"],
     "for_past_days": 2,
     "to_date": "2023-12-28",
     "candle_sw": 0,

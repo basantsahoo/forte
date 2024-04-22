@@ -87,8 +87,11 @@ class IntradayCrossAssetAnalyser:
             print('total_volume_scale =====', total_volume_scale)
             """
             self.aggregate_stats[ts]['max_call_oi'] = np.round(max(call_oi_series) / oi_denomination, 2)
+            self.aggregate_stats[ts]['min_call_oi'] = np.round(min(call_oi_series) / oi_denomination, 2)
             self.aggregate_stats[ts]['max_put_oi'] = np.round(max(put_oi_series) / oi_denomination, 2)
+            self.aggregate_stats[ts]['min_put_oi'] = np.round(min(put_oi_series) / oi_denomination, 2)
             self.aggregate_stats[ts]['max_total_oi'] = np.round(max_total_oi / oi_denomination, 2)
+            self.aggregate_stats[ts]['min_total_oi'] = np.round(min(total_oi_series) / oi_denomination, 2)
             self.aggregate_stats[ts]['poi_call_oi'] = np.round(poi_call_oi / oi_denomination, 2)
             self.aggregate_stats[ts]['poi_put_oi'] = np.round(poi_put_oi / oi_denomination, 2)
             self.aggregate_stats[ts]['poi_total_oi'] = np.round(poi_total_oi / oi_denomination, 2)
@@ -154,6 +157,21 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['far_put_volume_share_per_oi'] = np.round(far_put_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['far_put_oi_share']
             self.aggregate_stats[ts]['near_call_volume_share_per_oi'] = np.round(near_call_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['near_call_oi_share']
             self.aggregate_stats[ts]['far_call_volume_share_per_oi'] = np.round(far_call_volume / total_volume_series[-1], 4) / self.aggregate_stats[ts]['far_call_oi_share']
+
+            self.aggregate_stats[ts]['r_near_put_volume_per_oi'] = np.round(near_put_volume / near_put_oi, 4)
+            self.aggregate_stats[ts]['r_far_put_volume_per_oi'] = np.round(far_put_volume / far_put_oi, 4)
+            self.aggregate_stats[ts]['r_near_call_volume_per_oi'] = np.round(near_call_volume / near_call_oi, 4)
+            self.aggregate_stats[ts]['r_far_call_volume_per_oi'] = np.round(far_call_volume / far_call_oi, 4)
+            self.aggregate_stats[ts]['r_total_call_volume_per_oi'] = np.round((far_call_volume + near_call_volume) / (far_call_oi + near_call_oi), 2)
+            self.aggregate_stats[ts]['r_total_put_volume_per_oi'] = np.round((far_put_volume + near_put_volume) / (far_put_oi + near_put_oi), 2)
+
+            self.aggregate_stats[ts]['r_call_vol_spread'] = np.round(self.aggregate_stats[ts]['r_near_call_volume_per_oi'] - self.aggregate_stats[ts]['r_far_call_volume_per_oi'], 2)
+            self.aggregate_stats[ts]['r_put_vol_spread'] = np.round(self.aggregate_stats[ts]['r_near_put_volume_per_oi'] - self.aggregate_stats[ts]['r_far_put_volume_per_oi'], 2)
+
+
+            self.aggregate_stats[ts]['r_call_vol_spread'] = np.round(self.aggregate_stats[ts]['r_near_call_volume_per_oi'] - self.aggregate_stats[ts]['r_far_call_volume_per_oi'], 2)
+            self.aggregate_stats[ts]['r_put_vol_spread'] = np.round(self.aggregate_stats[ts]['r_near_put_volume_per_oi'] - self.aggregate_stats[ts]['r_far_put_volume_per_oi'], 2)
+
             """
             print(self.aggregate_stats[ts]['near_call_volume_share_per_oi'], self.aggregate_stats[ts]['near_put_volume_share_per_oi'])
             print(self.aggregate_stats[ts]['far_call_volume_share_per_oi'], self.aggregate_stats[ts]['far_put_volume_share_per_oi'])
@@ -179,6 +197,7 @@ class IntradayCrossAssetAnalyser:
             self.aggregate_stats[ts]['total_vol_spread'] = np.round(both_near_volume_share/both_near_oi_share - both_far_volume_share/both_far_oi_share, 2)
             self.aggregate_stats[ts]['near_vol_pcr'] = np.round(self.aggregate_stats[ts]['near_put_volume_share']/self.aggregate_stats[ts]['near_call_volume_share'], 2)
             self.aggregate_stats[ts]['far_vol_pcr'] = np.round(self.aggregate_stats[ts]['far_put_volume_share'] / self.aggregate_stats[ts]['far_call_volume_share'], 2)
+            self.aggregate_stats[ts]['r_total_vol_pcr'] = np.round((near_put_volume + far_put_volume) / (near_call_volume + far_call_volume), 2)
             self.aggregate_stats[ts]['vol_spread_pcr'] = np.round((self.aggregate_stats[ts]['near_put_volume_share'] - self.aggregate_stats[ts]['far_put_volume_share']) / (self.aggregate_stats[ts]['near_call_volume_share'] - self.aggregate_stats[ts]['far_call_volume_share']), 2)
 
             """
@@ -219,7 +238,7 @@ class IntradayCrossAssetAnalyser:
             except:
                 pass
 
-    def get_n_period_stats(self, ts, n_period=3):
+    def get_n_period_stats(self, ts, n_period=15):
         all_ts = list(self.aggregate_stats.keys())
         filtered_ts = [x for x in all_ts if x<= ts]
         filtered_ts.sort()

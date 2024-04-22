@@ -362,3 +362,5 @@ option_market_imapct_spot_at_high_analysis_latest.param_search()
 option_market_imapct_spot_at_high_analysis_latest.scenarios()
 
 
+
+pip install candlestick-patterns-subodh101

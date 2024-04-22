@@ -161,4 +161,4 @@ def run2():
     download()
 
 #download()
-#download(trade_days=['2024-03-12'], symbols=[])
+#download(trade_days=['2024-03-12'], symbols=['BANKNIFTY'])

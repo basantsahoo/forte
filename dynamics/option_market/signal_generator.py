@@ -57,6 +57,7 @@ class OptionSignalGenerator:
                 'asset': self.option_matrix.asset,
                 'call_volume_scale':aggregate_stats['call_volume_scale'],
                 'put_volume_scale': aggregate_stats['put_volume_scale'],
+                'total_volume_scale': aggregate_stats['total_volume_scale'],
                 'put_call_volume_scale_diff': aggregate_stats['put_volume_scale'] - aggregate_stats['call_volume_scale'],
                 'sum_call_volume': aggregate_stats['sum_call_volume'],
                 'sum_put_volume': aggregate_stats['sum_put_volume'],
@@ -99,7 +100,20 @@ class OptionSignalGenerator:
                 'far_call_volume_share_per_oi': aggregate_stats['far_call_volume_share_per_oi'],
                 'far_put_volume_share_per_oi': aggregate_stats['far_put_volume_share_per_oi'],
 
-        }
+                 'call_drop': aggregate_stats['call_drop'],
+                 'put_drop': aggregate_stats['put_drop'],
+                 'r_near_put_volume_per_oi': aggregate_stats['r_near_put_volume_per_oi'],
+                 'r_far_put_volume_per_oi': aggregate_stats['r_far_put_volume_per_oi'],
+                 'r_near_call_volume_per_oi': aggregate_stats['r_near_call_volume_per_oi'],
+                 'r_far_call_volume_per_oi': aggregate_stats['r_far_call_volume_per_oi'],
+                 'r_total_call_volume_per_oi': aggregate_stats['r_total_call_volume_per_oi'],
+                 'r_total_put_volume_per_oi': aggregate_stats['r_total_put_volume_per_oi'],
+                 'r_call_vol_spread': aggregate_stats['r_call_vol_spread'],
+                 'r_put_vol_spread': aggregate_stats['r_put_vol_spread'],
+                 'near_vol_pcr': aggregate_stats['near_vol_pcr'],
+                 'far_vol_pcr': aggregate_stats['far_vol_pcr'],
+                 'r_total_vol_pcr': aggregate_stats['r_total_vol_pcr'],
+                 }
 
         return info
 
@@ -194,6 +208,12 @@ class OptionSignalGenerator:
             ['Buildup% (Day)', aggregate_stats['call_build_up'], aggregate_stats['put_build_up'], aggregate_stats['total_build_up']],
             ['Addition(T-1)', aggregate_stats['call_addition'], aggregate_stats['put_addition'], aggregate_stats['total_addition']],
             ['pcr_minus_1', '', '', aggregate_stats['pcr_minus_1']],
+            ['r_total_vol_pcr', '', '', aggregate_stats['r_total_vol_pcr']],
+            ['near_vol_pcr', '', '', aggregate_stats['near_vol_pcr']],
+            ['far_vol_pcr', '', '', aggregate_stats['far_vol_pcr']],
+            ['vol per oi (Near)', aggregate_stats['r_near_call_volume_per_oi'], aggregate_stats['r_near_put_volume_per_oi'], ''],
+            ['vol per oi (Far)', aggregate_stats['r_far_call_volume_per_oi'], aggregate_stats['r_far_put_volume_per_oi'], ''],
+            ['vol per oi (Tot)', aggregate_stats['r_total_call_volume_per_oi'], aggregate_stats['r_total_put_volume_per_oi'], ''],
             ['regime', '', '', aggregate_stats['regime']],
             ['Volume Scale', aggregate_stats['call_volume_scale'], aggregate_stats['put_volume_scale'], aggregate_stats['total_volume_scale']],
             ['Vol Spread', aggregate_stats['call_vol_spread'], aggregate_stats['put_vol_spread'], aggregate_stats['total_vol_spread']],
@@ -228,7 +248,7 @@ class OptionSignalGenerator:
         call_price_delta = {inst: inst_data['price_delta'] for inst, inst_data in cross_stats.items() if inst[-2::] == 'CE'}
 
         #self.bullish_option_momentum_indicator.evaluate(aggregate_stats['call_volume_scale'], call_price_delta, put_price_delta)
-        self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
+        #self.bearish_option_momentum_indicator.evaluate(aggregate_stats['put_volume_scale'], put_price_delta, call_price_delta)
         self.put_buy_scen.evaluate()
         #self.put_buy_indicator.evaluate(aggregate_stats['put_volume_scale'], aggregate_stats['call_volume_scale'], put_price_delta, call_price_delta)
         info = self.get_info()

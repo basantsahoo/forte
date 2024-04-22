@@ -110,6 +110,9 @@ class OptionAssetBook:
 
     def pattern_signal(self, signal: BaseSignal):
         #print('asset book pattern_signal')
+        if signal.category in ['PRICE_ACTION_INTRA_0', 'TECHNICAL', 'CANDLE_1', 'CANDLE_2', 'CANDLE_5', 'TIME_SIGNAL']:
+            print(signal.category, signal.indicator)
+
         self.market_book.pattern_signal(self.asset, signal)
 
     def frame_change_action(self, current_frame, next_frame):

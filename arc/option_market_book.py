@@ -96,9 +96,7 @@ class OptionMarketBook:
         return self.asset_books[symbol]
 
     def pattern_signal(self, asset, signal):
-
-        if signal.category in ['PRICE_ACTION_INTRA_0', 'CANDLE_1_T']:
-            print(signal.category, signal.indicator)
+        #print(signal.category, signal.indicator)
         self.strategy_manager.register_signal(signal)
 
         """

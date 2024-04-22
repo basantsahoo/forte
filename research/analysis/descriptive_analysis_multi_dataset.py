@@ -184,7 +184,28 @@ def perform_analysis_strategies_multi_df(time_data_set, inflex_data_set, target,
                     dict_df_inflex[inflex_buffer] = df
 
                 filter = {}
-                variables = ['day_put_profit', 'day_call_profit', 'day_total_profit', 'vol_rat', 'pcr_minus_1', 'put_call_vol_scale_diff', 'call_entrant', 'put_entrant', 'transition', 'near_put_oi_share', 'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share', 'put_vol_spread', 'call_vol_spread', 'near_call_volume_share_per_oi', 'near_put_volume_share_per_oi', 'far_call_volume_share_per_oi', 'far_put_volume_share_per_oi' ]
+                #variables = ['day_put_profit', 'day_call_profit', 'day_total_profit', 'vol_rat', 'pcr_minus_1', 'put_call_vol_scale_diff', 'call_entrant', 'put_entrant', 'transition', 'near_put_oi_share', 'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share', 'put_vol_spread', 'call_vol_spread', 'near_call_volume_share_per_oi', 'near_put_volume_share_per_oi', 'far_call_volume_share_per_oi', 'far_put_volume_share_per_oi' ]
+                variables = [
+                    'near_put_oi_share', 'far_put_oi_share', 'near_call_oi_share', 'far_call_oi_share',
+                    'put_vol_spread', 'call_vol_spread', 'near_call_volume_share_per_oi',
+                    'near_put_volume_share_per_oi', 'far_call_volume_share_per_oi', 'far_put_volume_share_per_oi',
+                    'pcr_minus_1',
+                    'pattern_location',
+                    'call_drop',
+                    'put_drop',
+                    'r_near_put_volume_per_oi',
+                    'r_far_put_volume_per_oi',
+                    'r_near_call_volume_per_oi',
+                    'r_far_call_volume_per_oi',
+                    'r_total_call_volume_per_oi',
+                    'r_total_put_volume_per_oi',
+                    'r_call_vol_spread',
+                    'r_put_vol_spread',
+                    'near_vol_pcr',
+                    'far_vol_pcr',
+                    'r_total_vol_pcr'
+                    ]
+
                 for variable in variables:
                     bin_wise_summary(report, df_time, target, variable, filter=filter, title="time based")
                     for buffer, buffer_df in dict_df_inflex.items():
