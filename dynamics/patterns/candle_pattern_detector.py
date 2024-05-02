@@ -6,6 +6,7 @@ pattern_names = talib.get_function_groups()['Pattern Recognition'] #['CDLHANGING
 from arc.candle_processor import CandleProcessor
 from entities.base import Signal
 from candlestick import candlestick
+from arc.signal_settings import config
 
 s_patterns = ['hanging_man', 'bearish_harami', 'bullish_harami',
               'gravestone_doji', 'dark_cloud_cover', 'doji', 'doji_star', 'dragonfly_doji',
@@ -108,8 +109,8 @@ class CandlePatternDetector(CandleProcessor):
                 last_candle = self.candles[-1]
                 body = abs(last_candle['close'] - last_candle['open'])
                 size = abs(last_candle['high'] - last_candle['low'])
-                cd_body_pattern = 'CDL_BD_L' if body >= 20 else 'CDL_BD_S'
-                cd_size_pattern = 'CDL_SZ_L' if size >= 20 else 'CDL_SZ_S'
+                cd_body_pattern = 'CDL_BD_L' if body >= config[self.spot_book.asset]['CDL_BD_L'] else 'CDL_BD_S'
+                cd_size_pattern = 'CDL_SZ_L' if size >= config[self.spot_book.asset]['CDL_SZ_L'] else 'CDL_SZ_S'
                 cd_dir_pattern = 'CDL_DIR_P' if (last_candle['close'] - last_candle['open']) >= 0 else 'CDL_DIR_N'
                 for cd_pattern in [cd_body_pattern, cd_size_pattern, cd_dir_pattern]:
                     pat = Signal(asset=self.spot_book.asset, category='CANDLE_' + str(self.period), instrument="",
@@ -118,8 +119,7 @@ class CandlePatternDetector(CandleProcessor):
                                  strength=1,
                                  signal_time=last_candle['timestamp'],
                                  notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
-                                 info={'candle': [last_candle['open'], last_candle['high'],
-                                                  last_candle['low'], last_candle['close']]})
+                                 info=last_candle)
                     self.spot_book.pattern_signal(pat)
 
     def evaluate(self, notify=True):

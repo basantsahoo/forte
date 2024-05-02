@@ -5,6 +5,7 @@ from dynamics.option_market.utils import get_average_volume_for_day
 from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion
 from entities.base import BaseSignal
 from arc.clock import Clock
+from arc.compound_signal_builder import CompoundSignalBuilder
 from entities.trading_day import NearExpiryWeek, TradeDateTime
 
 class OptionAssetBook:
@@ -17,6 +18,7 @@ class OptionAssetBook:
         self.option_matrix.signal_generator.signal_dispatcher = self.pattern_signal
         self.last_periodic_update = None
         self.periodic_update_sec = 60
+        self.compound_signal_generator = CompoundSignalBuilder(self)
 
     def get_lowest_candle(self, instr, after_ts=None, is_option=False):
         lowest_candle = None
@@ -114,9 +116,12 @@ class OptionAssetBook:
             print(signal.category, signal.indicator)
 
         self.market_book.pattern_signal(self.asset, signal)
+        last_tick = self.spot_book.spot_processor.last_tick
+        self.compound_signal_generator.add_signal(last_tick['timestamp'], signal)
 
     def frame_change_action(self, current_frame, next_frame):
         #print('frame_change_action++++++++++++++++++ 111')
+        self.compound_signal_generator.frame_change_action()
         self.option_matrix.frame_change_action(current_frame, next_frame)
         #print('frame_change_action++++++++++++++++++ 222')
         self.spot_book.frame_change_action(current_frame, next_frame)

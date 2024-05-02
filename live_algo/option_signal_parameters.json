@@ -34,6 +34,20 @@
       }
     },
     {
+      "name": "HIGH_VOL_1",
+      "criteria": {
+        "put_volume_scale": {"min": 3.5, "max": 50},
+        "call_volume_scale": {"min": 3, "max": 20}
+      }
+    },
+    {
+      "name": "HIGH_VOL_2",
+      "criteria": {
+        "put_volume_scale": {"min": 2.5, "max": 50},
+        "call_volume_scale": {"min": 2.0, "max": 20}
+      }
+    },
+    {
       "name": "PUT_BUY_1_1",
       "criteria": {
         "r_total_vol_pcr": {"min": 1.05, "max": 50},

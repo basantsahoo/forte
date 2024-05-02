@@ -3,7 +3,7 @@ from entities.base import Signal
 from pathlib import Path
 import json
 
-signal_config_path = str(Path(__file__).resolve().parent.parent.parent.parent) + "/live_algo/" + 'signal_parameters.json'
+signal_config_path = str(Path(__file__).resolve().parent.parent.parent.parent) + "/live_algo/" + 'option_signal_parameters.json'
 with open(signal_config_path, 'r') as sig_cong:
     signal_config = json.load(sig_cong)
 
