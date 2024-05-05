@@ -250,6 +250,16 @@ def locate_point(df, threshold):
     return pct
 
 
+def locate_point_2(df, threshold):
+    pct = -1
+    try:
+        range = max(df.Close) - min(df.Close)
+        curr_pos = threshold - min(df.Close)
+        pct = curr_pos/range * 100
+    except:
+        pass
+    return pct
+
 def get_option_strike(ltp, money_ness, level, kind):
     #print('get_option_strike....', ltp, money_ness, level, kind)
     atm_strike = round(ltp / 100) * 100

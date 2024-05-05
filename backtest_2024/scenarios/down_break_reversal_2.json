@@ -1,7 +1,7 @@
 {
   "strategies":[
     {
-      "id":"CallBuy5",
+      "id":"DOWN_BREAK_REVERSAL_3",
       "class":"OptionBuy",
       "symbol": "NIFTY",
       "exit_time":[45, 45, 45, 45],
@@ -9,14 +9,14 @@
       "order_type":"BUY",
       "spot_instruments":[],
       "derivative_instruments":[],
-      "max_signal": 10,
+      "max_signal": 3,
       "triggers_per_signal": 4,
       "spot_short_targets": [],
       "spot_short_stop_losses":[],
-      "instr_targets":[0.15, 0.15, 0.15, 0.1],
-      "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
+      "instr_targets":[0.2, 0.25, 0.3, 0.2],
+      "instr_stop_losses":[-0.1, -0.15, -0.18, -0.2],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["CANDLE_1", "DOWN_BREAK_REVERSAL_1"],
+      "register_signal_category": ["CANDLE_1", "DOWN_BREAK_REVERSAL_3"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["CANDLE_1", "DOWN_BREAK_REVERSAL_1"],
+            "signal_type": ["CANDLE_1", "DOWN_BREAK_REVERSAL_3"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -55,14 +55,73 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 60" }
+        {"op": "or", "logical_test": "price_location < 6000" }
+      ],
+      "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
+    },
+    {
+      "id":"DOWN_BREAK_3",
+      "class":"OptionBuy",
+      "symbol": "NIFTY",
+      "exit_time":[45, 45, 45, 45],
+      "exit_at":null,
+      "order_type":"BUY",
+      "spot_instruments":[],
+      "derivative_instruments":[],
+      "max_signal": 3,
+      "triggers_per_signal": 4,
+      "spot_short_targets": [],
+      "spot_short_stop_losses":[],
+      "instr_targets":[0.2, 0.25, 0.3, 0.2],
+      "instr_stop_losses":[-0.1, -0.15, -0.18, -0.2],
+      "instr_to_trade" : [["ITM", 1, "PE"]],
+      "register_signal_category": ["CANDLE_1", "DOWN_BREAK_3"],
+      "trade_cut_off_time": 25,
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 2
+            },
+            "signal_type": ["CANDLE_1", "DOWN_BREAK_3"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": "always",
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+
+      ],
+      "exit_criteria_list": [
+      ],
+      "trade_controllers": [
+
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+        {"op": "or", "logical_test": "price_location < 6000" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 180,
+    "for_past_days": 30,
     "to_date": "2024-04-10",
     "candle_sw": 0,
     "week_days": [],

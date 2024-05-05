@@ -1,7 +1,7 @@
 {
   "strategies":[
     {
-      "id":"CallBuy5",
+      "id":"DOWN_BREAK_REVERSAL_1",
       "class":"OptionBuy",
       "symbol": "NIFTY",
       "exit_time":[45, 45, 45, 45],

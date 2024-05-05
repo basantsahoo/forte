@@ -4,7 +4,10 @@ class CompoundSignalBuilder:
         self.signal_dict = {}
         self.asset_book = asset_book
         self.last_ts = None
-        self.down_break_levels = []
+        self.down_break_level_type_1 = set()
+        self.down_break_level_type_2 = set()
+        self.down_break_level_type_3 = set()
+        self.market_params = {}
 
     def add_signal(self, ts, signal):
         if ts not in self.signal_dict:
@@ -19,6 +22,7 @@ class CompoundSignalBuilder:
         self.asset_book.pattern_signal(signal)
 
     def build_signal(self):
+        self.market_params = self.asset_book.spot_book.activity_log.get_market_params()
         self.build_bottom_type_2()
         self.build_bottom_type_1()
         self.build_down_break_type_1()
@@ -114,9 +118,19 @@ class CompoundSignalBuilder:
             three_big_candle = self.check_signal_present(three_period_signals[-3], ('CANDLE_1', 'CDL_SZ_L'))['found']
             three_body_large = self.check_signal_present(three_period_signals[-3], ('CANDLE_1', 'CDL_BD_L'))['found']
 
-            one_high_volume_candle = self.check_signal_present(three_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
-            two_high_volume_candle = self.check_signal_present(three_period_signals[-2], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
-            three_high_volume_candle = self.check_signal_present(three_period_signals[-3], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            one_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            two_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[-2], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            three_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[-3], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+
+            one_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
+            two_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[-2], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
+            three_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[-3], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
+
+
+            one_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
+            two_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[-2], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
+            three_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[-3], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
+
             print(one_bearish_candle)
             print(one_big_candle)
             print(one_body_large)
@@ -129,25 +143,73 @@ class CompoundSignalBuilder:
             print(three_bearish_candle)
             print(three_big_candle)
             print(three_body_large)
+            last_tick = self.asset_book.spot_book.spot_processor.last_tick
+            if self.not_none_eval(EMA_1_10, SMA_1_10) and EMA_1_10 < SMA_1_10:
+                if one_bearish_candle and two_bullish_candle and three_bearish_candle \
+                        and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
+                        and (one_high_volume_candle_type_1 or two_high_volume_candle_type_1 or three_high_volume_candle_type_1):
+                    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+                    local_high = max(one_bearish_candle_resp['signal'].info['high'], two_bullish_candle_resp['signal'].info['high'], three_bearish_candle_resp['signal'].info['high'])
+                    self.down_break_level_type_1.add(local_high)
+                if one_bearish_candle and two_bullish_candle and three_bearish_candle \
+                        and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
+                        and (one_high_volume_candle_type_2 or two_high_volume_candle_type_2 or three_high_volume_candle_type_2):
+                    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+                    local_high = min(one_bearish_candle_resp['signal'].info['high'], two_bullish_candle_resp['signal'].info['high'], three_bearish_candle_resp['signal'].info['high'])
+                    self.down_break_level_type_2.add(local_high)
+                if one_bearish_candle and two_bullish_candle and three_bearish_candle \
+                        and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
+                        and (one_high_volume_candle_type_3 or two_high_volume_candle_type_3 or three_high_volume_candle_type_3)\
+                        and self.market_params['price_location'] < 30:
+                    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+                    local_high = max(one_bearish_candle_resp['signal'].info['high'],
+                                     two_bullish_candle_resp['signal'].info['high'],
+                                     three_bearish_candle_resp['signal'].info['high'])
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                                 indicator='DOWN_BREAK_3',
+                                 signal=1,
+                                 strength=1,
+                                 signal_time=self.last_ts,
+                                 notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
+                                 info=last_tick, key_levels=[local_high])
+                    self.release_signal(pat)
+                    self.down_break_level_type_3.add(local_high)
 
-            if self.not_none_eval(EMA_1_10, SMA_1_10) and EMA_1_10 < SMA_1_10 \
-                    and one_bearish_candle and two_bullish_candle and three_bearish_candle \
-                    and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
-                    and (one_high_volume_candle or two_high_volume_candle or three_high_volume_candle):
-                print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-                local_high = max(one_bearish_candle_resp['signal'].info['high'], two_bullish_candle_resp['signal'].info['high'], three_bearish_candle_resp['signal'].info['high'])
-                self.down_break_levels.append(local_high)
         except Exception as e:
             print(e)
 
     def build_down_break_reversal(self):
         try:
             last_tick = self.asset_book.spot_book.spot_processor.last_tick
-            for level in self.down_break_levels:
+            for level in self.down_break_level_type_1:
                 if last_tick['close'] > level:
-                    self.down_break_levels.remove(level)
+                    self.down_break_level_type_1.remove(level)
                     pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
                                  indicator='DOWN_BREAK_REVERSAL_1',
+                                 signal=1,
+                                 strength=1,
+                                 signal_time=self.last_ts,
+                                 notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
+                                 info=last_tick)
+                    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+                    self.release_signal(pat)
+            for level in self.down_break_level_type_2:
+                if last_tick['close'] > level:
+                    self.down_break_level_type_2.remove(level)
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                                 indicator='DOWN_BREAK_REVERSAL_2',
+                                 signal=1,
+                                 strength=1,
+                                 signal_time=self.last_ts,
+                                 notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
+                                 info=last_tick)
+                    print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
+                    self.release_signal(pat)
+            for level in self.down_break_level_type_3.copy():
+                if last_tick['close'] > level:
+                    self.down_break_level_type_3.remove(level)
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                                 indicator='DOWN_BREAK_REVERSAL_3',
                                  signal=1,
                                  strength=1,
                                  signal_time=self.last_ts,

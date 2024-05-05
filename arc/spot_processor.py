@@ -18,6 +18,7 @@ class SpotProcessor:
         self.sma_1_10 = SMA(period=10)
         self.last_candle_5_count = 0
         self.last_candle_1_count = 0
+        self.day_range = {'low': float('inf'), 'high': float('-inf')}
 
 
     def process_minute_data(self, minute_data, notify=True):
@@ -27,6 +28,8 @@ class SpotProcessor:
         epoch_minute = TradeDateTime.get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
         self.last_tick = feed_small
+        self.day_range['low'] = min(self.day_range['low'], feed_small['low'])
+        self.day_range['high'] = max(self.day_range['high'], feed_small['high'])
         pat = Signal(asset=self.asset_book.asset, category="PRICE", instrument="SPOT", indicator="TICK_PRICE", signal_time=self.last_tick['timestamp'], notice_time=self.last_tick['timestamp'], info= self.last_tick, strength=1)
         """
         pat = {'category': 'PRICE', 'indicator': 'TICK_PRICE', 'strength': 1,

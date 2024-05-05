@@ -44,6 +44,7 @@ class Signal(BaseSignal):
                  notice_time: Optional[int],
                  strength: Optional[Union[int, float]],
                  info: Optional[Dict],
+                 key_levels: Optional[List[int, float]],
                  signal: Optional[Union[str, int]] = None,
                  contract: Optional[str] = None,
                  period: Optional[Literal["5min", "15min", "1hr", "daily", "weekly"]] = None,
@@ -59,13 +60,14 @@ class Signal(BaseSignal):
         self.signal_time = signal_time
         self.notice_time = notice_time
         self.info = info
+        self.key_levels = key_levels
         self.instrument = instrument
         self.period = period
         self.contract = contract
 
     def copy(self):
         return type(self)(self.asset, self.category, self.indicator, self.instrument, self.signal_time,
-                          self.notice_time, self.strength, self.info,
+                          self.notice_time, self.strength, self.info, self.key_levels,
                           self.signal, self.contract, self.period, self.name
                           )
 

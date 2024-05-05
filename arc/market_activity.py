@@ -177,10 +177,13 @@ class AssetActivityLog:
         mkt_parms['tpo'] = self.spot_book.asset_book.market_book.curr_tpo
         mkt_parms['spot'] = self.spot_book.spot_processor.last_tick['close']
         mkt_parms['candles_in_range'] = round(self.spot_book.intraday_trend.candles_in_range, 2)
-        from helper.utils import locate_point
+        from helper.utils import locate_point, locate_point_2
 
         pattern_df = self.spot_book.get_inflex_pattern_df().dfstock_3
-        mkt_parms['price_location'] = locate_point(pattern_df, self.spot_book.spot_processor.last_tick['close'])
+        range = self.spot_book.spot_processor.day_range['high'] - self.spot_book.spot_processor.day_range['low']
+        curr = self.spot_book.spot_processor.last_tick['close'] - self.spot_book.spot_processor.day_range['low']
+
+        mkt_parms['price_location'] = curr/range * 100 #locate_point_2(pattern_df, self.spot_book.spot_processor.last_tick['close'])
         mkt_parms = {**mkt_parms, **self.trend_features}
         mkt_parms = {**mkt_parms, **self.lc_features}
         mkt_parms = {**mkt_parms, **self.get_day_features()}

@@ -16,7 +16,7 @@ import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 
 def load_back_test_results():
-    df = pd.read_csv(reports_dir + 'down_break_reversal_1.csv', converters={'pattern_time': pd.eval})
+    df = pd.read_csv(reports_dir + 'down_break_reversal_2.csv', converters={'pattern_time': pd.eval})
     #df = df[df['strategy'] == 'PriceReverseBreakDownEMA'] #PriceReverseBreakDownEMA # PriceBreakEMADownward43
     return df
 
@@ -68,7 +68,7 @@ def plot_intraday_chart(report, ticker, day, period, entry_point_list, exit_poin
     plt.bar(down.index, down.low - down.close, width2, bottom=down.close, color=col2)
 
     prices['EMA10'] = prices['close'].ewm(span=10, adjust=False).mean()
-    plt.plot(prices.index, prices['EMA10'], color='green', label='EMA10')
+    #plt.plot(prices.index, prices['EMA10'], color='green', label='EMA10')
     entry_colors = ['red', 'green']
     exit_colors = ['black', 'blue']
     for o_idx in range(len(entry_indices_list)):
