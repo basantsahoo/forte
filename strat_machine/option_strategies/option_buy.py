@@ -19,7 +19,18 @@ class OptionBuy(BaseStrategy):
             for instr in self.instr_to_trade:
                 strike = get_option_strike(ltp, instr[0], instr[1], instr[2])
                 self.derivative_instruments.append(str(strike) + "_" + instr[2])
-        print('register instr', self.derivative_instruments)
+            print('register instr', self.derivative_instruments)
+            if signal.key_levels:
+                for key, val in signal.key_levels.items():
+                    print(key, val)
+                    self.restore_variables[key] = getattr(self, key)
+                    setattr(self, key, val)
+                    print(getattr(self, key))
+                print('spot_stop_loss_levels+++++++++', self.spot_short_stop_loss_levels)
     def process_post_entry(self):
         self.derivative_instruments = []
+        restore_variables_cp = self.restore_variables.copy()
+        for key, val in restore_variables_cp.items():
+            setattr(self, key, val)
+            del self.restore_variables[key]
 

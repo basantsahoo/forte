@@ -1,5 +1,5 @@
 from strat_machine.queues.process_logger import ProcessLoggerMixin
-from strat_machine.config import switch_log
+from configurations.strat_machine_config import switch_log
 from entities.base import Signal
 
 def get_switch(manager, switch_info):

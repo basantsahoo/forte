@@ -5,7 +5,7 @@ from strat_machine.queues.watchers import get_watcher
 from strat_machine.queues.sender_neuron import SenderNeuron
 from strat_machine.queues.receiver_neuron import ReceiverNeuron
 from strat_machine.queues.process_logger import ProcessLoggerMixin
-from strat_machine.config import neuron_log
+from configurations.strat_machine_config import neuron_log
 
 class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
     def __init__(self, manager, **kwargs):

@@ -16,7 +16,7 @@
       "instr_targets":[0.2, 0.25, 0.3, 0.2],
       "instr_stop_losses":[-0.1, -0.15, -0.18, -0.2],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["CANDLE_1", "DOWN_BREAK_REVERSAL_3"],
+      "register_signal_category": ["CANDLE_1", "DOWN_BREAK_REVERSAL_31"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["CANDLE_1", "DOWN_BREAK_REVERSAL_3"],
+            "signal_type": ["CANDLE_1", "DOWN_BREAK_REVERSAL_31"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -121,8 +121,8 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 30,
-    "to_date": "2024-04-10",
+    "for_past_days": 1,
+    "to_date": "2024-03-05",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,

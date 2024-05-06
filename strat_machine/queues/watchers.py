@@ -1,6 +1,6 @@
 from datetime import datetime
 from strat_machine.queues.process_logger import ProcessLoggerMixin
-from strat_machine.config import watcher_log
+from configurations.strat_machine_config import watcher_log
 
 def get_watcher(neuron=None, watcher_id=0, watcher_info={}, threshold=0):
     watcher_type = watcher_info['type']

@@ -4,6 +4,8 @@ from strat_machine.queues.neuron_network import QNetwork
 from strat_machine.queues.trade import Trade
 from entities.trading_day import TradeDateTime
 import functools
+from helper.utils import get_option_strike
+
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
                     'SPOT_SELL': 'SHORT',
@@ -18,8 +20,8 @@ class BaseStrategy:
                  id=None,
                  symbol=None,
                  order_type="BUY",  # order type of the instrument, can take only one value
-                 spot_instruments = [], # Instruments that should be traded as linear can include FUT in future
-                 derivative_instruments=[], # Instruments that should be traded as non options
+                 spot_instruments = [],  # Instruments that should be traded as linear can include FUT in future
+                 derivative_instruments=[],  # Instruments that should be traded as non options
                  exit_time=[10],
                  exit_at=None,
                  carry_forward=False,
@@ -29,15 +31,19 @@ class BaseStrategy:
                  triggers_per_signal=1,
                  max_signal=1,
                  weekdays_allowed=[],
-                 entry_signal_queues = [], #Used for signals to be evaluated to enter a trade
-                 exit_criteria_list = [], #Used for signals to be evaluated to exit a trade
-                 signal_filters=[], #Signals that should be filtered out before sending to queue
-                 spot_long_targets = [], #[0.002,0.003, 0.004, 0.005],
-                 spot_long_stop_losses=[], #[-0.001, -0.002, -0.002, -0.002],
-                 spot_short_targets=[], #[-0.002, -0.003, -0.004, -0.005],
-                 spot_short_stop_losses=[], #[0.001, 0.002, 0.002, 0.002],
-                 instr_targets = [], #[0.002,0.003, 0.004, 0.005],
-                 instr_stop_losses = [], #[-0.001,-0.002, -0.002,-0.002]
+                 entry_signal_queues = [],  #Used for signals to be evaluated to enter a trade
+                 exit_criteria_list = [],  #Used for signals to be evaluated to exit a trade
+                 signal_filters=[],  #Signals that should be filtered out before sending to queue
+                 spot_long_targets = [],  #[0.002,0.003, 0.004, 0.005],
+                 spot_long_stop_losses=[],  #[-0.001, -0.002, -0.002, -0.002],
+                 spot_short_targets=[],  #[-0.002, -0.003, -0.004, -0.005],
+                 spot_short_stop_losses=[],  #[0.001, 0.002, 0.002, 0.002],
+                 spot_long_target_levels=[],
+                 spot_long_stop_loss_levels=[],
+                 spot_short_target_levels=[],
+                 spot_short_stop_loss_levels=[],
+                 instr_targets = [],  #[0.002,0.003, 0.004, 0.005],
+                 instr_stop_losses = [],  #[-0.001,-0.002, -0.002,-0.002]
                  instr_to_trade=[],
                  cover = 0,
                  register_signal_category=None,
@@ -46,7 +52,7 @@ class BaseStrategy:
                  risk_limits=[],
                  trade_cut_off_time=60,
                  force_exit_ts = None
-    ):
+                 ):
         #print('entry_signal_queues====',entry_signal_queues)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
         self.symbol = symbol
@@ -67,6 +73,11 @@ class BaseStrategy:
         self.spot_long_stop_losses = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_long_stop_losses]
         self.spot_short_targets = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_short_targets]
         self.spot_short_stop_losses = [abs(x) if isinstance(x, (int, float)) else x for x in spot_short_stop_losses]
+        self.spot_long_target_levels = spot_long_target_levels,
+        self.spot_long_stop_loss_levels = spot_long_stop_loss_levels,
+        self.spot_short_target_levels = spot_short_target_levels,
+        self.spot_short_stop_loss_levels = spot_short_stop_loss_levels,
+
         side = get_broker_order_type(self.order_type)
         self.instr_targets = [side * abs(x) for x in instr_targets]
         self.instr_stop_losses = [-1 * side * abs(x) for x in instr_stop_losses]
@@ -94,6 +105,7 @@ class BaseStrategy:
         #print('Add exit queue', exit_criteria_list)
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
         self.asset_book = market_book.get_asset_book(self.symbol) if market_book is not None else None
+        self.restore_variables = {}
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
         #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
         """
@@ -245,7 +257,6 @@ class BaseStrategy:
                     trade.force_close()
                 self.deactivate()
                 break
-
 
     def register_instrument(self, signal):
         pass

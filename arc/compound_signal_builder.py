@@ -165,13 +165,16 @@ class CompoundSignalBuilder:
                     local_high = max(one_bearish_candle_resp['signal'].info['high'],
                                      two_bullish_candle_resp['signal'].info['high'],
                                      three_bearish_candle_resp['signal'].info['high'])
+                    key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [],
+                                  'spot_short_target_levels': [], 'spot_short_stop_loss_levels': [local_high]}
+                    print(key_levels)
                     pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
                                  indicator='DOWN_BREAK_3',
                                  signal=1,
                                  strength=1,
                                  signal_time=self.last_ts,
                                  notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
-                                 info=last_tick, key_levels=[local_high])
+                                 info=last_tick, key_levels=key_levels)
                     self.release_signal(pat)
                     self.down_break_level_type_3.add(local_high)
 

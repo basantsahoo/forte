@@ -34,7 +34,7 @@ class StartegyBackTester:
             try:
                 in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
                 t_day = in_day.date_string
-                market_book = OptionMarketBook(in_day.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=True)
+                market_book = OptionMarketBook(in_day.date_string, assets=[asset], record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False)
                 place_live = False
                 interface = None
                 if self.strat_config['run_params'].get("send_to_oms", False):
@@ -93,8 +93,10 @@ class StartegyBackTester:
                     print(e)
                     print(traceback.format_exc())
                 # print(results)
-            except:
-                pass
+            except Exception as e:
+                print('error on', day)
+                print(e)
+                print(traceback.format_exc())
 
         end_time = datetime.now()
         print((end_time - start_time).total_seconds())

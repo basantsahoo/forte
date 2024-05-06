@@ -1,3 +1,4 @@
+import itertools
 from strat_machine.strategies.signal_setup import get_signal_key
 from strat_machine.queues.controllers import get_controller
 
@@ -65,16 +66,43 @@ class Trade:
         spot_stop_losses = self.calculate_target('SPOT', self.strategy.spot_long_stop_losses) if market_view == 'LONG' else self.calculate_target('SPOT', self.strategy.spot_short_stop_losses)
         instr_targets = self.calculate_target(instr, self.strategy.instr_targets) if instr != 'SPOT' else spot_targets
         instr_stop_losses = self.calculate_target(instr, self.strategy.instr_stop_losses) if instr != 'SPOT' else spot_stop_losses
+        spot_long_target_levels = self.strategy.spot_long_target_levels
+        spot_long_stop_loss_levels = self.strategy.spot_long_stop_loss_levels
+        spot_short_target_levels = self.strategy.spot_short_target_levels
+        spot_short_stop_loss_levels = self.strategy.spot_short_stop_loss_levels
+        spot_target_levels = spot_long_target_levels if market_view == 'LONG' else spot_short_target_levels
+        spot_stop_loss_levels = spot_long_stop_loss_levels if market_view == 'LONG' else spot_short_stop_loss_levels
+        print('spot_stop_loss_levels+++++++++', spot_stop_loss_levels)
+        if market_view == 'LONG':
+            spot_targets = [min(i) for i in itertools.zip_longest(spot_targets, spot_target_levels, fillvalue=float('inf'))]
+            spot_stop_losses = [max(i) for i in itertools.zip_longest(spot_stop_losses, spot_stop_loss_levels, fillvalue=float('-inf'))]
+            """
+            for t_idx in range(len(spot_targets)):
+                spot_targets[t_idx] = min(spot_targets[t_idx], spot_target_levels[min(t_idx, len(spot_target_levels)-1)]) if spot_target_levels else spot_targets[t_idx]
+            for s_idx in range(len(spot_stop_losses)):
+                spot_stop_losses[s_idx] = max(spot_stop_losses[s_idx], spot_stop_loss_levels[min(s_idx, len(spot_stop_loss_levels) - 1)]) if spot_stop_loss_levels else spot_stop_losses[s_idx]
+            """
+        else:
+            print(spot_targets, spot_target_levels)
+            spot_targets = [max(i) for i in itertools.zip_longest(spot_targets, spot_target_levels, fillvalue=float('-inf'))]
+            spot_stop_losses = [min(i) for i in itertools.zip_longest(spot_stop_losses, spot_stop_loss_levels, fillvalue=float('inf'))]
+            print(spot_stop_losses)
+            """
+            for t_idx in range(len(spot_targets)):
+                spot_targets[t_idx] = max(spot_targets[t_idx], spot_target_levels[min(t_idx, len(spot_target_levels)-1)]) if spot_target_levels else spot_targets[t_idx]
+            for s_idx in range(len(spot_stop_losses)):
+                spot_stop_losses[s_idx] = min(spot_stop_losses[s_idx], spot_stop_loss_levels[min(s_idx, len(spot_stop_loss_levels) - 1)]) if spot_stop_loss_levels else spot_stop_losses[s_idx]
+            """
         trade_info = {
             'seq': idx,
             'instrument': instr,
             'cover': self.strategy.cover,
             'market_view': market_view,
-            'spot_target': spot_targets[idx-1] if spot_targets else None,
-            'spot_stop_loss': spot_stop_losses[idx-1] if spot_stop_losses else None,
-            'spot_stop_loss_rolling': spot_stop_losses[idx - 1] if spot_stop_losses else None,
-            'instr_target': instr_targets[idx-1] if instr_targets else None,
-            'instr_stop_loss': instr_stop_losses[idx-1] if instr_stop_losses else None,
+            'spot_target': spot_targets[min(idx-1, len(spot_targets)-1)] if spot_targets else None,
+            'spot_stop_loss': spot_stop_losses[min(idx-1, len(spot_stop_losses)-1)] if spot_stop_losses else None,
+            'spot_stop_loss_rolling': spot_stop_losses[min(idx-1, len(spot_stop_losses)-1)] if spot_stop_losses else None,
+            'instr_target': instr_targets[min(idx-1, len(instr_targets)-1)] if instr_targets else None,
+            'instr_stop_loss': instr_stop_losses[min(idx-1, len(instr_stop_losses)-1)] if instr_stop_losses else None,
             'duration': min(self.strategy.exit_time[idx-1], self.strategy.asset_book.market_book.get_time_to_close()-2) if not self.strategy.carry_forward else 90000000,
             'quantity': self.strategy.minimum_quantity,
             'exit_type':None,
@@ -160,7 +188,7 @@ class Trade:
                 if market_view == 'LONG':
                     if trigger_details['spot_target'] and last_spot_candle['close'] >= trigger_details['spot_target']:
                         self.trigger_exit(trigger_seq, exit_type='ST')
-                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] < trigger_details['spot_stop_loss']:
+                    elif trigger_details['spot_stop_loss'] and last_spot_candle['close'] < trigger_details['spot_stop_loss']:
                         self.trigger_exit( trigger_seq, exit_type='SS')
                     elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] < trigger_details['spot_stop_loss_rolling']:
                         self.trigger_exit( trigger_seq, exit_type='SRS')
@@ -168,7 +196,7 @@ class Trade:
                     if trigger_details['spot_target'] and last_spot_candle['close'] <= trigger_details['spot_target']:
                         self.trigger_exit(trigger_seq, exit_type='ST')
                         # print(last_candle, trigger_details['target'])
-                    elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] > trigger_details['spot_stop_loss']:
+                    elif trigger_details['spot_stop_loss'] and last_spot_candle['close'] > trigger_details['spot_stop_loss']:
                         self.trigger_exit(trigger_seq, exit_type='SS')
                     elif trigger_details['spot_stop_loss_rolling'] and last_spot_candle['close'] > trigger_details['spot_stop_loss_rolling']:
                         self.trigger_exit(trigger_seq, exit_type='SRS')
