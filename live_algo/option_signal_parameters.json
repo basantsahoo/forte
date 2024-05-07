@@ -55,6 +55,30 @@
       }
     },
     {
+      "name": "HIGH_VOL_PUT_1",
+      "criteria": {
+        "put_volume_scale_day_2": {"min": 1.5, "max": 50}
+      }
+    },
+    {
+      "name": "HIGH_VOL_PUT_2",
+      "criteria": {
+        "put_volume_scale": {"min": 2, "max": 50}
+      }
+    },
+    {
+      "name": "HIGH_VOL_CALL_1",
+      "criteria": {
+        "call_volume_scale_day_2": {"min": 2, "max": 50}
+      }
+    },
+    {
+      "name": "HIGH_VOL_CALL_2",
+      "criteria": {
+        "call_volume_scale": {"min": 2, "max": 50}
+      }
+    },
+    {
       "name": "PUT_BUY_1_1",
       "criteria": {
         "r_total_vol_pcr": {"min": 1.05, "max": 50},

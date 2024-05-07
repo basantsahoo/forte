@@ -16,7 +16,7 @@ import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 
 def load_back_test_results():
-    df = pd.read_csv(reports_dir + 'down_break_reversal_2.csv', converters={'pattern_time': pd.eval})
+    df = pd.read_csv(reports_dir + 'bearish_engulfing.csv', converters={'pattern_time': pd.eval})
     #df = df[df['strategy'] == 'PriceReverseBreakDownEMA'] #PriceReverseBreakDownEMA # PriceBreakEMADownward43
     return df
 
@@ -107,7 +107,8 @@ def run():
     df = load_back_test_results()
     days = df['day'].unique()
     ticker = df['symbol'].tolist()[0]
-    with PdfPages(reports_dir + 'visualize_option_' + ticker + '.pdf') as report:
+    strategy = df['strategy'].tolist()[0]
+    with PdfPages(reports_dir + 'visualize_option_' + strategy + '.pdf') as report:
         strategies = list(set(df['strategy'].to_list()))
         for day in days:
             try:

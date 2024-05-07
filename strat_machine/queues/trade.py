@@ -68,6 +68,7 @@ class Trade:
         instr_stop_losses = self.calculate_target(instr, self.strategy.instr_stop_losses) if instr != 'SPOT' else spot_stop_losses
         spot_long_target_levels = self.strategy.spot_long_target_levels
         spot_long_stop_loss_levels = self.strategy.spot_long_stop_loss_levels
+        print('spot_long_stop_loss_levels+++++++++', spot_long_stop_loss_levels)
         spot_short_target_levels = self.strategy.spot_short_target_levels
         spot_short_stop_loss_levels = self.strategy.spot_short_stop_loss_levels
         spot_target_levels = spot_long_target_levels if market_view == 'LONG' else spot_short_target_levels

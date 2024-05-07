@@ -73,10 +73,10 @@ class BaseStrategy:
         self.spot_long_stop_losses = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_long_stop_losses]
         self.spot_short_targets = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_short_targets]
         self.spot_short_stop_losses = [abs(x) if isinstance(x, (int, float)) else x for x in spot_short_stop_losses]
-        self.spot_long_target_levels = spot_long_target_levels,
-        self.spot_long_stop_loss_levels = spot_long_stop_loss_levels,
-        self.spot_short_target_levels = spot_short_target_levels,
-        self.spot_short_stop_loss_levels = spot_short_stop_loss_levels,
+        self.spot_long_target_levels = spot_long_target_levels
+        self.spot_long_stop_loss_levels = spot_long_stop_loss_levels
+        self.spot_short_target_levels = spot_short_target_levels
+        self.spot_short_stop_loss_levels = spot_short_stop_loss_levels
 
         side = get_broker_order_type(self.order_type)
         self.instr_targets = [side * abs(x) for x in instr_targets]
