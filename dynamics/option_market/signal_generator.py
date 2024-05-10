@@ -254,7 +254,7 @@ class OptionSignalGenerator:
         info = self.get_info()
         signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
                         indicator="PCR_MINUS_1", strength=info['pcr_minus_1'], signal_time=info['timestamp'],
-                        notice_time=info['timestamp'], info=info)
+                        notice_time=info['timestamp'], signal_info=info)
         self.dispatch_signal(signal)
 
     def run_external_generators_old(self):

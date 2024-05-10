@@ -29,7 +29,7 @@ class HighBreach(ProcessLoggerMixin):
 
     def receive_signal(self, signal):
         #self.pre_log()
-        if signal.info['high'] > self.threshold and not self.active:
+        if signal.signal_info['high'] > self.threshold and not self.active:
             self.signals = [signal]
         self.check_activation()
 

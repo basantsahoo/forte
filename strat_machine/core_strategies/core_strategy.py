@@ -364,8 +364,8 @@ class BaseStrategy:
             open_type = market_params['open_type']
             tpo = market_params['tpo']
             strength = signal.strength if hasattr(signal, 'strength') else 0
-            kind = signal.info.get('kind', "")
-            money_ness = signal.info.get('money_ness', "")
+            kind = signal.signal_info.get('kind', "")
+            money_ness = signal.signal_info.get('money_ness', "")
             #print('inside +++++', open_type, tpo, strength, kind, money_ness)
             for condition in self.signal_filters:
                 #print(condition['logical_test'])

@@ -25,7 +25,7 @@ class TimeBook:
 
                 signal = Signal(asset='GLOBAL', category='TIME_SIGNAL', instrument=None,
                                 indicator=d_t, strength=1, signal_time=self.current_frame,
-                                notice_time=self.current_frame, info={})
+                                notice_time=self.current_frame, signal_info={})
                 #print('time_signal=====', signal.__dict__)
                 self.market_book.pattern_signal('GLOBAL', signal)
                 self.set_frame(input_time_stamp)

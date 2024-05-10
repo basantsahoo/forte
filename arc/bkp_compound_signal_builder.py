@@ -12,8 +12,8 @@ class CompoundSignalBuilder:
     def add_signal(self, ts, signal):
         print('adding signal ', signal.category, signal.indicator)
         if ts not in self.signal_dict:
-            self.signal_dict[ts] = {}
-        self.signal_dict[ts][(signal.category, signal.indicator, signal.period)] = signal
+            self.signal_dict[ts] = []
+        self.signal_dict[ts].append(signal)
         self.last_ts = ts
 
     def frame_change_action(self):
@@ -24,11 +24,13 @@ class CompoundSignalBuilder:
 
     def build_signal(self):
         self.market_params = self.asset_book.spot_book.activity_log.get_market_params()
-
+        """
         self.build_bottom_type_2()
         self.build_bottom_type_1()
         self.build_down_break_type_1()
         self.build_down_break_reversal()
+        
+        """
        # self.print_signals_last_ts()
         self.bearish_engulfing_high_put_volume()
         #self.print_signals()
@@ -38,20 +40,21 @@ class CompoundSignalBuilder:
         filtered_ts = [x for x in all_ts if x<= ts]
         filtered_ts.sort()
         n_period_ts = filtered_ts[-n_period:]
-        n_period_ts.reverse()
-        n_period_signals = {idx: self.signal_dict[n_period_ts[idx]] for idx in range(len(n_period_ts))}
-        #n_period_signals = [self.signal_dict[ts] for ts in n_period_ts]
+        n_period_signals = [self.signal_dict[ts] for ts in n_period_ts]
         return n_period_signals
 
-    def check_signal_present(self, signal_dct, signal_tuple, default_signal_val=None):
+    def check_signal_present(self, signal_array, signal_tuple, default_signal_val=None):
         signal_found = False
         signal_value = default_signal_val
         signal_obj = None
-        if signal_tuple in signal_dct.keys():
-            signal = signal_dct[signal_tuple]
-            signal_found = True
-            signal_value = signal.strength
-            signal_obj = signal
+        for signal in signal_array:
+            if (signal.category, signal.indicator) == signal_tuple:
+                signal_found = True
+                signal_value = signal.strength
+                signal_obj = signal
+                break
+        #return signal_found, signal_value
+
         return {'found': signal_found, 'value':signal_value, 'signal':signal_obj}
 
     def not_none_eval(self,val1, val2, ):
@@ -76,18 +79,18 @@ class CompoundSignalBuilder:
             two_period_signals = self.get_n_period_signals(self.last_ts, 2)
             EMA_1_10 = self.check_signal_present(one_period_signals[0], ('TECHNICAL', 'EMA_1_10'))['value']
             SMA_1_10 = self.check_signal_present(one_period_signals[0], ('TECHNICAL', 'SMA_1_10'))['value']
-            one_bullish_candle_resp = self.check_signal_present(one_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
+            one_bullish_candle_resp = self.check_signal_present(one_period_signals[0], ('CANDLE_1', 'CDL_DIR_P'))
             one_bullish_candle = one_bullish_candle_resp['found']
             #one_bullish_candle = self.check_signal_present(one_period_signals[0], ('CANDLE_1', 'CDL_DIR_P'))['found']
-            one_big_candle = self.check_signal_present(one_period_signals[0], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            one_body_large = self.check_signal_present(one_period_signals[0], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            two_bearish_candle_resp = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            one_big_candle = self.check_signal_present(one_period_signals[0], ('CANDLE_1', 'CDL_SZ_L'))['found']
+            one_body_large = self.check_signal_present(one_period_signals[0], ('CANDLE_1', 'CDL_BD_L'))['found']
+            two_bearish_candle_resp = self.check_signal_present(two_period_signals[0], ('CANDLE_1', 'CDL_DIR_N'))
             two_bearish_candle = two_bearish_candle_resp['found']
             #two_bearish_candle = self.check_signal_present(two_period_signals[0], ('CANDLE_1', 'CDL_DIR_N'))['found']
-            two_big_candle = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            two_body_large = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            one_high_volume_candle = self.check_signal_present(one_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
-            two_high_volume_candle = self.check_signal_present(two_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            two_big_candle = self.check_signal_present(two_period_signals[0], ('CANDLE_1', 'CDL_SZ_L'))['found']
+            two_body_large = self.check_signal_present(two_period_signals[0], ('CANDLE_1', 'CDL_BD_L'))['found']
+            one_high_volume_candle = self.check_signal_present(one_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            two_high_volume_candle = self.check_signal_present(two_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
             #print(two_bearish_candle, two_big_candle, two_body_large)
             if self.not_none_eval(EMA_1_10, SMA_1_10) and EMA_1_10 < SMA_1_10 and one_bullish_candle and one_big_candle and one_body_large\
                     and two_bearish_candle and two_big_candle and two_body_large\
@@ -98,12 +101,13 @@ class CompoundSignalBuilder:
                 key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [local_low],
                               'spot_short_target_levels': [], 'spot_short_stop_loss_levels': []}
 
-                pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
-                             indicator='BOTTOM_TYPE_1_1MIN',
+                pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                             indicator='BOTTOM_TYPE_1',
+                             signal=1,
                              strength=1,
                              signal_time=self.last_ts,
                              notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
-                             signal_info={}, key_levels=key_levels, period="1min")
+                             info={}, key_levels=key_levels)
                 self.release_signal(pat)
 
         except Exception as e:
@@ -116,31 +120,31 @@ class CompoundSignalBuilder:
             three_period_signals = self.get_n_period_signals(self.last_ts, 3)
             EMA_1_10 = self.check_signal_present(three_period_signals[0], ('TECHNICAL', 'EMA_1_10'))['value']
             SMA_1_10 = self.check_signal_present(three_period_signals[0], ('TECHNICAL', 'SMA_1_10'))['value']
-            one_bearish_candle_resp = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            one_bearish_candle_resp = self.check_signal_present(three_period_signals[-1], ('CANDLE_1', 'CDL_DIR_N'))
             one_bearish_candle = one_bearish_candle_resp['found']
-            one_big_candle = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            one_body_large = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            two_bullish_candle_resp = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
+            one_big_candle = self.check_signal_present(three_period_signals[-1], ('CANDLE_1', 'CDL_SZ_L'))['found']
+            one_body_large = self.check_signal_present(three_period_signals[-1], ('CANDLE_1', 'CDL_BD_L'))['found']
+            two_bullish_candle_resp = self.check_signal_present(three_period_signals[-2], ('CANDLE_1', 'CDL_DIR_P'))
             two_bullish_candle = two_bullish_candle_resp['found']
-            two_big_candle = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            two_body_large = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            three_bearish_candle_resp = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            two_big_candle = self.check_signal_present(three_period_signals[-2], ('CANDLE_1', 'CDL_SZ_L'))['found']
+            two_body_large = self.check_signal_present(three_period_signals[-2], ('CANDLE_1', 'CDL_BD_L'))['found']
+            three_bearish_candle_resp = self.check_signal_present(three_period_signals[-3], ('CANDLE_1', 'CDL_DIR_N'))
             three_bearish_candle = three_bearish_candle_resp['found']
-            three_big_candle = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            three_body_large = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            three_big_candle = self.check_signal_present(three_period_signals[-3], ('CANDLE_1', 'CDL_SZ_L'))['found']
+            three_body_large = self.check_signal_present(three_period_signals[-3], ('CANDLE_1', 'CDL_BD_L'))['found']
 
-            one_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
-            two_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
-            three_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            one_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            two_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[-2], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            three_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[-3], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
 
-            one_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
-            two_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
-            three_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
+            one_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
+            two_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[-2], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
+            three_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[-3], ('OPTION_MARKET', 'HIGH_VOL_2'))['found']
 
 
-            one_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
-            two_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
-            three_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
+            one_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
+            two_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[-2], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
+            three_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[-3], ('OPTION_MARKET', 'HIGH_VOL_3'))['found']
 
             print(one_bearish_candle)
             print(one_big_candle)
@@ -179,12 +183,13 @@ class CompoundSignalBuilder:
                     key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [],
                                   'spot_short_target_levels': [], 'spot_short_stop_loss_levels': [local_high]}
                     print(key_levels)
-                    pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
-                                 indicator='DOWN_BREAK_3_1MIN',
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                                 indicator='DOWN_BREAK_3',
+                                 signal=1,
                                  strength=1,
                                  signal_time=self.last_ts,
                                  notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
-                                 signal_info=last_tick, key_levels=key_levels, period="1min")
+                                 info=last_tick, key_levels=key_levels)
                     self.release_signal(pat)
                     self.down_break_level_type_3.add(local_high)
 
@@ -197,34 +202,37 @@ class CompoundSignalBuilder:
             for level in self.down_break_level_type_1:
                 if last_tick['close'] > level:
                     self.down_break_level_type_1.remove(level)
-                    pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
-                                 indicator='DOWN_BREAK_REVERSAL_TYPE_1_1MIN',
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                                 indicator='DOWN_BREAK_REVERSAL_1',
+                                 signal=1,
                                  strength=1,
                                  signal_time=self.last_ts,
                                  notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
-                                 signal_info=last_tick, period="1min")
+                                 info=last_tick)
                     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
                     self.release_signal(pat)
             for level in self.down_break_level_type_2:
                 if last_tick['close'] > level:
                     self.down_break_level_type_2.remove(level)
-                    pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
-                                 indicator='DOWN_BREAK_REVERSAL_TYPE_2_1MIN',
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                                 indicator='DOWN_BREAK_REVERSAL_2',
+                                 signal=1,
                                  strength=1,
                                  signal_time=self.last_ts,
                                  notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
-                                 signal_info=last_tick, period="1min")
+                                 info=last_tick)
                     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
                     self.release_signal(pat)
             for level in self.down_break_level_type_3.copy():
                 if last_tick['close'] > level:
                     self.down_break_level_type_3.remove(level)
-                    pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument="",
-                                 indicator='DOWN_BREAK_REVERSAL_TYPE_3_1MIN',
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
+                                 indicator='DOWN_BREAK_REVERSAL_3',
+                                 signal=1,
                                  strength=1,
                                  signal_time=self.last_ts,
                                  notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
-                                 signal_info=last_tick, period="1min")
+                                 info=last_tick)
                     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
                     self.release_signal(pat)
 
@@ -236,18 +244,18 @@ class CompoundSignalBuilder:
         try:
             print('bearish_engulfing_high_put_volume ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
             ten_period_signals = self.get_n_period_signals(self.last_ts, 10)
-            EMA_1_10 = self.check_signal_present(ten_period_signals[0], ('TECHNICAL', 'EMA_1_10'))['value']
-            SMA_1_10 = self.check_signal_present(ten_period_signals[0], ('TECHNICAL', 'SMA_1_10'))['value']
-            one_bearish_candle_resp = self.check_signal_present(ten_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            EMA_1_10 = self.check_signal_present(ten_period_signals[-1], ('TECHNICAL', 'EMA_1_10'))['value']
+            SMA_1_10 = self.check_signal_present(ten_period_signals[-1], ('TECHNICAL', 'SMA_1_10'))['value']
+            one_bearish_candle_resp = self.check_signal_present(ten_period_signals[-1], ('CANDLE_1', 'CDL_DIR_N'))
             one_bearish_candle = one_bearish_candle_resp['found']
-            one_body_large = self.check_signal_present(ten_period_signals[0], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            one_body_large = self.check_signal_present(ten_period_signals[-1], ('CANDLE_1', 'CDL_BD_L'))['found']
 
-            one_high_put_volume_candle_type_1 = self.check_signal_present(ten_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_PUT_1'))['found']
+            one_high_put_volume_candle_type_1 = self.check_signal_present(ten_period_signals[-1], ('OPTION_MARKET', 'HIGH_VOL_PUT_1'))['found']
             bearish_engulfing = False #CANDLE_1 CDLENGULFING_BUY
             local_high = None
-            for idx in range(1, 9):
+            for idx in range(len(ten_period_signals)-2, -1, -1):
                 #print("idx====", idx)
-                bearish_engulfing_resp = self.check_signal_present(ten_period_signals[idx], ('CANDLE_PATTERN', 'CDLENGULFING_SELL', "1min"))
+                bearish_engulfing_resp = self.check_signal_present(ten_period_signals[idx], ('CANDLE_1', 'CDLENGULFING_SELL'))
                 bearish_engulfing = bearish_engulfing_resp['found']
                 if bearish_engulfing:
                     #print(bearish_engulfing_resp['signal'].info['candle'])
@@ -262,12 +270,13 @@ class CompoundSignalBuilder:
 
                     key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [],
                                   'spot_short_target_levels': [], 'spot_short_stop_loss_levels': [local_high]}
-                    pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
+                    pat = Signal(asset=self.asset_book.spot_book.asset, category='CANDLE_' + str(1), instrument="",
                                  indicator='BEARISH_ENGULFING_HIGH_PUT_VOLUME',
+                                 signal=1,
                                  strength=1,
                                  signal_time=self.last_ts,
                                  notice_time=self.asset_book.spot_book.spot_processor.last_tick['timestamp'],
-                                 signal_info=last_tick, key_levels=key_levels, period="1min")
+                                 info=last_tick, key_levels=key_levels)
                     self.release_signal(pat)
 
         except Exception as e:

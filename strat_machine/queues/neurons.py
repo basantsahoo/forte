@@ -204,21 +204,21 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             self.log(last_tick_time, "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
     def add_attribute(self, pattern, attribute, res):
-        if pattern.info.get(attribute, None) is not None:
-            res[attribute] = pattern.info[attribute]
+        if pattern.signal_info.get(attribute, None) is not None:
+            res[attribute] = pattern.signal_info[attribute]
         return res
 
     def get_attributes(self, pos=-1):
         res = {}
         pattern = self.signal_queue.get_signal(pos)
-        if pattern.info.get('price_list', None) is not None:
-            res['pattern_price'] = pattern.info['price_list']
-        if pattern.info.get('time_list', None) is not None:
-            res['pattern_time'] = pattern.info['time_list']
-        if pattern.info.get('time', None) is not None:
-            res['pattern_time'] = pattern.info['time']
-        if pattern.info.get('candle', None) is not None:
-            res['pattern_price'] = pattern.info['candle']
+        if pattern.signal_info.get('price_list', None) is not None:
+            res['pattern_price'] = pattern.signal_info['price_list']
+        if pattern.signal_info.get('time_list', None) is not None:
+            res['pattern_time'] = pattern.signal_info['time_list']
+        if pattern.signal_info.get('time', None) is not None:
+            res['pattern_time'] = pattern.signal_info['time']
+        if pattern.signal_info.get('candle', None) is not None:
+            res['pattern_price'] = pattern.signal_info['candle']
         option_attributes = ['call_volume_scale', 'put_volume_scale', 'sum_call_volume', 'sum_put_volume',
                              'call_volume_scale_day', 'put_volume_scale_day', 'median_call_volume'
                              'median_put_volume', 'pcr_minus_1', 'regime', 'market_entrant', 'call_entrant',
@@ -246,14 +246,14 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         for attribute in option_attributes:
             self.add_attribute(pattern, attribute, res)
 
-        if pattern.info.get('dir_pos_price_pct', None) is not None:
-            res['dir_pos_price_pct'] = pattern.info['dir_pos_price_pct']
+        if pattern.signal_info.get('dir_pos_price_pct', None) is not None:
+            res['dir_pos_price_pct'] = pattern.signal_info['dir_pos_price_pct']
 
 
-        if pattern.info.get('dir_pos_price_pct', None) is not None:
-            res['dir_pos_price_pct'] = pattern.info['dir_pos_price_pct']
-        if pattern.info.get('dir_inv_neg_price_pct', None) is not None:
-            res['dir_inv_neg_price_pct'] = pattern.info['dir_inv_neg_price_pct']
+        if pattern.signal_info.get('dir_pos_price_pct', None) is not None:
+            res['dir_pos_price_pct'] = pattern.signal_info['dir_pos_price_pct']
+        if pattern.signal_info.get('dir_inv_neg_price_pct', None) is not None:
+            res['dir_inv_neg_price_pct'] = pattern.signal_info['dir_inv_neg_price_pct']
 
         if hasattr(pattern, 'strike'):
             res['strike'] = pattern['strike']
@@ -266,7 +266,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             pattern_df = self.manager.strategy.asset_book.spot_book.get_inflex_pattern_df().dfstock_3
             pattern_location = locate_point(pattern_df, max(res['pattern_price']))
             res['pattern_location'] = pattern_location
-        if pattern.info.get('price_list', None) is not None:
+        if pattern.signal_info.get('price_list', None) is not None:
             res['pattern_height'] = self.get_pattern_height()
         res['strength'] = pattern.strength
         return res

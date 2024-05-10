@@ -19,7 +19,7 @@ from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import AssetActivityLog
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
-from entities.base import BaseSignal, Signal
+from entities.base import Signal
 from entities.trading_day import TradeDateTime
 
 class SpotBook:
@@ -194,7 +194,7 @@ class SpotBook:
         self.spot_processor.process_spot_signals()
         #self.activity_log.process()
 
-    def pattern_signal(self, signal: BaseSignal):
+    def pattern_signal(self, signal:Signal):
         #print(signal.category)
         if signal.is_option_signal():
             #print('pattern_signal+++++++++++', signal)
@@ -202,8 +202,8 @@ class SpotBook:
         self.activity_log.register_signal(signal)
         if signal.is_trend_signal():
             #print('TREND+++++', signal)
-            self.activity_log.update_sp_trend(signal.info['trend'])
-            for wave in signal.info['all_waves']:
+            self.activity_log.update_sp_trend(signal.signal_info['trend'])
+            for wave in signal.signal_info['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
         self.asset_book.pattern_signal(signal)
 

@@ -68,12 +68,12 @@ class CandlePatternDetector(CandleProcessor):
                     if pattern_id not in self.last_match_dict.keys() or self.last_match_dict[pattern_id] != pattern_pos:
                         self.last_match_dict[pattern_id] = pattern_pos
                         if notify:
-                            pat = Signal(asset=self.spot_book.asset, category='CANDLE_'+str(self.period), instrument="",
+                            pat = Signal(asset=self.spot_book.asset, category='CANDLE_PATTERN', instrument=None,
                                          indicator=pattern + "_BUY",
-                                         signal= 1,
                                          strength = talib_pattern_df[pattern][pattern_pos],
                                          signal_time=talib_pattern_df.timestamp[pattern_pos], notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
-                                         info={'candle':[talib_pattern_df.open[pattern_pos], talib_pattern_df.high[pattern_pos], talib_pattern_df.low[pattern_pos], talib_pattern_df.close[pattern_pos]]})
+                                         signal_info={'open':talib_pattern_df.open[pattern_pos], 'high':talib_pattern_df.high[pattern_pos], 'low':talib_pattern_df.low[pattern_pos], 'close':talib_pattern_df.close[pattern_pos]},
+                                         period=str(self.period) + "min")
                             self.spot_book.pattern_signal(pat)
                 if len(bearish_match_idx) > 0:
                     pattern_id = (pattern, 'SELL')
@@ -81,12 +81,12 @@ class CandlePatternDetector(CandleProcessor):
                     if pattern_id not in self.last_match_dict.keys() or self.last_match_dict[pattern_id] != pattern_pos:
                         self.last_match_dict[pattern_id] = pattern_pos
                         if notify:
-                            pat = Signal(asset=self.spot_book.asset, category='CANDLE_'+str(self.period), instrument="",
+                            pat = Signal(asset=self.spot_book.asset, category='CANDLE_PATTERN', instrument=None,
                                          indicator=pattern + "_SELL",
-                                         signal= 1,
                                          strength = talib_pattern_df[pattern][pattern_pos],
                                          signal_time=talib_pattern_df.timestamp[pattern_pos], notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
-                                         info={'candle':[talib_pattern_df.open[pattern_pos],talib_pattern_df.high[pattern_pos], talib_pattern_df.low[pattern_pos], talib_pattern_df.close[pattern_pos]]})
+                                         signal_info={'open':talib_pattern_df.open[pattern_pos],'high':talib_pattern_df.high[pattern_pos], 'low':talib_pattern_df.low[pattern_pos], 'close':talib_pattern_df.close[pattern_pos]},
+                                         period=str(self.period)+"min")
                             self.spot_book.pattern_signal(pat)
             for s_pattern in s_patterns:
                 #print(cs_pattern_df[cs_pattern_df[s_pattern] == True]['timestamp'].to_list())
@@ -98,12 +98,12 @@ class CandlePatternDetector(CandleProcessor):
                     if s_pattern not in self.last_match_dict.keys() or self.last_match_dict[s_pattern] != pattern_time:
                         self.last_match_dict[s_pattern] = pattern_time
                         if notify:
-                            pat = Signal(asset=self.spot_book.asset, category='CANDLE_'+str(self.period), instrument="",
+                            pat = Signal(asset=self.spot_book.asset, category='CANDLE_PATTERN', instrument=None,
                                          indicator=s_pattern,
-                                         signal= 1,
                                          strength = 1,
                                          signal_time=cs_pattern_df.timestamp[pattern_pos], notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
-                                         info={'candle':[cs_pattern_df.open[pattern_pos], cs_pattern_df.high[pattern_pos], cs_pattern_df.low[pattern_pos], cs_pattern_df.close[pattern_pos]]})
+                                         signal_info={'open':cs_pattern_df.open[pattern_pos], 'high':cs_pattern_df.high[pattern_pos], 'low':cs_pattern_df.low[pattern_pos], 'close':cs_pattern_df.close[pattern_pos]},
+                                         period=str(self.period)+"min")
                             self.spot_book.pattern_signal(pat)
             if notify:
                 last_candle = self.candles[-1]
@@ -113,13 +113,13 @@ class CandlePatternDetector(CandleProcessor):
                 cd_size_pattern = 'CDL_SZ_L' if size >= config[self.spot_book.asset]['CDL_SZ_L'] else 'CDL_SZ_S'
                 cd_dir_pattern = 'CDL_DIR_P' if (last_candle['close'] - last_candle['open']) >= 0 else 'CDL_DIR_N'
                 for cd_pattern in [cd_body_pattern, cd_size_pattern, cd_dir_pattern]:
-                    pat = Signal(asset=self.spot_book.asset, category='CANDLE_' + str(self.period), instrument="",
+                    pat = Signal(asset=self.spot_book.asset, category='CANDLE_PATTERN', instrument=None,
                                  indicator=cd_pattern,
-                                 signal=1,
                                  strength=1,
                                  signal_time=last_candle['timestamp'],
                                  notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
-                                 info=last_candle)
+                                 signal_info=last_candle,
+                                 period=str(self.period)+"min")
                     self.spot_book.pattern_signal(pat)
 
     def evaluate(self, notify=True):

@@ -3,7 +3,7 @@ from dynamics.option_market.option_matrix import OptionMatrix
 from db.market_data import get_prev_day_avg_volume
 from dynamics.option_market.utils import get_average_volume_for_day
 from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion
-from entities.base import BaseSignal
+from entities.base import Signal
 from arc.clock import Clock
 from arc.compound_signal_builder import CompoundSignalBuilder
 from entities.trading_day import NearExpiryWeek, TradeDateTime
@@ -110,7 +110,7 @@ class OptionAssetBook:
     def clean(self):
         self.spot_book.clean()
 
-    def pattern_signal(self, signal: BaseSignal):
+    def pattern_signal(self, signal: Signal):
         #print('asset book pattern_signal')
         if signal.category in ['PRICE_ACTION_INTRA_0', 'TECHNICAL', 'CANDLE_1', 'CANDLE_2', 'CANDLE_5', 'TIME_SIGNAL']:
             print(signal.category, signal.indicator)

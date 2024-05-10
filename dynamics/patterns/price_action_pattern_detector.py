@@ -229,11 +229,10 @@ class PriceActionPatternDetector:
                     # print('success on reevaluation', matched_pattern)
                     pat = Signal(asset=self.spot_book.asset, category=PRICE_ACTION_INTRA_DAY, instrument="",
                                  indicator='INDICATOR_' + infirm_pattern['pattern'],
-                                 signal=1,
                                  strength=0,
                                  signal_time=matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],
                                  notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
-                                 info=matched_pattern)
+                                 signal_info=matched_pattern)
                     """
                     pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': 'INDICATOR_' + infirm_pattern['pattern'], 'signal': 1, 'strength': 0,
                            'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],
@@ -260,11 +259,10 @@ class PriceActionPatternDetector:
                     #print('evaluate 1++++')
                     pat = Signal(asset=self.spot_book.asset, category=PRICE_ACTION_INTRA_DAY, instrument="",
                                  indicator='INDICATOR_' + pattern,
-                                 signal=1,
                                  strength=0,
                                  signal_time=matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],
                                  notice_time=self.spot_book.spot_processor.last_tick['timestamp'],
-                                 info=matched_pattern)
+                                 signal_info=matched_pattern)
                     """
                     pat = {'category': PRICE_ACTION_INTRA_DAY, 'indicator': 'INDICATOR_' + pattern, 'signal': 1, 'strength': 0,
                            'signal_time': matched_pattern['time_list'][-2] if 'time_list' in matched_pattern else self.spot_book.spot_processor.last_tick['timestamp'],

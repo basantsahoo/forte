@@ -192,8 +192,8 @@ class AssetBook:
         self.activity_log.register_signal(signal)
         if signal.is_trend_signal():
             #print('TREND+++++', signal)
-            self.activity_log.update_sp_trend(signal.info['trend'])
-            for wave in signal.info['all_waves']:
+            self.activity_log.update_sp_trend(signal.signal_info['trend'])
+            for wave in signal.signal_info['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
         self.market_book.pattern_signal(signal)
 
