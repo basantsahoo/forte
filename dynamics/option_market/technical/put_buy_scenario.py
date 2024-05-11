@@ -27,5 +27,5 @@ class PutBuyScenario:
                 #print('dispatch signal+++++++++', scenario['name'])
                 signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
                                 indicator=scenario['name'], strength=1, signal_time=info['timestamp'],
-                                notice_time=info['timestamp'], signal_info=info)
+                                notice_time=info['timestamp'], signal_info=info, period="1min")
                 self.call_back_fn(signal)

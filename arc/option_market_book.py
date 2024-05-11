@@ -48,7 +48,7 @@ class OptionMarketBook:
         #print(feed['data'][-1])
         self.time_book.check_frame_change(feed['data'][-1]['timestamp'])
         if self.trade_day != feed['data'][-1]['trade_date']:
-            print('trade dat change')
+            print('trade date change')
             self.do_day_set_up(feed['data'][-1]['trade_date'])
         if feed['feed_type'] == 'spot':
             self.set_curr_tpo(feed['data'][-1]['timestamp'])

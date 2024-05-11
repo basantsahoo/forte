@@ -131,7 +131,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
         self.log('threshold', th)
         #print(self.signal_queue.signals)
         if th is None:
-            th = self.signal_queue.get_signal(-1).info[th_type] if self.signal_queue.signals else None
+            th = self.signal_queue.get_signal(-1).signal_info[th_type] if self.signal_queue.signals else None
             try:
                 self.log(self.signal_queue.signals)
             except:

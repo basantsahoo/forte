@@ -287,13 +287,13 @@ class BaseStrategy:
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
-        print('time to close========', self.asset_book.market_book.get_time_to_close())
-        print('trade_cut_off_time========', self.trade_cut_off_time)
-        print('self.valid_tpo()========', self.valid_tpo())
-        print('signal_present========', self.entry_signal_pipeline.all_entry_signal())
-        print('trade_limit_not_reached========', not self.trade_limit_reached())
+        #print('time to close========', self.asset_book.market_book.get_time_to_close())
+        #print('trade_cut_off_time========', self.trade_cut_off_time)
+        #print('self.valid_tpo()========', self.valid_tpo())
+        #print('signal_present========', self.entry_signal_pipeline.all_entry_signal())
+        #print('trade_limit_not_reached========', not self.trade_limit_reached())
         enough_time = self.asset_book.market_book.get_time_to_close() > self.trade_cut_off_time
-        print('enough_time========', enough_time)
+        #print('enough_time========', enough_time)
         suitable_tpo = self.valid_tpo()
         signal_present = self.entry_signal_pipeline.all_entry_signal()
         trade_limit_not_reached = not self.trade_limit_reached()

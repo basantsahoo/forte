@@ -122,7 +122,7 @@
   "run_params": {
     "test_days": [],
     "for_past_days": 1,
-    "to_date": "2024-04-09",
+    "to_date": "2024-03-20",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,

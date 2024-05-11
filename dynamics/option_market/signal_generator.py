@@ -254,7 +254,7 @@ class OptionSignalGenerator:
         info = self.get_info()
         signal = Signal(asset=info['asset'], category='OPTION_MARKET', instrument="OPTION",
                         indicator="PCR_MINUS_1", strength=info['pcr_minus_1'], signal_time=info['timestamp'],
-                        notice_time=info['timestamp'], signal_info=info)
+                        notice_time=info['timestamp'], signal_info=info, period=self.option_matrix.period)
         self.dispatch_signal(signal)
 
     def run_external_generators_old(self):
@@ -277,7 +277,8 @@ class OptionSignalGenerator:
 
     def dispatch_signal(self, signal):
         #print(signal.name, TradeDateTime(self.option_matrix.last_time_stamp).date_time_string)
-        if signal.indicator: #== 'PCR_MINUS_1_2':
+        signal.period =self.option_matrix.period
+        if signal.indicator == 'PCR_MINUS_1_2_3':
             print('------------------------------------', signal.indicator)
         if self.signal_dispatcher:
             self.signal_dispatcher(signal)

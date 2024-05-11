@@ -16,7 +16,7 @@
       "instr_targets":[0.15, 0.15, 0.15, 0.1],
       "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["CANDLE_1", "BOTTOM_TYPE_1"],
+      "register_signal_category": ["COMPOUND", "BOTTOM_TYPE_1_1MIN"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["CANDLE_1", "BOTTOM_TYPE_1"],
+            "signal_type": ["COMPOUND", "BOTTOM_TYPE_1_1MIN"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,

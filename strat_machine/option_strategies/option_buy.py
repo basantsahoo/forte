@@ -20,6 +20,7 @@ class OptionBuy(BaseStrategy):
                 strike = get_option_strike(ltp, instr[0], instr[1], instr[2])
                 self.derivative_instruments.append(str(strike) + "_" + instr[2])
             print('register instr', self.derivative_instruments)
+            print('signal.key_levels', signal.key_levels)
             if signal.key_levels:
                 for key, val in signal.key_levels.items():
                     print(key, val)

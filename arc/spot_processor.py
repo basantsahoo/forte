@@ -30,7 +30,7 @@ class SpotProcessor:
         self.last_tick = feed_small
         self.day_range['low'] = min(self.day_range['low'], feed_small['low'])
         self.day_range['high'] = max(self.day_range['high'], feed_small['high'])
-        pat = Signal(asset=self.asset_book.asset, category="PRICE_SIGNAL", instrument="SPOT", indicator="TICK_PRICE", signal_time=self.last_tick['timestamp'], notice_time=self.last_tick['timestamp'], signal_info= self.last_tick, strength=1)
+        pat = Signal(asset=self.asset_book.asset, category="PRICE_SIGNAL", instrument="SPOT", indicator="TICK_PRICE", signal_time=self.last_tick['timestamp'], notice_time=self.last_tick['timestamp'], signal_info= self.last_tick, strength=1, period="1min")
         """
         pat = {'category': 'PRICE', 'indicator': 'TICK_PRICE', 'strength': 1,
                'signal_time': self.last_tick['timestamp'], 'notice_time': self.last_tick['timestamp'],
@@ -51,7 +51,7 @@ class SpotProcessor:
             #print('new candle start time===', datetime.fromtimestamp(candle_5['timestamp']))
             pat = Signal(asset=self.asset_book.asset, category="PRICE_SIGNAL", instrument="", indicator="CANDLE_5",
                          signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'],
-                         signal_info=candle_5, strength=1)
+                         signal_info=candle_5, strength=1, period="1min")
             self.asset_book.pattern_signal(pat)
             if candle_count > 2 and candle_count<6:
                 self.ema_5 = EMA(period=candle_count, input_values=[candle['close'] for candle in self.asset_book.candle_5_processor.candles])
@@ -63,7 +63,7 @@ class SpotProcessor:
                 candle_low = candle_5['low']
                 if candle_low > self.ema_5[-1]:
                     print('candle signal =========', datetime.fromtimestamp(self.last_tick['timestamp']))
-                    pat = Signal(asset=self.asset_book.asset,  category='TECHNICAL', instrument="SPOT", indicator='CDL_5_ABOVE_EMA_5', strength=1, signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'], signal_info= candle_5)
+                    pat = Signal(asset=self.asset_book.asset,  category='TECHNICAL', instrument="SPOT", indicator='CDL_5_ABOVE_EMA_5', strength=1, signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'], signal_info= candle_5, period="1min")
                     self.asset_book.pattern_signal(pat)
 
                 price_below_ema = int(candle_5['close'] < self.ema_5[-1])
@@ -71,13 +71,13 @@ class SpotProcessor:
                     #print('price_below_ema signal===========', datetime.fromtimestamp(self.last_tick['timestamp']))
                     pat = Signal(asset=self.asset_book.asset, category="TECHNICAL", instrument="SPOT", indicator="PRICE_BELOW_EMA_5",
                                  signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'],
-                                 signal_info=candle_5, strength=1)
+                                 signal_info=candle_5, strength=1, period="1min")
 
 
                 else:
                     pat = Signal(asset=self.asset_book.asset, category="TECHNICAL", instrument="SPOT", indicator="PRICE_ABOVE_EMA_5",
                                  signal_time=candle_5['timestamp'], notice_time=self.last_tick['timestamp'],
-                                 signal_info=candle_5, strength=1)
+                                 signal_info=candle_5, strength=1, period="1min")
                 self.asset_book.pattern_signal(pat)
 
     def ema_1_signal(self):
@@ -88,7 +88,7 @@ class SpotProcessor:
             #print('new candle start time===', datetime.fromtimestamp(candle_5['timestamp']))
             pat = Signal(asset=self.asset_book.asset, category="PRICE_SIGNAL", instrument=None, indicator="CANDLE_1",
                          signal_time=candle_1['timestamp'], notice_time=self.last_tick['timestamp'],
-                         signal_info=candle_1, strength=1)
+                         signal_info=candle_1, strength=1, period="1min")
             self.asset_book.pattern_signal(pat)
             if candle_count > 2 and candle_count<11:
                 self.ema_1_10 = EMA(period=candle_count, input_values=[candle['close'] for candle in self.asset_book.candle_1_processor.candles])
@@ -102,7 +102,7 @@ class SpotProcessor:
 
                 pat = Signal(asset=self.asset_book.asset, category="TECHNICAL", instrument="SPOT", indicator="EMA_1_10",
                              signal_time=candle_1['timestamp'], notice_time=self.last_tick['timestamp'],
-                             signal_info=candle_1, strength=self.ema_1_10[-1])
+                             signal_info=candle_1, strength=self.ema_1_10[-1], period="1min")
 
                 self.asset_book.pattern_signal(pat)
             if self.sma_1_10:
@@ -111,7 +111,7 @@ class SpotProcessor:
 
                 pat = Signal(asset=self.asset_book.asset, category="TECHNICAL", instrument="SPOT", indicator="SMA_1_10",
                              signal_time=candle_1['timestamp'], notice_time=self.last_tick['timestamp'],
-                             signal_info=candle_1, strength=self.sma_1_10[-1])
+                             signal_info=candle_1, strength=self.sma_1_10[-1], period="1min")
 
                 self.asset_book.pattern_signal(pat)
 

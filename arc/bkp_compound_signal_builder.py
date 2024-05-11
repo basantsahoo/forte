@@ -96,8 +96,8 @@ class CompoundSignalBuilder:
                     and two_bearish_candle and two_big_candle and two_body_large\
                     and (one_high_volume_candle or two_high_volume_candle):
                 print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-                local_low = min(one_bullish_candle_resp['signal'].info['low'],
-                                 two_bearish_candle_resp['signal'].info['low'])
+                local_low = min(one_bullish_candle_resp['signal'].signal_info['low'],
+                                 two_bearish_candle_resp['signal'].signal_info['low'])
                 key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [local_low],
                               'spot_short_target_levels': [], 'spot_short_stop_loss_levels': []}
 
@@ -164,22 +164,22 @@ class CompoundSignalBuilder:
                         and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
                         and (one_high_volume_candle_type_1 or two_high_volume_candle_type_1 or three_high_volume_candle_type_1):
                     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-                    local_high = max(one_bearish_candle_resp['signal'].info['high'], two_bullish_candle_resp['signal'].info['high'], three_bearish_candle_resp['signal'].info['high'])
+                    local_high = max(one_bearish_candle_resp['signal'].signal_info['high'], two_bullish_candle_resp['signal'].signal_info['high'], three_bearish_candle_resp['signal'].signal_info['high'])
                     self.down_break_level_type_1.add(local_high)
                 if one_bearish_candle and two_bullish_candle and three_bearish_candle \
                         and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
                         and (one_high_volume_candle_type_2 or two_high_volume_candle_type_2 or three_high_volume_candle_type_2):
                     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-                    local_high = min(one_bearish_candle_resp['signal'].info['high'], two_bullish_candle_resp['signal'].info['high'], three_bearish_candle_resp['signal'].info['high'])
+                    local_high = min(one_bearish_candle_resp['signal'].signal_info['high'], two_bullish_candle_resp['signal'].signal_info['high'], three_bearish_candle_resp['signal'].signal_info['high'])
                     self.down_break_level_type_2.add(local_high)
                 if one_bearish_candle and two_bullish_candle and three_bearish_candle \
                         and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
                         and (one_high_volume_candle_type_3 or two_high_volume_candle_type_3 or three_high_volume_candle_type_3)\
                         and self.market_params['price_location'] < 30:
                     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
-                    local_high = max(one_bearish_candle_resp['signal'].info['high'],
-                                     two_bullish_candle_resp['signal'].info['high'],
-                                     three_bearish_candle_resp['signal'].info['high'])
+                    local_high = max(one_bearish_candle_resp['signal'].signal_info['high'],
+                                     two_bullish_candle_resp['signal'].signal_info['high'],
+                                     three_bearish_candle_resp['signal'].signal_info['high'])
                     key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [],
                                   'spot_short_target_levels': [], 'spot_short_stop_loss_levels': [local_high]}
                     print(key_levels)
@@ -258,8 +258,8 @@ class CompoundSignalBuilder:
                 bearish_engulfing_resp = self.check_signal_present(ten_period_signals[idx], ('CANDLE_1', 'CDLENGULFING_SELL'))
                 bearish_engulfing = bearish_engulfing_resp['found']
                 if bearish_engulfing:
-                    #print(bearish_engulfing_resp['signal'].info['candle'])
-                    local_high = max(bearish_engulfing_resp['signal'].info['candle'])
+                    #print(bearish_engulfing_resp['signal'].signal_info['candle'])
+                    local_high = max(bearish_engulfing_resp['signal'].signal_info['candle'])
                     print('one_bearish_candle found+++++', one_bearish_candle)
                     print('one_body_large found+++++', one_body_large)
                     print('one_high_put_volume_candle_type_1 found+++++', one_high_put_volume_candle_type_1)

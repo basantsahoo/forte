@@ -44,14 +44,16 @@ class Signal:
         self.signal_time = signal_time
         self.notice_time = notice_time
         self.signal_info = signal_info
-        self.key_levels = key_levels or {}
+        self.option_market_info = option_market_info
+        self.spot_market_info = spot_market_info
+        self.key_levels = key_levels
         self.instrument = instrument
         self.period = period
 
     def copy(self):
         return type(self)(self.asset, self.category, self.indicator, self.instrument, self.signal_time,
-                          self.notice_time, self.strength, self.signal_info, self.key_levels,
-                             self.name
+                          self.notice_time, self.strength, self.signal_info, self.option_market_info, self.spot_market_info, self.key_levels,
+                          self.period,  self.name
                           )
 
     def is_option_signal(self):

@@ -37,7 +37,7 @@ from entities.trading_day import TradeDateTime
 
 class OptionMatrix:
 
-    def __init__(self,  asset, feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False, print_cross_stats=False):
+    def __init__(self,  asset, feed_speed=1, throttle_speed=15, instant_compute=True, live_mode=False, volume_delta_mode=False, print_cross_stats=False, period="1min"):
         self.asset = asset
         self.capsule = Capsule()
         self.spot_capsule = Capsule()
@@ -55,6 +55,7 @@ class OptionMatrix:
         self.last_time_stamp = None
         self.volume_delta_mode = volume_delta_mode
         self.print_cross_stats = print_cross_stats
+        self.period = period
 
 
     def frame_change_action(self, current_frame, next_frame):
