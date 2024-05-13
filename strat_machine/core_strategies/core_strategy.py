@@ -193,7 +193,7 @@ class BaseStrategy:
     def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
         for trigger in triggers:
             if self.record_metric:
-                mkt_parms = self.asset_book.spot_book.activity_log.get_market_params()
+                mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
                 if self.signal_params:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
@@ -351,7 +351,7 @@ class BaseStrategy:
     def pre_signal_filter(self, signal):
         satisfied = not self.signal_filters
         if not satisfied:
-            market_params = self.asset_book.spot_book.activity_log.get_market_params()
+            market_params = self.asset_book.spot_book.spot_processor.get_market_params()
             #print(market_params)
             d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure',0)
             price_location =  market_params.get('price_location', 50)
@@ -378,7 +378,7 @@ class BaseStrategy:
         #print('inside record_params', matched_pattern)
         #print(self.market_book.activity_log.locate_price_region())
         if self.record_metric:
-            price_region = self.asset_book.spot_book.activity_log.locate_price_region()
+            price_region = self.asset_book.spot_book.spot_processor.locate_price_region()
             for key, val in price_region.items():
                 self.signal_params['pat_' + key] = val
             for pattern_queue_item in self.entry_signal_pipeline.neuron_dict.values():

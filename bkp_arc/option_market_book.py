@@ -108,6 +108,14 @@ class OptionMarketBook:
             print('pattern_signal+++++++', pattern, pattern_match_idx)
         """
         """
+        if pattern == 'TREND':
+            #print('TREND+++++', pattern, pattern_match_idx)
+            self.activity_log.update_sp_trend(pattern_match_idx['trend'])
+            for wave in pattern_match_idx['all_waves']:
+                self.intraday_waves[wave['wave_end_time']] = wave
+            #print(self.intraday_waves)
+        """
+        """
         for strategy in self.strategies:
             strategy.register_signal(pattern, pattern_match_idx)
             #strategy.process_signal(pattern, pattern_match_idx)

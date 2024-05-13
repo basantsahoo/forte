@@ -16,8 +16,8 @@ candle_names = talib.get_function_groups()['Pattern Recognition']
 #print(candle_names)
 
 class IntradayTrendCalculator:
-    def __init__(self, insight_book):
-        self.insight_book = insight_book
+    def __init__(self, spot_processor):
+        self.spot_processor = spot_processor
         self.first_hour_trend = 0
         self.whole_day_trend = 0
         self.five_min_trend = 0
@@ -98,7 +98,7 @@ class IntradayTrendCalculator:
 
 
     def calculate_measures(self):
-        price_list = list(self.insight_book.spot_processor.spot_ts.values())
+        price_list = list(self.spot_processor.spot_ts.values())
         if len(price_list) < 1:
             return
 

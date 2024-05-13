@@ -1,6 +1,5 @@
 import numpy as np
 import json
-from datetime import datetime
 from talib import stream
 
 from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
@@ -18,53 +17,62 @@ from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
 from dynamics.transition.empirical import EmpiricalDistribution
 from arc.market_activity import AssetActivityLog
-from arc_old_keep.intraday_option_processor import IntradayOptionProcessor
 from arc.spot_processor import SpotProcessor
 from arc.candle_processor import CandleProcessor
+from entities.base import Signal
 from entities.trading_day import TradeDateTime
-from entities.base import BaseSignal, Signal
 
-
-class AssetBook:
-    def __init__(self, market_book, asset, candle_sw):
-        self.market_book = market_book
+class SpotBook:
+    def __init__(self, asset_book, asset):
+        self.asset_book = asset_book
         self.asset = asset
         self.spot_processor = SpotProcessor(self)
-        self.option_processor = IntradayOptionProcessor(self, asset)
+        self.candle_1_processor = CandleProcessor(self, 1, 0)
         self.candle_5_processor = CandleProcessor(self, 5, 0)
-        self.candle_15_processor = CandleProcessor(self, 15, 0)
+        #self.candle_15_processor = CandleProcessor(self, 15, 0)
         self.state_generator = None
-        # self.candle_5_processor.on_new_candle = self.on_new_5_min_candle
-        #self.candle_15_processor.on_new_candle = self.on_new_15_min_candle
-        #self.candle_5_queue = []
-        #self.candle_15_queue = []
         self.trend = {}
         self.activity_log = AssetActivityLog(self)
         self.inflex_detector = PriceInflexDetectorForTrend(asset, fpth=0.001, spth = 0.001,  callback=None)
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self, period=1)]
-        self.candle_pattern_detectors = [CandlePatternDetector(self, period=5, sliding_window=candle_sw), CandlePatternDetector(self, period=15, sliding_window=candle_sw)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=1), CandlePatternDetector(self, period=2), CandlePatternDetector(self, period=5)]
+        self.candle_pattern_detectors = [CandlePatternDetector(self, period=1)]
+        #self.candle_pattern_detectors = [CandlePatternDetector(self, period=5), CandlePatternDetector(self, period=15)]
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
-        self.trade_day = None
         self.mc = MarkovChainSecondLevel()
         self.last_periodic_update = None
         self.periodic_update_sec = 60
 
-    def set_trade_date_from_time(self, epoch_tick_time):
-        tick_date_time = datetime.fromtimestamp(epoch_tick_time)
-        trade_day = tick_date_time.strftime('%Y-%m-%d')
-        self.trade_day = trade_day
+    def feed_stream_2(self, feed_list):
+        """
+        for feed in feed_list:
+            #print(feed)
+            self.spot_processor.process_minute_data(feed)
+        """
+        pass
+    def feed_stream_1(self, feed_list):
+        for feed in feed_list:
+            #print(feed)
+            self.spot_processor.process_minute_data(feed)
+            self.spot_minute_data_stream(feed)
+
+    def frame_change_action(self, current_frame, next_frame):
+        pass
+
+    def subscribe_to_clock(self, clock):
+        clock.subscribe_to_frame_change(self.frame_change_action)
+
+    def day_change_notification(self, trade_day):
         self.set_key_levels()
-        self.set_transition_matrix()
-        self.day_setup_done = True
 
     def set_key_levels(self):
-        self.weekly_pivots = get_pivot_points(get_prev_week_candle(self.asset, self.trade_day))
-        self.yday_profile = get_nth_day_profile_data(self.asset, self.trade_day, 1).to_dict('records')[0]
-        self.day_before_profile = get_nth_day_profile_data(self.asset, self.trade_day, 2).to_dict('records')[0]
+        self.weekly_pivots = get_pivot_points(get_prev_week_candle(self.asset, self.asset_book.market_book.trade_day))
+        self.yday_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 1).to_dict('records')[0]
+        self.day_before_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 2).to_dict('records')[0]
         self.intraday_waves = {}
-        prev_key_levels = get_prev_day_key_levels(self.asset, self.trade_day)
+        prev_key_levels = get_prev_day_key_levels(self.asset, self.asset_book.market_book.trade_day)
 
         range_to_watch = [self.yday_profile['low'] * 0.97, self.yday_profile['high'] * 1.03]
         existing_supports = json.loads(prev_key_levels[1])
@@ -93,27 +101,27 @@ class AssetBook:
         return min(last_wave['start'], last_wave['end'])
 
     def get_n_candle_body_target_up(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         body = big_candle['high'] - big_candle['low']
         return big_candle['high'] + body
 
     def get_n_candle_body_target_down(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         body = big_candle['high'] - big_candle['low']
         return big_candle['low'] - body
 
     def get_last_n_candle_high(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         return big_candle['high']
 
     def get_last_n_candle_low(self, period=5, n=1):
-        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else None
+        candle_processor = self.candle_5_processor if period == 5 else self.candle_15_processor if period == 15 else self.candle_1_processor if period == 1 else None
         small_candles = candle_processor.get_last_n_candles(n)
         big_candle = convert_to_candle(small_candles)
         return big_candle['low']
@@ -127,8 +135,9 @@ class AssetBook:
     def get_inflex_pattern_df(self, period=None):
         return self.inflex_detector
 
+    """
     def set_transition_matrix(self):
-        self.state_generator = DayFullStateGenerator(self.asset, self.trade_day, self.yday_profile)
+        self.state_generator = DayFullStateGenerator(self.asset, self.asset_book.market_book.trade_day, self.yday_profile)
         try:
             f = open(cache_dir + 'full_state_' + self.asset + '.json')
             data = json.load(f)
@@ -155,18 +164,15 @@ class AssetBook:
                    signal_time=self.spot_processor.last_tick['timestamp'], notice_time=self.spot_processor.last_tick['timestamp'],
                    info={'probs': probs}, strength=0)
             self.pattern_signal(pat)
-
+    """
     def spot_minute_data_stream(self, price, iv=None):
-        print('Asset book of==', self.asset, " received price input===", price)
+        #print('Spot book of==', self.asset, " received price input===", price)
         epoch_tick_time = price['timestamp']
         epoch_minute = TradeDateTime.get_epoc_minute(epoch_tick_time)
         key_list = ['timestamp','open', 'high', "low", "close"]
         feed_small = {key: price[key] for key in key_list}
-        if not self.day_setup_done:
-            self.set_trade_date_from_time(epoch_tick_time)
-        self.update_state_transition()
-        self.activity_log.update_last_candle()
-        self.activity_log.determine_level_break(epoch_tick_time)
+        #self.activity_log.update_last_candle()
+        #self.activity_log.determine_level_break(epoch_tick_time)
         if self.last_periodic_update is None:
             self.last_periodic_update = epoch_minute
         if price['timestamp'] - self.last_periodic_update > self.periodic_update_sec:
@@ -174,8 +180,13 @@ class AssetBook:
             self.update_periodic()
         self.inflex_detector.on_price_update([price['timestamp'], price['close']])
         #self.trend_detector.evaluate()
+        self.candle_1_processor.create_candles()
         self.candle_5_processor.create_candles()
+        """
+        
         self.candle_15_processor.create_candles()
+        self.candle_1_processor.create_candles()
+        """
         for pattern_detector in self.price_action_pattern_detectors:
             pattern_detector.evaluate()
         for candle_detector in self.candle_pattern_detectors:
@@ -183,9 +194,8 @@ class AssetBook:
         self.spot_processor.process_spot_signals()
         #self.activity_log.process()
 
-    def pattern_signal(self, signal: BaseSignal):
-        print(type(signal))
-        #print(signal['category'])
+    def pattern_signal(self, signal:Signal):
+        #print(signal.category)
         if signal.is_option_signal():
             #print('pattern_signal+++++++++++', signal)
             pass
@@ -195,7 +205,8 @@ class AssetBook:
             self.activity_log.update_sp_trend(signal.signal_info['trend'])
             for wave in signal.signal_info['all_waves']:
                 self.intraday_waves[wave['wave_end_time']] = wave
-        self.market_book.pattern_signal(signal)
+        self.asset_book.pattern_signal(signal)
+
 
 
     def clean(self):

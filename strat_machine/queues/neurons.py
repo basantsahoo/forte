@@ -204,8 +204,8 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
             self.log(last_tick_time, "COM  LOG", 'From Watcher id==', info['n_id'], "sent code==", info['code'], "==" ,info.get('status', None))
 
     def add_attribute(self, pattern, attribute, res):
-        if pattern.signal_info.get(attribute, None) is not None:
-            res[attribute] = pattern.signal_info[attribute]
+        if pattern.option_market_info.get(attribute, None) is not None:
+            res[attribute] = pattern.option_market_info[attribute]
         return res
 
     def get_attributes(self, pos=-1):

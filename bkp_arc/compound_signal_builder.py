@@ -23,7 +23,7 @@ class CompoundSignalBuilder:
         self.asset_book.pattern_signal(signal)
 
     def build_signal(self):
-        self.market_params = self.asset_book.spot_book.spot_processor.get_market_params()
+        self.market_params = self.asset_book.spot_book.activity_log.get_market_params()
 
         #self.build_bottom_type_2()
         #self.build_bottom_type_1()
