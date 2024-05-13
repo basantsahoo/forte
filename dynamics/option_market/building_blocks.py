@@ -181,6 +181,7 @@ class SpotIon:
         self.high = high
         self.low = low
         self.close = close
+        self.volume = 0
 
     def price_is_valid(self):
         return (self.open > 0) and (self.high > 0) and (self.low > 0) and (self.close > 0)

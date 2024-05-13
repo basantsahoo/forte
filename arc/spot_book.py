@@ -46,13 +46,6 @@ class SpotBook:
     def update_periodic(self):
         self.spot_processor.update_periodic()
 
-    def feed_stream_2(self, feed_list):
-        """
-        for feed in feed_list:
-            #print(feed)
-            self.spot_processor.process_minute_data(feed)
-        """
-        pass
     def feed_stream_1(self, feed_list):
         for feed in feed_list:
             #print(feed)

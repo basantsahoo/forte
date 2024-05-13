@@ -56,11 +56,12 @@ class OptionMatrix:
         self.volume_delta_mode = volume_delta_mode
         self.print_cross_stats = print_cross_stats
         self.period = period
+        self.aggregation_factor = throttle_speed / feed_speed
 
 
     def frame_change_action(self, current_frame, next_frame):
         #print('----------------frame_change_action', TradeDateTime(current_frame).date_time_string)
-        self.last_time_stamp = current_frame
+        self.last_time_stamp = int(int(current_frame/(self.aggregation_factor * 60)) * self.aggregation_factor * 60)
         #print('option matrix, frame_change_action++++')
         self.spot_throttler.check_time_to_push(next_frame)
         self.option_data_throttler.check_time_to_push(next_frame)
