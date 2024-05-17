@@ -148,6 +148,17 @@ def get_nth_day_profile_data(symbol, trade_day, n):
     conn.close()
     return df
 
+def get_previous_n_day_profile_data(symbol, trade_day, n):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    stmt_1 = """select  date as timestamp,open,high,low,close,va_h_p, va_l_p,ib_l_acc,ib_h_acc,poc_price,below_poc, above_poc from daily_profile where symbol = '{0}' and date >= (select date from 
+            (SELECT DISTINCT date, DENSE_RANK() OVER (ORDER BY date DESC) AS DATE_RANK FROM (select DISTINCT date from daily_profile where date < date('{1}') and symbol = '{0}') as A) as B
+            WHERE DATE_RANK = {2}) and date < date('{1}') and date > (date('{1}')  - {2} -3 -300 )"""
+    conn = engine.connect()
+    #print(stmt_1.format(symbol, trade_day, n))
+    df = pd.read_sql_query(stmt_1.format(symbol, trade_day, n), conn)
+    conn.close()
+    return df
+
 
 def convert_to_n_period_candles(df, period):
     df = df.resample(period).agg(

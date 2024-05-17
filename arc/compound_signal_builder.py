@@ -9,6 +9,13 @@ class CompoundSignalBuilder:
         self.down_break_level_type_3 = set()
         self.market_params = {}
 
+    def clean(self):
+        self.signal_dict = {}
+        self.down_break_level_type_1 = set()
+        self.down_break_level_type_2 = set()
+        self.down_break_level_type_3 = set()
+        self.market_params = {}
+
     def add_signal(self, ts, signal):
         print('adding signal ', signal.category, signal.indicator, signal.period)
         if ts not in self.signal_dict:

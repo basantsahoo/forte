@@ -3,11 +3,12 @@ from helper.utils import get_overlap, compare_day_activity
 import helper.utils as helper_utils
 import json
 
-from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
+from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels, get_previous_n_day_profile_data
 from helper.utils import get_pivot_points, convert_to_candle
 from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.trend_detector import TrendDetector
 from entities.trading_day import TradeDateTime
+from dynamics.patterns.daily_candle_pattern_detector import DailyCandlePatternDetector
 
 class SpotFactorCalculator:
     def __init__(self, spot_book, asset):
@@ -20,7 +21,7 @@ class SpotFactorCalculator:
 
         self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
-
+        self.daily_candle_pattern_detector = DailyCandlePatternDetector(spot_book)
         self.candle_stats = []
         self.hist_2d_activity = {}
         self.trend_features = {}
@@ -41,6 +42,10 @@ class SpotFactorCalculator:
         self.set_key_levels()
 
     def set_key_levels(self):
+        dt = get_previous_n_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 7).to_dict('records')
+        self.daily_candle_pattern_detector.candles = dt
+        self.daily_candle_pattern_detector.detect()
+        print(self.daily_candle_pattern_detector.signal_dict)
         self.weekly_pivots = get_pivot_points(get_prev_week_candle(self.asset, self.asset_book.market_book.trade_day))
         self.yday_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 1).to_dict('records')[0]
         self.day_before_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 2).to_dict('records')[0]
@@ -98,6 +103,9 @@ class SpotFactorCalculator:
         for (k,v) in self.hist_2d_activity.items():
             mkt_parms['d2_'+k] = v
         mkt_parms = {**mkt_parms, **self.spx_features}
+        for (category, indicator, period) in self.daily_candle_pattern_detector.signal_dict.keys():
+            mkt_parms[indicator + "_" + period] = 1
+
         return mkt_parms
 
     def determine_day_open(self): ## this is definitive

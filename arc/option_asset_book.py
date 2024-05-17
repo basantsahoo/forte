@@ -107,6 +107,7 @@ class OptionAssetBook:
 
     def clean(self):
         self.spot_book.clean()
+        self.compound_signal_generator.clean()
 
     def pattern_signal(self, signal: Signal):
         #print('asset book pattern_signal')
