@@ -1,12 +1,8 @@
 #from backtest import strategy_back_tester
-from research.analysis import classifier_train
-from research.analysis import regression_train
-from research.analysis import descriptive_analysis_multi_dataset
-from research.analysis import parameter_grid_search
+from backtest_2024.analysis import descriptive_analysis_multi_dataset, parameter_grid_search
 import pandas as pd
 import numpy as np
 from servers.server_settings import reports_dir
-import matplotlib.pyplot as plt
 
 """
 def save_back_test_results():

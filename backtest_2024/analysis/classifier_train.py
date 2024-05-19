@@ -3,48 +3,28 @@ This module contains all methods required to
 train models and score claims
 """
 import os
-import sys
-import inspect
-import logging
-import pickle
-import gzip
-import json
 import numpy as np
-from time import time
 import pandas as pd
 from sklearn.ensemble import (
-    GradientBoostingClassifier,
-    ExtraTreesClassifier,
-    RandomForestClassifier
+    ExtraTreesClassifier
 )
-from sklearn.model_selection import (
-    GridSearchCV,
-    RandomizedSearchCV,
-    StratifiedKFold)
 
 from sklearn.pipeline import (
     Pipeline,
-    FeatureUnion,
-    make_pipeline
+    FeatureUnion
 )
-from sklearn.linear_model import LogisticRegression
 from sklearn import tree
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.inspection import DecisionBoundaryDisplay
 import matplotlib.pyplot as plt
 
-from research.analysis.build_features import (
-    NumericProcessor,
-    CategoricalProcessor,
-    MultiColumnLabelEncoder
+from backtest_2024.analysis.build_features import (
+    NumericProcessor
 )
-from research.analysis.utils import WeightedGBM
-from settings import models_dir, reports_dir
+from settings import models_dir
 from sklearn.metrics import accuracy_score,classification_report,confusion_matrix, plot_roc_curve, PrecisionRecallDisplay
-from sklearn.model_selection import train_test_split
 import graphviz
 from sklearn.inspection import DecisionBoundaryDisplay
-from sklearn.preprocessing import OrdinalEncoder, OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import make_column_transformer
 from sklearn.svm import SVC
 import numpy
@@ -246,7 +226,6 @@ def evaluate_features(x_input, y_input):
     pipeline.fit(pre_processed_x, y_input)
 
     from sklearn.feature_selection import SequentialFeatureSelector
-    from sklearn.neighbors import KNeighborsClassifier
     #knn = KNeighborsClassifier(n_neighbors=3)
     pipeline = Pipeline([('clf', ExtraTreesClassifier(random_state=398))])
     pipeline.set_params(clf__n_estimators=8, clf__criterion='gini',

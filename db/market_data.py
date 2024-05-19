@@ -152,8 +152,9 @@ def get_previous_n_day_profile_data(symbol, trade_day, n):
     symbol = helper_utils.get_nse_index_symbol(symbol)
     stmt_1 = """select  date as timestamp,open,high,low,close,va_h_p, va_l_p,ib_l_acc,ib_h_acc,poc_price,below_poc, above_poc from daily_profile where symbol = '{0}' and date >= (select date from 
             (SELECT DISTINCT date, DENSE_RANK() OVER (ORDER BY date DESC) AS DATE_RANK FROM (select DISTINCT date from daily_profile where date < date('{1}') and symbol = '{0}') as A) as B
-            WHERE DATE_RANK = {2}) and date < date('{1}') and date > (date('{1}')  - {2} -3 -300 )"""
+            WHERE DATE_RANK = {2}) and date < date('{1}') and date > (date('{1}')  - ({2} + 4) )"""
     conn = engine.connect()
+    #print(stmt_1.format(symbol, trade_day, n))
     #print(stmt_1.format(symbol, trade_day, n))
     df = pd.read_sql_query(stmt_1.format(symbol, trade_day, n), conn)
     conn.close()
@@ -548,3 +549,13 @@ def get_candle_body_size(symbol, trade_day, period='5Min'):
     candle_bodies = [round(abs(cdl['high'] - cdl['low'])) for cdl in res]
     pcts = [np.percentile(candle_bodies, 30), np.percentile(candle_bodies, 50), np.percentile(candle_bodies, 70)]
     return pcts
+
+
+
+def save_strategy_run_params(symbol, trade_day, kind='CE'):
+    symbol = helper_utils.get_nse_index_symbol(symbol)
+    stmt_1 = "select timestamp, strike AS instrument, oi  FROM option_data where underlying = '{0}' and date = '{1}' and kind='{2}' order by timestamp asc, strike desc"
+    conn = engine.connect()
+    df = pd.read_sql_query(stmt_1.format(symbol, trade_day, kind), conn)
+    conn.close()
+    return df

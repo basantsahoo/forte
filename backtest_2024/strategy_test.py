@@ -101,6 +101,12 @@ class StartegyBackTester:
         end_time = datetime.now()
         print((end_time - start_time).total_seconds())
         print(results[0])
+        """
+        if results:
+            results_df = pd.DataFrame(results)
+            for deployed_strategy in self.strat_config['strategies']:
+                save_strategy_run_params()
+        """
         return results
 
 

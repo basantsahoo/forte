@@ -69,19 +69,19 @@ class DailyCandlePatternDetector:
                     signal = Signal(asset=self.asset, category='CANDLE_PATTERN', instrument=None,
                                  indicator=pattern_id,
                                  strength = latest_idx,
-                                 signal_time=talib_pattern_df.timestamp[-1], notice_time=talib_pattern_df.timestamp[-1],
-                                 signal_info={'open':talib_pattern_df.open[-1], 'high':talib_pattern_df.high[-1], 'low':talib_pattern_df.low[-1], 'close':talib_pattern_df.close[-1]},
+                                 signal_time=talib_pattern_df.timestamp.to_list()[-1], notice_time=talib_pattern_df.timestamp.to_list()[-1],
+                                 signal_info={'open':talib_pattern_df.open.to_list()[-1], 'high':talib_pattern_df.high.to_list()[-1], 'low':talib_pattern_df.low.to_list()[-1], 'close':talib_pattern_df.close.to_list()[-1]},
                                  period=self.period)
                     self.signal_dict[(signal.category, signal.indicator, signal.period)] = signal
             for s_pattern in s_patterns:
                 #print(cs_pattern_df[cs_pattern_df[s_pattern] == True]['timestamp'].to_list())
                 latest_idx = cs_pattern_df[s_pattern].to_list()[-1]
                 if latest_idx:
-                    signal = Signal(asset=self.spot_book.asset, category='CANDLE_PATTERN', instrument=None,
+                    signal = Signal(asset=self.asset, category='CANDLE_PATTERN', instrument=None,
                                  indicator=s_pattern,
                                  strength = 1,
-                                 signal_time=cs_pattern_df.timestamp[-1], notice_time=cs_pattern_df.timestamp[-1],
-                                 signal_info={'open':cs_pattern_df.open[-1], 'high':cs_pattern_df.high[-1], 'low':cs_pattern_df.low[-1], 'close':cs_pattern_df.close[-1]},
+                                 signal_time=cs_pattern_df.timestamp.to_list()[-1], notice_time=cs_pattern_df.timestamp.to_list()[-1],
+                                 signal_info={'open':cs_pattern_df.open.to_list()[-1], 'high':cs_pattern_df.high.to_list()[-1], 'low':cs_pattern_df.low.to_list()[-1], 'close':cs_pattern_df.close.to_list()[-1]},
                                  period=self.period)
                     self.signal_dict[(signal.category, signal.indicator, signal.period)] = signal
             last_candle = self.candles[-1]

@@ -18,6 +18,7 @@
       "instr_to_trade" : [["ITM", 1, "PE"]],
       "register_signal_category": ["COMPOUND", "DOWN_BREAK_TYPE_3_1MIN"],
       "trade_cut_off_time": 25,
+      "weekdays_allowed": ["Monday", "Tuesday", "Wednesday"],
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -55,7 +56,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 6000" }
+        {"op": "or", "logical_test": "price_location < 30" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }

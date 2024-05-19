@@ -16,7 +16,8 @@ from research.analysis import buy_put_analysis
 from research.analysis import option_market_imapct_spot_analysis
 from research.analysis import option_market_imapct_spot_at_low_analysis
 """
-from research.analysis import option_market_imapct_sell_analysis
+from backtest_2024.analysis import option_market_imapct_sell_analysis
+
 #strategy_analysis_revised.run()
 #combined_analysis.run()
 #option_strategy_analysis.run()

@@ -1,7 +1,4 @@
-from research.strategies.aggregators import CandleAggregator
-from research.analysis import classifier_train
-from research.analysis import regression_train
-from research.analysis import descriptive_analysis
+from backtest_2024.analysis import descriptive_analysis
 import pandas as pd
 import numpy as np
 from backtest.settings import reports_dir
@@ -11,9 +8,8 @@ import matplotlib.pyplot as plt
 def load_back_test_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     #df = pd.read_csv(reports_dir + 'test1.csv')
-    #df = pd.read_csv(reports_dir + 'ema.csv')
-    df = pd.read_csv(reports_dir + 'ema_act_with_reverse_tick.csv')
-    df = df.sort_values(['entry_time', 'trade_id', 'leg'], ascending=[True,True, True]).reset_index(drop=True)
+    df = pd.read_csv(reports_dir + 'friday_option_buy.csv')
+    df = df.sort_values(['entry_time', 'signal_id', 'trigger'], ascending=[True,True, True]).reset_index(drop=True)
     #print(df.head().T)
 
     #df = pd.read_csv(reports_dir + 'ddddd.csv')
@@ -108,12 +104,11 @@ def get_cleaned_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     df = load_back_test_results()
     df['realized_pnl'] = df['realized_pnl'] + df['un_realized_pnl']
-    df['target_pct'] = df['instr_target']/df['entry_price'] -1
-    df['pnl_pct'] = df['realized_pnl'] / df['entry_price'] * 100
-    df['stop_loss_pct'] = 1 - df['instr_stop_loss'] / df['entry_price']
-    df['kind'] = df['instrument'].apply(lambda x: x[-2::])
+    df['target_pct'] = df['target']/df['entry_price'] -1
+    df['pnl_pct'] = df['realized_pnl'] / df['entry_price']
+    df['stop_loss_pct'] = 1 - df['stop_loss'] / df['entry_price']
 
-    drop_cols = [ 'exit_time', 'exit_price','un_realized_pnl', 'seq', 'instr_target', 'instr_stop_loss', 'quantity', 'neck_point', 'exit_type', 'closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
+    drop_cols = [ 'exit_time', 'exit_price','un_realized_pnl', 'seq', 'target', 'stop_loss', 'quantity', 'neck_point', 'exit_type', 'closed', 'pattern_time',	'pattern_price', 'duration', 'entry_time_read']
     for col in drop_cols:
         try:
             df.drop(col, axis=1, inplace=True)
@@ -123,7 +118,7 @@ def get_cleaned_results():
     #print(df.groupby(['strategy', 'trigger']).agg({'realized_pnl': ['count', 'mean', 'min', 'max']}))
 
     #df['trigger'] = df['trigger'].apply(lambda x: 1 if x == 2 else x)
-    common_cols = ['day', 'symbol', 'strategy', 'trade_id', 'leg', 'entry_time']
+    common_cols = ['day', 'symbol', 'strategy', 'signal_id', 'trigger', 'entry_time']
     df_1_cols = ['realized_pnl']
     df_1 = df[common_cols + df_1_cols]
     df_1 = df_1.groupby(common_cols).agg({'realized_pnl': ['sum']}).reset_index()
@@ -135,7 +130,7 @@ def get_cleaned_results():
     df_2.drop_duplicates(inplace=True)
     #print(df_1.shape)
     final_df = pd.merge(df_1, df_2, how='left', left_on=common_cols, right_on=common_cols)
-    final_df = final_df.sort_values(['entry_time', 'trade_id', 'leg'], ascending=[True, True, True]).reset_index(drop=True)
+    final_df = final_df.sort_values(['entry_time', 'signal_id', 'trigger'], ascending=[True, True, True]).reset_index(drop=True)
     #print(final_df)
     #print(final_df.columns.to_list())
     #print(final_df.shape)
@@ -150,7 +145,7 @@ def analysis(df):
     #df['infl_dir'] = df['infl_dir'].apply(lambda x: int(x > 0))
     # 'resistance_ind',	'support_ind'
 
-    da_exclude_vars = ['symbol', 'trade_id', 'leg', 'entry_time', 'infl_0', 'infl_n', 'entry_price', ]
+    da_exclude_vars = ['symbol', 'signal_id', 'trigger', 'entry_time', 'infl_0', 'infl_n', 'entry_price', ]
     print('going to describe')
     train_size = int(df.shape[0] * 0.66)
     df_train = df[0:train_size]

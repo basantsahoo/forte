@@ -77,6 +77,7 @@
       "instr_to_trade" : [["ITM", 1, "PE"]],
       "register_signal_category": ["COMPOUND", "DOWN_BREAK_TYPE_3_1MIN"],
       "trade_cut_off_time": 25,
+      "weekdays_allowed": ["Monday", "Tuesday", "Wednesday"],
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -107,6 +108,32 @@
 
       ],
       "exit_criteria_list": [
+        {
+          "neuron_info": {
+            "id": 2,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 1
+            },
+            "signal_type": ["CANDLE_PATTERN", "CDLDOJISTAR_BUY"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
       ],
       "trade_controllers": [
 
@@ -114,7 +141,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 6000" }
+        {"op": "or", "logical_test": "price_location < 30" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }
@@ -122,7 +149,7 @@
   "run_params": {
     "test_days": [],
     "for_past_days": 180,
-    "to_date": "2024-04-10",
+    "to_date": "2024-04-09",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,

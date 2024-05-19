@@ -2,10 +2,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import pandas as pd
-from mpl_toolkits.mplot3d import Axes3D
 from servers.server_settings import reports_dir
 from sklearn.linear_model import LinearRegression
-from research.analysis.binning import get_bins, bin_dict
+from backtest_2024.analysis.binning import get_bins, bin_dict
 
 def box_plot(report, df, metric, title=None):
     # Plot day average  and perform anova of k-means

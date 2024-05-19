@@ -1,7 +1,5 @@
 #from backtest import strategy_back_tester
-from research.analysis import classifier_train
-from research.analysis import regression_train
-from research.analysis import descriptive_analysis
+from backtest_2024.analysis import descriptive_analysis, classifier_train
 import pandas as pd
 import numpy as np
 from servers.server_settings import reports_dir
@@ -14,7 +12,8 @@ def save_back_test_results():
     #pd.DataFrame(results).to_csv(reports_dir + 'SMACrossBuy_nifty_results.csv')
 """
 def load_back_test_results():
-    df = pd.read_csv(reports_dir + 'option_market_impact_spot_at_high.csv')
+    #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
+    df = pd.read_csv(reports_dir + 'buy_put_option_on_volume.csv')
     return df
 
 
@@ -100,7 +99,7 @@ def basic_statistics(df):
 def get_cleaned_results():
     #df = pd.read_csv(reports_dir + 'RangeBreakDownStrategy_for_refression.csv')
     df = load_back_test_results()
-    drop_cols = ['Unnamed: 0', 'symbol', 'trade_id', 'leg', 'side', 'exit_time',
+    drop_cols = ['Unnamed: 0', 'symbol', 'trade_id', 'leg', 'side', 'exit_time', 'exit_price',
                  'seq', 'instrument', 'cover', 'market_view', 'spot_target', 'spot_stop_loss',
                  'spot_stop_loss_rolling', 'instr_target', 'instr_stop_loss', 'duration', 'quantity'
                  'spot_entry_price', 'spot_exit_price', 'trigger_time', 'open_type', 'spot',
@@ -117,7 +116,6 @@ def get_cleaned_results():
             'strategy',
             'entry_time',
             'entry_price',
-            'exit_price',
             'realized_pnl',
             'un_realized_pnl',
             'week_day',
@@ -154,23 +152,20 @@ def get_cleaned_results():
             'far_call_oi_share',
             'put_oi_spread',
             'call_oi_spread',
-            'near_call_volume_share_per_oi',
-            'near_put_volume_share_per_oi',
-            'far_call_volume_share_per_oi',
-            'far_put_volume_share_per_oi',
-            'pattern_location'
+            'dir_pos_price_pct',
+            'dir_inv_neg_price_pct',
+            'pattern_location',
+            'far_put_volume_share_per_oi'
     ]
-    min_buffer = 20
+
     df = df[select_cols]
     df['realized_pnl'] = df['realized_pnl'] + df['un_realized_pnl']
-    df['realized_pnl'] = df['realized_pnl'].apply(lambda x: x - min_buffer)
     df['return_pct'] = df['realized_pnl']/df['entry_price']
     df['put_call_vol_scale_diff'] = df['put_volume_scale'] - df['call_volume_scale']
-    df['put_call_vol_scale_diff_day'] = df['put_volume_scale_day'] - df['call_volume_scale_day']
     df['vol_rat'] = df['sum_put_volume']/df['sum_call_volume']
     del df['un_realized_pnl']
     #del df['realized_pnl']
-    #df = df[df['tpo'] < 13]
+    df = df[df['tpo'] < 13]
     return df
 
 def analysis(df):
@@ -238,21 +233,40 @@ def analysis(df):
 
 strat_days = set()
 
+def scen_2():
+
+    #save_back_test_results()
+
+    df = get_cleaned_results()
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    #df =  df[(df['pcr_minus_1'] <= -0.25) | (df['pcr_minus_1'] >= 1.25)]
+    df = df[(df['pcr_minus_1'] > -0.25) & (df['pcr_minus_1'] < 1.25)]
+    #df = df[df['regime'].isin(['put_to_call_trans', 'call_buildup', 'put_covering'])]
+    #df = df[(df['call_entrant'] > 0)]
+    #df = df[(df['put_pos_price_pct'] >= 0.505)]
+    df = df[(df['far_put_volume_share_per_oi'] >= 0.9)]
+    df = df[(df['put_call_vol_scale_diff'] >= 0.7)]
+    df = df[(df['put_volume_scale'] >= 2)]
+    df = df[(df['vol_rat'] > 1.5)]
+    basic_statistics(df)
+    global strat_days
+    strat_days = strat_days.union(set(df['day'].to_list()))
+
+    #portfolio_performance(df)
+    #analysis(df)
 
 def scen_1():
 
     #save_back_test_results()
 
     df = get_cleaned_results()
-    df = df[(df['day_put_profit'] >= 0) & (df['day_put_profit'] < 0.2)]
-    #df = df[df['regime'].isin([ 'call_buildup', 'put_covering'])]
-    df = df[(df['day_call_profit'] < 0.02) & (df['day_call_profit'] >= -0.01)]
-    df = df[(df['vol_rat'] >= 1.6)]
-    """
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    df =  df[(df['pcr_minus_1'] <= -0.25) | (df['pcr_minus_1'] >= 1.25)]
+    df = df[df['regime'].isin([ 'call_buildup', 'put_covering'])] #Factor 2 works in presence of factor 1
+    df = df[(df['call_entrant'] > 0.0)] #0.009 for call scenario check
     df = df[(df['put_pos_price_pct'] >= 0.505)]
     df = df[(df['far_put_volume_share_per_oi'] >= 1.1)] #Factor 1 works in all scenario
     df = df[(df['vol_rat'] > 1)]
-    """
     #df = df[(df['put_call_vol_scale_diff'] >= 0)]
     basic_statistics(df)
     global strat_days
@@ -262,28 +276,104 @@ def scen_1():
     #analysis(df)
 
 
+def scen_3():
+    df = get_cleaned_results()
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    df = df[(df['put_vol_spread'] > 1)]
+    df = df[(df['far_call_oi_share'] > 0.5)]
+    df = df[(df['far_put_volume_share_per_oi'] >= 1.1)]
+    basic_statistics(df)
+    global strat_days
+    strat_days = strat_days.union(set(df['day'].to_list()))
+
+
+def scen_4():
+    df = get_cleaned_results()
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    df = df[(df['roll_near_vol_pcr'] > 2)]
+    #df = df[(df['roll_far_vol_pcr'] < 0.5)]
+    df = df[(df['vol_rat'] > 1.5)]
+    df = df[(df['day_put_profit'] > 0.1)]
+    #df = df[(df['far_put_volume_share_per_oi'] >= 1.1)]
+    basic_statistics(df)
+    global strat_days
+    strat_days = strat_days.union(set(df['day'].to_list()))
+
+
+def scen_5():
+    df = get_cleaned_results()
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    df = df[(df['roll_near_vol_pcr'] > 1)]
+    df = df[(df['roll_far_vol_pcr'] < 0.5)]
+    df = df[(df['vol_rat'] > 1.5)]
+    df = df[(df['day_put_profit'] > 0.1)]
+    #df = df[(df['far_put_volume_share_per_oi'] >= 1.1)]
+    basic_statistics(df)
+    global strat_days
+    strat_days = strat_days.union(set(df['day'].to_list()))
+
+
+def scen_6():
+    df = get_cleaned_results()
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    df = df[(df['roll_near_vol_pcr'] > 1.5)]
+    #df = df[(df['roll_far_vol_pcr'] < 0.5)]
+    df = df[(df['vol_rat'] > 1.5)]
+    df = df[(df['day_put_profit'] < -0.15)]
+    #df = df[(df['far_put_volume_share_per_oi'] >= 1.1)]
+    basic_statistics(df)
+    global strat_days
+    strat_days = strat_days.union(set(df['day'].to_list()))
+
+
+def scen_7():
+    df = get_cleaned_results()
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    #df = df[(df['roll_near_vol_pcr'] > 1.5)]
+    #df = df[(df['roll_far_vol_pcr'] < 0.5)]
+    df = df[(df['vol_rat'] > 1.5)]
+    df = df[(df['day_put_profit'] < -0.4)]
+    #df = df[(df['far_put_volume_share_per_oi'] >= 1.1)]
+    basic_statistics(df)
+    global strat_days
+    strat_days = strat_days.union(set(df['day'].to_list()))
+
+
+def scen_8():
+    df = get_cleaned_results()
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    #df = df[(df['roll_near_vol_pcr'] > 1.5)]
+    #df = df[(df['roll_far_vol_pcr'] < 0.5)]
+    df = df[(df['vol_rat'] > 1.8)]
+    df = df[(df['day_put_profit'] < -0.5)]
+    #df = df[(df['far_put_volume_share_per_oi'] >= 1.1)]
+    basic_statistics(df)
+    global strat_days
+    strat_days = strat_days.union(set(df['day'].to_list()))
+
 def run():
     df = get_cleaned_results()
-    df.to_csv(reports_dir + 'option_market_impact_spot_at_high_analysis.csv')
-
-    param_search_result = descriptive_analysis.param_search(df, 'realized_pnl', 3, [])
-    df_param_search = pd.DataFrame(param_search_result)
-    #df_param_search.to_csv(reports_dir + 'option_market_impact_spot_param_search_4.csv')
-    df_param_search.to_csv(reports_dir + 'option_market_impact_spot_at_high_param_search_3.csv')
-
-    basic_statistics(df)
-
+    df.to_csv(reports_dir + 'buy_put_option_on_volume_analysis.csv')
+    #df = df[(df['roll_near_vol_pcr'] > 1.5)]
+    #df = df[(df['roll_far_vol_pcr'] < 0.5)]
+    df = df[(df['pcr_minus_1'] > -0.25) & (df['pcr_minus_1'] < 1.25)]
+    df = df[(df['vol_rat'] > 1.8)]
+    df = df[(df['day_put_profit'] < -0.5)]
+    #df = df[(df['far_put_volume_share_per_oi'] >= 1.1)]
     global strat_days
     strat_days = strat_days.union(set(df['day'].to_list()))
     basic_statistics(df)
 
-    print("===========")
+
     scen_1()
-
-
+    scen_2()
+    scen_3()
+    scen_4()
+    scen_5()
+    scen_6()
+    scen_7()
+    scen_8()
     print(strat_days)
-
-
 
 
 """

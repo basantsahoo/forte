@@ -1,6 +1,4 @@
-from research.analysis.descriptive_analysis import plot_table, group_wise_summary
-import pandas as pd
-import numpy as np
+from backtest_2024.analysis.descriptive_analysis import group_wise_summary
 from backtest.settings import reports_dir
 from matplotlib.backends.backend_pdf import PdfPages
 import pandas as pd

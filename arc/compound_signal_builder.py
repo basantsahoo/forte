@@ -81,8 +81,8 @@ class CompoundSignalBuilder:
         try:
             one_period_signals = self.get_n_period_signals(self.last_ts, 1)
             two_period_signals = self.get_n_period_signals(self.last_ts, 2)
-            EMA_1_10 = self.check_signal_present(one_period_signals[0], ('TECHNICAL', 'EMA_1_10'))['value']
-            SMA_1_10 = self.check_signal_present(one_period_signals[0], ('TECHNICAL', 'SMA_1_10'))['value']
+            EMA_1_10 = self.check_signal_present(one_period_signals[0], ('TECHNICAL', 'EMA_1_10', "1min"))['value']
+            SMA_1_10 = self.check_signal_present(one_period_signals[0], ('TECHNICAL', 'SMA_1_10', "1min"))['value']
             one_bullish_candle_resp = self.check_signal_present(one_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
             one_bullish_candle = one_bullish_candle_resp['found']
             #one_bullish_candle = self.check_signal_present(one_period_signals[0], ('CANDLE_1', 'CDL_DIR_P'))['found']
@@ -93,8 +93,8 @@ class CompoundSignalBuilder:
             #two_bearish_candle = self.check_signal_present(two_period_signals[0], ('CANDLE_1', 'CDL_DIR_N'))['found']
             two_big_candle = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
             two_body_large = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            one_high_volume_candle = self.check_signal_present(one_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
-            two_high_volume_candle = self.check_signal_present(two_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1'))['found']
+            one_high_volume_candle = self.check_signal_present(one_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
+            two_high_volume_candle = self.check_signal_present(two_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
             #print(two_bearish_candle, two_big_candle, two_body_large)
             if self.not_none_eval(EMA_1_10, SMA_1_10) and EMA_1_10 < SMA_1_10 and one_bullish_candle and one_big_candle and one_body_large\
                     and two_bearish_candle and two_big_candle and two_body_large\
@@ -186,7 +186,7 @@ class CompoundSignalBuilder:
                 if one_bearish_candle and two_bullish_candle and three_bearish_candle \
                         and ((one_big_candle and one_body_large) or (two_big_candle and two_body_large) or (three_big_candle and three_body_large)) \
                         and (one_high_volume_candle_type_3 or two_high_volume_candle_type_3 or three_high_volume_candle_type_3)\
-                        and self.market_params['price_location'] < 30:
+                        and self.market_params.get('CDL_DIR_N_daily', 0):
                     print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
                     local_high = max(one_bearish_candle_resp['signal'].signal_info['high'],
                                      two_bullish_candle_resp['signal'].signal_info['high'],

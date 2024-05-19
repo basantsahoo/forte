@@ -37,7 +37,7 @@
       "name": "HIGH_VOL_1",
       "criteria": {
         "put_volume_scale": {"min": 3.5, "max": 50},
-        "call_volume_scale": {"min": 3, "max": 20}
+        "call_volume_scale": {"min": 2, "max": 20}
       }
     },
     {
