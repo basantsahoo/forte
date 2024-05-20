@@ -111,7 +111,7 @@ class OptionAssetBook:
 
     def pattern_signal(self, signal: Signal):
         #print('asset book pattern_signal')
-        if signal.category in ['PRICE_ACTION_INTRA_0', 'TECHNICAL', 'CANDLE_1', 'CANDLE_2', 'CANDLE_5', 'TIME_SIGNAL']:
+        if signal.category in ['PRICE_ACTION_INTRA_0', 'TECHNICAL_0', 'CANDLE_1', 'CANDLE_2', 'CANDLE_5', 'TIME_SIGNAL']:
             print(signal.category, signal.indicator)
         signal.spot_market_info = self.spot_book.spot_processor.get_market_params()
         signal.option_market_info = self.option_matrix.signal_generator.get_info()

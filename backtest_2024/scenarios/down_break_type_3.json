@@ -1,7 +1,7 @@
 {
   "strategies":[
     {
-      "id":"BEARISH_ENGULFING_HIGH_PUT_VOLUME",
+      "id":"DOWN_BREAK_TYPE_3_1MIN",
       "class":"OptionBuy",
       "symbol": "NIFTY",
       "exit_time":[45, 45, 45, 45],
@@ -16,8 +16,9 @@
       "instr_targets":[0.2, 0.25, 0.3, 0.2],
       "instr_stop_losses":[-0.1, -0.15, -0.18, -0.2],
       "instr_to_trade" : [["ITM", 1, "PE"]],
-      "register_signal_category": ["COMPOUND", "BEARISH_ENGULFING_HIGH_PUT_VOLUME"],
+      "register_signal_category": ["COMPOUND", "DOWN_BREAK_TYPE_3_1MIN"],
       "trade_cut_off_time": 25,
+      "weekdays_allowed": ["Monday", "Tuesday", "Wednesday"],
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -28,7 +29,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "BEARISH_ENGULFING_HIGH_PUT_VOLUME"],
+            "signal_type": ["COMPOUND", "DOWN_BREAK_TYPE_3_1MIN"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -47,15 +48,13 @@
         }
 
       ],
-      "exit_criteria_list": [
-      ],
       "trade_controllers": [
 
       ],
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 6000" }
+        {"op": "or", "logical_test": "price_location < 30" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }
@@ -63,7 +62,7 @@
   "run_params": {
     "test_days": [],
     "for_past_days": 180,
-    "to_date": "2024-04-10",
+    "to_date": "2024-04-09",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,

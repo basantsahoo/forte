@@ -16,7 +16,7 @@ import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 
 def load_back_test_results():
-    df = pd.read_csv(reports_dir + 'bearish_engulfing.csv', converters={'pattern_time': pd.eval})
+    df = pd.read_csv(reports_dir + 'bottom_type_1.csv', converters={'pattern_time': pd.eval})
     #df = df[df['strategy'] == 'PriceReverseBreakDownEMA'] #PriceReverseBreakDownEMA # PriceBreakEMADownward43
     return df
 

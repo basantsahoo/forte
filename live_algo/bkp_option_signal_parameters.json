@@ -1,0 +1,145 @@
+{
+  "triggers": {
+    "trigger_vol_scale": 0,
+    "price_change_th": 0
+  },
+  "put_buy_o": [{
+    "put_volume_scale": {"min": 0, "max": 0.5},
+    "put_call_volume_scale_diff": {"min": -3, "max": -0.7}
+  },
+  {
+    "put_volume_scale": {"min": 4, "max": 4.5},
+    "put_call_volume_scale_diff": {"min": 1, "max": 2}
+  }],
+  "option_signals": [
+    {
+      "name": "PUT_BUY_TEST",
+      "criteria": {
+        "put_volume_scale": {"min": 0, "max": 5},
+        "put_call_volume_scale_diff": {"min": -30, "max": 7}
+      }
+    },
+    {
+      "name": "CALL_BUY_TEST",
+      "criteria": {
+        "call_volume_scale": {"min": 0, "max": 500}
+      }
+    },
+    {
+      "name": "PUT_BUY_1",
+      "criteria": {
+        "put_volume_scale": {"min": 2.3, "max": 50},
+        "put_call_volume_scale_diff": {"min": 1.2, "max": 2},
+        "far_put_oi_share": {"min": 0, "max": 0.4}
+      }
+    },
+    {
+      "name": "HIGH_VOL_1",
+      "criteria": {
+        "put_volume_scale": {"min": 3.5, "max": 50},
+        "call_volume_scale": {"min": 2, "max": 20}
+      }
+    },
+    {
+      "name": "HIGH_VOL_2",
+      "criteria": {
+        "put_volume_scale": {"min": 2.5, "max": 50},
+        "call_volume_scale": {"min": 2.0, "max": 20}
+      }
+    },
+    {
+      "name": "HIGH_VOL_3",
+      "criteria": {
+        "put_volume_scale_day_2": {"min": 2, "max": 50},
+        "call_volume_scale_day_2": {"min": 2, "max": 20}
+      }
+    },
+    {
+      "name": "HIGH_VOL_PUT_1",
+      "criteria": {
+        "put_volume_scale_day_2": {"min": 1.5, "max": 50}
+      }
+    },
+    {
+      "name": "HIGH_VOL_PUT_2",
+      "criteria": {
+        "put_volume_scale": {"min": 2, "max": 50}
+      }
+    },
+    {
+      "name": "HIGH_VOL_CALL_1",
+      "criteria": {
+        "call_volume_scale_day_2": {"min": 2, "max": 50}
+      }
+    },
+    {
+      "name": "HIGH_VOL_CALL_2",
+      "criteria": {
+        "call_volume_scale": {"min": 2, "max": 50}
+      }
+    },
+    {
+      "name": "PUT_BUY_1_1",
+      "criteria": {
+        "r_total_vol_pcr": {"min": 1.05, "max": 50},
+        "near_vol_pcr": {"min": 1.5, "max": 50},
+        "total_volume_scale": {"min": 1.8, "max": 50},
+        "far_put_oi_share": {"min": 0, "max": 0.4}
+      }
+    },
+    {
+      "name": "PUT_BUY_2",
+      "criteria": {
+        "pcr_minus_1": {"min": -100, "max": -0.259},
+        "near_put_oi_share": {"min": 0, "max": 0.1519}
+      }
+    },
+    {
+      "name": "PUT_BUY_3",
+      "criteria": {
+        "near_call_oi_share": {"min": 0.236, "max": 100},
+        "near_put_volume_share_per_oi": {"min": 2.14, "max": 100}
+      }
+    },
+    {
+      "name": "PUT_BUY_4",
+      "criteria": {
+        "r_near_put_volume_per_oi": {"min": 0.13, "max": 100},
+        "r_far_put_volume_per_oi": {"min": 0.04, "max": 100},
+        "r_near_call_volume_per_oi": {"min": 0.1, "max": 100},
+        "r_far_call_volume_per_oi": {"min": 0.047, "max": 100},
+        "r_put_vol_spread": {"min": 0.07, "max": 100},
+        "r_call_vol_spread": {"min": 0.06, "max": 100},
+        "near_vol_pcr": {"min": 2.5, "max": 100}
+      }
+    },
+    {
+      "name": "CALL_BUY_1",
+      "criteria": {
+        "near_call_oi_share": {"min": 0, "max": 0.147},
+        "put_call_volume_scale_diff": {"min": 1, "max": 1.5}
+      }
+    },
+    {
+      "name": "CALL_BUY_2",
+      "criteria": {
+        "pcr_minus_1": {"min": 0.2, "max": 100},
+        "near_put_oi_share": {"min": 0, "max": 0.118}
+      }
+    },
+    {
+      "name": "CALL_BUY_3",
+      "criteria": {
+        "near_call_oi_share": {"min": 0, "max": 0.147},
+        "near_call_volume_share_per_oi": {"min": 2.08, "max": 50}
+      }
+    },
+    {
+      "name": "CALL_BUY_4",
+      "criteria": {
+        "near_call_oi_share": {"min": 0, "max": 0.147},
+        "far_call_volume_share_per_oi": {"min": 1.3, "max": 50}
+      }
+    }
+  ]
+}
