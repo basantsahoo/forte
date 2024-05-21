@@ -7,7 +7,6 @@ from collections import OrderedDict
 class OptionIonBuilder:
     def __init__(self, asset, trade_day):
         ion_data_df = get_daily_option_ion_data(asset, trade_day)
-        ion_data_df
         ion_data_df['trade_date'] = trade_day
         self.ion_data = ion_data_df.to_dict("records")
         #print('total option records====', len(self.ion_data))
@@ -37,8 +36,12 @@ class MultiDayOptionDataLoader:
         end = datetime.now()
         print('option data loading took===', (end-start).total_seconds())
         self.data_present = True
+        self.market_close_for_day = False
 
     def generate_next_feed(self):
+        if self.market_close_for_day:
+            self.market_close_for_day = False
+            return {'feed_type': 'market_close', 'asset': self.asset, 'data': []}
 
         if list(self.option_ions.keys()):
             day_key = list(self.option_ions.keys())[0]
@@ -66,6 +69,7 @@ class MultiDayOptionDataLoader:
             if not self.option_ions[day_key]:
                 del self.option_ions[day_key]
                 del self.spot_ions[day_key]
+                self.market_close_for_day = True
             return {'feed_type': 'option', 'asset': self.asset, 'data': [next_feed]}
 
         else:

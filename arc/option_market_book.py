@@ -82,6 +82,11 @@ class OptionMarketBook:
             asset_book.day_change_notification(trade_day)
         self.day_setup_done = True
 
+    def market_close_for_day(self):
+        print('market close for day ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        self.strategy_manager.market_close_for_day()
+        self.pm.market_close_for_day()
+
     def set_volume_delta_mode(self, volume_delta_mode):
         for asset_book in self.asset_books.values():
             asset_book.set_volume_delta_mode(volume_delta_mode)

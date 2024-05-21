@@ -6,6 +6,9 @@ from entities.trading_day import TradeDateTime
 import functools
 from helper.utils import get_option_strike
 
+from servers.server_settings import cache_dir
+from diskcache import Cache
+
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
                     'SPOT_SELL': 'SHORT',
@@ -115,7 +118,15 @@ class BaseStrategy:
         self.instr_stop_loss = [-0.1, -0.2, -0.3, -0.4]
         """
         #self.prepare_targets()
+        self.strategy_cache = Cache(cache_dir + 'strategy_cache')
 
+
+    def set_force_exit_ts(self):
+        if not self.force_exit_ts:
+            self.force_exit_ts = None
+        else:
+            if self.force_exit_ts[0] == 'weekly_expiry_day':
+                self.force_exit_ts = self.asset_book.get_expiry_day_time(self.force_exit_ts[1])
 
     def get_market_view(self, instr):
         print('get_market_view', instr)
@@ -131,6 +142,29 @@ class BaseStrategy:
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()
+        if self.carry_forward:
+            carry_trades = self.strategy_cache.get(self.id, [])
+            for leg in carry_trades:
+                leg_copy = leg.copy()
+                del leg_copy['sig_key']
+                sig_key = leg['sig_key']
+                trade_inst = leg['instrument']
+
+                if sig_key not in self.tradable_signals:
+                    self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst)
+                self.tradable_signals[sig_key].legs[leg['seq']] = leg_copy
+
+            for trade in self.tradable_signals.values():
+                trade.set_controllers()
+
+                #self.trigger_entry(trade.trade_inst, self.order_type, trade.id, list(trade.legs.values()))
+
+                #trade.re_instate()
+
+        self.params_repo = self.strategy_cache.get('params_repo', {})
+        self.set_force_exit_ts()
+
+
 
     def initiate_signal_trades(self):
         print('initiate_signal_trades+++++++++++++++++')
@@ -372,6 +406,19 @@ class BaseStrategy:
                 satisfied = satisfied or eval(condition['logical_test'])
             #print(satisfied)
         return satisfied
+
+    def market_close_for_day(self):
+        carry_trades = []
+        params_repo = {}
+        for (sig_key, trade) in self.tradable_signals.items():
+            if not trade.trade_complete():
+                for leg in trade.legs.values():
+                    lg_copy = leg.copy()
+                    lg_copy['sig_key'] = sig_key
+                    carry_trades.append(lg_copy)
+                    params_repo[(sig_key, leg['seq'])] = self.params_repo[(sig_key, leg['seq'])]
+        self.strategy_cache.set(self.id, carry_trades)
+        self.strategy_cache.set('params_repo', params_repo)
 
 
     def record_params(self):

@@ -7,6 +7,8 @@ from entities.base import Signal
 from arc.clock import Clock
 from arc.compound_signal_builder import CompoundSignalBuilder
 from entities.trading_day import NearExpiryWeek, TradeDateTime
+from config import get_expiry_date
+import time
 
 class OptionAssetBook:
     def __init__(self, market_book, asset):
@@ -21,6 +23,7 @@ class OptionAssetBook:
         self.last_periodic_update = None
         self.periodic_update_sec = 60
         self.compound_signal_generator = CompoundSignalBuilder(self)
+        self.expiry_date = None
 
     def get_lowest_candle(self, instr, after_ts=None, is_option=False):
         lowest_candle = None
@@ -57,8 +60,9 @@ class OptionAssetBook:
             self.clock.subscribe_to_frame_change(self.frame_change_action)
         else:
             self.clock.on_day_change(trade_day)
-
-        if NearExpiryWeek(TradeDateTime(trade_day), self.asset).start_date.date_string != trade_day:
+        near_expiry_week = NearExpiryWeek(TradeDateTime(trade_day), self.asset)
+        self.expiry_date = near_expiry_week.end_date.date_string
+        if near_expiry_week.start_date.date_string != trade_day:
             closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
             closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
             #print(closing_oi_df.to_dict('records'))
@@ -72,6 +76,11 @@ class OptionAssetBook:
         self.option_matrix_5_min.process_avg_volume(trade_day, avg_volume_recs)
         self.spot_book.day_change_notification(trade_day)
         #self.spot_book.set_transition_matrix()
+
+    def get_expiry_day_time(self, t_string):
+        start_str = self.expiry_date + " " + t_string + " +0530"
+        ts = int(time.mktime(time.strptime(start_str, "%Y-%m-%d %H:%M:%S %z")))  # - 5.5 * 3600
+        return ts
 
     def spot_feed_stream_1(self, feed_list):
         feed_list = [convert_to_spot_ion(feed) for feed in feed_list]

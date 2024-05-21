@@ -59,6 +59,10 @@ class StrategyManager:
                 #strategy.on_minute_data_pre()
                 strategy.on_minute_data_post()
 
+    def market_close_for_day(self):
+        for strategy in self.strategies:
+            strategy.market_close_for_day()
+
     def register_signal(self, signal):
         if self.process_signal_switch:
             for strategy in self.strategies:
