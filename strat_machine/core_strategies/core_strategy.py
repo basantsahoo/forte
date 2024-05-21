@@ -359,7 +359,7 @@ class BaseStrategy:
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params.get('d2_cd_new_business_pressure',0)
-            category = (signal.category , signal.indicator)
+            category = signal.key()
             week_day = datetime.strptime(self.asset_book.market_book.trade_day, '%Y-%m-%d').strftime('%A')
             open_type = market_params['open_type']
             tpo = market_params['tpo']

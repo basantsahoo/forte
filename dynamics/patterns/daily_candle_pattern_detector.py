@@ -72,7 +72,7 @@ class DailyCandlePatternDetector:
                                  signal_time=talib_pattern_df.timestamp.to_list()[-1], notice_time=talib_pattern_df.timestamp.to_list()[-1],
                                  signal_info={'open':talib_pattern_df.open.to_list()[-1], 'high':talib_pattern_df.high.to_list()[-1], 'low':talib_pattern_df.low.to_list()[-1], 'close':talib_pattern_df.close.to_list()[-1]},
                                  period=self.period)
-                    self.signal_dict[(signal.category, signal.indicator, signal.period)] = signal
+                    self.signal_dict[signal.key()] = signal
             for s_pattern in s_patterns:
                 #print(cs_pattern_df[cs_pattern_df[s_pattern] == True]['timestamp'].to_list())
                 latest_idx = cs_pattern_df[s_pattern].to_list()[-1]
@@ -83,7 +83,7 @@ class DailyCandlePatternDetector:
                                  signal_time=cs_pattern_df.timestamp.to_list()[-1], notice_time=cs_pattern_df.timestamp.to_list()[-1],
                                  signal_info={'open':cs_pattern_df.open.to_list()[-1], 'high':cs_pattern_df.high.to_list()[-1], 'low':cs_pattern_df.low.to_list()[-1], 'close':cs_pattern_df.close.to_list()[-1]},
                                  period=self.period)
-                    self.signal_dict[(signal.category, signal.indicator, signal.period)] = signal
+                    self.signal_dict[signal.key()] = signal
             last_candle = self.candles[-1]
             body = abs(last_candle['close'] - last_candle['open'])
             size = abs(last_candle['high'] - last_candle['low'])
@@ -98,7 +98,7 @@ class DailyCandlePatternDetector:
                              notice_time=last_candle['timestamp'],
                              signal_info=last_candle,
                              period=self.period)
-                self.signal_dict[(signal.category, signal.indicator, signal.period)] = signal
+                self.signal_dict[signal.key()] = signal
 
 
 

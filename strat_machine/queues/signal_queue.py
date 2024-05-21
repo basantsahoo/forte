@@ -17,8 +17,8 @@ class SignalQueue:
     def meets_threshold(self, signal):
         high_threshold_value = self.thresholds['high']
         low_threshold_value = self.thresholds['low']
-        meets_high = high_threshold_value is None or signal['info']['close'] > high_threshold_value
-        meets_low = low_threshold_value is None or signal['info']['close'] < low_threshold_value
+        meets_high = high_threshold_value is None or signal['signal_info']['close'] > high_threshold_value
+        meets_low = low_threshold_value is None or signal['signal_info']['close'] < low_threshold_value
         return meets_high and meets_low
 
     def new_signal(self, signal):

@@ -237,7 +237,7 @@ class Trade:
 
     def register_signal(self, signal):
         for controller in self.controller_list:
-            if (signal.category, signal.indicator) == controller.signal_type:
+            if signal.key() == controller.signal_type:
                 #print('signal', signal)
                 controller.receive_signal(signal)
 

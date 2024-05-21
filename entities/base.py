@@ -62,6 +62,9 @@ class Signal:
     def is_trend_signal(self):
         return self.indicator == "INDICATOR_TREND"
 
+    def key(self):
+        return tuple([self.category, self.indicator, self.period])
+
 
 """
 spot processor

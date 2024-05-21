@@ -16,7 +16,7 @@
       "instr_targets":[0.2, 0.25, 0.3, 0.2],
       "instr_stop_losses":[-0.1, -0.15, -0.18, -0.2],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["COMPOUND", "UP_BREAK_TYPE_3_1MIN"],
+      "register_signal_category": ["COMPOUND", "UP_BREAK_TYPE_3_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "weekdays_allowed": [],
       "entry_signal_queues": [
@@ -29,7 +29,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "UP_BREAK_TYPE_3_1MIN"],
+            "signal_type": ["COMPOUND", "UP_BREAK_TYPE_3_1MIN", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -54,7 +54,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location > 70" }
+        {"op": "or", "logical_test": "price_location > -8" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }

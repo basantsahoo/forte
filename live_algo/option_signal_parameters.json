@@ -34,6 +34,28 @@
       }
     },
     {
+      "name": "HIGH_VOL_4",
+      "criteria": {
+        "put_volume_scale": {"min": 2, "max": 50},
+        "call_volume_scale": {"min": 1.5, "max": 20}
+      }
+    },
+    {
+      "name": "HIGH_VOL_5",
+      "criteria": {
+        "put_volume_scale": {"min": 1.5, "max": 50},
+        "call_volume_scale": {"min": 1.5, "max": 20}
+      }
+    },
+    {
+      "name": "HIGH_VOL_6",
+      "criteria": {
+        "put_volume_scale_day_2": {"min": 1.2, "max": 50},
+        "call_volume_scale_day_2": {"min": 1.2, "max": 20}
+      }
+    },
+
+    {
       "name": "HIGH_VOL_PUT_1",
       "criteria": {
         "put_volume_scale_day_2": {"min": 1.5, "max": 50}

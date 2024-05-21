@@ -16,7 +16,7 @@
       "instr_targets":[0.15, 0.15, 0.15, 0.1],
       "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
+      "register_signal_category": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_1_1MIN"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
+            "signal_type": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_1_1MIN"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -75,7 +75,7 @@
       "instr_targets":[0.15, 0.15, 0.15, 0.1],
       "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
+      "register_signal_category": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_2_1MIN"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -87,7 +87,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
+            "signal_type": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_2_1MIN"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -134,7 +134,7 @@
       "instr_targets":[0.15, 0.15, 0.15, 0.1],
       "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
+      "register_signal_category": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_3_1MIN"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -146,7 +146,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
+            "signal_type": ["COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_3_1MIN"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,

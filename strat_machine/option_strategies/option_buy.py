@@ -12,7 +12,7 @@ class OptionBuy(BaseStrategy):
 
 
     def register_instrument(self, signal):
-        if (signal.category, signal.indicator) == tuple(self.register_signal_category):
+        if signal.key() == tuple(self.register_signal_category):
             self.derivative_instruments = []
             last_tick = self.get_last_tick('SPOT')
             ltp = last_tick['close']

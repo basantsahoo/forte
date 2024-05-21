@@ -72,11 +72,11 @@ class QNetwork:
         for q_id, queue_item in self.neuron_dict.items():
             #print('neuron network register_signal+++++++++', queue_item['neuron'].id)
             for watcher in queue_item['neuron'].watcher_list:
-                if (signal.category, signal.indicator) == watcher.signal_type:
+                if signal.key() == watcher.signal_type:
                     watcher.receive_signal(signal)
             #print(queue_item['neuron'].signal_type)
             queue_item['neuron'].test()
-            if (signal.category, signal.indicator) == queue_item['neuron'].signal_type:
+            if signal.key() == queue_item['neuron'].signal_type:
                 if signal.category in ['STATE']:
                     proceed = True
                 else:

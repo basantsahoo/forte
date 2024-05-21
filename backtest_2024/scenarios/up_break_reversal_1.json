@@ -16,7 +16,7 @@
       "instr_targets":[0.15, 0.15, 0.15, 0.1],
       "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
       "instr_to_trade" : [["ITM", 1, "PE"]],
-      "register_signal_category": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN"],
+      "register_signal_category": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -28,7 +28,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN"],
+            "signal_type": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -55,7 +55,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location > 40" }
+        {"op": "or", "logical_test": "price_location > -2" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     },
@@ -75,7 +75,7 @@
       "instr_targets":[0.15, 0.15, 0.15, 0.1],
       "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
       "instr_to_trade" : [["ITM", 1, "PE"]],
-      "register_signal_category": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN"],
+      "register_signal_category": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -87,7 +87,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN"],
+            "signal_type": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -114,7 +114,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location > 40" }
+        {"op": "or", "logical_test": "price_location > -2" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     },
@@ -134,7 +134,7 @@
       "instr_targets":[0.15, 0.15, 0.15, 0.1],
       "instr_stop_losses":[-0.1, -0.1, -0.1, -0.1],
       "instr_to_trade" : [["ITM", 1, "PE"]],
-      "register_signal_category": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN"],
+      "register_signal_category": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -146,7 +146,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN"],
+            "signal_type": ["COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -173,14 +173,14 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 60" }
+        {"op": "or", "logical_test": "price_location > -2" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 180,
+    "for_past_days": 20,
     "to_date": "2024-04-10",
     "candle_sw": 0,
     "week_days": [],
