@@ -43,14 +43,14 @@ class Trade:
     def get_trade_legs(self):
         next_trigger = len(self.legs) + 1
         #Can contain None because it's inside expander
-        legs = [self.get_trades(trd_idx) for trd_idx in range(next_trigger, next_trigger + self.max_legs)]
+        legs = [self.get_trade_leg_details(trd_idx) for trd_idx in range(next_trigger, next_trigger + self.max_legs)]
         print('legs===============', legs)
         for leg in legs:
             #if leg is not None:
             self.legs[leg['seq']] = leg
         return legs
 
-    def get_trades(self, idx=1):
+    def get_trade_leg_details(self, idx=1):
         instr = self.trade_inst
         market_view = self.strategy.get_market_view(instr)
         last_candle = self.strategy.get_last_tick(instr)
@@ -104,7 +104,7 @@ class Trade:
             'spot_stop_loss_rolling': spot_stop_losses[min(idx-1, len(spot_stop_losses)-1)] if spot_stop_losses else None,
             'instr_target': instr_targets[min(idx-1, len(instr_targets)-1)] if instr_targets else None,
             'instr_stop_loss': instr_stop_losses[min(idx-1, len(instr_stop_losses)-1)] if instr_stop_losses else None,
-            'duration': min(self.strategy.exit_time[idx-1], self.strategy.asset_book.market_book.get_time_to_close()-2) if not self.strategy.carry_forward else 90000000,
+            'duration': min(self.strategy.exit_time[idx-1], self.strategy.asset_book.market_book.get_time_to_close()-2) if not self.strategy.carry_forward_days else 90000000,
             'quantity': self.strategy.minimum_quantity,
             'exit_type':None,
             'entry_price':last_candle['close'],
@@ -113,6 +113,8 @@ class Trade:
             'spot_exit_price': None,
             'trigger_time':last_candle['timestamp']
         }
+        print('self.strategy.force_exit_ts++++++++++++++++++', self.strategy.force_exit_ts)
+        trade_info['max_run_time'] = min(trade_info['trigger_time'] + trade_info['duration'] * 60, self.strategy.force_exit_ts + 60)
         return trade_info
 
     def calculate_target(self, instr, target_level_list):
@@ -165,7 +167,7 @@ class Trade:
             if trigger_details['exit_type'] is None:  #Still active
                 last_instr_candle = self.strategy.get_last_tick(trigger_details['instrument'])
                 #print("self.strategy.force_exit_ts=====", self.strategy.force_exit_ts)
-                if last_spot_candle['timestamp'] - trigger_details['trigger_time'] >= trigger_details['duration']*60:
+                if last_spot_candle['timestamp'] >= trigger_details['max_run_time']:
                     self.trigger_exit(trigger_seq, exit_type='TC')
                 elif self.strategy.force_exit_ts and last_spot_candle['timestamp'] >= self.strategy.force_exit_ts:
                     self.trigger_exit(trigger_seq, exit_type='TSFE')

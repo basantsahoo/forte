@@ -124,6 +124,7 @@ class StartegyBackTester:
                 for_past_days = int(self.strat_config['run_params']['for_past_days']) if type(self.strat_config['run_params']['for_past_days']) == str else self.strat_config['run_params']['for_past_days']
                 start_date_index = min(end_date_index + for_past_days, len(all_days))
                 days = all_days[end_date_index:start_date_index]
+                days.sort()
                 days = [x for x in days if (datetime.strptime(x, '%Y-%m-%d').strftime('%A') if type(x) == str else x.strftime('%A')) in self.strat_config['run_params']['week_days']] if self.strat_config['run_params']['week_days'] else days
                 days = [x for x in days if x.strftime('%Y-%m-%d') not in exclude_trade_days['NIFTY']]
                 #print(days)
@@ -157,7 +158,7 @@ if __name__ == '__main__':
     print('Accuracy', len([x for x in part_results['realized_pnl'].to_list() if x>0])/len(part_results['realized_pnl'].to_list()))
     print('No of Days', len(part_results['day'].unique()))
     part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))
-    part_results['exit_time_read'] = part_results['exit_time'].apply(lambda x: datetime.fromtimestamp(x) if not math.isnan(x) else x)
+    part_results['exit_time_read'] = part_results['exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)
     search_days = results['day'].to_list()
     file_name = strat_config_file.split('.')[0]
     file_path = reports_dir + file_name + '.csv'

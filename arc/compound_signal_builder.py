@@ -150,7 +150,7 @@ class CompoundSignalBuilder:
             one_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
             two_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
             three_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
-
+            """
             print("one_bearish_candle==", one_bearish_candle)
             print("one_big_candle==", one_big_candle)
             print("one_body_large==", one_body_large)
@@ -168,7 +168,7 @@ class CompoundSignalBuilder:
             print("three_high_volume_candle_type_3==", three_high_volume_candle_type_3)
             print("EMA==", EMA_1_10)
             print("SMA==", SMA_1_10)
-
+            """
             print("price_location===", self.market_params['price_location'])
 
             last_tick = self.asset_book.spot_book.spot_processor.last_tick
@@ -334,7 +334,7 @@ class CompoundSignalBuilder:
             one_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
             two_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
             three_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
-
+            """
             print("one_bullish_candle==", one_bullish_candle)
             print("one_big_candle==", one_big_candle)
             print("one_body_large==", one_body_large)
@@ -354,7 +354,7 @@ class CompoundSignalBuilder:
             print("SMA==", SMA_1_10)
 
             print("price_location===", self.market_params['price_location'])
-
+            """
             last_tick = self.asset_book.spot_book.spot_processor.last_tick
             if self.not_none_eval(EMA_1_10, SMA_1_10):
                 if one_bullish_candle and two_bearish_candle and three_bullish_candle \

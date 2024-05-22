@@ -33,6 +33,7 @@ class AlgoPortfolioManager:
         self.set_dummy_broker()
 
     def feed_stream(self, feed):
+
         if feed['feed_type'] == 'spot':
             for data_item in feed['data']:
                 self.ltps[feed['asset']] = data_item['close']
@@ -42,7 +43,10 @@ class AlgoPortfolioManager:
                 symbol = feed['asset'] + "_" + data_item['instrument']
                 self.ltps[symbol] = data_item['close']
                 self.last_times[symbol] = data_item['timestamp']
-        self.evaluate_risk()
+        try: #Next day first feed will fail
+            self.evaluate_risk()
+        except:
+            pass
         self.monitor_position()
 
     def monitor_position(self):

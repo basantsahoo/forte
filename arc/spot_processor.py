@@ -43,10 +43,10 @@ class SpotFactorCalculator:
 
     def set_key_levels(self):
         dt = get_previous_n_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 7).to_dict('records')
-        print(dt)
+        #print(dt)
         self.daily_candle_pattern_detector.candles = dt
         self.daily_candle_pattern_detector.detect()
-        print(self.daily_candle_pattern_detector.signal_dict)
+        #print(self.daily_candle_pattern_detector.signal_dict)
         self.weekly_pivots = get_pivot_points(get_prev_week_candle(self.asset, self.asset_book.market_book.trade_day))
         self.yday_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 1).to_dict('records')[0]
         self.day_before_profile = get_nth_day_profile_data(self.asset, self.asset_book.market_book.trade_day, 2).to_dict('records')[0]

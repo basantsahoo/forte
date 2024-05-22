@@ -27,7 +27,7 @@ class BaseStrategy:
                  derivative_instruments=[],  # Instruments that should be traded as non options
                  exit_time=[10],
                  exit_at=None,
-                 carry_forward=False,
+                 carry_forward_days=0,
                  min_tpo=1,
                  max_tpo=13,
                  record_metric=True,
@@ -98,7 +98,7 @@ class BaseStrategy:
         self.trade_controllers = trade_controllers
         self.risk_limits = risk_limits
         self.trade_cut_off_time = trade_cut_off_time
-        self.carry_forward = carry_forward
+        self.carry_forward_days = carry_forward_days
         self.force_exit_ts=force_exit_ts
         self.cover = cover #200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
@@ -142,26 +142,26 @@ class BaseStrategy:
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()
-        if self.carry_forward:
-            carry_trades = self.strategy_cache.get(self.id, [])
-            for leg in carry_trades:
+        carry_trades = self.strategy_cache.get(self.id, [])
+        params_repo = self.strategy_cache.get('params_repo_' + self.id, {})
+        for leg in carry_trades:
+            if leg['trigger_time'] < self.get_last_tick()['timestamp']:
                 leg_copy = leg.copy()
                 del leg_copy['sig_key']
                 sig_key = leg['sig_key']
                 trade_inst = leg['instrument']
 
                 if sig_key not in self.tradable_signals:
-                    self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst)
+                    self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst, self.triggers_per_signal)
                 self.tradable_signals[sig_key].legs[leg['seq']] = leg_copy
+                self.params_repo[(sig_key, leg['seq'])] = params_repo[(sig_key, leg['seq'])]
+        for trade in self.tradable_signals.values():
+            trade.set_controllers()
 
-            for trade in self.tradable_signals.values():
-                trade.set_controllers()
-
-                #self.trigger_entry(trade.trade_inst, self.order_type, trade.id, list(trade.legs.values()))
-
-                #trade.re_instate()
-
-        self.params_repo = self.strategy_cache.get('params_repo', {})
+            #self.trigger_entry(trade.trade_inst, self.order_type, trade.id, list(trade.legs.values()))
+            #trade.re_instate()
+        self.strategy_cache.delete(self.id)
+        self.strategy_cache.delete('params_repo_' + self.id)
         self.set_force_exit_ts()
 
 
@@ -418,7 +418,7 @@ class BaseStrategy:
                     carry_trades.append(lg_copy)
                     params_repo[(sig_key, leg['seq'])] = self.params_repo[(sig_key, leg['seq'])]
         self.strategy_cache.set(self.id, carry_trades)
-        self.strategy_cache.set('params_repo', params_repo)
+        self.strategy_cache.set('params_repo_' + self.id, params_repo)
 
 
     def record_params(self):

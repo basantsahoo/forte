@@ -48,7 +48,7 @@ default_strategy_params = {
     "derivative_instruments" : [],
     "exit_time": [10],
     "exit_at":None,
-    "carry_forward": False,
+    "carry_forward_days": 0,
     "min_tpo": 1,
     "max_tpo": 13,
     "record_metric": True,
@@ -92,7 +92,7 @@ def get_target_fn(human_lang):
 def get_startegy_args(**kwargs):
     args = {}
     arg_list = list(default_strategy_params.keys())
-    #arg_list = ["id", "symbol", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "exit_at", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed", "entry_signal_queues", "exit_criteria_list", "signal_filters", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade", "cover", "register_signal_category", "trade_controllers", "entry_switch", "risk_limits", "carry_forward", "force_exit_ts", "trade_cut_off_time"]
+    #arg_list = ["id", "symbol", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "exit_at", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed", "entry_signal_queues", "exit_criteria_list", "signal_filters", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade", "cover", "register_signal_category", "trade_controllers", "entry_switch", "risk_limits", "carry_forward_days", "force_exit_ts", "trade_cut_off_time"]
     for arg_ in arg_list:
         #if eval(arg_):
         #args[arg_] = eval(arg_)

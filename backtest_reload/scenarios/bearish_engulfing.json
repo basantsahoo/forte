@@ -4,9 +4,9 @@
       "id":"WeeklySell",
       "class":"OptionBuy",
       "symbol": "NIFTY",
-      "exit_time":[45, 45, 45, 45],
+      "exit_time":[4500, 4500, 4500, 4500],
       "exit_at":null,
-      "carry_forward": true,
+      "carry_forward_days": 1,
       "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
       "order_type":"SELL",
       "spot_instruments":[],
@@ -15,10 +15,10 @@
       "triggers_per_signal": 1,
       "spot_short_targets": [],
       "spot_short_stop_losses":[],
-      "instr_targets":[0.2, 0.25, 0.3, 0.2],
-      "instr_stop_losses":[-0.1, -0.15, -0.18, -0.2],
+      "instr_targets":[0.9, 0.9, 0.9, 0.9],
+      "instr_stop_losses":[2, 2, 2, 2],
       "instr_to_trade" : [["ITM", 1, "CE"]],
-      "register_signal_category": ["COMPOUND", "BEARISH_ENGULFING_HIGH_PUT_VOLUME", "1min"],
+      "register_signal_category": ["TIME_SIGNAL", "TUESDAY_09_30", "1min"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [
         {
@@ -30,7 +30,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": "WEEKLY_LEVEL_VA_H_POC_MID",
+            "signal_type": ["TIME_SIGNAL", "TUESDAY_09_30", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -64,7 +64,7 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 7,
+    "for_past_days": 2,
     "to_date": "2024-04-10",
     "candle_sw": 0,
     "week_days": [],
