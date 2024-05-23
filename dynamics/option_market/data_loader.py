@@ -23,11 +23,12 @@ class SpotIonBuilder:
         #print('total spot records====', len(self.ion_data))
 
 class MultiDayOptionDataLoader:
-    def __init__(self, asset="NIFTY", trade_days=[]):
+    def __init__(self, asset="NIFTY", trade_days=[], spot_only=False):
         self.asset = asset
         self.option_ions = OrderedDict()
         self.spot_ions = OrderedDict()
         self.last_ts = None
+        self.spot_only = spot_only
         start = datetime.now()
         for day in trade_days:
             ob = OptionIonBuilder(asset, day)
@@ -39,6 +40,12 @@ class MultiDayOptionDataLoader:
         self.data_present = True
 
     def generate_next_feed(self):
+        if self.spot_only:
+            return self.generate_next_feed_spot_only()
+        else:
+            return self.generate_next_feed_spot_options()
+
+    def generate_next_feed_spot_options(self):
 
         if list(self.option_ions.keys()):
             day_key = list(self.option_ions.keys())[0]
@@ -68,6 +75,23 @@ class MultiDayOptionDataLoader:
                 del self.spot_ions[day_key]
             return {'feed_type': 'option', 'asset': self.asset, 'data': [next_feed]}
 
+        else:
+            self.data_present = False
+            return []
+
+    def generate_next_feed_spot_only(self):
+        if list(self.spot_ions.keys()):
+            day_key = list(self.spot_ions.keys())[0]
+            print(day_key)
+            ts_keys = list(self.spot_ions[day_key].keys())
+            ts_keys.sort()
+            ts_key = ts_keys[0]
+            next_spot_feed = self.spot_ions[day_key][ts_key].copy()
+            del self.spot_ions[day_key][ts_key]
+            next_spot_feed['asset'] = self.asset
+            if not self.spot_ions[day_key]:
+                del self.spot_ions[day_key]
+            return {'feed_type': 'spot', 'asset': self.asset, 'data': [next_spot_feed]}
         else:
             self.data_present = False
             return []

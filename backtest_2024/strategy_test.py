@@ -16,7 +16,7 @@ from db.market_data import (get_all_days)
 import helper.utils as helper_utils
 from arc.strategy_manager import StrategyManager
 from entities.trading_day import TradeDateTime
-from dynamics.option_market.data_loader import MultiDayOptionDataLoader, MultiDaySpotDataLoader
+from dynamics.option_market.data_loader import MultiDayOptionDataLoader
 from dynamics.option_market.exclude_trade_days import exclude_trade_days
 from backtest_2024.bt_strategies import *
 
@@ -53,7 +53,7 @@ class StartegyBackTester:
                     end = datetime.now()
                     print('strategy init took', (end - start).total_seconds())
                 market_book.strategy_manager = strategy_manager
-                data_loader = MultiDaySpotDataLoader(asset=asset, trade_days=[t_day])
+                data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day], spot_only=True)
                 while data_loader.data_present:
                     feed_ = data_loader.generate_next_feed()
                     #print(feed_)

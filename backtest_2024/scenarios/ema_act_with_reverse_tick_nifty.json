@@ -124,7 +124,7 @@
     }
   ],
   "run_params": {
-    "test_days": ["2022-08-30"],
+    "test_days": ["2024-04-10"],
     "for_past_days": 90,
     "to_date": "2023-12-14",
     "candle_sw" : 0,
