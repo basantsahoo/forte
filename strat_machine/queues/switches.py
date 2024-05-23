@@ -29,7 +29,7 @@ class DistToSL(ProcessLoggerMixin):
             signal = Signal(asset="STRAT", category="STRAT", instrument="SPOT",
                          indicator="EMA_BREAK_DOWN_5_ENTRY",
                          signal_time=None, notice_time=None,
-                         info=self.thresholds.copy(), strength=1)
+                         signal_info=self.thresholds.copy(), strength=1)
 
             #signal = {'category': 'STRAT', 'indicator': 'EMA_BREAK_DOWN_5_ENTRY', 'strength': 1, 'signal_time': None, 'notice_time': None, 'info': self.thresholds.copy()}
             return signal

@@ -140,3 +140,4 @@ class SpotSignalGenerator:
     def perform_calculations(self):
         pass
         self.ema_1_signal()
+        self.ema_5_signal()

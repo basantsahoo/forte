@@ -150,7 +150,7 @@ class CompoundSignalBuilder:
             one_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
             two_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
             three_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
-
+            """
             print("one_bearish_candle==", one_bearish_candle)
             print("one_big_candle==", one_big_candle)
             print("one_body_large==", one_body_large)
@@ -170,7 +170,7 @@ class CompoundSignalBuilder:
             print("SMA==", SMA_1_10)
 
             print("price_location===", self.market_params['price_location'])
-
+            """
             last_tick = self.asset_book.spot_book.spot_processor.last_tick
             if self.not_none_eval(EMA_1_10, SMA_1_10) and EMA_1_10 < SMA_1_10:
                 if one_bearish_candle and two_bullish_candle and three_bearish_candle \
@@ -253,7 +253,7 @@ class CompoundSignalBuilder:
 
     def bearish_engulfing_high_put_volume(self):
         try:
-            print('bearish_engulfing_high_put_volume ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+            #print('bearish_engulfing_high_put_volume ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
             ten_period_signals = self.get_n_period_signals(self.last_ts, 10)
             EMA_1_10 = self.check_signal_present(ten_period_signals[0], ('TECHNICAL', 'EMA_1_10', "1min"))['value']
             SMA_1_10 = self.check_signal_present(ten_period_signals[0], ('TECHNICAL', 'SMA_1_10', "1min"))['value']
@@ -334,7 +334,7 @@ class CompoundSignalBuilder:
             one_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
             two_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
             three_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
-
+            """
             print("one_bullish_candle==", one_bullish_candle)
             print("one_big_candle==", one_big_candle)
             print("one_body_large==", one_body_large)
@@ -354,7 +354,7 @@ class CompoundSignalBuilder:
             print("SMA==", SMA_1_10)
 
             print("price_location===", self.market_params['price_location'])
-
+            """
             last_tick = self.asset_book.spot_book.spot_processor.last_tick
             if self.not_none_eval(EMA_1_10, SMA_1_10):
                 if one_bullish_candle and two_bearish_candle and three_bullish_candle \

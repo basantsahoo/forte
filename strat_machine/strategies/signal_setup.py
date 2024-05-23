@@ -79,7 +79,7 @@ default_strategy_params = {
 }
 
 
-def get_signal_key(human_lang):
+def get_signal_key_to_be_deleted(human_lang):
     if isinstance(human_lang, tuple):
         return human_lang
     else:

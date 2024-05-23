@@ -25,7 +25,7 @@
               "unique_only": true,
               "validity_period": 40
             },
-            "signal_type": "TECH_PRICE_ABOVE_EMA_5",
+            "signal_type": ["TECHNICAL", "PRICE_ABOVE_EMA_5", "1min"],
             "trade_eval": [],
             "min_activation_strength": 4,
             "max_activation_strength": 8,
@@ -51,7 +51,7 @@
               "unique_only": true,
               "validity_period": 375
             },
-            "signal_type": "TECH_CDL_5_ABOVE_EMA_5",
+            "signal_type": ["TECHNICAL", "CDL_5_ABOVE_EMA_5", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -83,7 +83,7 @@
               "unique_only": true,
               "validity_period": 375
             },
-            "signal_type": "TECH_PRICE_BELOW_EMA_5",
+            "signal_type": ["TECHNICAL", "PRICE_BELOW_EMA_5", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -93,7 +93,7 @@
             "high_threshold_subscriptions": [],
             "low_threshold_subscriptions": [],
             "reversal_subscriptions": [1],
-            "register_instr": false,
+            "register_instr": true,
             "reset_watcher_info": {},
             "update_watcher_info": {},
             "neuron_log": false
@@ -104,7 +104,7 @@
       "trade_controllers": [
       {
         "type": "DownController",
-        "signal_type": "CANDLE_SIGNAL",
+        "signal_type": ['PRICE', 'CANDLE'],
         "roll_factor": 0.0005,
 	"pnl_multiplier":5
       }
@@ -123,7 +123,7 @@
     }
   ],
   "run_params": {
-    "test_days": ["2023-09-01"],
+    "test_days": ["2022-08-30"],
     "for_past_days": 90,
     "to_date": "2023-12-14",
     "candle_sw" : 0,
