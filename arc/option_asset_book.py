@@ -60,6 +60,7 @@ class OptionAssetBook:
             self.clock.subscribe_to_frame_change(self.frame_change_action)
         else:
             self.clock.on_day_change(trade_day)
+        # """ comment for spot only start
         near_expiry_week = NearExpiryWeek(TradeDateTime(trade_day), self.asset)
         self.expiry_date = near_expiry_week.end_date.date_string
         if near_expiry_week.start_date.date_string != trade_day:
@@ -71,9 +72,11 @@ class OptionAssetBook:
         else:
             self.option_matrix.process_closing_oi(trade_day, [])
             self.option_matrix_5_min.process_closing_oi(trade_day, [])
+        
         avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
         self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)
         self.option_matrix_5_min.process_avg_volume(trade_day, avg_volume_recs)
+        #""" comment for spot only ends
         self.spot_book.day_change_notification(trade_day)
         #self.spot_book.set_transition_matrix()
 
@@ -123,7 +126,7 @@ class OptionAssetBook:
         if signal.category in ['PRICE_ACTION_INTRA_0', 'TECHNICAL_0', 'CANDLE_1', 'CANDLE_2', 'CANDLE_5', 'TIME_SIGNAL']:
             print(signal.category, signal.indicator)
         signal.spot_market_info = self.spot_book.spot_processor.get_market_params()
-        signal.option_market_info = self.option_matrix.signal_generator.get_info()
+        #signal.option_market_info = self.option_matrix.signal_generator.get_info()
         self.market_book.pattern_signal(self.asset, signal)
         last_tick = self.spot_book.spot_processor.last_tick
         self.compound_signal_generator.add_signal(last_tick['timestamp'], signal)

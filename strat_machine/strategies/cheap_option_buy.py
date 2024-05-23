@@ -1,5 +1,5 @@
 from strat_machine.core_strategies.core_strategy import BaseStrategy
-from strat_machine.strategies.signal_setup import get_signal_key
+from strat_machine.strategies.signal_setup import get_signal_key_to_be_deleted
 from strat_machine.strategies.signal_setup import get_startegy_args
 
 class CheapOptionBuy(BaseStrategy):
@@ -8,7 +8,7 @@ class CheapOptionBuy(BaseStrategy):
         BaseStrategy.__init__(self, market_book, **args)
 
     def register_instrument(self, signal):
-        if (signal['category'], signal['indicator']) == get_signal_key('OPTION_PRICE_DROP'):
+        if (signal['category'], signal['indicator']) == get_signal_key_to_be_deleted('OPTION_PRICE_DROP'):
             self.derivative_instruments.append(signal['instrument'])
             print('register ', self.derivative_instruments)
 
@@ -22,7 +22,7 @@ class CheapOptionBuy_old(BaseStrategy):
         BaseStrategy.__init__(self, market_book, **kwargs)
 
     def register_instrument(self, signal):
-        if (signal['category'], signal['indicator']) == get_signal_key('OPTION_PRICE_DROP'):
+        if (signal['category'], signal['indicator']) == get_signal_key_to_be_deleted('OPTION_PRICE_DROP'):
             self.derivative_instruments.append(signal['instrument'])
 
     def process_post_entry(self):
