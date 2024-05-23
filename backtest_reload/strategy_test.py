@@ -53,7 +53,7 @@ class StartegyBackTester:
                     end = datetime.now()
                     print('strategy init took', (end - start).total_seconds())
                 market_book.strategy_manager = strategy_manager
-                data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day])
+                data_loader = MultiDayOptionDataLoader(asset=asset, trade_days=[t_day], spot_only=False)
                 while data_loader.data_present:
                     feed_ = data_loader.generate_next_feed()
                     #print(feed_)
