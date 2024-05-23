@@ -114,7 +114,7 @@ class Trade:
             'trigger_time':last_candle['timestamp']
         }
         print('self.strategy.force_exit_ts++++++++++++++++++', self.strategy.force_exit_ts)
-        trade_info['max_run_time'] = min(trade_info['trigger_time'] + trade_info['duration'] * 60, self.strategy.force_exit_ts + 60)
+        trade_info['max_run_time'] = trade_info['trigger_time'] + trade_info['duration'] * 60 if self.strategy.force_exit_ts is None else min(trade_info['trigger_time'] + trade_info['duration'] * 60, self.strategy.force_exit_ts + 60)
         return trade_info
 
     def calculate_target(self, instr, target_level_list):
