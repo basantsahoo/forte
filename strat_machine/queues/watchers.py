@@ -23,7 +23,7 @@ class HighBreach(ProcessLoggerMixin):
         self.active = False
         self.signals = []
         self.code = 'watcher_update_signal'
-        self.creation_time = self.neuron.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
+        self.creation_time = self.neuron.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         self.display_id = self.neuron.manager.strategy.id + ' Watcher id== ' + repr(self.id)
         self.log_enabled = watcher_info.get('watcher_log', watcher_log)
 
@@ -41,7 +41,7 @@ class HighBreach(ProcessLoggerMixin):
             self.post_log()
 
     def life_span_complete(self):
-        last_tick_time = self.neuron.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.neuron.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         return last_tick_time - self.creation_time > self.life_span * 60
 
     def forward_activation(self, status):
@@ -51,11 +51,11 @@ class HighBreach(ProcessLoggerMixin):
             channel(info)
 
     def pre_log(self):
-        last_tick_time = datetime.fromtimestamp(self.neuron.manager.strategy.asset_book.spot_processor.last_tick['timestamp'])
+        last_tick_time = datetime.fromtimestamp(self.neuron.manager.strategy.spot_book.asset_book.spot_processor.last_tick['timestamp'])
         self.log(' Watcher id==',  repr(self.id), "PRE  LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
 
     def post_log(self):
-        last_tick_time = self.neuron.manager.strategy.asset_book.spot_processor.last_tick['timestamp']
+        last_tick_time = self.neuron.manager.strategy.asset_book.spot_book.spot_processor.last_tick['timestamp']
         self.log(' Watcher id==', repr(self.id), "POST LOG", "Watcher class==", self.__class__.__name__, "signal type==", self.signal_type,  'current count ==', len(self.signals))
 
 

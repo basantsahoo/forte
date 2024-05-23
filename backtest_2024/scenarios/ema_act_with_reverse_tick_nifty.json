@@ -8,13 +8,14 @@
       "order_type":"SELL",
       "spot_instruments":["SPOT"],
       "derivative_instruments":[],
-      "max_signal": 5,
+      "max_signal": 2,
       "triggers_per_signal": 1,
       "spot_short_targets": [0.003,0.04, 0.04, 0.05],
       "spot_short_stop_losses":[{"category":"signal_queue","mapped_object": 1,"mapped_fn":"get_signal_high", "kwargs":{}},0.002, 0.002,0.002],
       "instr_targets":[0.002,0.003, 0.004, 0.005],
       "instr_stop_losses":[0.001,0.002, 0.002,0.002],
-      "instr_to_trade" : [["ITM", 1, "CE"]],
+      "instr_to_trade" : [],
+      "register_signal_category": ["TECHNICAL", "PRICE_BELOW_EMA_5", "1min"],
       "entry_signal_queues": [
         {
           "neuron_info": {
@@ -104,7 +105,7 @@
       "trade_controllers": [
       {
         "type": "DownController",
-        "signal_type": ['PRICE', 'CANDLE'],
+        "signal_type": ["PRICE_SIGNAL", "CANDLE_5", "1min"],
         "roll_factor": 0.0005,
 	"pnl_multiplier":5
       }

@@ -1,5 +1,5 @@
 import itertools
-from strat_machine.strategies.signal_setup import get_signal_key
+#from strat_machine.strategies.signal_setup import get_signal_key
 from strat_machine.queues.controllers import get_controller
 
 class Trade:
@@ -25,7 +25,7 @@ class Trade:
                 leg = legs[leg_no]
                 total_controllers = len(self.strategy.trade_controllers)
                 controller_info = self.strategy.trade_controllers[min(leg_no, total_controllers-1)]
-                q_signal_key = get_signal_key(controller_info['signal_type'])
+                q_signal_key = controller_info['signal_type'] #get_signal_key(controller_info['signal_type'])
                 controller_info['signal_type'] = q_signal_key
                 controller_id = self.con_seq #len(self.controller_list)
                 self.con_seq += 1

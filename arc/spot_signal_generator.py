@@ -76,7 +76,7 @@ class SpotSignalGenerator:
                          signal_info=candle_5, strength=1, period="1min")
             self.asset_book.pattern_signal(pat)
             if candle_count > 2 and candle_count<6:
-                self.ema_5 = EMA(period=candle_count, input_values=[candle['close'] for candle in self.asset_book.candle_5_processor.candles])
+                self.ema_5 = EMA(period=candle_count, input_values=[candle['close'] for candle in self.spot_book.candle_5_processor.candles])
             else:
                 self.ema_5.add_input_value(candle_5['close'])
             if self.ema_5:

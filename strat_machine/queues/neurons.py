@@ -1,6 +1,6 @@
 from helper.utils import locate_point
 from strat_machine.queues.signal_queue import SignalQueue
-from strat_machine.strategies.signal_setup import get_signal_key
+#from strat_machine.strategies.signal_setup import get_signal_key
 from strat_machine.queues.watchers import get_watcher
 from strat_machine.queues.sender_neuron import SenderNeuron
 from strat_machine.queues.receiver_neuron import ReceiverNeuron
@@ -111,7 +111,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     def new_watcher(self, code='watcher_update_signal'):
         watcher_info = self.update_watcher_info.copy() if code == 'watcher_update_signal' else self.reset_watcher_info.copy()
-        q_signal_key = get_signal_key(watcher_info['signal_type'])
+        q_signal_key = watcher_info['signal_type'] #get_signal_key(watcher_info['signal_type'])
         watcher_info['signal_type'] = q_signal_key
         watcher_id = self.watcher_seq #len(self.watcher_list)
         self.watcher_seq += 1

@@ -1,5 +1,5 @@
 from strat_machine.core_strategies.core_strategy import BaseStrategy
-from strat_machine.strategies.signal_setup import get_signal_key
+from strat_machine.strategies.signal_setup import get_signal_key_to_be_deleted
 from helper.utils import get_option_strike
 
 
@@ -9,7 +9,7 @@ class DTBuyPut(BaseStrategy):
 
     def register_instrument(self, signal):
 
-        if (signal['category'], signal['indicator']) == get_signal_key('DT'):
+        if (signal['category'], signal['indicator']) == get_signal_key_to_be_deleted('DT'):
             #print('instrument register')
             last_tick = self.get_last_tick('SPOT')
             ltp = last_tick['close']

@@ -1,5 +1,5 @@
 from strat_machine.core_strategies.core_strategy import BaseStrategy
-from strat_machine.strategies.signal_setup import get_startegy_args, get_signal_key
+from strat_machine.strategies.signal_setup import get_startegy_args, get_signal_key_to_be_deleted
 from helper.utils import get_option_strike
 
 
@@ -12,7 +12,7 @@ class HighCallVolumeBuy(BaseStrategy):
 
 
     def register_instrument(self, signal):
-        if (signal.category, signal.indicator) == get_signal_key('BULLISH_MOMENTUM'):
+        if (signal.category, signal.indicator) == get_signal_key_to_be_deleted('BULLISH_MOMENTUM'):
             self.derivative_instruments = []
             last_tick = self.get_last_tick('SPOT')
             ltp = last_tick['close']
