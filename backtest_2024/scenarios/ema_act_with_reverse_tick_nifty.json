@@ -39,7 +39,7 @@
             "register_instr": false,
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": false
+            "neuron_log": true
           },
           "apply_pre_filter": false
         },
@@ -65,13 +65,13 @@
             "register_instr": false,
             "update_watcher_info": {
               "type": "HighBreach",
-              "signal_type": "TICK_PRICE_SIGNAL",
+              "signal_type": ["PRICE_SIGNAL", "TICK_PRICE", "1min"],
               "min_activation_strength": 1,
               "life_span": 30,
               "watcher_log": false
             },
             "reset_watcher_info": {},
-            "neuron_log": false
+            "neuron_log": true
           },
           "apply_pre_filter": false
         },
@@ -97,7 +97,7 @@
             "register_instr": true,
             "reset_watcher_info": {},
             "update_watcher_info": {},
-            "neuron_log": false
+            "neuron_log": true
           },
           "apply_pre_filter": false
         }
@@ -116,7 +116,7 @@
           "switch_eval": "(high - close)/close < 0.002",
           "que_subscriptions": [[1 ,"high","set_threshold"],[2, "close","set_threshold"]],
           "dispatch_signal": true,
-          "switch_log": false
+          "switch_log": true
         },
       "signal_filters" : [
       ],

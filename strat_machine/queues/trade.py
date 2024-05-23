@@ -64,6 +64,7 @@ class Trade:
         last_spot_candle = self.strategy.get_last_tick('SPOT')
         spot_targets = self.calculate_target('SPOT', self.strategy.spot_long_targets) if market_view == 'LONG' else self.calculate_target('SPOT', self.strategy.spot_short_targets)
         spot_stop_losses = self.calculate_target('SPOT', self.strategy.spot_long_stop_losses) if market_view == 'LONG' else self.calculate_target('SPOT', self.strategy.spot_short_stop_losses)
+        print(spot_stop_losses)
         instr_targets = self.calculate_target(instr, self.strategy.instr_targets) if instr != 'SPOT' else spot_targets
         instr_stop_losses = self.calculate_target(instr, self.strategy.instr_stop_losses) if instr != 'SPOT' else spot_stop_losses
         spot_long_target_levels = self.strategy.spot_long_target_levels
@@ -137,7 +138,7 @@ class Trade:
                     queue = self.strategy.entry_signal_pipeline.get_neuron_by_id(target_level['mapped_object'])
                     # print('queue.'+ mapped_fn + "()")
                     rs = eval('queue.' + mapped_fn)(**kwargs)
-                    #print('inside target fn +++++++++', rs)
+                    print('inside target fn +++++++++', rs)
                 elif target_level['category'] == 'global':
                     obj = target_level['mapped_object']
                     fn_string = 'self.' + (obj + '.' if obj else '') + mapped_fn  # + '()'
@@ -175,6 +176,9 @@ class Trade:
                     elif trigger_details['instr_stop_loss'] and last_instr_candle['close'] < trigger_details['instr_stop_loss']:
                         self.trigger_exit(trigger_seq, exit_type='IS')
                 elif self.strategy.order_type == 'SELL':
+                    print('eveluating SL for sell order ++++++++++++++++++')
+                    print('instr_stop_loss' , trigger_details['instr_stop_loss'])
+                    print('last_instr_candle close' , last_instr_candle['close'])
                     if trigger_details['instr_target'] and last_instr_candle['close'] <= trigger_details['instr_target']:
                         self.trigger_exit(trigger_seq, exit_type='IT')
                         #print(last_candle, trigger_details['target'])

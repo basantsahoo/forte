@@ -62,7 +62,7 @@ class SpotSignalGenerator:
         self.asset_book.pattern_signal(pat)
 
         if notify and len(list(self.spot_book.spot_processor.spot_ts.keys())) > 1:
-            print('+++++++++++++++++++++process_spot_signals+++++++++++++++++++++++++++')
+            #print('+++++++++++++++++++++process_spot_signals+++++++++++++++++++++++++++')
             self.perform_calculations()
 
     def ema_5_signal(self):
