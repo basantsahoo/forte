@@ -269,6 +269,19 @@ def get_option_strike(ltp, money_ness, level, kind):
     strike = otm_strike if money_ness == 'OTM' else itm_strike if money_ness == 'ITM' else atm_strike
     return strike
 
+def inst_is_option(inst):
+    known_spot_instruments = ['SPOT']
+    return inst not in known_spot_instruments
+
+def get_market_view(self, instr, order_type):
+    print('get_market_view', instr)
+    view_dict = {'SPOT_BUY': 'LONG', 'SPOT_SELL': 'SHORT', 'CE_BUY': 'LONG', 'CE_SELL': 'SHORT', 'PE_BUY': 'SHORT', 'PE_SELL': 'LONG'}
+    if not inst_is_option(instr):
+        d_key = instr + "_" + order_type
+    else:
+        d_key = instr[-2::] + "_" + order_type
+    return view_dict[d_key]
+
 
 def create_strike_groups(ltp, kind, instruments):
     #points = 3

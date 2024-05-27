@@ -8,6 +8,8 @@ from helper.utils import get_option_strike
 
 from servers.server_settings import cache_dir
 from diskcache import Cache
+from helper.utils import inst_is_option, get_market_view
+from strat_machine.trade_master.trade_manager import TradeManager
 
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
@@ -54,7 +56,8 @@ class BaseStrategy:
                  entry_switch={},
                  risk_limits=[],
                  trade_cut_off_time=60,
-                 force_exit_ts = None
+                 force_exit_ts = None,
+                 trade_set_info = {}
                  ):
         #print('entry_signal_queues====',entry_signal_queues)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
@@ -101,14 +104,18 @@ class BaseStrategy:
         self.carry_forward_days = carry_forward_days
         self.force_exit_ts=force_exit_ts
         self.cover = cover #200 if self.derivative_instruments and self.order_type == 'SELL' else 0
-        if (len(spot_long_targets) < self.triggers_per_signal) and (len(spot_short_targets) < self.triggers_per_signal) and (len(instr_targets) < self.triggers_per_signal):
+        self.trade_set_info = trade_set_info
+        print(trade_set_info)
+        if (len(trade_set_info['spot_high_targets']) < self.triggers_per_signal) and (len(trade_set_info['spot_low_targets']) < self.triggers_per_signal) and (len(trade_set_info['trade_targets']) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
         #print('Add entry queue')
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)
         #print('Add exit queue', exit_criteria_list)
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
-        self.asset_book = market_book.get_asset_book(self.symbol) if market_book is not None else None
+        self.asset_book = market_book.get_asset_book(self.trade_set_info['asset']) if market_book is not None else None
         self.restore_variables = {}
+        self.trade_manager = TradeManager(market_book, self.id, **trade_set_info)
+
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
         #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
         """
@@ -128,6 +135,7 @@ class BaseStrategy:
             if self.force_exit_ts[0] == 'weekly_expiry_day':
                 self.force_exit_ts = self.asset_book.get_expiry_day_time(self.force_exit_ts[1])
 
+    """
     def get_market_view(self, instr):
         print('get_market_view', instr)
         view_dict = {'SPOT_BUY': 'LONG', 'SPOT_SELL': 'SHORT', 'CE_BUY': 'LONG', 'CE_SELL': 'SHORT', 'PE_BUY': 'SHORT', 'PE_SELL': 'LONG'}
@@ -136,7 +144,7 @@ class BaseStrategy:
         else:
             d_key = instr[-2::] + "_" + self.order_type
         return view_dict[d_key]
-
+    """
     def set_up(self):
         week_day_criterion = (not self.weekdays_allowed) or TradeDateTime(self.asset_book.market_book.trade_day).weekday_name in self.weekdays_allowed
         activation_criterion = week_day_criterion
@@ -207,18 +215,16 @@ class BaseStrategy:
     def trade_limit_reached(self):
         return len(self.tradable_signals) >= self.max_signal
 
-    def inst_is_option(self, inst):
-        return inst not in known_spot_instruments
 
     def get_last_tick(self, instr='SPOT'):
-        if self.inst_is_option(instr):
+        if inst_is_option(instr):
             last_candle = self.asset_book.option_matrix.get_last_tick(instr)
         else:
             last_candle = self.asset_book.spot_book.spot_processor.last_tick
         return last_candle
 
     def get_closest_instrument(self, instr='SPOT'):
-        if self.inst_is_option(instr):
+        if inst_is_option(instr):
             instr = self.asset_book.option_matrix.get_closest_instrument(instr)
         else:
             instr = instr
@@ -232,13 +238,13 @@ class BaseStrategy:
                     mkt_parms = {**mkt_parms, **self.signal_params}
                 self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
         self.signal_params = {}
-        updated_symbol = self.asset_book.asset + "_" + trade_inst if self.inst_is_option(trade_inst) else self.asset_book.asset
+        updated_symbol = self.asset_book.asset + "_" + trade_inst if inst_is_option(trade_inst) else self.asset_book.asset
         cover = triggers[0].get('cover', 0)
         signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'legs': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
         print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))
         print('at Same time Option Matrix clock================',
               datetime.fromtimestamp(self.asset_book.option_matrix.last_time_stamp))
-        self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=self.inst_is_option(trade_inst))
+        self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=inst_is_option(trade_inst))
 
     def trigger_exit(self, signal_info):
         if self.exit_at is None:
@@ -251,27 +257,27 @@ class BaseStrategy:
     def trigger_exit_at_current(self, signal_info):
         signal_info['strategy_id'] = self.id
         instrument = signal_info['symbol']
-        updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
+        updated_symbol = self.asset_book.asset + "_" + instrument if inst_is_option(instrument) else self.asset_book.asset
         signal_info['symbol'] = updated_symbol
-        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, option_signal=self.inst_is_option(instrument))
+        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, option_signal=inst_is_option(instrument))
 
     def trigger_exit_at_low(self, signal_info):
         signal_info['strategy_id'] = self.id
         instrument = signal_info['symbol']
-        updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
+        updated_symbol = self.asset_book.asset + "_" + instrument if inst_is_option(instrument) else self.asset_book.asset
         signal_info['symbol'] = updated_symbol
         order_info = self.asset_book.market_book.pm.get_order_info_from_signal_info(signal_info)
-        lowest_candle = self.asset_book.get_lowest_candle(updated_symbol, after_ts=order_info['entry_time'], is_option=self.inst_is_option(instrument))
-        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=lowest_candle, option_signal=self.inst_is_option(instrument))
+        lowest_candle = self.asset_book.get_lowest_candle(updated_symbol, after_ts=order_info['entry_time'], is_option=inst_is_option(instrument))
+        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=lowest_candle, option_signal=inst_is_option(instrument))
 
     def trigger_exit_at_high(self, signal_info):
         signal_info['strategy_id'] = self.id
         instrument = signal_info['symbol']
-        updated_symbol = self.asset_book.asset + "_" + instrument if self.inst_is_option(instrument) else self.asset_book.asset
+        updated_symbol = self.asset_book.asset + "_" + instrument if inst_is_option(instrument) else self.asset_book.asset
         signal_info['symbol'] = updated_symbol
         order_info = self.asset_book.market_book.pm.get_order_info_from_signal_info(signal_info)
-        highest_candle = self.asset_book.get_highest_candle(updated_symbol, after_ts=order_info['entry_time'], is_option=self.inst_is_option(instrument))
-        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=highest_candle, option_signal=self.inst_is_option(instrument))
+        highest_candle = self.asset_book.get_highest_candle(updated_symbol, after_ts=order_info['entry_time'], is_option=inst_is_option(instrument))
+        self.asset_book.market_book.pm.strategy_exit_signal(signal_info, candle=highest_candle, option_signal=inst_is_option(instrument))
 
     def manage_risk(self):
         spot_movements = []

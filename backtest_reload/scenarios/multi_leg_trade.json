@@ -3,21 +3,71 @@
     {
       "id":"WeeklySell",
       "class":"OptionBuy",
-      "symbol": "NIFTY",
-      "exit_time":[4500, 4500, 4500, 4500],
-      "exit_at":null,
-      "carry_forward_days": 1,
-      "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
-      "order_type":"SELL",
-      "spot_instruments":[],
-      "derivative_instruments":[],
       "max_signal": 1,
-      "triggers_per_signal": 1,
-      "spot_short_targets": [],
-      "spot_short_stop_losses":[],
-      "instr_targets":[0.9, 0.9, 0.9, 0.9],
-      "instr_stop_losses":[2, 2, 2, 2],
-      "instr_to_trade" : [["ITM", 1, "CE"]],
+
+      "trade_set_info": {
+        "asset": "NIFTY",
+        "exit_time":[
+          [4500, 4500],
+          [4500, 4500],
+          [4500, 4500],
+          [4500, 4500]
+        ],
+        "exit_at":null,
+        "carry_forward_days":[0, 1, 2, 3],
+        "triggers_per_signal": 1,
+        "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
+        "trade_targets":[0.9, 0.9, 0.9, 0.9],
+        "trade_stop_losses":[0.9, 0.9, 0.9, 0.9],
+        "spot_high_stop_losses":[0.9, 0.9, 0.9, 0.9],
+        "spot_low_stop_losses":[0.9, 0.9, 0.9, 0.9],
+        "spot_high_targets":[0.9, 0.9, 0.9, 0.9],
+        "spot_low_targets":[0.9, 0.9, 0.9, 0.9],
+        "leg_group_exits": {
+          "targets":[{"0": 0.9, "1": 0.8}, {"0": 0.9, "1": 0.8}, {"0": 0.9, "1": 0.8}, {"0": 0.9, "1": 0.8}],
+          "stop_losses":[{"0": 0.1, "1": 0.1}, {"0": 0.1, "1": 0.1}, {"0": 0.2, "1": 0.2}, {"0": 0.3, "1": 0.3}],
+          "spot_high_stop_losses":[{"0": 0.1, "1": 0.1}, {"0": 0.1, "1": 0.1}, {"0": 0.2, "1": 0.2}, {"0": 0.3, "1": 0.3}],
+          "spot_low_stop_losses":[{"0": 0.1, "1": 0.1}, {"0": 0.1, "1": 0.1}, {"0": 0.2, "1": 0.2}, {"0": 0.3, "1": 0.3}],
+          "spot_high_target":[{"0": 0.1, "1": 0.1}, {"0": 0.1, "1": 0.1}, {"0": 0.2, "1": 0.2}, {"0": 0.3, "1": 0.3}],
+          "spot_low_target":[{"0": 0.1, "1": 0.1}, {"0": 0.1, "1": 0.1}, {"0": 0.2, "1": 0.2}, {"0": 0.3, "1": 0.3}]
+        },
+        "trade_info": {
+          "leg_groups": [
+            {
+              "id": "l1",
+              "view": "SHORT",
+              "legs" : {
+                "0": {
+                  "instr_to_trade" : [["ITM", 1, "CE"]],
+                  "order_type":"SELL",
+                  "qty": 1
+                },
+                "1": {
+                  "instr_to_trade" : [["OTM", 1, "CE"]],
+                  "order_type":"BUY",
+                  "qty": 2
+                }
+              }
+            },
+            {
+              "id": "l2",
+              "view": "LONG",
+              "legs" : {
+                "0": {
+                  "instr_to_trade" : [["ITM", 1, "PE"]],
+                  "order_type":"SELL",
+                  "qty": 1
+                },
+                "1": {
+                  "instr_to_trade" : [["OPM", 1, "PE"]],
+                  "order_type":"BUY",
+                  "qty": 2
+                }
+              }
+            }
+          ]
+        }
+      },
       "register_signal_category": ["TIME_SIGNAL", "TUESDAY_09_30", "1min"],
       "trade_cut_off_time": 25,
       "entry_signal_queues": [

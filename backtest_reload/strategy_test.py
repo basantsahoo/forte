@@ -113,9 +113,9 @@ class StartegyBackTester:
 
 
     def run(self):
-        subscribed_symbols = list(set([strategy['symbol'] for strategy in self.strat_config['strategies']]))
+        subscribed_assets = list(set([strategy['trade_set_info']['asset'] for strategy in self.strat_config['strategies']]))
         final_result = []
-        for symbol in subscribed_symbols:
+        for symbol in subscribed_assets:
             if len(self.strat_config['run_params']['test_days']) == 0:
                 all_days = get_all_days(helper_utils.get_nse_index_symbol(symbol))
                 to_date = datetime.strptime(self.strat_config['run_params']['to_date'], '%Y-%m-%d') if type(self.strat_config['run_params']['to_date']) == str else self.strat_config['run_params']['to_date']

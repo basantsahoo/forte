@@ -1,6 +1,6 @@
 from strat_machine.core_strategies.core_strategy import BaseStrategy
-from strat_machine.strategies.signal_setup import get_signal_key_to_be_deleted
-from strat_machine.strategies.signal_setup import get_startegy_args
+from strat_machine.core_strategies.signal_setup import get_signal_key_to_be_deleted
+from strat_machine.core_strategies.signal_setup import get_startegy_args
 
 class CheapOptionBuy(BaseStrategy):
     def __init__(self, market_book, **kwargs):

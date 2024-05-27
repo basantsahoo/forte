@@ -1,5 +1,5 @@
 from strat_machine.core_strategies.weekly_core_strategy  import BaseStrategy
-from strat_machine.strategies.signal_setup import get_startegy_args
+from strat_machine.core_strategies.signal_setup import get_startegy_args
 from helper.utils import get_option_strike
 
 

@@ -1,5 +1,5 @@
 from strat_machine.core_strategies.core_strategy import BaseStrategy
-from strat_machine.strategies.signal_setup import get_signal_key_to_be_deleted
+from strat_machine.core_strategies.signal_setup import get_signal_key_to_be_deleted
 from helper.utils import get_option_strike
 
 

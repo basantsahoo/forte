@@ -75,7 +75,8 @@ default_strategy_params = {
     "entry_switch": {},
     "risk_limits": [],
     "trade_cut_off_time": 60,
-    "force_exit_ts": None
+    "force_exit_ts": None,
+    "trade_set_info": {}
 }
 
 
@@ -100,3 +101,51 @@ def get_startegy_args(**kwargs):
     return args
 
 
+default_trade_manager_params = {
+    "id": None,
+    "symbol":None,
+    "order_type": "BUY",
+    "spot_instruments": [],
+    "derivative_instruments" : [],
+    "exit_time": [10],
+    "exit_at":None,
+    "carry_forward_days": 0,
+    "min_tpo": 1,
+    "max_tpo": 13,
+    "record_metric": True,
+    "triggers_per_signal": 1,
+    "max_signal": 1,
+    "weekdays_allowed": [],
+    "entry_signal_queues": [],  # Used for signals to be evaluated to enter a trade
+    "exit_criteria_list": [],  # Used for signals to be evaluated to exit a trade
+    "signal_filters": [],  # Signals that should be filtered out before sending to queue
+    "spot_long_targets": [],  # [0.002,0.003, 0.004, 0.005],
+    "spot_long_stop_losses": [],  # [-0.001, -0.002, -0.002, -0.002],
+    "spot_short_targets": [],  # [-0.002, -0.003, -0.004, -0.005],
+    "spot_short_stop_losses": [],  # [0.001, 0.002, 0.002, 0.002],
+    "spot_long_target_levels": [],
+    "spot_long_stop_loss_levels": [],
+    "spot_short_target_levels": [],
+    "spot_short_stop_loss_levels": [],
+    "instr_targets": [],  # [0.002,0.003, 0.004, 0.005],
+    "instr_stop_losses": [],  # [-0.001,-0.002, -0.002,-0.002]
+    "instr_to_trade": [],
+    "cover": 0,
+    "register_signal_category": None,
+    "trade_controllers": [],
+    "entry_switch": {},
+    "risk_limits": [],
+    "trade_cut_off_time": 60,
+    "force_exit_ts": None,
+    "trade_set_info": {}
+}
+
+def get_trade_manager_args(**kwargs):
+    args = {}
+    arg_list = list(default_trade_manager_params.keys())
+    #arg_list = ["id", "symbol", "order_type", "spot_instruments", "derivative_instruments", "exit_time", "exit_at", "min_tpo", "max_tpo", "record_metric", "triggers_per_signal", "max_signal","weekdays_allowed", "entry_signal_queues", "exit_criteria_list", "signal_filters", "spot_long_targets", "spot_long_stop_losses", "spot_short_targets", "spot_short_stop_losses", "instr_targets", "instr_stop_losses", "instr_to_trade", "cover", "register_signal_category", "trade_controllers", "entry_switch", "risk_limits", "carry_forward_days", "force_exit_ts", "trade_cut_off_time"]
+    for arg_ in arg_list:
+        #if eval(arg_):
+        #args[arg_] = eval(arg_)
+        args[arg_] = kwargs.get(arg_, default_strategy_params[arg_])
+    return args
