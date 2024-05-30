@@ -113,7 +113,7 @@ class StartegyBackTester:
 
 
     def run(self):
-        subscribed_assets = list(set([strategy['trade_set_info']['asset'] for strategy in self.strat_config['strategies']]))
+        subscribed_assets = list(set([strategy['trade_manager_info']['asset'] for strategy in self.strat_config['strategies']]))
         final_result = []
         for symbol in subscribed_assets:
             if len(self.strat_config['run_params']['test_days']) == 0:

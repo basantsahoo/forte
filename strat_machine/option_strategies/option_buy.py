@@ -11,7 +11,7 @@ class OptionBuy(BaseStrategy):
         BaseStrategy.__init__(self, market_book=market_book, **args)
 
 
-    def register_instrument(self, signal):
+    def register_instrument_2(self, signal):
         if signal.key() == tuple(self.register_signal_category):
             self.derivative_instruments = []
             last_tick = self.get_last_tick('SPOT')
@@ -28,7 +28,7 @@ class OptionBuy(BaseStrategy):
                     setattr(self, key, val)
                     print(getattr(self, key))
                 print('spot_stop_loss_levels+++++++++', self.spot_short_stop_loss_levels)
-    def process_post_entry(self):
+    def process_post_entry_2(self):
         self.derivative_instruments = []
         restore_variables_cp = self.restore_variables.copy()
         for key, val in restore_variables_cp.items():

@@ -86,7 +86,7 @@ class QNetwork:
 
     # Entry signal is and
     def evaluate_entry_signals(self):
-        #print('neuron network evaluate_entry_signals+++++++++')
+        print('neuron network evaluate_entry_signals+++++++++')
         passed = True
         for q_id, queue_item in self.neuron_dict.items():
             queue = queue_item['neuron']

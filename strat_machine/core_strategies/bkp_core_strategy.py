@@ -23,6 +23,7 @@ class BaseStrategy:
     def __init__(self,
                  market_book=None,
                  id=None,
+                 symbol=None,
                  order_type="BUY",  # order type of the instrument, can take only one value
                  spot_instruments = [],  # Instruments that should be traded as linear can include FUT in future
                  derivative_instruments=[],  # Instruments that should be traded as non options
@@ -56,11 +57,11 @@ class BaseStrategy:
                  risk_limits=[],
                  trade_cut_off_time=60,
                  force_exit_ts = None,
-                 trade_manager_info = {}
+                 trade_set_info = {}
                  ):
-        #print('core strategy 3333333333333333333333333')
         #print('entry_signal_queues====',entry_signal_queues)
         self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
+        self.symbol = symbol
         self.order_type = order_type
         self.spot_instruments = spot_instruments if spot_instruments else []
         self.derivative_instruments = derivative_instruments if derivative_instruments else []
@@ -103,18 +104,18 @@ class BaseStrategy:
         self.carry_forward_days = carry_forward_days
         self.force_exit_ts=force_exit_ts
         self.cover = cover #200 if self.derivative_instruments and self.order_type == 'SELL' else 0
-        self.trade_manager_info = trade_manager_info
-        if (len(trade_manager_info['spot_high_targets']) < self.triggers_per_signal) and (len(trade_manager_info['spot_low_targets']) < self.triggers_per_signal) and (len(trade_manager_info['trade_targets']) < self.triggers_per_signal):
+        self.trade_set_info = trade_set_info
+        print(trade_set_info)
+        if (len(trade_set_info['spot_high_targets']) < self.triggers_per_signal) and (len(trade_set_info['spot_low_targets']) < self.triggers_per_signal) and (len(trade_set_info['trade_targets']) < self.triggers_per_signal):
             raise Exception("Triggers and targets of unequal size")
         #print('Add entry queue')
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)
         #print('Add exit queue', exit_criteria_list)
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
-        self.asset_book = market_book.get_asset_book(self.trade_manager_info['asset']) if market_book is not None else None
+        self.asset_book = market_book.get_asset_book(self.trade_set_info['asset']) if market_book is not None else None
         self.restore_variables = {}
-        self.trade_manager = TradeManager(market_book, self.id, **trade_manager_info)
-        self.asset = self.asset_book.asset
-        self.execute_trades = False
+        self.trade_manager = TradeManager(market_book, self.id, **trade_set_info)
+
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
         #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
         """
@@ -174,9 +175,7 @@ class BaseStrategy:
 
 
     def initiate_signal_trades(self):
-        print('strategy initiate_signal_trades+++++++++++++++++')
-        self.trade_manager.initiate_signal_trades()
-        """
+        print('initiate_signal_trades+++++++++++++++++')
         #print(self.spot_instruments)
         print(self.derivative_instruments)
         all_inst = self.spot_instruments + self.derivative_instruments
@@ -192,7 +191,7 @@ class BaseStrategy:
             # self.trigger_entry(trade_inst, self.order_type, trd_key, legs)
         self.entry_signal_pipeline.flush_queues()
         self.process_post_entry()
-        """
+
     def add_tradable_signal(self, trade_inst):
         existing_signals = len(self.tradable_signals.keys())
         sig_key = 'SIG_' + str(existing_signals + 1)
@@ -202,10 +201,9 @@ class BaseStrategy:
 
     """Deactivate when not required to run in a particular day"""
     def deactivate(self):
-        print('############################################# Deactivated')
         self.activated = False
         #self.market_book.remove_strategy(self)
-
+        print('############################################# Deactivated')
 
     """ Every strategy should run in valid tpo"""
     def valid_tpo(self):
@@ -301,13 +299,10 @@ class BaseStrategy:
                 break
 
     def register_instrument(self, signal):
-        print('register_instrument++++++++++++++++++++++++++++++++++++++')
-        self.execute_trades = True
-        self.trade_manager.register_signal(signal)
+        pass
 
     def process_post_entry(self):
-        self.execute_trades = False
-        self.trade_manager.process_post_entry()
+        pass
 
     def while_active(function):
         @functools.wraps(function)
@@ -332,7 +327,7 @@ class BaseStrategy:
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
-        print('time to close========', self.asset_book.market_book.get_time_to_close())
+        #print('time to close========', self.asset_book.market_book.get_time_to_close())
         #print('trade_cut_off_time========', self.trade_cut_off_time)
         #print('self.valid_tpo()========', self.valid_tpo())
         #print('signal_present========', self.entry_signal_pipeline.all_entry_signal())
@@ -363,13 +358,11 @@ class BaseStrategy:
 
     @while_active
     def on_minute_data_pre(self):
-        print('on_minute_data_pre+++++++++++++++++++++++++')
         self.on_tick_data()
         self.check_neuron_validity()
 
     @while_active
     def on_minute_data_post(self):
-        print('on_minute_data_post+++++++++++++++++++++++++')
         self.look_for_trade()
 
     @while_active

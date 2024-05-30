@@ -42,7 +42,6 @@ human_machine_target_map = {
 
 default_strategy_params = {
     "id": None,
-    "symbol":None,
     "order_type": "BUY",
     "spot_instruments": [],
     "derivative_instruments" : [],
@@ -76,7 +75,7 @@ default_strategy_params = {
     "risk_limits": [],
     "trade_cut_off_time": 60,
     "force_exit_ts": None,
-    "trade_set_info": {}
+    "trade_manager_info": {}
 }
 
 
@@ -102,42 +101,26 @@ def get_startegy_args(**kwargs):
 
 
 default_trade_manager_params = {
-    "id": None,
-    "symbol":None,
-    "order_type": "BUY",
-    "spot_instruments": [],
-    "derivative_instruments" : [],
+    "asset": None,
     "exit_time": [10],
     "exit_at":None,
-    "carry_forward_days": 0,
-    "min_tpo": 1,
-    "max_tpo": 13,
-    "record_metric": True,
+    "carry_forward_days": [0],
     "triggers_per_signal": 1,
-    "max_signal": 1,
-    "weekdays_allowed": [],
-    "entry_signal_queues": [],  # Used for signals to be evaluated to enter a trade
-    "exit_criteria_list": [],  # Used for signals to be evaluated to exit a trade
-    "signal_filters": [],  # Signals that should be filtered out before sending to queue
-    "spot_long_targets": [],  # [0.002,0.003, 0.004, 0.005],
-    "spot_long_stop_losses": [],  # [-0.001, -0.002, -0.002, -0.002],
-    "spot_short_targets": [],  # [-0.002, -0.003, -0.004, -0.005],
-    "spot_short_stop_losses": [],  # [0.001, 0.002, 0.002, 0.002],
-    "spot_long_target_levels": [],
-    "spot_long_stop_loss_levels": [],
-    "spot_short_target_levels": [],
-    "spot_short_stop_loss_levels": [],
-    "instr_targets": [],  # [0.002,0.003, 0.004, 0.005],
-    "instr_stop_losses": [],  # [-0.001,-0.002, -0.002,-0.002]
-    "instr_to_trade": [],
-    "cover": 0,
-    "register_signal_category": None,
-    "trade_controllers": [],
-    "entry_switch": {},
-    "risk_limits": [],
-    "trade_cut_off_time": 60,
     "force_exit_ts": None,
-    "trade_set_info": {}
+    "spot_high_targets": [],  # [0.002,0.003, 0.004, 0.005],
+    "spot_high_stop_losses": [],  # [-0.001, -0.002, -0.002, -0.002],
+    "spot_low_targets": [],  # [-0.002, -0.003, -0.004, -0.005],
+    "spot_low_stop_losses": [],  # [0.001, 0.002, 0.002, 0.002],
+    "spot_high_target_levels": [],
+    "spot_high_stop_loss_levels": [],
+    "spot_low_target_levels": [],
+    "spot_low_stop_loss_levels": [],
+    "trade_targets": [],  # [0.002,0.003, 0.004, 0.005],
+    "trade_stop_losses": [],  # [-0.001,-0.002, -0.002,-0.002]
+    "leg_group_exits": {},
+    "trade_controllers": [],
+    "risk_limits": [],
+    "trade_info": {}
 }
 
 def get_trade_manager_args(**kwargs):
@@ -147,5 +130,5 @@ def get_trade_manager_args(**kwargs):
     for arg_ in arg_list:
         #if eval(arg_):
         #args[arg_] = eval(arg_)
-        args[arg_] = kwargs.get(arg_, default_strategy_params[arg_])
+        args[arg_] = kwargs.get(arg_, default_trade_manager_params[arg_])
     return args

@@ -273,7 +273,7 @@ def inst_is_option(inst):
     known_spot_instruments = ['SPOT']
     return inst not in known_spot_instruments
 
-def get_market_view(self, instr, order_type):
+def get_market_view(instr, order_type):
     print('get_market_view', instr)
     view_dict = {'SPOT_BUY': 'LONG', 'SPOT_SELL': 'SHORT', 'CE_BUY': 'LONG', 'CE_SELL': 'SHORT', 'PE_BUY': 'SHORT', 'PE_SELL': 'LONG'}
     if not inst_is_option(instr):

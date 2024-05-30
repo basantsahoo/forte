@@ -39,7 +39,7 @@ class StrategyManager:
         return strategy_signal_generator
 
     def get_strategies_by_symbol(self, symbol):
-        return [strategy for strategy in self.strategies if strategy.symbol == symbol]
+        return [strategy for strategy in self.strategies if strategy.asset_book.asset == symbol]
 
     def on_minute_data_pre(self, asset):
         if self.process_signal_switch:

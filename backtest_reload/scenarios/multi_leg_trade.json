@@ -4,8 +4,8 @@
       "id":"WeeklySell",
       "class":"OptionBuy",
       "max_signal": 1,
-
-      "trade_set_info": {
+      "asset": "NIFTY",
+      "trade_manager_info": {
         "asset": "NIFTY",
         "exit_time":[
           [4500, 4500],
@@ -38,12 +38,12 @@
               "view": "SHORT",
               "legs" : {
                 "0": {
-                  "instr_to_trade" : [["ITM", 1, "CE"]],
+                  "instr_to_trade" : ["ITM", 1, "CE"],
                   "order_type":"SELL",
                   "qty": 1
                 },
                 "1": {
-                  "instr_to_trade" : [["OTM", 1, "CE"]],
+                  "instr_to_trade" : ["OTM", 1, "CE"],
                   "order_type":"BUY",
                   "qty": 2
                 }
@@ -114,8 +114,8 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 2,
-    "to_date": "2024-04-10",
+    "for_past_days": 1,
+    "to_date": "2024-04-09",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,
