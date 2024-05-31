@@ -1,6 +1,7 @@
 from strat_machine.core_strategies.signal_setup import get_trade_manager_args
 from helper.utils import inst_is_option, get_market_view
 import itertools
+from helper.utils import get_option_strike
 
 class TradeManager:
     def __init__(self, market_book, id, **kwargs):
@@ -47,7 +48,7 @@ class TradeManager:
         self.spot_high_stop_loss_levels = spot_high_stop_loss_levels
         self.spot_low_target_levels = spot_low_target_levels
         self.spot_low_stop_loss_levels = spot_low_stop_loss_levels
-
+        self.carry_forward_days = carry_forward_days
         side = 1#get_broker_order_type(self.order_type)
         self.trade_targets = [side * abs(x) for x in trade_targets]
         self.trade_stop_losses = [-1 * side * abs(x) for x in trade_stop_losses]
@@ -116,6 +117,17 @@ class Trade:
         self.trd_idx = trd_idx
         self.trade_set = trade_set
         self.pnl = 0
+        self.exit_time = self.trade_set.trade_manager.exit_time[trd_idx]
+        self.carry_forward_days = self.trade_set.trade_manager.carry_forward_days[trd_idx]
+        self.target = self.trade_set.trade_manager.trade_targets[trd_idx]
+        self.stop_loss = self.trade_set.trade_manager.trade_stop_losses[trd_idx]
+        self.spot_high_stop_loss = self.trade_set.trade_manager.spot_high_stop_losses[trd_idx]
+        self.spot_low_stop_loss = self.trade_set.trade_manager.spot_low_stop_losses[trd_idx]
+        self.spot_high_target = self.trade_set.trade_manager.spot_high_targets[trd_idx]
+        self.spot_low_target = self.trade_set.trade_manager.spot_low_targets[trd_idx]
+        self.leg_group_exits = {}
+        for key, val in self.trade_set.trade_manager.leg_group_exits.items():
+            self.leg_group_exits[key] = val[trd_idx]
         self.leg_groups = {}
         for leg_group_info in self.trade_set.trade_manager.trade_info["leg_groups"]:
             self.leg_groups[leg_group_info['id']] = LegGroup(self, leg_group_info)
@@ -124,12 +136,18 @@ class Trade:
 class LegGroup:
     def __init__(self, trade, leg_group_info):
         print(leg_group_info["legs"])
+        self.id = leg_group_info['id']
         self.trade = trade
         self.pnl = 0
         self.completed = False
         self.leg_group_info = leg_group_info
         self.legs = {}
-
+        self.target = self.trade.leg_group_exits['targets'][self.id]
+        self.stop_loss = self.trade.leg_group_exits['stop_losses'][self.id]
+        self.spot_high_stop_loss = self.trade.leg_group_exits['spot_high_stop_losses'][self.id]
+        self.spot_low_stop_loss = self.trade.leg_group_exits['spot_low_stop_losses'][self.id]
+        self.spot_high_target = self.trade.leg_group_exits['spot_high_targets'][self.id]
+        self.spot_low_target = self.trade.leg_group_exits['spot_low_targets'][self.id]
         for leg_id, leg_info in self.leg_group_info["legs"].items():
             print(leg_id, leg_info)
             self.leg_group_info["legs"][leg_id] = self.expand_leg_info(int(leg_id), leg_info)
@@ -142,15 +160,20 @@ class LegGroup:
         },
     """
     def expand_leg_info(self, idx=1, leg_info={}):
-        print(leg_info)
         instr = leg_info['instr_to_trade']
-        market_view = self.leg_group_info['view']
-        last_candle = self.trade.trade_set.trade_manager.get_last_tick(instr)
-        if not last_candle:
-            print('last_candle not found for', instr)
-            instr = self.trade.trade_set.trade_manager.get_closest_instrument(instr)
+        if instr != ['SPOT']:
+            last_tick = self.trade.trade_set.trade_manager.get_last_tick('SPOT')
+            ltp = last_tick['close']
+            strike = get_option_strike(ltp, instr[0], instr[1], instr[2])
+            instr = str(strike) + "_" + instr[2]
+
+            market_view = self.leg_group_info['view']
             last_candle = self.trade.trade_set.trade_manager.get_last_tick(instr)
-            print('Now instr is ', instr)
+            if not last_candle:
+                print('last_candle not found for', instr)
+                instr = self.trade.trade_set.trade_manager.get_closest_instrument(instr)
+                last_candle = self.trade.trade_set.trade_manager.get_last_tick(instr)
+                print('Now instr is ', instr)
 
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick('SPOT')
         spot_targets = self.calculate_target('SPOT', self.trade.trade_set.trade_manager.spot_high_targets) if market_view == 'LONG' else self.calculate_target('SPOT', self.trade.trade_set.trade_manager.spot_low_targets)
