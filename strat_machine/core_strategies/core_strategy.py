@@ -112,7 +112,7 @@ class BaseStrategy:
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
         self.asset_book = market_book.get_asset_book(self.trade_manager_info['asset']) if market_book is not None else None
         self.restore_variables = {}
-        self.trade_manager = TradeManager(market_book, self.id, **trade_manager_info)
+        self.trade_manager = TradeManager(market_book, self, **trade_manager_info)
         self.asset = self.asset_book.asset
         self.execute_trades = False
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
@@ -175,7 +175,11 @@ class BaseStrategy:
 
     def initiate_signal_trades(self):
         print('strategy initiate_signal_trades+++++++++++++++++')
-        self.trade_manager.initiate_signal_trades()
+        curr_trade_set_id = self.trade_manager.initiate_signal_trades()
+        self.trade_manager.trigger_entry(curr_trade_set_id)
+        self.entry_signal_pipeline.flush_queues()
+        self.process_post_entry()
+
         """
         #print(self.spot_instruments)
         print(self.derivative_instruments)
@@ -232,7 +236,7 @@ class BaseStrategy:
             instr = instr
         return instr
 
-    def trigger_entry(self, trade_inst, order_type, sig_key, triggers):
+    def trigger_entry(self,  sig_key, triggers):
         for trigger in triggers:
             if self.record_metric:
                 mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
@@ -247,6 +251,23 @@ class BaseStrategy:
         print('at Same time Option Matrix clock================',
               datetime.fromtimestamp(self.asset_book.option_matrix.last_time_stamp))
         self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=inst_is_option(trade_inst))
+
+    def trigger_entry_b(self, trade_inst, order_type, sig_key, triggers):
+        for trigger in triggers:
+            if self.record_metric:
+                mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
+                if self.signal_params:
+                    mkt_parms = {**mkt_parms, **self.signal_params}
+                self.params_repo[(sig_key, trigger['seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
+        self.signal_params = {}
+        updated_symbol = self.asset_book.asset + "_" + trade_inst if inst_is_option(trade_inst) else self.asset_book.asset
+        cover = triggers[0].get('cover', 0)
+        signal_info = {'symbol': updated_symbol, 'cover': cover, 'strategy_id': self.id, 'signal_id': sig_key, 'order_type': order_type, 'legs': [{'seq': trigger['seq'], 'qty': trigger['quantity']} for trigger in triggers]}
+        print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))
+        print('at Same time Option Matrix clock================',
+              datetime.fromtimestamp(self.asset_book.option_matrix.last_time_stamp))
+        self.asset_book.market_book.pm.strategy_entry_signal(signal_info, option_signal=inst_is_option(trade_inst))
+
 
     def trigger_exit(self, signal_info):
         if self.exit_at is None:

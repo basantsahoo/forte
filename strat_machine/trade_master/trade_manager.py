@@ -2,16 +2,18 @@ from strat_machine.core_strategies.signal_setup import get_trade_manager_args
 from helper.utils import inst_is_option, get_market_view
 import itertools
 from helper.utils import get_option_strike
+import copy
+
 
 class TradeManager:
-    def __init__(self, market_book, id, **kwargs):
+    def __init__(self, market_book, strategy, **kwargs):
         args = get_trade_manager_args(**kwargs)
-        self.initialize(market_book=market_book, id=id, **args)
+        self.initialize(market_book=market_book, strategy=strategy, **args)
         self.registered_signal = None
 
     def initialize(self,
              market_book=None,
-             id=None,
+             strategy=None,
              asset=None,
              exit_time=[10],
              exit_at=None,
@@ -34,7 +36,7 @@ class TradeManager:
             risk_limits = 0
         ):
         # print('entry_signal_queues====',entry_signal_queues)
-        self.id = id
+        self.strategy = strategy
         self.asset = asset
         self.exit_time = exit_time
         self.exit_at = exit_at
@@ -66,6 +68,15 @@ class TradeManager:
         existing_signals = len(self.tradable_signals.keys())
         sig_key = 'SIG_' + str(existing_signals + 1)
         self.tradable_signals[sig_key] = TradeSet(self, sig_key)
+        return sig_key
+
+    def trigger_entry(self, sig_key):
+        trade_set = self.tradable_signals[sig_key]
+        for trade_idx, trade in trade_set.trades.items():
+            all_orders = trade.get_entry_orders()
+            print(all_orders)
+            self.strategy.trigger_entry(sig_key, all_orders)
+
 
     def get_last_tick(self, instr='SPOT'):
         if inst_is_option(instr):
@@ -102,11 +113,12 @@ class TradeSet:
     def __init__(self, trade_manager, ts_id):
         self.id = ts_id
         self.trade_manager = trade_manager
+        self.trade_info = copy.deepcopy(self.trade_manager.trade_info)
         self.trades = {}
         next_trigger = len(self.trades) + 1
         #Can contain None because it's inside expander
         trades = [Trade(self, trd_idx) for trd_idx in range(next_trigger, next_trigger + self.trade_manager.triggers_per_signal)]
-        print('trades===============', trades)
+        #print('trades===============', trades)
         for trade in trades:
             #if leg is not None:
             self.trades[trade.trd_idx] = trade
@@ -129,19 +141,53 @@ class Trade:
         for key, val in self.trade_set.trade_manager.leg_group_exits.items():
             self.leg_group_exits[key] = val[trd_idx]
         self.leg_groups = {}
-        for leg_group_info in self.trade_set.trade_manager.trade_info["leg_groups"]:
+        leg_groups = self.trade_set.trade_info["leg_groups"]
+        #print(leg_groups)
+        for leg_group_info in leg_groups:
             self.leg_groups[leg_group_info['id']] = LegGroup(self, leg_group_info)
 
+    def get_entry_orders(self):
+        entry_orders = []
+        for leg_group in self.leg_groups.values():
+            #print(leg_group.get_entry_orders())
+            orders = leg_group.get_entry_orders()
+            for order in orders:
+                order['trade_seq'] = self.trd_idx
+            entry_orders.append(orders)
+        return entry_orders
+
+    def close_on_exit_signal(self):
+        for leg_seq, leg_details in self.legs.items():
+            if leg_details['exit_type'] is None:  # Still active
+                # self.strategy.trigger_exit(self.id, leg_seq, exit_type='EC')
+                self.trigger_exit(leg_seq, exit_type='EC')
+
+    def trigger_exit(self, leg_seq, exit_type=None, manage_risk=True):
+        #print('trigger_exit+++++++++++++++++++++++++++++', signal_id, trigger_id, exit_type)
+        quantity = self.legs[leg_seq]['quantity']
+        instrument = self.legs[leg_seq]['instrument']
+        #updated_symbol = self.strategy.insight_book.ticker + "_" + instrument if self.strategy.inst_is_option(instrument) else self.strategy.insight_book.ticker
+        signal_info = {'symbol': instrument, 'signal_id': self.id,
+                       'leg_seq': leg_seq,
+                       'qty': quantity}
+        last_candle = self.strategy.get_last_tick(instrument)
+        last_spot_candle = self.strategy.get_last_tick('SPOT')
+        self.legs[leg_seq]['exit_type'] = exit_type
+        self.legs[leg_seq]['exit_price'] = last_candle['close']
+        self.legs[leg_seq]['spot_exit_price'] = last_spot_candle['close']
+        self.strategy.trigger_exit(signal_info)
+        self.remove_controller(leg_seq)
+        if self.trade_complete() and manage_risk:
+            self.strategy.manage_risk()
 
 class LegGroup:
     def __init__(self, trade, leg_group_info):
-        print(leg_group_info["legs"])
+        #print(leg_group_info["legs"])
         self.id = leg_group_info['id']
         self.trade = trade
         self.pnl = 0
         self.completed = False
         self.leg_group_info = leg_group_info
-        self.legs = {}
         self.target = self.trade.leg_group_exits['targets'][self.id]
         self.stop_loss = self.trade.leg_group_exits['stop_losses'][self.id]
         self.spot_high_stop_loss = self.trade.leg_group_exits['spot_high_stop_losses'][self.id]
@@ -149,8 +195,16 @@ class LegGroup:
         self.spot_high_target = self.trade.leg_group_exits['spot_high_targets'][self.id]
         self.spot_low_target = self.trade.leg_group_exits['spot_low_targets'][self.id]
         for leg_id, leg_info in self.leg_group_info["legs"].items():
-            print(leg_id, leg_info)
             self.leg_group_info["legs"][leg_id] = self.expand_leg_info(int(leg_id), leg_info)
+
+    def get_entry_orders(self):
+        entry_orders = []
+        for leg in self.leg_group_info["legs"].values():
+            entry_orders.append(copy.deepcopy(leg))
+        for order in entry_orders:
+            order['leg_group_id'] = self.id
+        entry_orders = sorted(entry_orders, key=lambda d: d['order_type'])
+        return entry_orders
 
     """
     "0": {
@@ -160,6 +214,36 @@ class LegGroup:
         },
     """
     def expand_leg_info(self, idx=1, leg_info={}):
+        #print(leg_info)
+        instr = leg_info['instr_to_trade']
+        if instr != ['SPOT']:
+            last_tick = self.trade.trade_set.trade_manager.get_last_tick('SPOT')
+            ltp = last_tick['close']
+            strike = get_option_strike(ltp, instr[0], instr[1], instr[2])
+            instr = str(strike) + "_" + instr[2]
+
+            market_view = self.leg_group_info['view']
+            last_candle = self.trade.trade_set.trade_manager.get_last_tick(instr)
+            if not last_candle:
+                print('last_candle not found for', instr)
+                instr = self.trade.trade_set.trade_manager.get_closest_instrument(instr)
+                last_candle = self.trade.trade_set.trade_manager.get_last_tick(instr)
+                print('Now instr is ', instr)
+
+        last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick('SPOT')
+        leg_info['leg_id'] = idx
+        leg_info['instrument'] = leg_info['instrument'] if 'instrument' in leg_info else instr
+        leg_info['entry_price'] = leg_info['entry_price'] if 'entry_price' in leg_info else last_candle['close']
+        leg_info['exit_price'] = leg_info['exit_price'] if 'exit_price' in leg_info else None
+        leg_info['spot_entry_price'] = leg_info['spot_entry_price'] if 'spot_entry_price' in leg_info else last_spot_candle['close']
+        leg_info['spot_exit_price'] = leg_info['spot_exit_price'] if 'spot_exit_price' in leg_info else None
+        leg_info['trigger_time'] = leg_info['trigger_time'] if 'trigger_time' in leg_info else last_candle['timestamp']
+
+        print('self.strategy.force_exit_ts++++++++++++++++++', self.trade.trade_set.trade_manager.force_exit_ts)
+        #trade_info['max_run_time'] = trade_info['trigger_time'] + trade_info['duration'] * 60 if self.trade.trade_set.trade_manager.force_exit_ts is None else min(trade_info['trigger_time'] + trade_info['duration'] * 60, self.trade.trade_set.trade_manager.force_exit_ts + 60)
+        return leg_info
+
+    def expand_leg_info_2(self, idx=1, leg_info={}):
         instr = leg_info['instr_to_trade']
         if instr != ['SPOT']:
             last_tick = self.trade.trade_set.trade_manager.get_last_tick('SPOT')

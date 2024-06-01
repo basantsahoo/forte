@@ -40,12 +40,12 @@
                 "0": {
                   "instr_to_trade" : ["ITM", 1, "CE"],
                   "order_type":"SELL",
-                  "qty": 1
+                  "quantity": 1
                 },
                 "1": {
                   "instr_to_trade" : ["OTM", 1, "CE"],
                   "order_type":"BUY",
-                  "qty": 2
+                  "quantity": 2
                 }
               }
             },
@@ -54,14 +54,14 @@
               "view": "LONG",
               "legs" : {
                 "0": {
-                  "instr_to_trade" : [["ITM", 1, "PE"]],
+                  "instr_to_trade" : ["ITM", 1, "PE"],
                   "order_type":"SELL",
-                  "qty": 1
+                  "quantity": 1
                 },
                 "1": {
-                  "instr_to_trade" : [["OPM", 1, "PE"]],
+                  "instr_to_trade" : ["OTM", 1, "PE"],
                   "order_type":"BUY",
-                  "qty": 2
+                  "quantity": 2
                 }
               }
             }
