@@ -52,7 +52,7 @@ class AlgoPortfolioManager:
     def monitor_position(self):
         pass
 
-    def place_oms_entry_order(self, strategy_id, symbol, order_side,order_id, qty, option_signal,cover):
+    def place_oms_entry_order(self, strategy_id, symbol, order_side,order_id, qty, option_signal, cover):
         #print('going to place place_oms_entry_order', strategy_id, symbol, order_side,order_id,qty)
         qty = abs(qty)
         if self.data_interface is not None:
@@ -68,17 +68,20 @@ class AlgoPortfolioManager:
     def strategy_entry_signal(self, signal_info, option_signal=False):
         print('########################################## algo port strategy_entry_signal')
         #print("algo port signal info===", signal_info)
-
-        symbol = signal_info['symbol']
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
-        order_type = signal_info['order_type']
-        cover = signal_info.get('cover',0)
-        total_quantity = sum([trig['qty'] for trig in signal_info['legs']])
-        self.executed_orders += 1
-        order_id = 'AL' + str(self.executed_orders)
-        side = get_broker_order_type(order_type)
-        self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity, option_signal, cover)
+        for order in signal_info['orders']:
+            pass
+            symbol = order['instrument']
+            order_type = order['order_type']
+            total_quantity = order['quantity']
+            side = get_broker_order_type(order_type)
+            self.executed_orders += 1
+            order_id = 'AL' + str(self.executed_orders)
+            self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity, option_signal, cover)
+
+
+
         #print('strategy_entry_signal')
         #print(symbol, id, trigger_id,  order_type, qty)
 
