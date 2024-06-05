@@ -153,9 +153,10 @@ class Trade:
         for leg_group in self.leg_groups.values():
             #print(leg_group.get_entry_orders())
             orders = leg_group.get_entry_orders()
-            for order in entry_orders['orders']:
+            for order in orders:
                 order['trade_seq'] = self.trd_idx
             entry_orders['orders'].append(orders)
+
         return entry_orders
 
     def close_on_exit_signal(self):
