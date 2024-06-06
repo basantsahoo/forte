@@ -9,6 +9,7 @@ from arc.compound_signal_builder import CompoundSignalBuilder
 from entities.trading_day import NearExpiryWeek, TradeDateTime
 from config import get_expiry_date
 import time
+from helper.utils import inst_is_option
 
 class OptionAssetBook:
     def __init__(self, market_book, asset):
@@ -140,3 +141,17 @@ class OptionAssetBook:
         self.compound_signal_generator.frame_change_action()
         self.market_book.strategy_manager.on_minute_data_pre(self.asset)
         self.market_book.strategy_manager.on_minute_data_post(self.asset)
+
+    def get_last_tick(self, instr='SPOT'):
+        if inst_is_option(instr):
+            last_candle = self.option_matrix.get_last_tick(instr)
+        else:
+            last_candle = self.spot_book.spot_processor.last_tick
+        return last_candle
+
+    def get_closest_instrument(self, instr='SPOT'):
+        if inst_is_option(instr):
+            instr = self.option_matrix.get_closest_instrument(instr)
+        else:
+            instr = instr
+        return instr

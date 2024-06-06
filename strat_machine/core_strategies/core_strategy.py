@@ -112,7 +112,7 @@ class BaseStrategy:
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
         self.asset_book = market_book.get_asset_book(self.trade_manager_info['asset']) if market_book is not None else None
         self.restore_variables = {}
-        self.trade_manager = TradeManager(market_book, self, **trade_manager_info)
+        self.trade_manager = TradeManager.from_config(market_book, self, **trade_manager_info)
         self.asset = self.asset_book.asset
         self.execute_trades = False
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
