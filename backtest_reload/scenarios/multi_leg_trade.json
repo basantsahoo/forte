@@ -38,12 +38,24 @@
               "view": "SHORT",
               "legs" : {
                 "0": {
-                  "instr_to_trade" : ["ITM", 1, "CE"],
+                  "instr_to_trade" : {
+                    "asset": "NIFTY",
+                    "money_ness": "ITM",
+                    "level": 1,
+                    "kind": "CE",
+                    "expiry": "near"
+                  },
                   "order_type":"SELL",
                   "quantity": 1
                 },
                 "1": {
-                  "instr_to_trade" : ["OTM", 1, "CE"],
+                  "instr_to_trade" : {
+                    "asset": "NIFTY",
+                    "money_ness": "OTM",
+                    "level": 1,
+                    "kind": "CE",
+                    "expiry": "near"
+                  },
                   "order_type":"BUY",
                   "quantity": 2
                 }
@@ -54,12 +66,24 @@
               "view": "LONG",
               "legs" : {
                 "0": {
-                  "instr_to_trade" : ["ITM", 1, "PE"],
+                  "instr_to_trade" : {
+                    "asset": "NIFTY",
+                    "money_ness": "ITM",
+                    "level": 1,
+                    "kind": "PE",
+                    "expiry": "near"
+                  },
                   "order_type":"SELL",
                   "quantity": 1
                 },
                 "1": {
-                  "instr_to_trade" : ["OTM", 1, "PE"],
+                  "instr_to_trade" : {
+                    "asset": "NIFTY",
+                    "money_ness": "OTM",
+                    "level": 1,
+                    "kind": "PE",
+                    "expiry": "near"
+                  },
                   "order_type":"BUY",
                   "quantity": 2
                 }

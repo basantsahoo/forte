@@ -72,10 +72,9 @@ class TradeManager:
 
     def trigger_entry(self, sig_key):
         trade_set = self.tradable_signals[sig_key]
-        for trade_idx, trade in trade_set.trades.items():
-            all_orders = trade.get_entry_orders()
-            print(all_orders)
-            self.strategy.trigger_entry(sig_key, all_orders)
+        all_orders = trade_set.get_entry_orders()
+        print(all_orders)
+        self.strategy.trigger_entry(sig_key, all_orders)
 
 
     def get_last_tick(self, instr='SPOT'):
@@ -123,6 +122,13 @@ class TradeSet:
             #if leg is not None:
             self.trades[trade.trd_idx] = trade
 
+    def get_entry_orders(self):
+        entry_orders = []
+        for trade_idx, trade in self.trades.items():
+            all_orders = trade.get_entry_orders()
+            entry_orders.append(all_orders)
+        return entry_orders
+
 
 class Trade:
     def __init__(self, trade_set, trd_idx):
@@ -153,7 +159,7 @@ class Trade:
         for leg_group in self.leg_groups.values():
             #print(leg_group.get_entry_orders())
             orders = leg_group.get_entry_orders()
-            for order in orders:
+            for order in orders['orders']:
                 order['trade_seq'] = self.trd_idx
             entry_orders['orders'].append(orders)
 
@@ -201,12 +207,14 @@ class LegGroup:
             self.leg_group_info["legs"][leg_id] = self.expand_leg_info(int(leg_id), leg_info)
 
     def get_entry_orders(self):
-        entry_orders = []
+        entry_orders = {}
+        entry_orders['leg_group_id'] = self.id
+        entry_orders['orders'] = []
         for leg in self.leg_group_info["legs"].values():
-            entry_orders.append(copy.deepcopy(leg))
-        for order in entry_orders:
+            entry_orders['orders'].append(copy.deepcopy(leg))
+        for order in entry_orders['orders']:
             order['leg_group_id'] = self.id
-        entry_orders = sorted(entry_orders, key=lambda d: d['order_type'])
+        entry_orders['orders'] = sorted(entry_orders['orders'], key=lambda d: d['order_type'])
         return entry_orders
 
     """
