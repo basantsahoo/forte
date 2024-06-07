@@ -37,7 +37,7 @@
               "id": "0",
               "view": "SHORT",
               "legs" : {
-                "0": {
+                "A": {
                   "instr_to_trade" : {
                     "asset": "NIFTY",
                     "money_ness": "ITM",
@@ -48,7 +48,7 @@
                   "order_type":"SELL",
                   "quantity": 1
                 },
-                "1": {
+                "B": {
                   "instr_to_trade" : {
                     "asset": "NIFTY",
                     "money_ness": "OTM",

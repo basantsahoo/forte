@@ -11,6 +11,7 @@ class TradeSet:
         self.id = ts_id
         self.trade_manager = trade_manager
         self.trades = {}
+        self.custom_features = {}
 
     @classmethod
     def from_config(cls, trade_manager, ts_id):
@@ -129,7 +130,7 @@ class LegGroup:
     def from_config(cls, trade, leg_group_info):
         obj = cls(trade, leg_group_info)
         for leg_id, leg_info in leg_group_info["legs"].items():
-            obj.legs[leg_id] = Leg.from_config(trade, int(leg_id), leg_info)
+            obj.legs[leg_id] = Leg.from_config(trade, leg_id, leg_info)
         return obj
 
     def get_entry_orders(self):
@@ -158,9 +159,9 @@ class Leg:
         order_type = leg_info['order_type']
         return cls(trade, idx, instr, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time)
 
-    def __init__(self, trade, idx, instrument, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time):
+    def __init__(self, trade, id, instrument, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time):
         self.trade = trade
-        self.idx = idx
+        self.id = id
         self.instrument = instrument
         self.order_type = order_type
         self.quantity = quantity
@@ -177,7 +178,15 @@ class Leg:
 
     def to_dict(self):
         dct = {}
-        for field in ['idx', 'order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
+        for field in ['id', 'order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
             dct[field] = getattr(self, field)
         dct['instrument'] = self.instrument.to_dict()
+        return dct
+
+    def to_partial_dict(self):
+        dct = {}
+        for field in ['order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
+            dct[field] = getattr(self, field)
+        dct['instrument'] = self.instrument.instr_code
+        dct['asset'] = self.instrument.asset
         return dct

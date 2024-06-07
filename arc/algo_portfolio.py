@@ -10,7 +10,7 @@ class AlgoPortfolioManager:
         self.cache = Cache(cache_dir + 'algo_pm_cache')
         self.ltps = {}
         self.last_times = {}
-        self.position_book = self.cache.get('algo_pm', {})
+        self.position_book = {}#self.cache.get('algo_pm', {})
         self.broker = None
         self.strategy_order_map = {}
         self.broker = None
@@ -85,10 +85,12 @@ class AlgoPortfolioManager:
         order_id = 'AL' + str(self.executed_orders)
         #self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity, option_signal, cover)
 
-        print('strategy_entry_signal')
+        print('algo port strategy_entry_signal')
         for trade in trade_set:
+            print('trade =====', trade)
             trade_seq = trade['trade_seq']
             for leg_group in trade['leg_groups']:
+                print('leg_group =====', leg_group)
                 leg_group_id = leg_group['leg_group_id']
                 if (strategy_id, signal_id, trade_seq, leg_group_id) not in self.position_book.keys():
                     self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)] = {}
@@ -97,13 +99,18 @@ class AlgoPortfolioManager:
                     for leg in leg_group['legs']:
                         symbol = leg['instrument']['full_code']
                         order_type = leg['order_type']
+                        leg_id = leg['id']
+                        print('leg_id adding 0', leg_id)
                         qty = abs(leg['quantity'])
                         side = get_broker_order_type(order_type)
 
                         order_time = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d %H:%M:%S")
                         trade_date = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d")
-                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['position'][symbol] = {'qty': qty, 'side': side, 'entry_time':self.last_times[symbol], 'entry_price': self.ltps[symbol], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0, 'order_id':order_id}
-                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'].append([self.last_times[symbol], trade_seq, leg_group_id, symbol, order_type, qty, self.ltps[symbol]])
+                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['position'][leg_id] = {'symbol': symbol, 'qty': qty, 'side': side, 'entry_time':self.last_times[symbol], 'entry_price': self.ltps[symbol], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0, 'order_id':order_id}
+                        print('leg_id adding', leg_id)
+                        print('adding +++++++++++')
+                        print({'symbol': symbol, 'qty': qty, 'side': side, 'entry_time':self.last_times[symbol], 'entry_price': self.ltps[symbol], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0, 'order_id':order_id})
+                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'].append([self.last_times[symbol], trade_seq, leg_group_id, symbol, leg_id, order_type, qty, self.ltps[symbol]])
                         if self.dummy_broker is not None:
                             self.dummy_broker.place_order(strategy_id, signal_id, trade_seq, symbol, side, self.ltps[symbol], qty, trade_date, order_time)
         #print("algo port position book===", self.position_book)
