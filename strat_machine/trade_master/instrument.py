@@ -8,8 +8,10 @@ class Instrument:
         self.asset = asset
         if not self.is_spot():
             self.instr_code = str(strike) + "_" + kind
+            self.full_code = asset + "_" + str(strike) + "_" + kind
         else:
             self.instr_code = kind
+            self.full_code = asset
 
     def is_spot(self):
         return self.kind.upper() == 'SPOT'
@@ -71,6 +73,6 @@ class Instrument:
 
     def to_dict(self):
         dct = {}
-        for field in ['kind', 'expiry', 'strike', 'asset', 'instr_code']:
+        for field in ['kind', 'expiry', 'strike', 'asset', 'instr_code', 'full_code']:
             dct[field] = getattr(self, field)
         return dct

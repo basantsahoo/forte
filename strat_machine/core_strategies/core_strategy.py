@@ -236,18 +236,15 @@ class BaseStrategy:
             instr = instr
         return instr
 
-    def trigger_entry(self,  sig_key, order_info):
-
-        if self.record_metric:
-            mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
-            if self.signal_params:
-                mkt_parms = {**mkt_parms, **self.signal_params}
-            self.params_repo[(sig_key, order_info['trade_seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
+    def trigger_entry(self,  sig_key, triggers):
+        for trigger in triggers:
+            if self.record_metric:
+                mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
+                if self.signal_params:
+                    mkt_parms = {**mkt_parms, **self.signal_params}
+                self.params_repo[(sig_key, trigger['trade_seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
         self.signal_params = {}
-        for order in order_info['orders']:
-            updated_symbol = self.asset_book.asset + "_" + order['instrument'] if inst_is_option(order['instrument']) else self.asset_book.asset
-            order['instrument'] = updated_symbol
-        signal_info = {'strategy_id': self.id, 'signal_id': sig_key, 'orders': order_info['orders']}
+        signal_info = {'strategy_id': self.id, 'signal_id': sig_key, 'trade_set': triggers}
         print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))
         print('at Same time Option Matrix clock================',
               datetime.fromtimestamp(self.asset_book.option_matrix.last_time_stamp))

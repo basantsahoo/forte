@@ -3,6 +3,7 @@ from helper.utils import get_broker_order_type, get_exit_order_type
 from arc.dummy_broker import DummyBroker
 from servers.server_settings import cache_dir
 from diskcache import Cache
+import pandas as pd
 
 class AlgoPortfolioManager:
     def __init__(self, place_live_orders=False, data_interface=None):
@@ -70,37 +71,41 @@ class AlgoPortfolioManager:
         #print("algo port signal info===", signal_info)
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
-        for order in signal_info['orders']:
-            pass
-            symbol = order['instrument']
-            order_type = order['order_type']
-            total_quantity = order['quantity']
-            side = get_broker_order_type(order_type)
-            self.executed_orders += 1
-            order_id = 'AL' + str(self.executed_orders)
-            self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity, option_signal, cover)
+        trade_set = signal_info['trade_set']
 
+        all_orders = [leg for trade in trade_set for leg_group in trade['leg_groups'] for leg in leg_group['legs']]
+        flattened_orders = [{'instrument': order['instrument']['full_code'], 'order_type': order['order_type'],
+                             'quantity': order['quantity']} for order in all_orders]
+        order_df = pd.DataFrame(flattened_orders)
+        grouped_order_df = order_df.groupby(['instrument', 'order_type']).agg({'quantity': ['sum']})
+        grouped_order_df = grouped_order_df.reset_index()
+        grouped_order_df.columns = ['instrument', 'order_type', 'quantity']
+        final_orders = grouped_order_df.to_dict('records')
+        self.executed_orders += 1
+        order_id = 'AL' + str(self.executed_orders)
+        #self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity, option_signal, cover)
 
+        print('strategy_entry_signal')
+        for trade in trade_set:
+            trade_seq = trade['trade_seq']
+            for leg_group in trade['leg_groups']:
+                leg_group_id = leg_group['leg_group_id']
+                if (strategy_id, signal_id, trade_seq, leg_group_id) not in self.position_book.keys():
+                    self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)] = {}
+                    self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'] = []
+                    self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['position'] = {}
+                    for leg in leg_group['legs']:
+                        symbol = leg['instrument']['full_code']
+                        order_type = leg['order_type']
+                        qty = abs(leg['quantity'])
+                        side = get_broker_order_type(order_type)
 
-        #print('strategy_entry_signal')
-        #print(symbol, id, trigger_id,  order_type, qty)
-
-
-
-        if (symbol, strategy_id, signal_id) not in self.position_book.keys():
-            self.position_book[(symbol, strategy_id, signal_id)] = {}
-            self.position_book[(symbol, strategy_id, signal_id)]['order_book'] = []
-            self.position_book[(symbol, strategy_id, signal_id)]['position'] = {}
-        for trigger in signal_info['legs']:
-            trigger_seq = trigger['seq']
-            qty = abs(trigger['qty'])
-            if trigger_seq not in self.position_book[(symbol, strategy_id, signal_id)]['position']:
-                order_time = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d %H:%M:%S")
-                trade_date = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d")
-                self.position_book[(symbol, strategy_id, signal_id)]['position'][trigger_seq] = {'qty': qty, 'side': side, 'entry_time':self.last_times[symbol], 'entry_price': self.ltps[symbol], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0, 'order_id':order_id}
-                self.position_book[(symbol, strategy_id, signal_id)]['order_book'].append([self.last_times[symbol], trigger_seq, order_type, qty, self.ltps[symbol]])
-                if self.dummy_broker is not None:
-                    self.dummy_broker.place_order(strategy_id, signal_id, trigger_seq, symbol, side, self.ltps[symbol], qty, trade_date, order_time)
+                        order_time = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d %H:%M:%S")
+                        trade_date = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d")
+                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['position'][symbol] = {'qty': qty, 'side': side, 'entry_time':self.last_times[symbol], 'entry_price': self.ltps[symbol], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0, 'order_id':order_id}
+                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'].append([self.last_times[symbol], trade_seq, leg_group_id, symbol, order_type, qty, self.ltps[symbol]])
+                        if self.dummy_broker is not None:
+                            self.dummy_broker.place_order(strategy_id, signal_id, trade_seq, symbol, side, self.ltps[symbol], qty, trade_date, order_time)
         #print("algo port position book===", self.position_book)
 
     def strategy_exit_signal(self, signal_info, candle=None, option_signal=False):
@@ -153,12 +158,12 @@ class AlgoPortfolioManager:
 
     def market_close_for_day(self):
         position_book = {}
-        for (symbol, strategy_id, signal_id), sig_details in self.position_book.items():
+        for (strategy_id, signal_id, trade_seq, leg_group_id), sig_details in self.position_book.items():
             tot_qty = 0
             for trigger_seq in sig_details['position'].keys():
                 tot_qty += sig_details['position'][trigger_seq]['curr_qty']
             if tot_qty:
-                position_book[(symbol, strategy_id, signal_id)] = sig_details
+                position_book[(strategy_id, signal_id, trade_seq, leg_group_id)] = sig_details
 
         self.cache.set('algo_pm', position_book)
 

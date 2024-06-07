@@ -75,13 +75,13 @@ class Trade:
     def get_entry_orders(self):
         entry_orders = {}
         entry_orders['trade_seq'] = self.trd_idx
-        entry_orders['orders'] = []
+        entry_orders['leg_groups'] = []
         for leg_group in self.leg_groups.values():
             #print(leg_group.get_entry_orders())
             orders = leg_group.get_entry_orders()
-            for order in orders['orders']:
+            for order in orders['legs']:
                 order['trade_seq'] = self.trd_idx
-            entry_orders['orders'].append(orders)
+            entry_orders['leg_groups'].append(orders)
 
         return entry_orders
 
@@ -135,12 +135,12 @@ class LegGroup:
     def get_entry_orders(self):
         entry_orders = {}
         entry_orders['leg_group_id'] = self.id
-        entry_orders['orders'] = []
+        entry_orders['legs'] = []
         for leg in self.legs.values():
-            entry_orders['orders'].append(leg.to_dict())
-        for order in entry_orders['orders']:
+            entry_orders['legs'].append(leg.to_dict())
+        for order in entry_orders['legs']:
             order['leg_group_id'] = self.id
-        entry_orders['orders'] = sorted(entry_orders['orders'], key=lambda d: d['order_type'])
+        entry_orders['legs'] = sorted(entry_orders['legs'], key=lambda d: d['order_type'])
         return entry_orders
 
 class Leg:
