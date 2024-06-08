@@ -10,7 +10,7 @@ class AlgoPortfolioManager:
         self.cache = Cache(cache_dir + 'algo_pm_cache')
         self.ltps = {}
         self.last_times = {}
-        self.position_book = {}#self.cache.get('algo_pm', {})
+        self.position_book = self.cache.get('algo_pm', {})
         self.broker = None
         self.strategy_order_map = {}
         self.broker = None
@@ -167,8 +167,8 @@ class AlgoPortfolioManager:
         position_book = {}
         for (strategy_id, signal_id, trade_seq, leg_group_id), sig_details in self.position_book.items():
             tot_qty = 0
-            for trigger_seq in sig_details['position'].keys():
-                tot_qty += sig_details['position'][trigger_seq]['curr_qty']
+            for leg_id in sig_details['position'].keys():
+                tot_qty += sig_details['position'][leg_id]['curr_qty']
             if tot_qty:
                 position_book[(strategy_id, signal_id, trade_seq, leg_group_id)] = sig_details
 

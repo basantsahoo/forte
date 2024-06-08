@@ -21,14 +21,6 @@ class TradeManager:
         """
         return cls(market_book=market_book, strategy=strategy, **args)
 
-    def to_dict_2(self) -> dict:
-        return {
-            'x': self.vector_store.to_dict(),
-            'y': self.docstore.to_dict(),
-            'a': self.index_store.to_dict(),
-            'b': self.graph_store.to_dict(),
-        }
-
     def to_dict(self, encode_json=False):
         return _asdict(self, encode_json=encode_json)
 
@@ -89,7 +81,7 @@ class TradeManager:
 
     def initiate_signal_trades(self):
         print('TradeManager initiate_signal_trades+++++++++++++++++')
-        sig_key = self.market_book.trade_day + str(self.signal_count + 1)
+        sig_key = self.market_book.trade_day + "_" + str(self.signal_count + 1)
         self.signal_count += 1
         self.tradable_signals[sig_key] = TradeSet.from_config(self, sig_key)
         return sig_key
@@ -98,8 +90,16 @@ class TradeManager:
         print('TradeManager trigger_entry +++++++++++++++++')
         trade_set = self.tradable_signals[sig_key]
         all_orders = trade_set.get_entry_orders()
-        print(all_orders)
         self.strategy.trigger_entry(sig_key, all_orders)
+
+    def monitor_existing_positions(self):
+        for trade_set_id, trade_set in self.tradable_signals.items():
+            trade_set.monitor_existing_positions()
+
+    def close_on_exit_signal(self):
+        for trade_set_id, trade_set in self.tradable_signals.items():
+            if not trade_set.complete():
+                trade_set.close_on_exit_signal()
 
     def get_last_tick(self, asset, instr='SPOT'):
         asset_book = self.market_book.get_asset_book(asset)
@@ -131,3 +131,4 @@ class TradeManager:
         for key, val in restore_variables_cp.items():
             setattr(self, key, val)
             del self.restore_variables[key]
+

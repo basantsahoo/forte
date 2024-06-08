@@ -59,6 +59,15 @@ class Instrument:
         strike, kind = Instrument.to_strike_kind(instr_code)
         return cls(market_book, asset, kind, strike, expiry)
 
+    @classmethod
+    def from_store(cls, market_book, config):
+        print('instrument from store config')
+        asset = config['asset']
+        kind = config['kind']
+        expiry = config['expiry']
+        strike = config['strike']
+        return cls(market_book, asset, kind, strike, expiry)
+
     def get_last_tick(self):
         asset_book = self.market_book.get_asset_book(self.asset)
         last_candle = asset_book.get_last_tick(self.instr_code)

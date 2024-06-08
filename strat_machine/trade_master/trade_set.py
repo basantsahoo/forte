@@ -12,6 +12,9 @@ class TradeSet:
         self.trade_manager = trade_manager
         self.trades = {}
         self.custom_features = {}
+        self.exit_orders = []
+        self.completed = False
+        self.controller_list = []
 
     @classmethod
     def from_config(cls, trade_manager, ts_id):
@@ -22,9 +25,9 @@ class TradeSet:
         return obj
 
     @classmethod
-    def from_store(cls, trade_manager, ts_id):
+    def from_store(cls, trade_manager, ts_id, trade_set_info):
         obj = cls(trade_manager, ts_id)
-        trades = [Trade(obj, trd_idx) for trd_idx in range(1, 1 + obj.trade_manager.triggers_per_signal)]
+        trades = [Trade.from_store(obj, trade_info) for trade_info in trade_set_info]
         for trade in trades:
             obj.trades[trade.trd_idx] = trade
         return obj
@@ -41,8 +44,32 @@ class TradeSet:
         trade_set_complete = True
         for trade in self.trades.values():
             trade_set_complete = trade_set_complete and trade.complete()
+        self.completed = trade_set_complete
         return trade_set_complete
 
+    def close_on_exit_signal(self):
+        if not self.complete():
+            self.trigger_exit(exit_type='EC')
+            check_complete_test = self.complete()
+            self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
+
+    def trigger_exit(self, exit_type, manage_risk=True):
+        for trade_id, trade in self.trades.items():
+            if not trade.complete():
+                trade.trigger_exit(exit_type)
+        if self.complete() and manage_risk:
+            self.trade_manager.strategy.manage_risk()
+
+    def monitor_existing_positions(self):
+        for trade_id, trade in self.trades.items():
+            if not trade.complete():
+                trade.monitor_existing_positions()
+
+    def register_signal(self, signal):
+        for controller in self.controller_list:
+            if signal.key() == controller.signal_type:
+                #print('signal', signal)
+                controller.receive_signal(signal)
 
 
 class Trade:
@@ -73,12 +100,10 @@ class Trade:
         return obj
 
     @classmethod
-    def from_store(cls, trade_set, trd_idx):
-        obj = cls(trade_set, trd_idx)
-        leg_groups = copy.deepcopy(trade_set.trade_manager.trade_info["leg_groups"])
-        #print(leg_groups)
-        for leg_group_info in leg_groups:
-            obj.leg_groups[leg_group_info['id']] = LegGroup(obj, leg_group_info)
+    def from_store(cls, trade_set, trade_info):
+        obj = cls(trade_set, trade_info['trd_idx'])
+        for leg_group_info in trade_info["leg_groups"]:
+            obj.leg_groups[leg_group_info['id']] = LegGroup.from_store(obj, leg_group_info)
         return obj
 
     def get_entry_orders(self):
@@ -102,46 +127,35 @@ class Trade:
 
     def to_dict(self):
         dct = {}
-        """
-        for field in ['id', 'order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
+
+        for field in ['trd_idx']:
             dct[field] = getattr(self, field)
-        """
+
         dct['leg_groups'] = [leg_group.to_dict() for leg_group in self.leg_groups.values()]
 
         return dct
 
-    def close_on_exit_signal(self):
-        for leg_seq, leg_details in self.legs.items():
-            if leg_details['exit_type'] is None:  # Still active
-                # self.strategy.trigger_exit(self.id, leg_seq, exit_type='EC')
-                self.trigger_exit(leg_seq, exit_type='EC')
+    def trigger_exit(self, exit_type):
+        for leg_group_id, leg_group in self.leg_groups.items():
+            if not leg_group.complete():
+                leg_group.trigger_exit(exit_type)
 
-    def trigger_exit(self, leg_seq, exit_type=None, manage_risk=True):
-        #print('trigger_exit+++++++++++++++++++++++++++++', signal_id, trigger_id, exit_type)
-        quantity = self.legs[leg_seq]['quantity']
-        instrument = self.legs[leg_seq]['instrument']
-        #updated_symbol = self.strategy.insight_book.ticker + "_" + instrument if self.strategy.inst_is_option(instrument) else self.strategy.insight_book.ticker
-        signal_info = {'symbol': instrument, 'signal_id': self.id,
-                       'leg_seq': leg_seq,
-                       'qty': quantity}
-        last_candle = self.strategy.get_last_tick(instrument)
-        last_spot_candle = self.strategy.get_last_tick('SPOT')
-        self.legs[leg_seq]['exit_type'] = exit_type
-        self.legs[leg_seq]['exit_price'] = last_candle['close']
-        self.legs[leg_seq]['spot_exit_price'] = last_spot_candle['close']
-        self.strategy.trigger_exit(signal_info)
-        self.remove_controller(leg_seq)
-        if self.trade_complete() and manage_risk:
-            self.strategy.manage_risk()
+    def monitor_existing_positions(self):
+        pass
+        """
+        self.close_on_instr_tg_sl_tm()
+        self.close_on_spot_tg_sl()
+        """
 
 
 class LegGroup:
     def __init__(self, trade, leg_group_info):
         self.id = leg_group_info['id']
+        self.market_view = leg_group_info.get('market_view', 'LONG')
         self.trade = trade
         self.pnl = 0
         self.completed = False
-        self.leg_group_info = leg_group_info
+        #self.leg_group_info = leg_group_info
         self.target = self.trade.leg_group_exits['targets'][self.id]
         self.stop_loss = self.trade.leg_group_exits['stop_losses'][self.id]
         self.spot_high_stop_loss = self.trade.leg_group_exits['spot_high_stop_losses'][self.id]
@@ -158,6 +172,14 @@ class LegGroup:
             obj.legs[leg_id] = Leg.from_config(trade, leg_id, leg_info)
         return obj
 
+    @classmethod
+    def from_store(cls, trade, leg_group_info):
+        obj = cls(trade, leg_group_info)
+        for leg_id, leg_info in leg_group_info["legs"].items():
+            obj.legs[leg_id] = Leg.from_store(trade, leg_id, **leg_info)
+        return obj
+
+
     def get_entry_orders(self):
         entry_orders = {}
         entry_orders['leg_group_id'] = self.id
@@ -168,6 +190,19 @@ class LegGroup:
             order['leg_group_id'] = self.id
         entry_orders['legs'] = sorted(entry_orders['legs'], key=lambda d: d['order_type'])
         return entry_orders
+
+    def trigger_exit(self, exit_type=None):
+        exit_orders = {}
+        exit_orders['leg_group_id'] = self.id
+        exit_orders['legs'] = []
+        for leg in self.legs.values():
+            leg.trigger_exit(exit_type)
+            exit_orders['legs'].append(leg.to_dict())
+        for order in exit_orders['legs']:
+            order['leg_group_id'] = self.id
+        exit_orders['legs'] = sorted(exit_orders['legs'], key=lambda d: d['order_type'], reverse=True)
+        self.trade.trade_set.exit_orders.append(exit_orders)
+
 
     def complete(self):
         all_legs_complete = True
@@ -188,7 +223,7 @@ class Leg:
     def from_config(cls, trade, idx, leg_info):
         instr = Instrument.from_config(trade.trade_set.trade_manager.market_book, leg_info['instr_to_trade'])
         last_candle = instr.get_last_tick()
-        last_spot_candle = trade.trade_set.trade_manager.get_last_tick(leg_info['instr_to_trade']['asset'], 'SPOT')
+        last_spot_candle = trade.trade_set.trade_manager.get_last_tick(instr.asset, 'SPOT')
         entry_price = last_candle['close']
         exit_price = None
         spot_entry_price = last_spot_candle['close']
@@ -214,7 +249,8 @@ class Leg:
 
     @classmethod
     def from_store(cls, trade, idx, **kwargs):
-        return cls(trade, idx, **kwargs)
+        kwargs['instrument'] = Instrument.from_store(trade.trade_set.trade_manager.market_book, kwargs['instrument'])
+        return cls(trade,  **kwargs)
 
     def to_dict(self):
         dct = {}
@@ -230,3 +266,10 @@ class Leg:
         dct['instrument'] = self.instrument.instr_code
         dct['asset'] = self.instrument.asset
         return dct
+
+    def trigger_exit(self, exit_type=None):
+        last_candle = self.instrument.get_last_tick()
+        last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.instrument.asset, 'SPOT')
+        self.exit_type = exit_type
+        self.exit_price = last_candle['close']
+        self.spot_exit_price = last_spot_candle['close']

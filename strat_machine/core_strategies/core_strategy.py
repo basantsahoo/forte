@@ -10,6 +10,7 @@ from servers.server_settings import cache_dir
 from diskcache import Cache
 from helper.utils import inst_is_option, get_market_view
 from strat_machine.trade_master.trade_manager import TradeManager
+from strat_machine.trade_master.trade_set import TradeSet
 
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
@@ -95,7 +96,6 @@ class BaseStrategy:
         self.signal_params = {} #self.strategy_params = {}
         self.last_match = None
         self.pending_signals = {}
-        self.tradable_signals ={}
         self.minimum_quantity = 1
         self.trade_controllers = trade_controllers
         self.risk_limits = risk_limits
@@ -149,28 +149,33 @@ class BaseStrategy:
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()
-        carry_trades = self.strategy_cache.get(self.id, [])
+        carry_trades = self.strategy_cache.get(self.id, {})
+
         params_repo = self.strategy_cache.get('params_repo_' + self.id, {})
-        for leg in carry_trades:
-            if leg['trigger_time'] < self.get_last_tick()['timestamp']:
-                leg_copy = leg.copy()
-                del leg_copy['sig_key']
-                sig_key = leg['sig_key']
-                trade_inst = leg['instrument']
-
-                if sig_key not in self.tradable_signals:
-                    self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst, self.triggers_per_signal)
-                self.tradable_signals[sig_key].legs[leg['seq']] = leg_copy
-                self.params_repo[(sig_key, leg['seq'])] = params_repo[(sig_key, leg['seq'])]
-        for trade in self.tradable_signals.values():
-            trade.set_controllers()
-
-            #self.trigger_entry(trade.trade_inst, self.order_type, trade.id, list(trade.legs.values()))
-            #trade.re_instate()
-        self.strategy_cache.delete(self.id)
-        self.strategy_cache.delete('params_repo_' + self.id)
+        for sig_key, trade_set_info in carry_trades.items():
+            #print(list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'])
+            if list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'] < self.get_last_tick()['timestamp']:
+                self.trade_manager.tradable_signals[sig_key] = TradeSet.from_store(self.trade_manager, sig_key, trade_set_info)
+                for trade in self.trade_manager.tradable_signals[sig_key].trades.values():
+                    self.params_repo[(sig_key, trade.trd_idx)] = params_repo[(sig_key, trade.trd_idx)]
+                    #trade.set_controllers()
+        #self.strategy_cache.delete(self.id)
+        #self.strategy_cache.delete('params_repo_' + self.id)
         self.set_force_exit_ts()
 
+    def market_close_for_day(self):
+        print('stragey market_close_for_day #################################')
+        carry_trade_sets = {}
+        params_repo = {}
+        for (sig_key, trade_set) in self.trade_manager.tradable_signals.items():
+            if not trade_set.complete():
+                carry_trade_sets[trade_set.id] = []
+                for trade in trade_set.trades.values():
+                    if not trade.complete():
+                        carry_trade_sets[trade_set.id].append(trade.to_dict())
+                        params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
+        self.strategy_cache.set(self.id, carry_trade_sets)
+        self.strategy_cache.set('params_repo_' + self.id, params_repo)
 
 
     def initiate_signal_trades(self):
@@ -179,29 +184,6 @@ class BaseStrategy:
         self.trade_manager.trigger_entry(curr_trade_set_id)
         self.entry_signal_pipeline.flush_queues()
         self.process_post_entry()
-
-        """
-        #print(self.spot_instruments)
-        print(self.derivative_instruments)
-        all_inst = self.spot_instruments + self.derivative_instruments
-        for trade_inst in all_inst:
-            print(trade_inst)
-            trd_key = self.add_tradable_signal(trade_inst)
-            curr_trade = self.tradable_signals[trd_key]
-            curr_trade.trigger_entry()
-            # legs = curr_trade.get_trade_legs()
-            # Filter out triggers which doesn't contain data as a result of not enough time
-            # triggers = [leg for leg in legs if leg]
-            # At first signal we will add 2 positions with target 1 and target 2 with sl mentioned above
-            # self.trigger_entry(trade_inst, self.order_type, trd_key, legs)
-        self.entry_signal_pipeline.flush_queues()
-        self.process_post_entry()
-        """
-    def add_tradable_signal(self, trade_inst):
-        existing_signals = len(self.tradable_signals.keys())
-        sig_key = 'SIG_' + str(existing_signals + 1)
-        self.tradable_signals[sig_key] = Trade(self, sig_key, trade_inst, self.triggers_per_signal)
-        return sig_key
 
 
     """Deactivate when not required to run in a particular day"""
@@ -219,7 +201,7 @@ class BaseStrategy:
         return min_tpo_met and max_tpo_met
 
     def trade_limit_reached(self):
-        return len(self.tradable_signals) >= self.max_signal
+        return len(self.trade_manager.tradable_signals) >= self.max_signal
 
 
     def get_last_tick(self, instr='SPOT'):
@@ -302,11 +284,13 @@ class BaseStrategy:
 
     def manage_risk(self):
         spot_movements = []
-        for trade in self.tradable_signals.values():
-            for leg in trade.legs.values():
-                if leg['spot_exit_price'] is not None:
-                    factor = -1 if leg['market_view'] == 'SHORT' else 1
-                    spot_movements.append(factor * (leg['spot_exit_price'] - leg['spot_entry_price']))
+        for trade_set in self.trade_manager.tradable_signals.values():
+            for trade in trade_set.trades.values():
+                for leg_group in trade.leg_groups.values():
+                    for leg in leg_group.legs.values():
+                        if leg.spot_exit_price is not None:
+                            factor = -1 if leg_group.market_view == 'SHORT' else 1
+                            spot_movements.append(factor * (leg.spot_exit_price - leg.spot_entry_price))
         max_movement = max(spot_movements)
         total_losses = sum([x for x in spot_movements if x < 0])
         risk_limit_crossed = False
@@ -314,15 +298,15 @@ class BaseStrategy:
             risk_limit_crossed = risk_limit_crossed or eval(risk_limit)
             if risk_limit_crossed:
                 print("^^^^^^^^^^^Risk limit crossed", " max movement=====", max_movement, "total_losses", total_losses)
-                for trade in self.tradable_signals.values():
-                    trade.force_close()
+                for trade_set in self.trade_manager.tradable_signals.values():
+                    trade_set.force_close()
                 self.deactivate()
                 break
 
     def register_instrument(self, signal):
         print('register_instrument++++++++++++++++++++++++++++++++++++++')
         self.execute_trades = True
-        self.trade_manager.register_signal(signal)
+        self.trade_manager.register_signalregister_signal(signal)
 
     def process_post_entry(self):
         self.execute_trades = False
@@ -343,8 +327,8 @@ class BaseStrategy:
     def register_signal(self, signal):
         self.entry_signal_pipeline.register_signal(signal)
         self.exit_signal_pipeline.register_signal(signal)
-        for trade in self.tradable_signals.values():
-            trade.register_signal(signal)
+        for trade_set in self.trade_manager.tradable_signals.values():
+            trade_set.register_signal(signal)
 
     def evaluate_entry_signals(self):
         print('core strategy evaluate_entry_signals')
@@ -396,23 +380,12 @@ class BaseStrategy:
         self.monitor_existing_positions()
 
     def monitor_existing_positions(self):
-        self.close_on_exit_signal()
-        self.close_on_instr_tg_sl_tm()
-        self.close_on_spot_tg_sl()
-
-    def close_on_exit_signal(self):
         exit_criteria_met = self.evaluate_exit_signals()
+        print('close_on_exit_signal++++++++++++++++++++', exit_criteria_met)
         if exit_criteria_met:
-            for trade_id, trade in self.tradable_signals.items():
-                trade.close_on_exit_signal()
+            self.trade_manager.close_on_exit_signal()
+        self.trade_manager.monitor_existing_positions()
 
-    def close_on_instr_tg_sl_tm(self):
-        for trade_id, trade in self.tradable_signals.items():
-            trade.close_on_instr_tg_sl_tm()
-
-    def close_on_spot_tg_sl(self):
-        for trade_id, trade in self.tradable_signals.items():
-            trade.close_on_spot_tg_sl()
 
     def pre_signal_filter(self, signal):
         satisfied = not self.signal_filters
@@ -439,47 +412,8 @@ class BaseStrategy:
             #print(satisfied)
         return satisfied
 
-    def market_close_for_day_0(self):
-        print('stragey market_close_for_day #################################')
-        carry_trades = []
-        params_repo = {}
-        for (sig_key, trade_set) in self.trade_manager.tradable_signals.items():
-            if not trade.trade_complete():
-                for leg in trade.legs.values():
-                    lg_copy = leg.copy()
-                    lg_copy['sig_key'] = sig_key
-                    carry_trades.append(lg_copy)
-                    params_repo[(sig_key, leg['seq'])] = self.params_repo[(sig_key, leg['seq'])]
-        self.strategy_cache.set(self.id, carry_trades)
-        self.strategy_cache.set('params_repo_' + self.id, params_repo)
 
-    def market_close_for_day(self):
-        print('stragey market_close_for_day #################################')
-        carry_trade_sets = {}
-        params_repo = {}
-        for (sig_key, trade_set) in self.trade_manager.tradable_signals.items():
-            if not trade_set.complete():
-                carry_trade_sets[trade_set.id] = []
-                for trade in trade_set.trades.values():
-                    if not trade.complete():
-                        carry_trade_sets[trade_set.id].append(trade.to_dict())
-                        params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
-        self.strategy_cache.set(self.id, carry_trade_sets)
-        self.strategy_cache.set('params_repo_' + self.id, params_repo)
 
-    def trigger_entry(self,  sig_key, triggers):
-        for trigger in triggers:
-            if self.record_metric:
-                mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
-                if self.signal_params:
-                    mkt_parms = {**mkt_parms, **self.signal_params}
-                self.params_repo[(sig_key, trigger['trade_seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
-        self.signal_params = {}
-        signal_info = {'strategy_id': self.id, 'signal_id': sig_key, 'trade_set': triggers}
-        print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))
-        print('at Same time Option Matrix clock================',
-              datetime.fromtimestamp(self.asset_book.option_matrix.last_time_stamp))
-        self.asset_book.market_book.pm.strategy_entry_signal(signal_info)
 
     def record_params(self):
         #print('inside record_params', matched_pattern)
