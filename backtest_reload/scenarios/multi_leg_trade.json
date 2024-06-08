@@ -13,9 +13,9 @@
           [4500, 4500],
           [4500, 4500]
         ],
-        "exit_at":null,
+        "exit_at":"high",
         "carry_forward_days":[1, 1, 2, 3],
-        "triggers_per_signal": 1,
+        "triggers_per_signal": 4,
         "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
         "trade_targets":[0.9, 0.9, 0.9, 0.9],
         "trade_stop_losses":[0.9, 0.9, 0.9, 0.9],
@@ -65,7 +65,7 @@
               "id": "1",
               "market_view": "LONG",
               "legs" : {
-                "0": {
+                "A": {
                   "instr_to_trade" : {
                     "asset": "NIFTY",
                     "money_ness": "ITM",
@@ -76,7 +76,7 @@
                   "order_type":"SELL",
                   "quantity": 1
                 },
-                "1": {
+                "B": {
                   "instr_to_trade" : {
                     "asset": "NIFTY",
                     "money_ness": "OTM",
@@ -164,7 +164,7 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 1,
+    "for_past_days": 2,
     "to_date": "2024-04-10",
     "candle_sw": 0,
     "week_days": [],

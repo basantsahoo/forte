@@ -41,6 +41,7 @@ class StartegyBackTester:
                     interface = AlgorithmBacktestIterface()
                     place_live = True
                 pm = AlgoPortfolioManager(place_live, interface)
+                pm.market_book = market_book
                 market_book.pm = pm
                 record_metric = self.strat_config['run_params'].get("record_metric", False)
                 strategy_manager = StrategyManager(market_book=market_book, record_metric=record_metric)

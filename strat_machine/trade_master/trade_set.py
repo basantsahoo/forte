@@ -51,12 +51,14 @@ class TradeSet:
         if not self.complete():
             self.trigger_exit(exit_type='EC')
             check_complete_test = self.complete()
-            self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
+
 
     def trigger_exit(self, exit_type, manage_risk=True):
         for trade_id, trade in self.trades.items():
             if not trade.complete():
                 trade.trigger_exit(exit_type)
+        self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
+        self.exit_orders = []
         if self.complete() and manage_risk:
             self.trade_manager.strategy.manage_risk()
 
@@ -89,6 +91,7 @@ class Trade:
         for key, val in self.trade_set.trade_manager.leg_group_exits.items():
             self.leg_group_exits[key] = val[trd_idx]
         self.leg_groups = {}
+        self.exit_orders = []
 
     @classmethod
     def from_config(cls, trade_set, trd_idx):
@@ -139,6 +142,11 @@ class Trade:
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.trigger_exit(exit_type)
+        exit_orders = {}
+        exit_orders['trade_seq'] = self.trd_idx
+        exit_orders['leg_groups'] = self.exit_orders
+        self.exit_orders = []
+        self.trade_set.exit_orders.append(exit_orders)
 
     def monitor_existing_positions(self):
         pass
@@ -201,7 +209,7 @@ class LegGroup:
         for order in exit_orders['legs']:
             order['leg_group_id'] = self.id
         exit_orders['legs'] = sorted(exit_orders['legs'], key=lambda d: d['order_type'], reverse=True)
-        self.trade.trade_set.exit_orders.append(exit_orders)
+        self.trade.exit_orders.append(exit_orders)
 
 
     def complete(self):
