@@ -37,6 +37,14 @@ class TradeSet:
         return entry_orders
 
 
+    def complete(self):
+        trade_set_complete = True
+        for trade in self.trades.values():
+            trade_set_complete = trade_set_complete and trade.complete()
+        return trade_set_complete
+
+
+
 class Trade:
     def __init__(self, trade_set, trd_idx):
         self.trd_idx = trd_idx
@@ -86,6 +94,22 @@ class Trade:
 
         return entry_orders
 
+    def complete(self):
+        all_leg_groups_complete = True
+        for leg_group in self.leg_groups.values():
+            all_leg_groups_complete = all_leg_groups_complete and leg_group.complete()
+        return all_leg_groups_complete
+
+    def to_dict(self):
+        dct = {}
+        """
+        for field in ['id', 'order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
+            dct[field] = getattr(self, field)
+        """
+        dct['leg_groups'] = [leg_group.to_dict() for leg_group in self.leg_groups.values()]
+
+        return dct
+
     def close_on_exit_signal(self):
         for leg_seq, leg_details in self.legs.items():
             if leg_details['exit_type'] is None:  # Still active
@@ -126,6 +150,7 @@ class LegGroup:
         self.spot_low_target = self.trade.leg_group_exits['spot_low_targets'][self.id]
         self.legs = {}
 
+
     @classmethod
     def from_config(cls, trade, leg_group_info):
         obj = cls(trade, leg_group_info)
@@ -143,6 +168,20 @@ class LegGroup:
             order['leg_group_id'] = self.id
         entry_orders['legs'] = sorted(entry_orders['legs'], key=lambda d: d['order_type'])
         return entry_orders
+
+    def complete(self):
+        all_legs_complete = True
+        for leg in self.legs.values():
+            all_legs_complete = all_legs_complete and leg.exit_type is not None
+        return all_legs_complete
+
+    def to_dict(self):
+        dct = {}
+        for field in ['id']:
+            dct[field] = getattr(self, field)
+        dct['legs'] = {k:v.to_dict() for k,v in self.legs.items()}
+        return dct
+
 
 class Leg:
     @classmethod
@@ -170,6 +209,7 @@ class Leg:
         self.spot_entry_price = spot_entry_price
         self.spot_exit_price = spot_exit_price
         self.trigger_time = trigger_time
+        self.exit_type = None
         print('self.strategy.force_exit_ts++++++++++++++++++', self.trade.trade_set.trade_manager.force_exit_ts)
 
     @classmethod

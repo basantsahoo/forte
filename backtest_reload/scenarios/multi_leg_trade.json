@@ -14,7 +14,7 @@
           [4500, 4500]
         ],
         "exit_at":null,
-        "carry_forward_days":[0, 1, 2, 3],
+        "carry_forward_days":[1, 1, 2, 3],
         "triggers_per_signal": 1,
         "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
         "trade_targets":[0.9, 0.9, 0.9, 0.9],

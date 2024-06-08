@@ -439,10 +439,11 @@ class BaseStrategy:
             #print(satisfied)
         return satisfied
 
-    def market_close_for_day(self):
+    def market_close_for_day_0(self):
+        print('stragey market_close_for_day #################################')
         carry_trades = []
         params_repo = {}
-        for (sig_key, trade) in self.tradable_signals.items():
+        for (sig_key, trade_set) in self.trade_manager.tradable_signals.items():
             if not trade.trade_complete():
                 for leg in trade.legs.values():
                     lg_copy = leg.copy()
@@ -452,6 +453,33 @@ class BaseStrategy:
         self.strategy_cache.set(self.id, carry_trades)
         self.strategy_cache.set('params_repo_' + self.id, params_repo)
 
+    def market_close_for_day(self):
+        print('stragey market_close_for_day #################################')
+        carry_trade_sets = {}
+        params_repo = {}
+        for (sig_key, trade_set) in self.trade_manager.tradable_signals.items():
+            if not trade_set.complete():
+                carry_trade_sets[trade_set.id] = []
+                for trade in trade_set.trades.values():
+                    if not trade.complete():
+                        carry_trade_sets[trade_set.id].append(trade.to_dict())
+                        params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
+        self.strategy_cache.set(self.id, carry_trade_sets)
+        self.strategy_cache.set('params_repo_' + self.id, params_repo)
+
+    def trigger_entry(self,  sig_key, triggers):
+        for trigger in triggers:
+            if self.record_metric:
+                mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
+                if self.signal_params:
+                    mkt_parms = {**mkt_parms, **self.signal_params}
+                self.params_repo[(sig_key, trigger['trade_seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
+        self.signal_params = {}
+        signal_info = {'strategy_id': self.id, 'signal_id': sig_key, 'trade_set': triggers}
+        print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))
+        print('at Same time Option Matrix clock================',
+              datetime.fromtimestamp(self.asset_book.option_matrix.last_time_stamp))
+        self.asset_book.market_book.pm.strategy_entry_signal(signal_info)
 
     def record_params(self):
         #print('inside record_params', matched_pattern)
