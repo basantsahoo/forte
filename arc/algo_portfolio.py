@@ -93,7 +93,7 @@ class AlgoPortfolioManager:
             trade_seq = trade['trade_seq']
             for leg_group in trade['leg_groups']:
                 #print('leg_group =====', leg_group)
-                leg_group_id = leg_group['leg_group_id']
+                leg_group_id = leg_group['lg_id']
                 if (strategy_id, signal_id, trade_seq, leg_group_id) not in self.position_book.keys():
                     self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)] = {}
                     self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'] = []
@@ -101,7 +101,7 @@ class AlgoPortfolioManager:
                     for leg in leg_group['legs']:
                         symbol = leg['instrument']['full_code']
                         order_type = leg['order_type']
-                        leg_id = leg['id']
+                        leg_id = leg['leg_id']
                         #print('leg_id adding 0', leg_id)
                         qty = abs(leg['quantity'])
                         side = get_broker_order_type(order_type)
@@ -139,13 +139,13 @@ class AlgoPortfolioManager:
             trade_seq = trade['trade_seq']
             for leg_group in trade['leg_groups']:
                 #print('leg_group =====', leg_group)
-                leg_group_id = leg_group['leg_group_id']
+                leg_group_id = leg_group['lg_id']
                 for leg in leg_group['legs']:
 
                     symbol = leg['instrument']['full_code']
                     asset = leg['instrument']['asset']
                     order_type = leg['order_type']
-                    leg_id = leg['id']
+                    leg_id = leg['leg_id']
                     #print('leg_id adding 0', leg_id)
                     qty = abs(leg['quantity'])
                     l_time = self.last_times[symbol]
