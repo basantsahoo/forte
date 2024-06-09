@@ -1,11 +1,13 @@
 from helper.utils import get_option_strike
 class Instrument:
-    def __init__(self,  market_book, asset,  kind, strike, expiry):
+    def __init__(self,  market_book, asset,  kind, strike, expiry, money_ness, level):
         self.market_book = market_book
         self.kind = kind
         self.expiry = expiry
         self.strike = strike
         self.asset = asset
+        self.money_ness = money_ness
+        self.level = level
         if not self.is_spot():
             self.instr_code = str(strike) + "_" + kind
             self.full_code = asset + "_" + str(strike) + "_" + kind
@@ -18,6 +20,12 @@ class Instrument:
 
     def is_option(self):
         return self.kind.upper() in ['CE', 'PE']
+
+    def is_call(self):
+        return self.kind.upper() in ['CE']
+
+    def is_put(self):
+        return self.kind.upper() in ['PE']
 
     def is_future(self):
         return self.kind.to_upper() == 'FUT'
@@ -57,7 +65,7 @@ class Instrument:
         else:
             instr_code = kind
         strike, kind = Instrument.to_strike_kind(instr_code)
-        return cls(market_book, asset, kind, strike, expiry)
+        return cls(market_book, asset, kind, strike, expiry, money_ness, level)
 
     @classmethod
     def from_store(cls, market_book, config):
@@ -66,7 +74,9 @@ class Instrument:
         kind = config['kind']
         expiry = config['expiry']
         strike = config['strike']
-        return cls(market_book, asset, kind, strike, expiry)
+        money_ness = config['money_ness']
+        level = config['level']
+        return cls(market_book, asset, kind, strike, expiry, money_ness, level)
 
     def get_last_tick(self):
         asset_book = self.market_book.get_asset_book(self.asset)
@@ -82,6 +92,23 @@ class Instrument:
 
     def to_dict(self):
         dct = {}
-        for field in ['kind', 'expiry', 'strike', 'asset', 'instr_code', 'full_code']:
+        for field in ['kind', 'expiry', 'strike', 'asset','money_ness', 'level' 'instr_code', 'full_code']:
             dct[field] = getattr(self, field)
         return dct
+
+    def get_delta(self):
+        itm_delta_levels = [0.6, 0.65, 0.7, 0.75, 0.8, 0.9, 0.98, 1]
+        otm_delta_levels = [0.4, 0.35, 0.3, 0.25, 0.2, 0.1, 0.02, 0.01]
+        delta = 0
+        if self.is_spot() or self.is_future():
+            delta = 1
+        elif self.is_option():
+            direction_factor = 1 if self.is_call() else -1
+            if self.money_ness == 'ATM':
+                delta = 0.5
+            elif self.money_ness == 'ITM':
+                delta = itm_delta_levels[self.level-1] if self.level<= len(itm_delta_levels) else itm_delta_levels[-1]
+            elif self.money_ness == 'OTM':
+                delta = otm_delta_levels[self.level-1] if self.level<= len(otm_delta_levels) else otm_delta_levels[-1]
+            delta = direction_factor * delta
+        return delta

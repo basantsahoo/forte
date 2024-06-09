@@ -79,14 +79,22 @@ class Trade:
         self.trd_idx = trd_idx
         self.trade_set = trade_set
         self.pnl = 0
-        self.exit_time = self.trade_set.trade_manager.exit_time[trd_idx-1]
-        self.carry_forward_days = self.trade_set.trade_manager.carry_forward_days[trd_idx-1]
-        self.target = self.trade_set.trade_manager.trade_targets[trd_idx-1]
-        self.stop_loss = self.trade_set.trade_manager.trade_stop_losses[trd_idx-1]
-        self.spot_high_stop_loss = self.trade_set.trade_manager.spot_high_stop_losses[trd_idx-1]
-        self.spot_low_stop_loss = self.trade_set.trade_manager.spot_low_stop_losses[trd_idx-1]
-        self.spot_high_target = self.trade_set.trade_manager.spot_high_targets[trd_idx-1]
-        self.spot_low_target = self.trade_set.trade_manager.spot_low_targets[trd_idx-1]
+        exit_times = self.trade_set.trade_manager.exit_time
+        carry_forward_days = self.trade_set.trade_manager.carry_forward_days
+        targets = self.trade_set.trade_manager.trade_targets
+        stop_losses = self.trade_set.trade_manager.trade_stop_losses
+        spot_high_stop_losses = self.trade_set.trade_manager.spot_high_stop_losses
+        spot_low_stop_losses = self.trade_set.trade_manager.spot_low_stop_losses
+        spot_high_targets = self.trade_set.trade_manager.spot_high_targets
+        spot_low_targets = self.trade_set.trade_manager.spot_low_targets
+        self.exit_time = exit_times[min(trd_idx - 1, len(exit_times) - 1)] if exit_times else None
+        self.carry_forward_days = carry_forward_days[min(trd_idx - 1, len(carry_forward_days) - 1)] if carry_forward_days else None
+        self.target = targets[min(trd_idx - 1, len(targets) - 1)] if targets else None
+        self.stop_loss = stop_losses[min(trd_idx - 1, len(stop_losses) - 1)] if stop_losses else None
+        self.spot_high_stop_loss = spot_high_stop_losses[min(trd_idx - 1, len(spot_high_stop_losses) - 1)] if spot_high_stop_losses else None
+        self.spot_low_stop_loss = spot_low_stop_losses[min(trd_idx - 1, len(spot_low_stop_losses) - 1)] if spot_low_stop_losses else None
+        self.spot_high_target = spot_high_targets[min(trd_idx - 1, len(spot_high_targets) - 1)] if spot_high_targets else None
+        self.spot_low_target = spot_low_targets[min(trd_idx - 1, len(spot_low_targets) - 1)] if spot_low_targets else None
         self.leg_group_exits = {}
         for key, val in self.trade_set.trade_manager.leg_group_exits.items():
             self.leg_group_exits[key] = val[trd_idx-1]
@@ -155,78 +163,6 @@ class Trade:
         self.close_on_instr_tg_sl_tm()
         self.close_on_spot_tg_sl()
         """
-
-
-class LegGroup:
-    def __init__(self, trade, lg_index, leg_group_info):
-        self.lg_id = leg_group_info['lg_id']
-        self.lg_index = lg_index
-        self.asset = leg_group_info['asset']
-        self.market_view = leg_group_info.get('market_view', 'LONG')
-        self.trade = trade
-        self.pnl = 0
-        self.completed = False
-        #self.leg_group_info = leg_group_info
-        self.target = self.trade.leg_group_exits['targets'][self.lg_id]
-        self.stop_loss = self.trade.leg_group_exits['stop_losses'][self.lg_id]
-        self.spot_high_stop_loss = self.trade.leg_group_exits['spot_high_stop_losses'][self.lg_id]
-        self.spot_low_stop_loss = self.trade.leg_group_exits['spot_low_stop_losses'][self.lg_id]
-        self.spot_high_target = self.trade.leg_group_exits['spot_high_targets'][self.lg_id]
-        self.spot_low_target = self.trade.leg_group_exits['spot_low_targets'][self.lg_id]
-        self.legs = {}
-
-
-    @classmethod
-    def from_config(cls, trade, lg_index, leg_group_info):
-        obj = cls(trade, lg_index, leg_group_info)
-        for leg_id, leg_info in leg_group_info["legs"].items():
-            obj.legs[leg_id] = Leg.from_config(obj, leg_id, leg_info)
-        return obj
-
-    @classmethod
-    def from_store(cls, trade, leg_group_info):
-        obj = cls(trade, leg_group_info['lg_index'], leg_group_info)
-        for leg_id, leg_info in leg_group_info["legs"].items():
-            obj.legs[leg_id] = Leg.from_store(obj, **leg_info)
-        return obj
-
-
-    def get_entry_orders(self):
-        entry_orders = {}
-        entry_orders['lg_id'] = self.lg_id
-        entry_orders['legs'] = []
-        for leg in self.legs.values():
-            entry_orders['legs'].append(leg.to_dict())
-        for order in entry_orders['legs']:
-            order['lg_id'] = self.lg_id
-        entry_orders['legs'] = sorted(entry_orders['legs'], key=lambda d: d['order_type'])
-        return entry_orders
-
-    def trigger_exit(self, exit_type=None):
-        exit_orders = {}
-        exit_orders['lg_id'] = self.lg_id
-        exit_orders['legs'] = []
-        for leg in self.legs.values():
-            leg.trigger_exit(exit_type)
-            exit_orders['legs'].append(leg.to_dict())
-        for order in exit_orders['legs']:
-            order['lg_id'] = self.lg_id
-        exit_orders['legs'] = sorted(exit_orders['legs'], key=lambda d: d['order_type'], reverse=True)
-        self.trade.exit_orders.append(exit_orders)
-
-
-    def complete(self):
-        all_legs_complete = True
-        for leg in self.legs.values():
-            all_legs_complete = all_legs_complete and leg.exit_type is not None
-        return all_legs_complete
-
-    def to_dict(self):
-        dct = {}
-        for field in ['lg_index', 'lg_id', 'asset']:
-            dct[field] = getattr(self, field)
-        dct['legs'] = {k:v.to_dict() for k,v in self.legs.items()}
-        return dct
 
 
 class Leg:
