@@ -127,23 +127,7 @@ class BaseStrategy:
         self.strategy_cache = Cache(cache_dir + 'strategy_cache')
 
 
-    def set_force_exit_ts(self):
-        if not self.force_exit_ts:
-            self.force_exit_ts = None
-        else:
-            if self.force_exit_ts[0] == 'weekly_expiry_day':
-                self.force_exit_ts = self.asset_book.get_expiry_day_time(self.force_exit_ts[1])
 
-    """
-    def get_market_view(self, instr):
-        print('get_market_view', instr)
-        view_dict = {'SPOT_BUY': 'LONG', 'SPOT_SELL': 'SHORT', 'CE_BUY': 'LONG', 'CE_SELL': 'SHORT', 'PE_BUY': 'SHORT', 'PE_SELL': 'LONG'}
-        if not self.inst_is_option(instr):
-            d_key = instr + "_" + self.order_type
-        else:
-            d_key = instr[-2::] + "_" + self.order_type
-        return view_dict[d_key]
-    """
     def set_up(self):
         week_day_criterion = (not self.weekdays_allowed) or TradeDateTime(self.asset_book.market_book.trade_day).weekday_name in self.weekdays_allowed
         activation_criterion = week_day_criterion
@@ -161,7 +145,7 @@ class BaseStrategy:
                     #trade.set_controllers()
         #self.strategy_cache.delete(self.id)
         #self.strategy_cache.delete('params_repo_' + self.id)
-        self.set_force_exit_ts()
+
 
     def market_close_for_day(self):
         print('stragey market_close_for_day #################################')
@@ -244,7 +228,7 @@ class BaseStrategy:
                 for leg_group in trade.leg_groups.values():
                     for leg in leg_group.legs.values():
                         if leg.spot_exit_price is not None:
-                            factor = -1 if leg_group.market_view == 'SHORT' else 1
+                            factor = -1 if leg_group.delta < 0 else 1
                             spot_movements.append(factor * (leg.spot_exit_price - leg.spot_entry_price))
         max_movement = max(spot_movements)
         total_losses = sum([x for x in spot_movements if x < 0])

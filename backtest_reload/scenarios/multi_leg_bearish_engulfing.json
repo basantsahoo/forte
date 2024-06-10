@@ -9,7 +9,7 @@
       "trade_cut_off_time": 25,
       "trade_manager_info": {
         "asset": "NIFTY",
-        "exit_time":[
+        "durations":[
           [4500],
           [4500],
           [4500],
@@ -18,7 +18,6 @@
         "exit_at":null,
         "carry_forward_days":[1, 2, 3 ,4],
         "triggers_per_signal": 1,
-        "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
         "trade_targets":[0.9, 0.9, 0.9, 0.9],
         "trade_stop_losses":[2,2,2,2],
         "spot_high_stop_losses":[],
@@ -39,6 +38,7 @@
               "lg_id": "gp_a",
               "market_view": "SHORT",
               "asset": "NIFTY",
+              "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
               "legs" : {
                 "A": {
                   "instr_to_trade": {
@@ -125,8 +125,8 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 2,
-    "to_date": "2024-04-10",
+    "for_past_days": 1,
+    "to_date": "2024-04-09",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,

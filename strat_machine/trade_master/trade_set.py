@@ -3,8 +3,8 @@ from helper.utils import inst_is_option, get_market_view
 import itertools
 from helper.utils import get_option_strike
 import copy
-from strat_machine.trade_master.instrument import Instrument
-from strat_machine.trade_master.common import _asdict
+
+from strat_machine.trade_master.leg_group import LegGroup
 
 class TradeSet:
     def __init__(self, trade_manager, ts_id):
@@ -52,20 +52,24 @@ class TradeSet:
             self.trigger_exit(exit_type='EC')
             check_complete_test = self.complete()
 
-
     def trigger_exit(self, exit_type, manage_risk=True):
         for trade_id, trade in self.trades.items():
             if not trade.complete():
                 trade.trigger_exit(exit_type)
-        self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
-        self.exit_orders = []
-        if self.complete() and manage_risk:
-            self.trade_manager.strategy.manage_risk()
+        self.process_exit_orders(manage_risk)
 
-    def monitor_existing_positions(self):
+    def monitor_existing_positions(self, manage_risk=True):
         for trade_id, trade in self.trades.items():
             if not trade.complete():
                 trade.monitor_existing_positions()
+        self.process_exit_orders(manage_risk)
+
+    def process_exit_orders(self, manage_risk=True):
+        if self.exit_orders:
+            self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
+            self.exit_orders = []
+            if self.complete() and manage_risk:
+                self.trade_manager.strategy.manage_risk()
 
     def register_signal(self, signal):
         for controller in self.controller_list:
@@ -79,7 +83,7 @@ class Trade:
         self.trd_idx = trd_idx
         self.trade_set = trade_set
         self.pnl = 0
-        exit_times = self.trade_set.trade_manager.exit_time
+        durations = self.trade_set.trade_manager.durations
         carry_forward_days = self.trade_set.trade_manager.carry_forward_days
         targets = self.trade_set.trade_manager.trade_targets
         stop_losses = self.trade_set.trade_manager.trade_stop_losses
@@ -87,7 +91,7 @@ class Trade:
         spot_low_stop_losses = self.trade_set.trade_manager.spot_low_stop_losses
         spot_high_targets = self.trade_set.trade_manager.spot_high_targets
         spot_low_targets = self.trade_set.trade_manager.spot_low_targets
-        self.exit_time = exit_times[min(trd_idx - 1, len(exit_times) - 1)] if exit_times else None
+        self.durations = durations[min(trd_idx - 1, len(durations) - 1)] if durations else None
         self.carry_forward_days = carry_forward_days[min(trd_idx - 1, len(carry_forward_days) - 1)] if carry_forward_days else None
         self.target = targets[min(trd_idx - 1, len(targets) - 1)] if targets else None
         self.stop_loss = stop_losses[min(trd_idx - 1, len(stop_losses) - 1)] if stop_losses else None
@@ -100,6 +104,8 @@ class Trade:
             self.leg_group_exits[key] = val[trd_idx-1]
         self.leg_groups = {}
         self.exit_orders = []
+        self.trigger_time = None
+        self.exit_time = None
 
 
     @classmethod
@@ -128,7 +134,7 @@ class Trade:
             for order in orders['legs']:
                 order['trade_seq'] = self.trd_idx
             entry_orders['leg_groups'].append(orders)
-
+        self.trigger_time = self.leg_groups[list(self.leg_groups.keys())[0]].trigger_time
         return entry_orders
 
     def complete(self):
@@ -147,77 +153,28 @@ class Trade:
 
         return dct
 
-    def trigger_exit(self, exit_type):
-        for leg_group_id, leg_group in self.leg_groups.items():
-            if not leg_group.complete():
-                leg_group.trigger_exit(exit_type)
-        exit_orders = {}
+    def process_exit_orders(self):
+        exit_orders = dict()
         exit_orders['trade_seq'] = self.trd_idx
         exit_orders['leg_groups'] = self.exit_orders
         self.exit_orders = []
         self.trade_set.exit_orders.append(exit_orders)
+        all_leg_group_exits = [lg.exit_time for lg in self.leg_groups.values()]
+        self.exit_time = None if None in all_leg_group_exits else max(all_leg_group_exits)
+
+    def trigger_exit(self, exit_type):
+        for leg_group_id, leg_group in self.leg_groups.items():
+            if not leg_group.complete():
+                leg_group.trigger_exit(exit_type)
+        self.process_exit_orders()
 
     def monitor_existing_positions(self):
-        pass
-        """
-        self.close_on_instr_tg_sl_tm()
-        self.close_on_spot_tg_sl()
-        """
+        for leg_group_id, leg_group in self.leg_groups.items():
+            if not leg_group.complete():
+                leg_group.close_on_instr_tg_sl_tm()
+            if not leg_group.complete():
+                leg_group.close_on_spot_tg_sl()
+        self.process_exit_orders()
 
 
-class Leg:
-    @classmethod
-    def from_config(cls, leg_group, leg_id, leg_info):
-        leg_info['instr_to_trade']['asset'] = leg_group.asset
-        instr = Instrument.from_config(leg_group.trade.trade_set.trade_manager.market_book, leg_info['instr_to_trade'])
-        last_candle = instr.get_last_tick()
-        last_spot_candle = leg_group.trade.trade_set.trade_manager.get_last_tick(instr.asset, 'SPOT')
-        entry_price = last_candle['close']
-        exit_price = None
-        spot_entry_price = last_spot_candle['close']
-        spot_exit_price = None
-        trigger_time = last_spot_candle['timestamp']
-        quantity = leg_info['quantity']
-        order_type = leg_info['order_type']
-        return cls(leg_group, leg_id, instr, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time)
 
-    def __init__(self, leg_group, leg_id, instrument, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time):
-        self.leg_group = leg_group
-        self.leg_id = leg_id
-        self.instrument = instrument
-        self.order_type = order_type
-        self.quantity = quantity
-        self.entry_price = entry_price
-        self.exit_price = exit_price
-        self.spot_entry_price = spot_entry_price
-        self.spot_exit_price = spot_exit_price
-        self.trigger_time = trigger_time
-        self.exit_type = None
-        print('self.strategy.force_exit_ts++++++++++++++++++', self.leg_group.trade.trade_set.trade_manager.force_exit_ts)
-        #trade_info['max_run_time'] = trade_info['trigger_time'] + trade_info['duration'] * 60 if self.strategy.force_exit_ts is None else min(trade_info['trigger_time'] + trade_info['duration'] * 60, self.strategy.force_exit_ts + 60)
-    @classmethod
-    def from_store(cls, leg_group, **kwargs):
-        kwargs['instrument'] = Instrument.from_store(leg_group.trade.trade_set.trade_manager.market_book, kwargs['instrument'])
-        return cls(leg_group,  **kwargs)
-
-    def to_dict(self):
-        dct = {}
-        for field in ['leg_id', 'order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
-            dct[field] = getattr(self, field)
-        dct['instrument'] = self.instrument.to_dict()
-        return dct
-
-    def to_partial_dict(self):
-        dct = {}
-        for field in ['order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
-            dct[field] = getattr(self, field)
-        dct['instrument'] = self.instrument.instr_code
-        dct['asset'] = self.instrument.asset
-        return dct
-
-    def trigger_exit(self, exit_type=None):
-        last_candle = self.instrument.get_last_tick()
-        last_spot_candle = self.leg_group.trade.trade_set.trade_manager.get_last_tick(self.instrument.asset, 'SPOT')
-        self.exit_type = exit_type
-        self.exit_price = last_candle['close']
-        self.spot_exit_price = last_spot_candle['close']

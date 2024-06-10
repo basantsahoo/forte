@@ -80,8 +80,9 @@ class StartegyBackTester:
                             _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg_group': leg_group_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                             _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
                             #trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id]
+                            leg_group_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].to_partial_dict()
                             trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id].to_partial_dict()
-                            _tmp = {**_tmp, **trigger_details}
+                            _tmp = {**_tmp, **leg_group_details, **trigger_details}
                             signal_custom_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].custom_features
                             signal_params = ['pattern_height']
                             for signal_param in signal_params:

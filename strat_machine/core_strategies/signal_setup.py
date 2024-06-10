@@ -102,7 +102,7 @@ def get_startegy_args(**kwargs):
 
 default_trade_manager_params = {
     "asset": None,
-    "exit_time": [10],
+    "durations": [10],
     "exit_at":None,
     "carry_forward_days": [0],
     "triggers_per_signal": 1,

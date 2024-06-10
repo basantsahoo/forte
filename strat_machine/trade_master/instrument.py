@@ -28,7 +28,7 @@ class Instrument:
         return self.kind.upper() in ['PE']
 
     def is_future(self):
-        return self.kind.to_upper() == 'FUT'
+        return self.kind.upper() == 'FUT'
 
     def life(self, last_tick_timestamp):
         return last_tick_timestamp-self.expiry
@@ -92,7 +92,7 @@ class Instrument:
 
     def to_dict(self):
         dct = {}
-        for field in ['kind', 'expiry', 'strike', 'asset','money_ness', 'level' 'instr_code', 'full_code']:
+        for field in ['kind', 'expiry', 'strike', 'asset','money_ness', 'level', 'instr_code', 'full_code']:
             dct[field] = getattr(self, field)
         return dct
 

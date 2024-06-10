@@ -28,7 +28,7 @@ class TradeManager:
                  market_book=None,
                  strategy=None,
                  asset=None,
-                 exit_time=[10],
+                 durations=[10],
                  exit_at=None,
                  carry_forward_days=[0],
                  triggers_per_signal=1,
@@ -51,7 +51,7 @@ class TradeManager:
         # print('entry_signal_queues====',entry_signal_queues)
         self.strategy = strategy
         self.asset = asset
-        self.exit_time = exit_time
+        self.durations = durations
         self.exit_at = exit_at
         self.triggers_per_signal = min(4, triggers_per_signal)  # Dont go past 4
         self.spot_high_targets = [abs(x) if isinstance(x, (int, float)) else x for x in spot_high_targets]
