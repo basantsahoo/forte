@@ -134,6 +134,7 @@ class BaseStrategy:
         if not activation_criterion:
             self.deactivate()
         carry_trades = self.strategy_cache.get(self.id, {})
+        print('carry_trades===', carry_trades)
 
         params_repo = self.strategy_cache.get('params_repo_' + self.id, {})
         for sig_key, trade_set_info in carry_trades.items():

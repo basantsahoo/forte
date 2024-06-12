@@ -7,7 +7,7 @@
       "asset": "NIFTY",
       "trade_manager_info": {
         "asset": "NIFTY",
-        "exit_time":[
+        "durations":[
           [4500, 4500],
           [4500, 4500],
           [4500, 4500],

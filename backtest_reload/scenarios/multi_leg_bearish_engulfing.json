@@ -18,27 +18,28 @@
         "exit_at":null,
         "carry_forward_days":[1, 2, 3 ,4],
         "triggers_per_signal": 1,
-        "trade_targets":[0.9, 0.9, 0.9, 0.9],
-        "trade_stop_losses":[2,2,2,2],
+        "trade_targets":[0.01, 0.01, 0.01, 0.01],
+        "trade_stop_losses":[0.01, 0.01, 0.01, 0.01],
         "spot_high_stop_losses":[],
         "spot_low_stop_losses":[],
         "spot_high_targets":[],
         "spot_low_targets":[],
         "leg_group_exits": {
           "targets":[{"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}],
-          "stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
+          "stop_losses":[{"gp_a": 2, "gp_b": 0.1}, {"gp_a": 2, "gp_b": 0.1}, {"gp_a": 2, "gp_b": 0.2}, {"gp_a": 3, "gp_b": 0.3}],
           "spot_high_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
           "spot_low_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
           "spot_high_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
           "spot_low_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}]
         },
         "trade_info": {
+          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
           "leg_groups": [
             {
               "lg_id": "gp_a",
               "market_view": "SHORT",
               "asset": "NIFTY",
-              "force_exit_ts": ["weekly_expiry_day", "15:15:30"],
+              "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
               "legs" : {
                 "A": {
                   "instr_to_trade": {

@@ -141,3 +141,11 @@ class OptionMarketBook:
 
     def get_time_since_market_open(self):
         return (self.last_tick_timestamp - self.market_start_ts) / 60
+
+    def get_force_exit_ts(self, force_exit_ts):
+        if force_exit_ts is None:
+            return None
+        else:
+            if force_exit_ts[0] == 'weekly_expiry_day':
+                asset_book = self.get_asset_book(force_exit_ts[1])
+                return asset_book.get_expiry_day_time(force_exit_ts[2])

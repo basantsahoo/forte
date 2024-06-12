@@ -28,8 +28,7 @@ class Leg:
         self.trigger_time = trigger_time
         self.exit_type = None
         self.exit_time = None
-        print('self.strategy.force_exit_ts++++++++++++++++++', self.leg_group.trade.trade_set.trade_manager.force_exit_ts)
-        #trade_info['max_run_time'] = trade_info['trigger_time'] + trade_info['duration'] * 60 if self.strategy.force_exit_ts is None else min(trade_info['trigger_time'] + trade_info['duration'] * 60, self.strategy.force_exit_ts + 60)
+        print('self.leg_group.force_exit_ts++++++++++++++++++', self.leg_group.force_exit_time)
     @classmethod
     def from_store(cls, leg_group, **kwargs):
         kwargs['instrument'] = Instrument.from_store(leg_group.trade.trade_set.trade_manager.market_book, kwargs['instrument'])

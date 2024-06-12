@@ -106,7 +106,10 @@ class Trade:
         self.exit_orders = []
         self.trigger_time = None
         self.exit_time = None
-
+        self.force_exit_time = trade_set.trade_manager.trade_info.get('force_exit_time', None)
+        if self.force_exit_time is None:
+            self.force_exit_time = self.trade_set.trade_manager.market_book.get_force_exit_ts(trade_set.trade_manager.trade_info.get('force_exit_ts', None))
+        self.trade_duration = None
 
     @classmethod
     def from_config(cls, trade_set, trd_idx):
@@ -115,6 +118,7 @@ class Trade:
         #print(leg_groups)
         for lg_index, leg_group_info in enumerate(leg_groups):
             obj.leg_groups[leg_group_info['lg_id']] = LegGroup.from_config(obj, lg_index, leg_group_info)
+        obj.other_init()
         return obj
 
     @classmethod
@@ -122,7 +126,11 @@ class Trade:
         obj = cls(trade_set, trade_info['trd_idx'])
         for leg_group_info in trade_info["leg_groups"]:
             obj.leg_groups[leg_group_info['lg_id']] = LegGroup.from_store(obj, leg_group_info)
+        obj.other_init()
         return obj
+
+    def other_init(self):
+        self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
 
     def get_entry_orders(self):
         entry_orders = {}
@@ -154,13 +162,14 @@ class Trade:
         return dct
 
     def process_exit_orders(self):
-        exit_orders = dict()
-        exit_orders['trade_seq'] = self.trd_idx
-        exit_orders['leg_groups'] = self.exit_orders
-        self.exit_orders = []
-        self.trade_set.exit_orders.append(exit_orders)
-        all_leg_group_exits = [lg.exit_time for lg in self.leg_groups.values()]
-        self.exit_time = None if None in all_leg_group_exits else max(all_leg_group_exits)
+        if self.exit_orders:
+            exit_orders = dict()
+            exit_orders['trade_seq'] = self.trd_idx
+            exit_orders['leg_groups'] = self.exit_orders
+            self.exit_orders = []
+            self.trade_set.exit_orders.append(exit_orders)
+            all_leg_group_exits = [lg.exit_time for lg in self.leg_groups.values()]
+            self.exit_time = None if None in all_leg_group_exits else max(all_leg_group_exits)
 
     def trigger_exit(self, exit_type):
         for leg_group_id, leg_group in self.leg_groups.items():
@@ -169,12 +178,38 @@ class Trade:
         self.process_exit_orders()
 
     def monitor_existing_positions(self):
+        self.close_on_trade_tg_sl_tm()
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_instr_tg_sl_tm()
             if not leg_group.complete():
                 leg_group.close_on_spot_tg_sl()
         self.process_exit_orders()
+
+    def calculate_pnl(self):
+        capital_list = []
+        pnl_list = []
+        for leg_group_id, leg_group in self.leg_groups.items():
+            capital, pnl, pnl_pct = leg_group.calculate_pnl()
+            capital_list.append(capital)
+            pnl_list.append(pnl)
+        pnl_ratio = sum(pnl_list)/sum(capital_list)
+        return sum(capital_list), sum(pnl_list), pnl_ratio
+
+    def close_on_trade_tg_sl_tm(self):
+        capital, pnl, pnl_pct = self.calculate_pnl()
+        asset = list(self.leg_groups.values())[0].asset
+        last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
+        max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
+            self.trigger_time + self.trade_duration * 60, self.force_exit_time + 60)
+        if last_spot_candle['timestamp'] >= max_run_time:
+            self.trigger_exit(exit_type='TRD_TC')
+        elif self.force_exit_time and last_spot_candle['timestamp'] >= self.force_exit_time:
+            self.trigger_exit(exit_type='TRD_TSFE')
+        elif self.target and pnl_pct > self.target:
+            self.trigger_exit(exit_type='TRD_TT')
+        elif self.stop_loss and pnl_pct < self.stop_loss:
+            self.trigger_exit(exit_type='TRD_TS')
 
 
 
