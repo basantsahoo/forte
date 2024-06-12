@@ -37,14 +37,14 @@ class StrategyManager:
             if strategy_signal_generator is not None:
                 break
         return strategy_signal_generator
-
+    """
     def get_strategies_by_symbol(self, symbol):
         return [strategy for strategy in self.strategies if strategy.asset_book.asset == symbol]
-
+    """
     def on_minute_data_pre(self, asset):
         if self.process_signal_switch:
-            strategies = self.get_strategies_by_symbol(asset)
-            for strategy in strategies:
+            #strategies = self.get_strategies_by_symbol(asset)
+            for strategy in self.strategies:
                 strategy.on_minute_data_pre()
 
     def process_custom_signal(self):
@@ -54,8 +54,8 @@ class StrategyManager:
 
     def on_minute_data_post(self, asset):
         if self.process_signal_switch:
-            strategies = self.get_strategies_by_symbol(asset)
-            for strategy in strategies:
+            #strategies = self.get_strategies_by_symbol(asset)
+            for strategy in self.strategies:
                 #strategy.on_minute_data_pre()
                 strategy.on_minute_data_post()
 

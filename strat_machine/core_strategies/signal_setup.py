@@ -42,12 +42,6 @@ human_machine_target_map = {
 
 default_strategy_params = {
     "id": None,
-    "order_type": "BUY",
-    "spot_instruments": [],
-    "derivative_instruments" : [],
-    "exit_time": [10],
-    "exit_at":None,
-    "carry_forward_days": 0,
     "min_tpo": 1,
     "max_tpo": 13,
     "record_metric": True,
@@ -57,24 +51,11 @@ default_strategy_params = {
     "entry_signal_queues": [],  # Used for signals to be evaluated to enter a trade
     "exit_criteria_list": [],  # Used for signals to be evaluated to exit a trade
     "signal_filters": [],  # Signals that should be filtered out before sending to queue
-    "spot_long_targets": [],  # [0.002,0.003, 0.004, 0.005],
-    "spot_long_stop_losses": [],  # [-0.001, -0.002, -0.002, -0.002],
-    "spot_short_targets": [],  # [-0.002, -0.003, -0.004, -0.005],
-    "spot_short_stop_losses": [],  # [0.001, 0.002, 0.002, 0.002],
-    "spot_long_target_levels": [],
-    "spot_long_stop_loss_levels": [],
-    "spot_short_target_levels": [],
-    "spot_short_stop_loss_levels": [],
-    "instr_targets": [],  # [0.002,0.003, 0.004, 0.005],
-    "instr_stop_losses": [],  # [-0.001,-0.002, -0.002,-0.002]
-    "instr_to_trade": [],
-    "cover": 0,
     "register_signal_category": None,
     "trade_controllers": [],
     "entry_switch": {},
     "risk_limits": [],
     "trade_cut_off_time": 60,
-    "force_exit_ts": None,
     "trade_manager_info": {}
 }
 

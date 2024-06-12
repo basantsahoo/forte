@@ -24,12 +24,6 @@ class BaseStrategy:
     def __init__(self,
                  market_book=None,
                  id=None,
-                 order_type="BUY",  # order type of the instrument, can take only one value
-                 spot_instruments = [],  # Instruments that should be traded as linear can include FUT in future
-                 derivative_instruments=[],  # Instruments that should be traded as non options
-                 exit_time=[10],
-                 exit_at=None,
-                 carry_forward_days=0,
                  min_tpo=1,
                  max_tpo=13,
                  record_metric=True,
@@ -39,34 +33,16 @@ class BaseStrategy:
                  entry_signal_queues = [],  #Used for signals to be evaluated to enter a trade
                  exit_criteria_list = [],  #Used for signals to be evaluated to exit a trade
                  signal_filters=[],  #Signals that should be filtered out before sending to queue
-                 spot_long_targets = [],  #[0.002,0.003, 0.004, 0.005],
-                 spot_long_stop_losses=[],  #[-0.001, -0.002, -0.002, -0.002],
-                 spot_short_targets=[],  #[-0.002, -0.003, -0.004, -0.005],
-                 spot_short_stop_losses=[],  #[0.001, 0.002, 0.002, 0.002],
-                 spot_long_target_levels=[],
-                 spot_long_stop_loss_levels=[],
-                 spot_short_target_levels=[],
-                 spot_short_stop_loss_levels=[],
-                 instr_targets = [],  #[0.002,0.003, 0.004, 0.005],
-                 instr_stop_losses = [],  #[-0.001,-0.002, -0.002,-0.002]
-                 instr_to_trade=[],
-                 cover = 0,
                  register_signal_category=None,
                  trade_controllers=[],
                  entry_switch={},
                  risk_limits=[],
                  trade_cut_off_time=60,
-                 force_exit_ts = None,
                  trade_manager_info = {}
                  ):
         #print('core strategy 3333333333333333333333333')
         #print('entry_signal_queues====',entry_signal_queues)
-        self.id = self.__class__.__name__ + "_" + order_type + "_" + str(min(exit_time)) if id is None else id
-        self.order_type = order_type
-        self.spot_instruments = spot_instruments if spot_instruments else []
-        self.derivative_instruments = derivative_instruments if derivative_instruments else []
-        self.exit_time = exit_time
-        self.exit_at = exit_at
+        self.id = self.__class__.__name__ if id is None else id
         self.min_tpo = min_tpo
         self.max_tpo = max_tpo
         self.record_metric = record_metric
@@ -75,19 +51,6 @@ class BaseStrategy:
         #self.entry_criteria = entry_criteria
         self.signal_filters = signal_filters
         self.exit_criteria_list = exit_criteria_list
-        self.spot_long_targets = [abs(x) if isinstance(x, (int, float)) else x for x in spot_long_targets]
-        self.spot_long_stop_losses = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_long_stop_losses]
-        self.spot_short_targets = [-1 * abs(x) if isinstance(x, (int, float)) else x for x in spot_short_targets]
-        self.spot_short_stop_losses = [abs(x) if isinstance(x, (int, float)) else x for x in spot_short_stop_losses]
-        self.spot_long_target_levels = spot_long_target_levels
-        self.spot_long_stop_loss_levels = spot_long_stop_loss_levels
-        self.spot_short_target_levels = spot_short_target_levels
-        self.spot_short_stop_loss_levels = spot_short_stop_loss_levels
-
-        side = get_broker_order_type(self.order_type)
-        self.instr_targets = [side * abs(x) for x in instr_targets]
-        self.instr_stop_losses = [-1 * side * abs(x) for x in instr_stop_losses]
-        self.instr_to_trade = instr_to_trade
         self.register_signal_category = register_signal_category
         self.weekdays_allowed = weekdays_allowed
         self.activated = True
@@ -100,9 +63,6 @@ class BaseStrategy:
         self.trade_controllers = trade_controllers
         self.risk_limits = risk_limits
         self.trade_cut_off_time = trade_cut_off_time
-        self.carry_forward_days = carry_forward_days
-        self.force_exit_ts=force_exit_ts
-        self.cover = cover #200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         self.trade_manager_info = trade_manager_info
         if (len(trade_manager_info['spot_high_targets']) < self.triggers_per_signal) and (len(trade_manager_info['spot_low_targets']) < self.triggers_per_signal) and (len(trade_manager_info['trade_targets']) < self.triggers_per_signal) and len(trade_manager_info['leg_group_exits']['targets']) < self.triggers_per_signal:
             raise Exception("Triggers and targets of unequal size")
