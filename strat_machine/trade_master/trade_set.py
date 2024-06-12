@@ -101,7 +101,10 @@ class Trade:
         self.spot_low_target = spot_low_targets[min(trd_idx - 1, len(spot_low_targets) - 1)] if spot_low_targets else None
         self.leg_group_exits = {}
         for key, val in self.trade_set.trade_manager.leg_group_exits.items():
-            self.leg_group_exits[key] = val[trd_idx-1]
+            if val:
+                self.leg_group_exits[key] = val[trd_idx-1]
+            else:
+                self.leg_group_exits[key] = []
         self.leg_groups = {}
         self.exit_orders = []
         self.trigger_time = None

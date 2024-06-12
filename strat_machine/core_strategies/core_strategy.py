@@ -104,7 +104,7 @@ class BaseStrategy:
         self.force_exit_ts=force_exit_ts
         self.cover = cover #200 if self.derivative_instruments and self.order_type == 'SELL' else 0
         self.trade_manager_info = trade_manager_info
-        if (len(trade_manager_info['spot_high_targets']) < self.triggers_per_signal) and (len(trade_manager_info['spot_low_targets']) < self.triggers_per_signal) and (len(trade_manager_info['trade_targets']) < self.triggers_per_signal):
+        if (len(trade_manager_info['spot_high_targets']) < self.triggers_per_signal) and (len(trade_manager_info['spot_low_targets']) < self.triggers_per_signal) and (len(trade_manager_info['trade_targets']) < self.triggers_per_signal) and len(trade_manager_info['leg_group_exits']['targets']) < self.triggers_per_signal:
             raise Exception("Triggers and targets of unequal size")
         #print('Add entry queue')
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)

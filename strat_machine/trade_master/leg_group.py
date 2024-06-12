@@ -12,10 +12,10 @@ class LegGroup:
         #self.leg_group_info = leg_group_info
         self.target = abs(self.trade.leg_group_exits['targets'][self.lg_id])
         self.stop_loss = -1 * abs(self.trade.leg_group_exits['stop_losses'][self.lg_id])
-        self.spot_high_stop_loss = abs(self.trade.leg_group_exits['spot_high_stop_losses'][self.lg_id])
-        self.spot_low_stop_loss = -1 * abs(self.trade.leg_group_exits['spot_low_stop_losses'][self.lg_id])
-        self.spot_high_target = abs(self.trade.leg_group_exits['spot_high_targets'][self.lg_id])
-        self.spot_low_target = -1 * abs(self.trade.leg_group_exits['spot_low_targets'][self.lg_id])
+        self.spot_high_stop_loss = abs(self.trade.leg_group_exits['spot_high_stop_losses'][self.lg_id]) if self.trade.leg_group_exits['spot_high_stop_losses'] else float('inf')
+        self.spot_low_stop_loss = -1 * abs(self.trade.leg_group_exits['spot_low_stop_losses'][self.lg_id]) if self.trade.leg_group_exits['spot_low_stop_losses'] else float('-inf')
+        self.spot_high_target = abs(self.trade.leg_group_exits['spot_high_targets'][self.lg_id]) if self.trade.leg_group_exits['spot_high_targets'] else float('inf')
+        self.spot_low_target = -1 * abs(self.trade.leg_group_exits['spot_low_targets'][self.lg_id]) if self.trade.leg_group_exits['spot_low_targets'] else float('-inf')
         self.carry_forward_days = self.trade.carry_forward_days
         self.legs = {}
         self.trigger_time = leg_group_info.get('trigger_time', None)
