@@ -104,7 +104,7 @@ class SpotFactorCalculator:
         for (k,v) in self.hist_2d_activity.items():
             mkt_parms['d2_'+k] = v
         mkt_parms = {**mkt_parms, **self.spx_features}
-        for (category, indicator, period) in self.daily_candle_pattern_detector.signal_dict.keys():
+        for (asset, category, indicator, period) in self.daily_candle_pattern_detector.signal_dict.keys():
             mkt_parms[indicator + "_" + period] = 1
 
         return mkt_parms

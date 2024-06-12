@@ -83,20 +83,20 @@ class CompoundSignalBuilder:
     def build_bottom_type_1(self):
         try:
             two_period_signals = self.get_n_period_signals(self.last_ts, 2)
-            EMA_1_10 = self.check_signal_present(two_period_signals[0], ('TECHNICAL', 'EMA_1_10', "1min"))['value']
-            SMA_1_10 = self.check_signal_present(two_period_signals[0], ('TECHNICAL', 'SMA_1_10', "1min"))['value']
-            one_bullish_candle_resp = self.check_signal_present(two_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
+            EMA_1_10 = self.check_signal_present(two_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'EMA_1_10', "1min"))['value']
+            SMA_1_10 = self.check_signal_present(two_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'SMA_1_10', "1min"))['value']
+            one_bullish_candle_resp = self.check_signal_present(two_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
             one_bullish_candle = one_bullish_candle_resp['found']
             #one_bullish_candle = self.check_signal_present(one_period_signals[0], ('CANDLE_1', 'CDL_DIR_P'))['found']
-            one_big_candle = self.check_signal_present(two_period_signals[0], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            one_body_large = self.check_signal_present(two_period_signals[0], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            two_bearish_candle_resp = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            one_big_candle = self.check_signal_present(two_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            one_body_large = self.check_signal_present(two_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            two_bearish_candle_resp = self.check_signal_present(two_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
             two_bearish_candle = two_bearish_candle_resp['found']
             #two_bearish_candle = self.check_signal_present(two_period_signals[0], ('CANDLE_1', 'CDL_DIR_N'))['found']
-            two_big_candle = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            two_body_large = self.check_signal_present(two_period_signals[1], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            one_high_volume_candle = self.check_signal_present(two_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
-            two_high_volume_candle = self.check_signal_present(two_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
+            two_big_candle = self.check_signal_present(two_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            two_body_large = self.check_signal_present(two_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            one_high_volume_candle = self.check_signal_present(two_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
+            two_high_volume_candle = self.check_signal_present(two_period_signals[1], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
             #print(two_bearish_candle, two_big_candle, two_body_large)
 
             if self.not_none_eval(EMA_1_10, SMA_1_10) and one_bullish_candle and one_big_candle and one_body_large\
@@ -104,8 +104,8 @@ class CompoundSignalBuilder:
                     and (one_high_volume_candle or two_high_volume_candle):
                 local_low = min(one_bullish_candle_resp['signal'].signal_info['low'],
                                  two_bearish_candle_resp['signal'].signal_info['low'])
-                key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [local_low],
-                              'spot_short_target_levels': [], 'spot_short_stop_loss_levels': []}
+                key_levels = {'spot_high_target_levels': [], 'spot_high_stop_loss_levels': [],
+                              'spot_low_target_levels': [], 'spot_low_stop_loss_levels': [local_low]}
 
                 pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
                              indicator='BOTTOM_TYPE_1_1MIN',
@@ -123,33 +123,33 @@ class CompoundSignalBuilder:
     def build_down_break_type_1(self):
         try:
             three_period_signals = self.get_n_period_signals(self.last_ts, 3)
-            EMA_1_10 = self.check_signal_present(three_period_signals[0], ('TECHNICAL', 'EMA_1_10', "1min"))['value']
-            SMA_1_10 = self.check_signal_present(three_period_signals[0], ('TECHNICAL', 'SMA_1_10', "1min"))['value']
-            one_bearish_candle_resp = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            EMA_1_10 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'EMA_1_10', "1min"))['value']
+            SMA_1_10 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'SMA_1_10', "1min"))['value']
+            one_bearish_candle_resp = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
             one_bearish_candle = one_bearish_candle_resp['found']
-            one_big_candle = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            one_body_large = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            two_bullish_candle_resp = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
+            one_big_candle = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            one_body_large = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            two_bullish_candle_resp = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
             two_bullish_candle = two_bullish_candle_resp['found']
-            two_big_candle = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            two_body_large = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            three_bearish_candle_resp = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            two_big_candle = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            two_body_large = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            three_bearish_candle_resp = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
             three_bearish_candle = three_bearish_candle_resp['found']
-            three_big_candle = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            three_body_large = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            three_big_candle = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            three_body_large = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
 
-            one_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
-            two_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
-            three_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
+            one_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
+            two_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
+            three_high_volume_candle_type_1 = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_1', "1min"))['found']
 
-            one_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_2', "1min"))['found']
-            two_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_2', "1min"))['found']
-            three_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_2', "1min"))['found']
+            one_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_2', "1min"))['found']
+            two_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_2', "1min"))['found']
+            three_high_volume_candle_type_2 = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_2', "1min"))['found']
 
 
-            one_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
-            two_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
-            three_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
+            one_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
+            two_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
+            three_high_volume_candle_type_3 = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_3', "1min"))['found']
             """
             print("one_bearish_candle==", one_bearish_candle)
             print("one_big_candle==", one_big_candle)
@@ -193,8 +193,9 @@ class CompoundSignalBuilder:
                                      two_bullish_candle_resp['signal'].signal_info['high'],
                                      three_bearish_candle_resp['signal'].signal_info['high'])
                     if self.market_params.get('CDL_DIR_N_daily', 0):
-                        key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [],
-                                      'spot_short_target_levels': [], 'spot_short_stop_loss_levels': [local_high]}
+                        key_levels = {'spot_high_target_levels': [], 'spot_high_stop_loss_levels': [local_high],
+                                      'spot_low_target_levels': [], 'spot_low_stop_loss_levels': []}
+                        print('DOWN_BREAK_TYPE_3_1MIN+++++++++++++++++++++++++++++++++++++++++++++++++++++++')
                         pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
                                      indicator='DOWN_BREAK_TYPE_3_1MIN',
                                      strength=1,
@@ -255,18 +256,18 @@ class CompoundSignalBuilder:
         try:
             #print('bearish_engulfing_high_put_volume ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
             ten_period_signals = self.get_n_period_signals(self.last_ts, 10)
-            EMA_1_10 = self.check_signal_present(ten_period_signals[0], ('TECHNICAL', 'EMA_1_10', "1min"))['value']
-            SMA_1_10 = self.check_signal_present(ten_period_signals[0], ('TECHNICAL', 'SMA_1_10', "1min"))['value']
-            one_bearish_candle_resp = self.check_signal_present(ten_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            EMA_1_10 = self.check_signal_present(ten_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'EMA_1_10', "1min"))['value']
+            SMA_1_10 = self.check_signal_present(ten_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'SMA_1_10', "1min"))['value']
+            one_bearish_candle_resp = self.check_signal_present(ten_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
             one_bearish_candle = one_bearish_candle_resp['found']
-            one_body_large = self.check_signal_present(ten_period_signals[0], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            one_body_large = self.check_signal_present(ten_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
 
-            one_high_put_volume_candle_type_1 = self.check_signal_present(ten_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_PUT_1', "1min"))['found']
+            one_high_put_volume_candle_type_1 = self.check_signal_present(ten_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_PUT_1', "1min"))['found']
             bearish_engulfing = False #CANDLE_1 CDLENGULFING_BUY
             local_high = None
             for idx in range(0, 9):
                 #print("idx====", idx)
-                bearish_engulfing_resp = self.check_signal_present(ten_period_signals[idx], ('CANDLE_PATTERN', 'CDLENGULFING_SELL', "1min"))
+                bearish_engulfing_resp = self.check_signal_present(ten_period_signals[idx], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDLENGULFING_SELL', "1min"))
                 bearish_engulfing = bearish_engulfing_resp['found']
                 if bearish_engulfing:
                     #print(bearish_engulfing_resp['signal'].signal_info['candle'])
@@ -279,8 +280,8 @@ class CompoundSignalBuilder:
             if self.not_none_eval(EMA_1_10, SMA_1_10):
                 if bearish_engulfing and one_high_put_volume_candle_type_1 and one_bearish_candle and one_body_large:
 
-                    key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [],
-                                  'spot_short_target_levels': [], 'spot_short_stop_loss_levels': [local_high]}
+                    key_levels = {'spot_high_target_levels': [], 'spot_low_stop_loss_levels': [],
+                                  'spot_low_target_levels': [], 'spot_high_stop_loss_levels': [local_high]}
                     pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
                                  indicator='BEARISH_ENGULFING_HIGH_PUT_VOLUME',
                                  strength=1,
@@ -307,33 +308,33 @@ class CompoundSignalBuilder:
     def build_up_break_type_1(self):
         try:
             three_period_signals = self.get_n_period_signals(self.last_ts, 3)
-            EMA_1_10 = self.check_signal_present(three_period_signals[0], ('TECHNICAL', 'EMA_1_10', "1min"))['value']
-            SMA_1_10 = self.check_signal_present(three_period_signals[0], ('TECHNICAL', 'SMA_1_10', "1min"))['value']
-            one_bullish_candle_resp = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
+            EMA_1_10 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'EMA_1_10', "1min"))['value']
+            SMA_1_10 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'TECHNICAL', 'SMA_1_10', "1min"))['value']
+            one_bullish_candle_resp = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
             one_bullish_candle = one_bullish_candle_resp['found']
-            one_big_candle = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            one_body_large = self.check_signal_present(three_period_signals[0], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            two_bearish_candle_resp = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
+            one_big_candle = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            one_body_large = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            two_bearish_candle_resp = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_N', "1min"))
             two_bearish_candle = two_bearish_candle_resp['found']
-            two_big_candle = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            two_body_large = self.check_signal_present(three_period_signals[1], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
-            three_bullish_candle_resp = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
+            two_big_candle = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            two_body_large = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            three_bullish_candle_resp = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_DIR_P', "1min"))
             three_bullish_candle = three_bullish_candle_resp['found']
-            three_big_candle = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
-            three_body_large = self.check_signal_present(three_period_signals[2], ('CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
+            three_big_candle = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_SZ_L', "1min"))['found']
+            three_body_large = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'CANDLE_PATTERN', 'CDL_BD_L', "1min"))['found']
 
-            one_high_volume_candle_type_4 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_4', "1min"))['found']
-            two_high_volume_candle_type_4 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_4', "1min"))['found']
-            three_high_volume_candle_type_4 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_4', "1min"))['found']
+            one_high_volume_candle_type_4 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_4', "1min"))['found']
+            two_high_volume_candle_type_4 = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_4', "1min"))['found']
+            three_high_volume_candle_type_4 = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_4', "1min"))['found']
 
-            one_high_volume_candle_type_5 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_5', "1min"))['found']
-            two_high_volume_candle_type_5 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_5', "1min"))['found']
-            three_high_volume_candle_type_5 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_5', "1min"))['found']
+            one_high_volume_candle_type_5 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_5', "1min"))['found']
+            two_high_volume_candle_type_5 = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_5', "1min"))['found']
+            three_high_volume_candle_type_5 = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_5', "1min"))['found']
 
 
-            one_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[0], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
-            two_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[1], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
-            three_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[2], ('OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
+            one_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[0], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
+            two_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[1], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
+            three_high_volume_candle_type_6 = self.check_signal_present(three_period_signals[2], (self.asset_book.spot_book.asset, 'OPTION_MARKET', 'HIGH_VOL_6', "1min"))['found']
             """
             print("one_bullish_candle==", one_bullish_candle)
             print("one_big_candle==", one_big_candle)
@@ -376,8 +377,8 @@ class CompoundSignalBuilder:
                                      two_bearish_candle_resp['signal'].signal_info['low'],
                                      three_bullish_candle_resp['signal'].signal_info['low'])
                     if self.market_params.get('CDL_BD_L_daily', 0):
-                        key_levels = {'spot_long_target_levels': [], 'spot_long_stop_loss_levels': [local_low],
-                                      'spot_short_target_levels': [], 'spot_short_stop_loss_levels': []}
+                        key_levels = {'spot_high_target_levels': [], 'spot_high_stop_loss_levels': [],
+                                      'spot_low_target_levels': [], 'spot_low_stop_loss_levels': [local_low]}
                         pat = Signal(asset=self.asset_book.spot_book.asset, category='COMPOUND', instrument=None,
                                      indicator='UP_BREAK_TYPE_3_1MIN',
                                      strength=1,

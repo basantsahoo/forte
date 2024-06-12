@@ -93,12 +93,13 @@ class Trade:
         spot_low_targets = self.trade_set.trade_manager.spot_low_targets
         self.durations = durations[min(trd_idx - 1, len(durations) - 1)] if durations else None
         self.carry_forward_days = carry_forward_days[min(trd_idx - 1, len(carry_forward_days) - 1)] if carry_forward_days else None
-        self.target = targets[min(trd_idx - 1, len(targets) - 1)] if targets else None
-        self.stop_loss = stop_losses[min(trd_idx - 1, len(stop_losses) - 1)] if stop_losses else None
-        self.spot_high_stop_loss = spot_high_stop_losses[min(trd_idx - 1, len(spot_high_stop_losses) - 1)] if spot_high_stop_losses else None
-        self.spot_low_stop_loss = spot_low_stop_losses[min(trd_idx - 1, len(spot_low_stop_losses) - 1)] if spot_low_stop_losses else None
-        self.spot_high_target = spot_high_targets[min(trd_idx - 1, len(spot_high_targets) - 1)] if spot_high_targets else None
-        self.spot_low_target = spot_low_targets[min(trd_idx - 1, len(spot_low_targets) - 1)] if spot_low_targets else None
+        self.target = abs(targets[min(trd_idx - 1, len(targets) - 1)]) if targets else None
+        self.stop_loss = -1 * abs(stop_losses[min(trd_idx - 1, len(stop_losses) - 1)]) if stop_losses else None
+        self.spot_high_stop_loss = abs(spot_high_stop_losses[min(trd_idx - 1, len(spot_high_stop_losses) - 1)]) if spot_high_stop_losses else float('inf')
+        self.spot_low_stop_loss = -1 * abs(spot_low_stop_losses[min(trd_idx - 1, len(spot_low_stop_losses) - 1)]) if spot_low_stop_losses else float('-inf')
+        self.spot_high_target = abs(spot_high_targets[min(trd_idx - 1, len(spot_high_targets) - 1)]) if spot_high_targets else float('inf')
+        self.spot_low_target = -1 * abs(spot_low_targets[min(trd_idx - 1, len(spot_low_targets) - 1)]) if spot_low_targets else float('-inf')
+
         self.leg_group_exits = {}
         for key, val in self.trade_set.trade_manager.leg_group_exits.items():
             if val:
@@ -114,6 +115,7 @@ class Trade:
             self.force_exit_time = self.trade_set.trade_manager.market_book.get_force_exit_ts(trade_set.trade_manager.trade_info.get('force_exit_ts', None))
         self.trade_duration = None
         self.spot_entry_price = None
+
 
     @classmethod
     def from_config(cls, trade_set, trd_idx):
@@ -149,6 +151,22 @@ class Trade:
             entry_orders['leg_groups'].append(orders)
         self.trigger_time = self.leg_groups[list(self.leg_groups.keys())[0]].trigger_time
         self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
+
+        spot_high_target_levels = self.trade_set.trade_manager.spot_high_target_levels
+        spot_high_stop_loss_levels = self.trade_set.trade_manager.spot_high_stop_loss_levels
+        spot_low_target_levels = self.trade_set.trade_manager.spot_low_target_levels
+        spot_low_stop_loss_levels = self.trade_set.trade_manager.spot_low_stop_loss_levels
+
+        spot_high_target_level = spot_high_target_levels[min(self.trd_idx - 1, len(spot_high_target_levels) - 1)] if spot_low_target_levels else float('inf')
+        spot_high_stop_loss_level = spot_high_stop_loss_levels[min(self.trd_idx - 1, len(spot_high_stop_loss_levels) - 1)] if spot_high_stop_loss_levels else float('inf')
+        spot_low_target_level = spot_low_target_levels[min(self.trd_idx - 1, len(spot_low_target_levels) - 1)] if spot_low_target_levels else float('-inf')
+        spot_low_stop_loss_level = spot_low_stop_loss_levels[min(self.trd_idx - 1, len(spot_low_stop_loss_levels) - 1)] if spot_low_stop_loss_levels else float('-inf')
+
+        self.spot_high_target = round(min(self.spot_high_target, spot_high_target_level/self.spot_entry_price-1), 4)
+        self.spot_high_stop_loss = round(min(self.spot_high_stop_loss, spot_high_stop_loss_level / self.spot_entry_price - 1), 4)
+        self.spot_low_target = round(min(self.spot_low_target, spot_low_target_level / self.spot_entry_price - 1), 4)
+        self.spot_low_stop_loss = round(min(self.spot_low_stop_loss, spot_low_stop_loss_level / self.spot_entry_price - 1), 4)
+
         return entry_orders
 
     def complete(self):

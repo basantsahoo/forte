@@ -63,7 +63,7 @@ class Signal:
         return self.indicator == "INDICATOR_TREND"
 
     def key(self):
-        return tuple([self.category, self.indicator, self.period])
+        return tuple([self.asset, self.category, self.indicator, self.period])
 
 
 """

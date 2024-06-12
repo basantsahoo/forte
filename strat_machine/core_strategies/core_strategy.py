@@ -267,8 +267,9 @@ class BaseStrategy:
     def register_signal(self, signal):
         self.entry_signal_pipeline.register_signal(signal)
         self.exit_signal_pipeline.register_signal(signal)
-        for trade_set in self.trade_manager.tradable_signals.values():
-            trade_set.register_signal(signal)
+        if signal.key() == tuple(self.register_signal_category):
+            for trade_set in self.trade_manager.tradable_signals.values():
+                trade_set.register_signal(signal)
 
     def evaluate_entry_signals(self):
         print('core strategy evaluate_entry_signals')
