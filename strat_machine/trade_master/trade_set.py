@@ -110,6 +110,7 @@ class Trade:
         if self.force_exit_time is None:
             self.force_exit_time = self.trade_set.trade_manager.market_book.get_force_exit_ts(trade_set.trade_manager.trade_info.get('force_exit_ts', None))
         self.trade_duration = None
+        self.spot_entry_price = None
 
     @classmethod
     def from_config(cls, trade_set, trd_idx):
@@ -131,6 +132,7 @@ class Trade:
 
     def other_init(self):
         self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
+        self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
 
     def get_entry_orders(self):
         entry_orders = {}
@@ -143,6 +145,7 @@ class Trade:
                 order['trade_seq'] = self.trd_idx
             entry_orders['leg_groups'].append(orders)
         self.trigger_time = self.leg_groups[list(self.leg_groups.keys())[0]].trigger_time
+        self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
         return entry_orders
 
     def complete(self):
@@ -179,6 +182,7 @@ class Trade:
 
     def monitor_existing_positions(self):
         self.close_on_trade_tg_sl_tm()
+        self.close_on_spot_tg_sl()
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_instr_tg_sl_tm()
@@ -196,8 +200,16 @@ class Trade:
         pnl_ratio = sum(pnl_list)/sum(capital_list)
         return sum(capital_list), sum(pnl_list), pnl_ratio
 
+    def calculate_delta(self):
+        trade_delta = []
+        for leg_group_id, leg_group in self.leg_groups.items():
+            delta = leg_group.delta
+            trade_delta.append(delta)
+        return sum(trade_delta)
+
     def close_on_trade_tg_sl_tm(self):
         capital, pnl, pnl_pct = self.calculate_pnl()
+        print('trade p&l==========', pnl_pct)
         asset = list(self.leg_groups.values())[0].asset
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
@@ -211,5 +223,19 @@ class Trade:
         elif self.stop_loss and pnl_pct < self.stop_loss:
             self.trigger_exit(exit_type='TRD_TS')
 
-
+    def close_on_spot_tg_sl(self):
+        asset = list(self.leg_groups.values())[0].asset
+        last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
+        delta = self.calculate_delta()
+        if delta > 0:
+            if self.spot_high_target and last_spot_candle['close'] >= self.spot_entry_price * (1 + self.spot_high_target):
+                self.trigger_exit(exit_type='TRD_ST')
+            elif self.spot_low_stop_loss and last_spot_candle['close'] < self.spot_entry_price * (1 + self.spot_low_stop_loss):
+                self.trigger_exit(exit_type='TRD_SS')
+        elif delta < 0:
+            if self.spot_low_target and last_spot_candle['close'] <= self.spot_entry_price * (1 + self.spot_low_target):
+                self.trigger_exit(exit_type='TRD_ST')
+                # print(last_candle, trigger_details['target'])
+            elif self.spot_high_stop_loss and last_spot_candle['close'] > self.spot_entry_price * (1 + self.spot_high_stop_loss):
+                self.trigger_exit(exit_type='TRD_SS')
 
