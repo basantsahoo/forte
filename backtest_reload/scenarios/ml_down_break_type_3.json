@@ -3,7 +3,7 @@
     {
       "id":"DOWN_BREAK_TYPE_3_1MIN",
       "class":"OptionBuy",
-      "max_signal": 3,
+      "max_signal": 5,
       "register_signal_category": ["NIFTY","COMPOUND", "DOWN_BREAK_TYPE_3_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "weekdays_allowed": ["Monday", "Tuesday", "Wednesday"],
@@ -63,7 +63,7 @@
               "q_type": "fixed",
               "size": 1,
               "unique_only": true,
-              "validity_period": 2
+              "validity_period": 5
             },
             "signal_type": ["NIFTY", "COMPOUND", "DOWN_BREAK_TYPE_3_1MIN", "1min"],
             "trade_eval": [],
