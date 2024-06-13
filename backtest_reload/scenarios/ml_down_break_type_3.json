@@ -63,7 +63,7 @@
               "q_type": "fixed",
               "size": 1,
               "unique_only": true,
-              "validity_period": 1
+              "validity_period": 2
             },
             "signal_type": ["NIFTY", "COMPOUND", "DOWN_BREAK_TYPE_3_1MIN", "1min"],
             "trade_eval": [],
@@ -98,7 +98,7 @@
   "run_params": {
     "test_days": [],
     "for_past_days": 1,
-    "to_date": "2024-03-20",
+    "to_date": "2023-09-27",
     "candle_sw": 0,
     "week_days": [],
     "record_metric": true,
