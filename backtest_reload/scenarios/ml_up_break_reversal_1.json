@@ -1,0 +1,293 @@
+{
+  "strategies":[
+    {
+      "id":"UP_BREAK_REVERSAL_1",
+      "class":"OptionBuy",
+      "max_signal": 10,
+      "register_signal_category": ["NIFTY","COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
+      "trade_cut_off_time": 25,
+      "trade_manager_info": {
+        "asset": "NIFTY",
+        "durations":[
+          [45],
+          [45],
+          [45],
+          [45]
+        ],
+        "exit_at":null,
+        "carry_forward_days":[],
+        "triggers_per_signal": 4,
+        "trade_targets":[],
+        "trade_stop_losses":[],
+        "spot_high_stop_losses":[],
+        "spot_low_stop_losses":[],
+        "spot_high_targets":[],
+        "spot_low_targets":[],
+        "leg_group_exits": {
+          "targets":[{"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.1}],
+          "stop_losses":[{"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}],
+          "spot_high_stop_losses":[],
+          "spot_low_stop_losses":[],
+          "spot_high_targets":[],
+          "spot_low_targets":[]
+        },
+        "trade_info": {
+          "force_exit_ts": null,
+          "leg_groups": [
+            {
+              "lg_id": "gp_a",
+              "asset": "NIFTY",
+              "force_exit_ts": null,
+              "legs" : {
+                "A": {
+                  "instr_to_trade": {
+                    "money_ness": "ITM",
+                    "level": 1,
+                    "kind": "PE",
+                    "expiry": "near"
+                  },
+                  "order_type": "BUY",
+                  "quantity": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 2
+            },
+            "signal_type": ["NIFTY", "COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": "always",
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+      ],
+      "exit_criteria_list": [
+      ],
+      "trade_controllers": [
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+        {"op": "or", "logical_test": "price_location < 30" }
+      ],
+      "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
+    },
+    {
+      "id":"UP_BREAK_REVERSAL_2",
+      "class":"OptionBuy",
+      "max_signal": 10,
+      "register_signal_category": ["NIFTY","COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
+      "trade_cut_off_time": 25,
+      "trade_manager_info": {
+        "asset": "NIFTY",
+        "durations":[
+          [45],
+          [45],
+          [45],
+          [45]
+        ],
+        "exit_at":null,
+        "carry_forward_days":[],
+        "triggers_per_signal": 4,
+        "trade_targets":[],
+        "trade_stop_losses":[],
+        "spot_high_stop_losses":[],
+        "spot_low_stop_losses":[],
+        "spot_high_targets":[],
+        "spot_low_targets":[],
+        "leg_group_exits": {
+          "targets":[{"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.1}],
+          "stop_losses":[{"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}],
+          "spot_high_stop_losses":[],
+          "spot_low_stop_losses":[],
+          "spot_high_targets":[],
+          "spot_low_targets":[]
+        },
+        "trade_info": {
+          "force_exit_ts": null,
+          "leg_groups": [
+            {
+              "lg_id": "gp_a",
+              "asset": "NIFTY",
+              "force_exit_ts": null,
+              "legs" : {
+                "A": {
+                  "instr_to_trade": {
+                    "money_ness": "ITM",
+                    "level": 1,
+                    "kind": "PE",
+                    "expiry": "near"
+                  },
+                  "order_type": "BUY",
+                  "quantity": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 2
+            },
+            "signal_type": ["NIFTY", "COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": "always",
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+      ],
+      "exit_criteria_list": [
+      ],
+      "trade_controllers": [
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+        {"op": "or", "logical_test": "price_location < 30" }
+      ],
+      "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
+    },
+    {
+      "id":"UP_BREAK_REVERSAL_3",
+      "class":"OptionBuy",
+      "max_signal": 10,
+      "register_signal_category": ["NIFTY","COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
+      "trade_cut_off_time": 25,
+      "trade_manager_info": {
+        "asset": "NIFTY",
+        "durations":[
+          [45],
+          [45],
+          [45],
+          [45]
+        ],
+        "exit_at":null,
+        "carry_forward_days":[],
+        "triggers_per_signal": 4,
+        "trade_targets":[],
+        "trade_stop_losses":[],
+        "spot_high_stop_losses":[],
+        "spot_low_stop_losses":[],
+        "spot_high_targets":[],
+        "spot_low_targets":[],
+        "leg_group_exits": {
+          "targets":[{"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.1}],
+          "stop_losses":[{"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}],
+          "spot_high_stop_losses":[],
+          "spot_low_stop_losses":[],
+          "spot_high_targets":[],
+          "spot_low_targets":[]
+        },
+        "trade_info": {
+          "force_exit_ts": null,
+          "leg_groups": [
+            {
+              "lg_id": "gp_a",
+              "asset": "NIFTY",
+              "force_exit_ts": null,
+              "legs" : {
+                "A": {
+                  "instr_to_trade": {
+                    "money_ness": "ITM",
+                    "level": 1,
+                    "kind": "PE",
+                    "expiry": "near"
+                  },
+                  "order_type": "BUY",
+                  "quantity": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 2
+            },
+            "signal_type": ["NIFTY", "COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": "always",
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+      ],
+      "exit_criteria_list": [
+      ],
+      "trade_controllers": [
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+        {"op": "or", "logical_test": "price_location < 30" }
+      ],
+      "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
+    }
+  ],
+  "run_params": {
+    "test_days": [],
+    "for_past_days": 180,
+    "to_date": "2024-04-10",
+    "candle_sw": 0,
+    "week_days": [],
+    "record_metric": true,
+    "insight_log": false,
+    "send_to_oms": false
+  }
+}

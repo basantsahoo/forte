@@ -1,0 +1,21 @@
+from strat_machine.strategies.aggregators import CandleAggregator, PatternAggregator
+#from research.strategies.double_top_break_strategy import DoubleTopBreakStrategy
+#from research.strategies.state_cap_strategy import StateCapStrategy
+#from research.strategies.opening_trend_bearish import OpeningBearishTrendStrategy
+from strat_machine.strategies.cheap_option_buy import CheapOptionBuy
+from strat_machine.strategies.option_sell import OptionSellStrategy
+from strat_machine.strategies.double_top_strategy import DoubleTopStrategy
+from strat_machine.strategies.multi_pattern_q_strategy import MultiPatternQueueStrategy
+from strat_machine.strategies.dt_buy_put_strategy import DTBuyPut
+from strat_machine.technical_strategies.price_below_ema import PriceBreakEMADownward
+from strat_machine.technical_strategies.price_reverse_ema_down import PriceReverseBreakDownEMA
+from strat_machine.core_strategies.dummy_strategy import DummyStrategy
+from strat_machine.weekly_strategies.weekly_sell import WeeklySell
+
+
+
+from strat_machine.option_strategies.high_call_volume_buy import HighCallVolumeBuy
+from strat_machine.option_strategies.high_put_volume_buy import HighPutVolumeBuy
+from strat_machine.option_strategies.option_sell import OptionSell
+from strat_machine.option_strategies.option_buy import OptionBuy
+from strat_machine.core_strategies.core_strategy import BaseStrategy

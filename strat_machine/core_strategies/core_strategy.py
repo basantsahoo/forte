@@ -125,8 +125,9 @@ class BaseStrategy:
 
     def initiate_signal_trades(self):
         print('strategy initiate_signal_trades+++++++++++++++++')
-        curr_trade_set_id = self.trade_manager.initiate_signal_trades()
-        self.trade_manager.trigger_entry(curr_trade_set_id)
+        if self.execute_trades:
+            curr_trade_set_id = self.trade_manager.initiate_signal_trades()
+            self.trade_manager.trigger_entry(curr_trade_set_id)
         self.entry_signal_pipeline.flush_queues()
         self.process_post_entry()
 
@@ -205,7 +206,6 @@ class BaseStrategy:
 
     def register_instrument(self, signal):
         print('register_instrument++++++++++++++++++++++++++++++++++++++')
-        self.execute_trades = True
         self.trade_manager.register_signal(signal)
 
     def process_post_entry(self):

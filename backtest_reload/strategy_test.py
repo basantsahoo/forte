@@ -18,7 +18,7 @@ from arc.strategy_manager import StrategyManager
 from entities.trading_day import TradeDateTime
 from dynamics.option_market.data_loader import MultiDayOptionDataLoader
 from dynamics.option_market.exclude_trade_days import exclude_trade_days
-from backtest_2024.bt_strategies import *
+from backtest_reload.bt_strategies import *
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 
