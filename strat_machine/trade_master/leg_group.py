@@ -161,35 +161,3 @@ class LegGroup:
                 # print(last_candle, trigger_details['target'])
             elif self.spot_high_stop_loss and last_spot_candle['close'] > self.spot_entry_price * (1 + self.spot_high_stop_loss):
                 self.trigger_exit(exit_type='SS')
-
-    def calculate_target(self, instr, target_level_list):
-
-        levels = []
-        last_candle = self.strategy.get_last_tick(instr)
-        close_point = last_candle['close']
-
-        for target_level in target_level_list:
-
-            if isinstance(target_level, (int, float)):
-                target = close_point * (1 + target_level)
-                levels.append(target)
-            else:
-                #print('calculate_target+++++++++++++++++++++++++', target_level)
-                #print(target_level[0])
-                mapped_fn = target_level['mapped_fn']
-                kwargs = target_level.get('kwargs', {})
-                rs = 0
-                if target_level['category'] == 'signal_queue':
-                    #queue = self.strategy.entry_signal_pipeline.get_que_by_category(target_level['mapped_object'])#self.entry_signal_queues[target_level['mapped_object']]
-                    queue = self.strategy.entry_signal_pipeline.get_neuron_by_id(target_level['mapped_object'])
-                    # print('queue.'+ mapped_fn + "()")
-                    rs = eval('queue.' + mapped_fn)(**kwargs)
-                    print('inside target fn +++++++++', rs)
-                elif target_level['category'] == 'global':
-                    obj = target_level['mapped_object']
-                    fn_string = 'self.' + (obj + '.' if obj else '') + mapped_fn  # + '()'
-                    # print(fn_string)
-                    rs = eval(fn_string)(**kwargs)
-                if rs:
-                    levels.append(rs)
-        return levels

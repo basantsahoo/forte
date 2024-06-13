@@ -46,10 +46,10 @@ class Instrument:
     @classmethod
     def from_config(cls, market_book, config):
         asset = config['asset']
-        money_ness = config['money_ness']
-        level = config['level']
         kind = config['kind']
-        expiry = config['expiry']
+        expiry = config.get('expiry', '')
+        money_ness = config.get('money_ness', '')
+        level = config.get('level', 0)
         if kind.upper() != 'SPOT':
             asset_book = market_book.get_asset_book(asset)
             last_tick = asset_book.get_last_tick('SPOT')
@@ -72,10 +72,10 @@ class Instrument:
         print('instrument from store config')
         asset = config['asset']
         kind = config['kind']
-        expiry = config['expiry']
-        strike = config['strike']
-        money_ness = config['money_ness']
-        level = config['level']
+        expiry = config.get('expiry', '')
+        strike = config.get('strike', 0)
+        money_ness = config.get('money_ness', '')
+        level = config.get('level', 0)
         return cls(market_book, asset, kind, strike, expiry, money_ness, level)
 
     def get_last_tick(self):

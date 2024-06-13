@@ -103,7 +103,7 @@ class BaseStrategy:
                 self.trade_manager.tradable_signals[sig_key] = TradeSet.from_store(self.trade_manager, sig_key, trade_set_info)
                 for trade in self.trade_manager.tradable_signals[sig_key].trades.values():
                     self.params_repo[(sig_key, trade.trd_idx)] = params_repo[(sig_key, trade.trd_idx)]
-                    #trade.set_controllers()
+                    trade.set_controllers()
         #self.strategy_cache.delete(self.id)
         #self.strategy_cache.delete('params_repo_' + self.id)
 
@@ -208,6 +208,7 @@ class BaseStrategy:
         print('register_instrument++++++++++++++++++++++++++++++++++++++')
         self.trade_manager.register_signal(signal)
 
+
     def process_post_entry(self):
         self.execute_trades = False
         self.trade_manager.process_post_entry()
@@ -227,9 +228,9 @@ class BaseStrategy:
     def register_signal(self, signal):
         self.entry_signal_pipeline.register_signal(signal)
         self.exit_signal_pipeline.register_signal(signal)
-        if signal.key() == tuple(self.register_signal_category):
-            for trade_set in self.trade_manager.tradable_signals.values():
-                trade_set.register_signal(signal)
+        # This is for trade controllers
+        for trade_set in self.trade_manager.tradable_signals.values():
+            trade_set.register_signal(signal)
 
     def evaluate_entry_signals(self):
         print('core strategy evaluate_entry_signals')

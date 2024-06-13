@@ -118,6 +118,7 @@ class TradeManager:
         return instr
 
     def register_signal(self, signal):
+        print('trade manager register_signal+++++++++++++++++++++++++++++++++')
         if signal.key() == tuple(self.strategy.register_signal_category):
             self.strategy.execute_trades = True
             if signal.key_levels:
@@ -127,6 +128,7 @@ class TradeManager:
                     setattr(self, key, val)
                     print(getattr(self, key))
                 #print('spot_stop_loss_levels+++++++++', self.spot_short_stop_loss_levels)
+
 
     def process_post_entry(self):
         restore_variables_cp = self.restore_variables.copy()
