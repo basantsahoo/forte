@@ -158,9 +158,9 @@
     }
   ],
   "run_params": {
-    "test_days": ["2024-04-10"],
+    "test_days": [],
     "for_past_days": 90,
-    "to_date": "2023-12-14",
+    "to_date": "2022-12-14",
     "candle_sw" : 0,
     "week_days": [],
     "record_metric": true,
