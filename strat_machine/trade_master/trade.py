@@ -20,7 +20,7 @@ class Trade:
         spot_high_targets = self.trade_set.trade_manager.spot_high_targets
         spot_low_targets = self.trade_set.trade_manager.spot_low_targets
         self.durations = durations[min(trd_idx - 1, len(durations) - 1)] if durations else None
-        self.carry_forward_days = carry_forward_days[min(trd_idx - 1, len(carry_forward_days) - 1)] if carry_forward_days else float('inf')
+        self.carry_forward_days = carry_forward_days[min(trd_idx - 1, len(carry_forward_days) - 1)] if carry_forward_days else 0
         self.target = abs(targets[min(trd_idx - 1, len(targets) - 1)]) if targets else None
         self.stop_loss = -1 * abs(stop_losses[min(trd_idx - 1, len(stop_losses) - 1)]) if stop_losses else float('-inf')
         self.spot_high_stop_loss = abs(self.calculate_target(spot_high_stop_losses[min(trd_idx - 1, len(spot_high_stop_losses) - 1)], float('inf'))) if spot_high_stop_losses else float('inf')
@@ -219,7 +219,7 @@ class Trade:
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_instr_tg_sl_tm()
-        for leg_group_id, leg_group in self.leg_groups.items():
+        #for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_spot_tg_sl()
         for leg_group_id, leg_group in self.leg_groups.copy().items():
@@ -246,8 +246,8 @@ class Trade:
 
     def close_on_trade_tg_sl_tm(self):
         capital, pnl, pnl_pct = self.calculate_pnl()
-        print('trade p&l==========', capital, pnl, pnl_pct)
-        print('self.stop_loss=====', self.stop_loss)
+        #print('trade p&l==========', capital, pnl, pnl_pct)
+        #print('self.stop_loss=====', self.stop_loss)
         asset = list(self.leg_groups.values())[0].asset
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
@@ -271,7 +271,7 @@ class Trade:
         asset = list(self.leg_groups.values())[0].asset
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         delta = self.calculate_delta()
-        print('self.spot_stop_loss_rolling=====', self.spot_stop_loss_rolling)
+        #print('self.spot_stop_loss_rolling=====', self.spot_stop_loss_rolling)
         if delta > 0:
             if self.spot_high_target and last_spot_candle['close'] >= self.spot_entry_price * (1 + self.spot_high_target):
                 self.trigger_exit(exit_type='TRD_ST')

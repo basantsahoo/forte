@@ -92,7 +92,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 20" }
+        {"op": "or", "logical_test": "price_location > -2" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     },
@@ -188,7 +188,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 20" }
+        {"op": "or", "logical_test": "price_location > -2" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     },
@@ -282,7 +282,7 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location < 20" }
+        {"op": "or", "logical_test": "price_location > -2" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }

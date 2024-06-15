@@ -3,8 +3,8 @@ from helper.utils import get_broker_order_type, get_exit_order_type
 
 class LegGroup:
     def __init__(self, trade, lg_id, lg_index, leg_group_info):
-        print('lg_index =====', lg_index)
-        print('leg_group_info =====', leg_group_info)
+        #print('lg_index =====', lg_index)
+        #print('leg_group_info =====', leg_group_info)
         self.lg_class = leg_group_info['lg_class']
         self.lg_index = lg_index
         self.lg_id = lg_id

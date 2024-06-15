@@ -26,17 +26,17 @@ class StrategyManager:
             strategy.set_up()
 
     def get_deployed_strategy_from_id(self, strat_id):
-        print('get_deployed_strategy_from_id++++++++++++++++++', strat_id)
+        #print('get_deployed_strategy_from_id++++++++++++++++++', strat_id)
         strategy_signal_generator = None
         for strategy in self.strategies.values():
-            print(strategy.id)
+            #print(strategy.id)
             if strategy.is_aggregator:
                 strategy_signal_generator = strategy.get_signal_generator_from_id(strat_id)
             elif strategy.id == strat_id:
                     strategy_signal_generator = strategy
             if strategy_signal_generator is not None:
                 break
-            print(strategy_signal_generator)
+            #print(strategy_signal_generator)
         return strategy_signal_generator
     """
     def get_strategies_by_symbol(self, symbol):
