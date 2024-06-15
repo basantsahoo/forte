@@ -43,6 +43,7 @@ class Trade:
         self.force_exit_time = trade_set.trade_manager.trade_info.get('force_exit_time', None)
         if self.force_exit_time is None:
             self.force_exit_time = self.trade_set.trade_manager.market_book.get_force_exit_ts(trade_set.trade_manager.trade_info.get('force_exit_ts', None))
+        print('trade force_exit_time======', self.force_exit_time)
         self.trade_duration = None
         self.spot_entry_price = None
 
@@ -87,7 +88,7 @@ class Trade:
     def other_init(self):
         self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
         self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
-
+        print('trade  other_init duration===', self.trade_duration)
     def set_controllers(self):
         if self.trade_set.trade_manager.strategy.trade_controllers:
             total_controllers = len(self.trade_set.trade_manager.strategy.trade_controllers)
@@ -160,7 +161,7 @@ class Trade:
         self.finish_trade_setup_after_entry_order()
 
 
-    def get_entry_orders(self):
+    def get_entry_orders_ooooooo(self):
         entry_orders = {}
         entry_orders['trade_seq'] = self.trd_idx
         entry_orders['leg_groups'] = []
@@ -275,6 +276,10 @@ class Trade:
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
             self.trigger_time + self.trade_duration * 60, self.force_exit_time + 60)
+        print("trade trade_duration =", self.trade_duration)
+        print("trade self.trigger_time + self.trade_duration * 60 =", self.trigger_time + self.trade_duration*60)
+        print("trade self.force_exit_time + 60 =", self.force_exit_time + 60)
+        print("trade max_run_time =", max_run_time)
         if last_spot_candle['timestamp'] >= max_run_time:
             self.trigger_exit(exit_type='TRD_TC')
         elif self.force_exit_time and last_spot_candle['timestamp'] >= self.force_exit_time:

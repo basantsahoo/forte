@@ -33,9 +33,14 @@ class LegGroup:
         self.delta = leg_group_info.get('delta', 0)  # >0 means we are long <0 means we are sort
         self.market_view = leg_group_info.get('market_view', None)
         self.duration = leg_group_info.get('duration', None)
+        print('LegGroup duration===', self.duration)
         if self.duration is None:
-            self.duration = min(self.trade.durations[lg_index], self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 2) if not self.carry_forward_days else self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 15 + 1440 * self.carry_forward_days
+            self.duration = min(self.trade.durations[lg_index], self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 2) if not self.carry_forward_days else self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days
 
+
+        print('self.trade.durations[lg_index]===', self.trade.durations[lg_index])
+        print('self.carry_forward_days===', self.carry_forward_days)
+        print('self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days===', self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days)
 
     @classmethod
     def from_config(cls, trade, lg_id, lg_index, leg_group_info):
@@ -138,6 +143,7 @@ class LegGroup:
     def close_on_instr_tg_sl_tm(self):
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
         max_run_time = self.trigger_time + self.duration * 60 if self.force_exit_time is None else min(self.trigger_time + self.duration * 60, self.force_exit_time + 60)
+        print("leggroup max_run_time =", max_run_time)
         capital, pnl, pnl_pct = self.calculate_pnl()
         if last_spot_candle['timestamp'] >= max_run_time:
             self.trigger_exit(exit_type='TC')
