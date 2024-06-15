@@ -314,6 +314,7 @@ class Trade:
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_instr_tg_sl_tm()
+        for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_spot_tg_sl()
         for leg_group_id, leg_group in self.leg_groups.copy().items():
@@ -340,7 +341,7 @@ class Trade:
 
     def close_on_trade_tg_sl_tm(self):
         capital, pnl, pnl_pct = self.calculate_pnl()
-        print('trade p&l==========', pnl_pct)
+        #print('trade p&l==========', pnl_pct)
         asset = list(self.leg_groups.values())[0].asset
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(

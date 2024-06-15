@@ -154,10 +154,12 @@ class LegGroup:
             elif self.spot_low_stop_loss and last_spot_candle['close'] < self.spot_entry_price * (1 + self.spot_low_stop_loss):
                 self.trigger_exit(exit_type='SS')
         elif self.delta < 0:
+            """
             print('in here +++++++++++++++')
             print('last_spot_candle[close] +++++++++++++++', last_spot_candle['close'])
             print('spot_low_target[close] +++++++++++++++', self.spot_entry_price * (1 + self.spot_low_target))
             print('spot_low_target', self.spot_low_target)
+            """
             if self.spot_low_target and last_spot_candle['close'] <= self.spot_entry_price * (1 + self.spot_low_target):
                 self.trigger_exit(exit_type='ST')
                 # print(last_candle, trigger_details['target'])

@@ -233,11 +233,11 @@ class BaseStrategy:
             trade_set.register_signal(signal)
 
     def evaluate_entry_signals(self):
-        print('core strategy evaluate_entry_signals')
+        #print('core strategy evaluate_entry_signals')
         return self.entry_signal_pipeline.evaluate_entry_signals()
 
     def look_for_trade(self):
-        print('time to close========', self.asset_book.market_book.get_time_to_close())
+        #print('time to close========', self.asset_book.market_book.get_time_to_close())
         #print('trade_cut_off_time========', self.trade_cut_off_time)
         #print('self.valid_tpo()========', self.valid_tpo())
         #print('signal_present========', self.entry_signal_pipeline.all_entry_signal())
@@ -268,13 +268,13 @@ class BaseStrategy:
 
     @while_active
     def on_minute_data_pre(self):
-        print('on_minute_data_pre+++++++++++++++++++++++++')
+        #print('on_minute_data_pre+++++++++++++++++++++++++')
         self.on_tick_data()
         self.check_neuron_validity()
 
     @while_active
     def on_minute_data_post(self):
-        print('on_minute_data_post+++++++++++++++++++++++++')
+        #print('on_minute_data_post+++++++++++++++++++++++++')
         self.look_for_trade()
 
     @while_active
@@ -283,7 +283,7 @@ class BaseStrategy:
 
     def monitor_existing_positions(self):
         exit_criteria_met = self.evaluate_exit_signals()
-        print('close_on_exit_signal++++++++++++++++++++', exit_criteria_met)
+        #print('close_on_exit_signal++++++++++++++++++++', exit_criteria_met)
         if exit_criteria_met:
             self.trade_manager.close_on_exit_signal()
         self.trade_manager.monitor_existing_positions()
@@ -296,7 +296,7 @@ class BaseStrategy:
             #print(market_params)
             d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure',0)
             price_location =  market_params.get('price_location', 50)
-            print('price_location+++++++++++++++++++', price_location)
+            #print('price_location+++++++++++++++++++', price_location)
             five_min_trend = market_params.get('five_min_trend', 0)
             exp_b = market_params.get('exp_b', 0)
             d2_cd_new_business_pressure = market_params.get('d2_cd_new_business_pressure',0)

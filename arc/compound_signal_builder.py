@@ -272,9 +272,11 @@ class CompoundSignalBuilder:
                 if bearish_engulfing:
                     #print(bearish_engulfing_resp['signal'].signal_info['candle'])
                     local_high = bearish_engulfing_resp['signal'].signal_info['high']
+                    """
                     print('one_bearish_candle found+++++', one_bearish_candle)
                     print('one_body_large found+++++', one_body_large)
                     print('one_high_put_volume_candle_type_1 found+++++', one_high_put_volume_candle_type_1)
+                    """
                     break
             last_tick = self.asset_book.spot_book.spot_processor.last_tick
             if self.not_none_eval(EMA_1_10, SMA_1_10):

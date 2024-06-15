@@ -28,20 +28,20 @@ class DownController:
         self.check_activation()
 
     def check_activation(self):
-        print('check_activation===', self.signals[-1])
+        #print('check_activation===', self.signals[-1])
         ltp = self.signals[-1]['close']
         factor = -1 if self.delta < 0 else 1
         pnl = factor * (ltp - self.entry_price)
-        print('pnl=====', pnl)
+        #print('pnl=====', pnl)
         #print('pnl of controller', self.id,  '+++++++', pnl, self.roll_factor * self.entry_price, self.entry_price)
         if pnl > self.roll_factor * self.pnl_multiplier * self.entry_price:
-            print('rolling controller ++++++', self.id)
+            #print('rolling controller ++++++', self.id)
             self.forward_activation()
 
     def forward_activation(self):
         next_high = self.spot_stop_loss_rolling - self.roll_factor * self.entry_price #self.get_next_high()
         next_entry = self.entry_price - self.roll_factor * self.entry_price  # self.get_next_high()
-        print('Controller id==',  repr(self.id), "ROLL  LOG", "Controller class==", self.__class__.__name__, "prev sl==", self.spot_stop_loss_rolling, 'current sl ==', next_high)
+        #print('Controller id==',  repr(self.id), "ROLL  LOG", "Controller class==", self.__class__.__name__, "prev sl==", self.spot_stop_loss_rolling, 'current sl ==', next_high)
         self.spot_stop_loss_rolling = next_high/self.entry_price-1
         self.entry_price = next_entry
         info = {'code': self.code, 'n_id': self.id, 'target_trade': self.trd_idx, 'new_threshold':next_high}

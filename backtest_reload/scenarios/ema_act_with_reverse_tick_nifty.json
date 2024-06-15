@@ -76,7 +76,7 @@
             "register_instr": false,
             "update_watcher_info": {},
             "reset_watcher_info": {},
-            "neuron_log": true
+            "neuron_log": false
           },
           "apply_pre_filter": false
         },
@@ -108,7 +108,7 @@
               "watcher_log": false
             },
             "reset_watcher_info": {},
-            "neuron_log": true
+            "neuron_log": false
           },
           "apply_pre_filter": false
         },
@@ -134,7 +134,7 @@
             "register_instr": true,
             "reset_watcher_info": {},
             "update_watcher_info": {},
-            "neuron_log": true
+            "neuron_log": false
           },
           "apply_pre_filter": false
         }
