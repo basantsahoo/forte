@@ -2,22 +2,24 @@ from strat_machine.trade_master.leg import Leg
 from helper.utils import get_broker_order_type, get_exit_order_type
 
 class LegGroup:
-    def __init__(self, trade, lg_index, leg_group_info):
-        print(leg_group_info)
-        self.lg_id = leg_group_info['lg_id']
+    def __init__(self, trade, lg_id, lg_index, leg_group_info):
+        print('lg_index =====', lg_index)
+        self.lg_class = leg_group_info['lg_class']
         self.lg_index = lg_index
+        self.lg_id = lg_id
+        self.prior_lg_id = None
         self.asset = leg_group_info['asset']
         self.trade = trade
         self.completed = False
         #self.leg_group_info = leg_group_info
-        self.target = abs(self.trade.leg_group_exits['targets'][self.lg_id])
-        self.stop_loss = -1 * abs(self.trade.leg_group_exits['stop_losses'][self.lg_id])
-        self.spot_high_stop_loss = abs(self.trade.leg_group_exits['spot_high_stop_losses'][self.lg_id]) if self.trade.leg_group_exits['spot_high_stop_losses'] else float('inf')
-        self.spot_low_stop_loss = -1 * abs(self.trade.leg_group_exits['spot_low_stop_losses'][self.lg_id]) if self.trade.leg_group_exits['spot_low_stop_losses'] else float('-inf')
-        self.spot_high_target = abs(self.trade.leg_group_exits['spot_high_targets'][self.lg_id]) if self.trade.leg_group_exits['spot_high_targets'] else float('inf')
-        self.spot_low_target = -1 * abs(self.trade.leg_group_exits['spot_low_targets'][self.lg_id]) if self.trade.leg_group_exits['spot_low_targets'] else float('-inf')
-        self.spot_slide_up = abs(self.trade.leg_group_exits['spot_slide_ups'][self.lg_id]) if self.trade.leg_group_exits['spot_slide_ups'] else float('inf')
-        self.spot_slide_down = -1 * abs(self.trade.leg_group_exits['spot_slide_downs'][self.lg_id]) if self.trade.leg_group_exits['spot_slide_downs'] else float('-inf')
+        self.target = abs(self.trade.leg_group_exits['targets'][self.lg_class])
+        self.stop_loss = -1 * abs(self.trade.leg_group_exits['stop_losses'][self.lg_class])
+        self.spot_high_stop_loss = abs(self.trade.leg_group_exits['spot_high_stop_losses'][self.lg_class]) if self.trade.leg_group_exits['spot_high_stop_losses'] else float('inf')
+        self.spot_low_stop_loss = -1 * abs(self.trade.leg_group_exits['spot_low_stop_losses'][self.lg_class]) if self.trade.leg_group_exits['spot_low_stop_losses'] else float('-inf')
+        self.spot_high_target = abs(self.trade.leg_group_exits['spot_high_targets'][self.lg_class]) if self.trade.leg_group_exits['spot_high_targets'] else float('inf')
+        self.spot_low_target = -1 * abs(self.trade.leg_group_exits['spot_low_targets'][self.lg_class]) if self.trade.leg_group_exits['spot_low_targets'] else float('-inf')
+        self.spot_slide_up = abs(self.trade.leg_group_exits['spot_slide_ups'][self.lg_class]) if self.trade.leg_group_exits['spot_slide_ups'] else float('inf')
+        self.spot_slide_down = -1 * abs(self.trade.leg_group_exits['spot_slide_downs'][self.lg_class]) if self.trade.leg_group_exits['spot_slide_downs'] else float('-inf')
         self.carry_forward_days = self.trade.carry_forward_days
         self.legs = {}
         self.trigger_time = leg_group_info.get('trigger_time', None)
@@ -32,12 +34,12 @@ class LegGroup:
         self.market_view = leg_group_info.get('market_view', None)
         self.duration = leg_group_info.get('duration', None)
         if self.duration is None:
-            self.duration = min(self.trade.durations[lg_index - 1], self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 2) if not self.carry_forward_days else self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 15 + 1440 * self.carry_forward_days
+            self.duration = min(self.trade.durations[lg_index], self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 2) if not self.carry_forward_days else self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 15 + 1440 * self.carry_forward_days
 
 
     @classmethod
-    def from_config(cls, trade, lg_index, leg_group_info):
-        obj = cls(trade, lg_index, leg_group_info)
+    def from_config(cls, trade, lg_id, lg_index, leg_group_info):
+        obj = cls(trade, lg_id, lg_index, leg_group_info)
         for leg_id, leg_info in leg_group_info["legs"].items():
             obj.legs[leg_id] = Leg.from_config(obj, leg_id, leg_info)
         if obj.trigger_time is None:
@@ -97,14 +99,14 @@ class LegGroup:
 
     def to_dict(self):
         dct = {}
-        for field in ['lg_index', 'lg_id', 'asset', 'trigger_time', 'duration', 'delta', 'exit_time', 'spot_entry_price', 'spot_exit_price', 'force_exit_time']:
+        for field in ['lg_index', 'lg_id', 'prior_lg_id', 'lg_class', 'asset', 'trigger_time', 'duration', 'delta', 'exit_time', 'spot_entry_price', 'spot_exit_price', 'force_exit_time']:
             dct[field] = getattr(self, field)
         dct['legs'] = {k:v.to_dict() for k,v in self.legs.items()}
         return dct
 
     def to_partial_dict(self):
         dct = {}
-        for field in ['lg_id', 'duration', 'delta']:
+        for field in ['lg_id', 'prior_lg_id', 'lg_class', 'duration', 'delta']:
             dct[field] = getattr(self, field)
         for field in ['exit_time']:
             dct['lg_' + field] = getattr(self, field)
@@ -174,7 +176,7 @@ class LegGroup:
             self.trigger_exit(exit_type='SLDUP')
             self.trade.slide_leg_group(self.lg_id, self.lg_index)
         elif last_spot_candle['close'] <= self.spot_entry_price + self.spot_slide_down:
-            print('here 2 ++++++++++++++++++++++++++++')
+            print('spot slide to lower end')
             self.trigger_exit(exit_type='SLDDOWN')
             print('trigger exit complete +++++++++')
             self.trade.slide_leg_group(self.lg_id, self.lg_index)

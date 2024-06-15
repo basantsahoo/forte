@@ -29,14 +29,14 @@
           "spot_low_stop_losses":[],
           "spot_high_targets":[],
           "spot_low_targets":[],
-          "spot_slide_ups":[],
-          "spot_slide_downs":[]
+          "spot_slide_ups":[{"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}],
+          "spot_slide_downs":[{"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}]
         },
         "trade_info": {
           "force_exit_ts": null,
           "leg_groups": [
             {
-              "lg_id": "gp_a",
+              "lg_class": "gp_a",
               "asset": "NIFTY",
               "force_exit_ts": null,
               "legs" : {
