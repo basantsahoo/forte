@@ -96,8 +96,8 @@ class BaseStrategy:
 
         params_repo = self.strategy_cache.get('params_repo_' + self.id, {})
         self.trade_manager.from_store(carry_trades, params_repo)
-        #self.strategy_cache.delete(self.id)
-        #self.strategy_cache.delete('params_repo_' + self.id)
+        self.strategy_cache.delete(self.id)
+        self.strategy_cache.delete('params_repo_' + self.id)
 
 
     def market_close_for_day(self):

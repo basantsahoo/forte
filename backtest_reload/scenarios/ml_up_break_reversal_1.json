@@ -29,13 +29,16 @@
           "spot_high_stop_losses":[],
           "spot_low_stop_losses":[],
           "spot_high_targets":[],
-          "spot_low_targets":[]
+          "spot_low_targets":[],
+          "spot_slide_ups":[],
+          "spot_slide_downs":[]
+
         },
         "trade_info": {
           "force_exit_ts": null,
           "leg_groups": [
             {
-              "lg_id": "gp_a",
+              "lg_class": "gp_a",
               "asset": "NIFTY",
               "force_exit_ts": null,
               "legs" : {
@@ -122,13 +125,16 @@
           "spot_high_stop_losses":[],
           "spot_low_stop_losses":[],
           "spot_high_targets":[],
-          "spot_low_targets":[]
+          "spot_low_targets":[],
+          "spot_slide_ups":[],
+          "spot_slide_downs":[]
+
         },
         "trade_info": {
           "force_exit_ts": null,
           "leg_groups": [
             {
-              "lg_id": "gp_a",
+              "lg_class": "gp_a",
               "asset": "NIFTY",
               "force_exit_ts": null,
               "legs" : {
@@ -215,13 +221,16 @@
           "spot_high_stop_losses":[],
           "spot_low_stop_losses":[],
           "spot_high_targets":[],
-          "spot_low_targets":[]
+          "spot_low_targets":[],
+          "spot_slide_ups":[],
+          "spot_slide_downs":[]
+
         },
         "trade_info": {
           "force_exit_ts": null,
           "leg_groups": [
             {
-              "lg_id": "gp_a",
+              "lg_class": "gp_a",
               "asset": "NIFTY",
               "force_exit_ts": null,
               "legs" : {
@@ -270,8 +279,6 @@
       ],
       "exit_criteria_list": [
       ],
-      "trade_controllers": [
-      ],
       "entry_switch": {
         },
       "signal_filters" : [
@@ -282,7 +289,7 @@
   ],
   "run_params": {
     "test_days": [],
-    "for_past_days": 180,
+    "for_past_days": 20,
     "to_date": "2024-04-10",
     "candle_sw": 0,
     "week_days": [],

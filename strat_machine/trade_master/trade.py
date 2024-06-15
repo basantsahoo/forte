@@ -252,10 +252,12 @@ class Trade:
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
             self.trigger_time + self.trade_duration * 60, self.force_exit_time + 60)
+        """
         print("trade trade_duration =", self.trade_duration)
         print("trade self.trigger_time + self.trade_duration * 60 =", self.trigger_time + self.trade_duration*60)
         print("trade self.force_exit_time + 60 =", self.force_exit_time + 60)
         print("trade max_run_time =", max_run_time)
+        """
         if last_spot_candle['timestamp'] >= max_run_time:
             self.trigger_exit(exit_type='TRD_TC')
         elif self.force_exit_time and last_spot_candle['timestamp'] >= self.force_exit_time:

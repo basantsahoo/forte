@@ -30,13 +30,16 @@
           "spot_high_stop_losses":[],
           "spot_low_stop_losses":[],
           "spot_high_targets":[],
-          "spot_low_targets":[]
+          "spot_low_targets":[],
+          "spot_slide_ups":[],
+          "spot_slide_downs":[]
+
         },
         "trade_info": {
           "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
           "leg_groups": [
             {
-              "lg_id": "gp_a",
+              "lg_class": "gp_a",
               "asset": "NIFTY",
               "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
               "legs" : {
@@ -84,8 +87,6 @@
         }
       ],
       "exit_criteria_list": [
-      ],
-      "trade_controllers": [
       ],
       "entry_switch": {
         },
