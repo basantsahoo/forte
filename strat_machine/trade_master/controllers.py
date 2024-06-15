@@ -1,8 +1,17 @@
 
-def get_controller(controller_id, trd_idx, entry_price, spot_stop_loss_rolling, delta, controller_info={}):
+def get_controller_from_config(controller_id, trd_idx, entry_price, spot_stop_loss_rolling, delta, controller_info={}):
     watcher_type = controller_info['type']
     if watcher_type in ['DownController']:
-        return DownController(controller_id, trd_idx, entry_price, spot_stop_loss_rolling,delta, controller_info)
+        return DownController.from_config(controller_id=controller_id, trd_idx=trd_idx, entry_price=entry_price, spot_stop_loss_rolling=spot_stop_loss_rolling,delta=delta, controller_info=controller_info)
+    else:
+        raise Exception("Controller is not defined")
+
+def get_controller_from_store(stored_controller_info):
+    print("get_controller_from_store==========================", stored_controller_info)
+
+    watcher_type = stored_controller_info['controller_info']['type']
+    if watcher_type in ['DownController']:
+        return DownController.from_store(**stored_controller_info)
     else:
         raise Exception("Controller is not defined")
 
@@ -21,6 +30,26 @@ class DownController:
         self.signals = []
         self.code = 'revise_stop_loss'
         #print('controller created for ', trd_idx)
+
+    @classmethod
+    def from_config(cls, **kwargs):
+        return cls(**kwargs)
+
+    @classmethod
+    def from_store(cls, **kwargs):
+        return cls(**kwargs)
+
+    def to_dict(self):
+        dct = {}
+        for field in ['trd_idx', 'entry_price', 'spot_stop_loss_rolling', 'delta']:
+            dct[field] = getattr(self, field)
+        dct['controller_info'] = {}
+        dct['controller_id'] = self.id
+
+        for field in ['signal_type', 'roll_factor', 'pnl_multiplier']:
+            dct['controller_info'][field] = getattr(self, field)
+        dct['controller_info']['type'] = 'DownController'
+        return dct
 
     def receive_signal(self, signal):
         self.pre_log()

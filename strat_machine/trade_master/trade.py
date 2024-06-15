@@ -2,7 +2,7 @@ from strat_machine.core_strategies.signal_setup import get_trade_manager_args
 from helper.utils import inst_is_option, get_market_view
 import itertools
 from helper.utils import get_option_strike
-from strat_machine.trade_master.controllers import get_controller
+from strat_machine.trade_master.controllers import get_controller_from_config, get_controller_from_store
 import copy
 
 from strat_machine.trade_master.leg_group import LegGroup
@@ -23,8 +23,8 @@ class Trade:
         self.carry_forward_days = carry_forward_days[min(trd_idx - 1, len(carry_forward_days) - 1)] if carry_forward_days else float('inf')
         self.target = abs(targets[min(trd_idx - 1, len(targets) - 1)]) if targets else None
         self.stop_loss = -1 * abs(stop_losses[min(trd_idx - 1, len(stop_losses) - 1)]) if stop_losses else float('-inf')
-        self.spot_high_stop_loss = abs(self.calculate_target(spot_high_stop_losses[min(trd_idx - 1, len(spot_high_stop_losses) - 1)])) if spot_high_stop_losses else float('inf')
-        self.spot_low_stop_loss = -1 * abs(self.calculate_target(spot_low_stop_losses[min(trd_idx - 1, len(spot_low_stop_losses) - 1)])) if spot_low_stop_losses else float('-inf')
+        self.spot_high_stop_loss = abs(self.calculate_target(spot_high_stop_losses[min(trd_idx - 1, len(spot_high_stop_losses) - 1)], float('inf'))) if spot_high_stop_losses else float('inf')
+        self.spot_low_stop_loss = -1 * abs(self.calculate_target(spot_low_stop_losses[min(trd_idx - 1, len(spot_low_stop_losses) - 1)], float('-inf'))) if spot_low_stop_losses else float('-inf')
         self.spot_high_target = abs(self.calculate_target(spot_high_targets[min(trd_idx - 1, len(spot_high_targets) - 1)])) if spot_high_targets else float('inf')
         self.spot_low_target = -1 * abs(self.calculate_target(spot_low_targets[min(trd_idx - 1, len(spot_low_targets) - 1)])) if spot_low_targets else float('-inf')
 
@@ -62,6 +62,17 @@ class Trade:
         obj.other_init()
         return obj
 
+    def set_controllers(self):
+        if self.trade_set.trade_manager.trade_controllers:
+            total_controllers = len(self.trade_set.trade_manager.trade_controllers)
+            controller_info = self.trade_set.trade_manager.trade_controllers[min(self.trd_idx - 1, total_controllers - 1)]
+            controller_id = self.con_seq
+            self.con_seq += 1
+            controller = get_controller_from_config(repr(self.trd_idx) + "_" + repr(controller_id), self.trd_idx, self.spot_entry_price,
+                                        self.spot_stop_loss_rolling, self.calculate_delta(), controller_info)
+            controller.activation_forward_channels.append(self.receive_communication)
+            self.controller_list.append(controller)
+
     @classmethod
     def from_store(cls, trade_set, trade_info):
         obj = cls(trade_set, trade_info['trd_idx'])
@@ -74,14 +85,20 @@ class Trade:
         obj.spot_low_target = trade_info.get('spot_low_target', None)
         obj.spot_low_stop_loss = trade_info.get('spot_low_stop_loss', None)
         obj.spot_stop_loss_rolling = trade_info.get('spot_stop_loss_rolling', None)
+        obj.con_seq = trade_info['con_seq']
+        obj.controller_list = [get_controller_from_store(stored_controller_info) for stored_controller_info in trade_info['controller_list']]
+        print('from store controller list====', obj.controller_list)
+        for controller in obj.controller_list:
+            controller.activation_forward_channels.append(obj.receive_communication)
 
         return obj
 
     def to_dict(self):
         dct = {}
-        for field in ['trd_idx', 'trigger_time', 'spot_stop_loss_rolling', 'spot_high_target', 'spot_high_stop_loss', 'spot_low_target', 'spot_low_stop_loss']:
+        for field in ['trd_idx', 'trigger_time', 'spot_stop_loss_rolling', 'spot_high_target', 'spot_high_stop_loss', 'spot_low_target', 'spot_low_stop_loss', 'con_seq']:
             dct[field] = getattr(self, field)
         dct['leg_groups'] = [leg_group.to_dict() for leg_group in self.leg_groups.values()]
+        dct['controller_list'] = [controller.to_dict() for controller in self.controller_list]
 
         return dct
 
@@ -89,16 +106,7 @@ class Trade:
         self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
         self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
         print('trade  other_init duration===', self.trade_duration)
-    def set_controllers(self):
-        if self.trade_set.trade_manager.strategy.trade_controllers:
-            total_controllers = len(self.trade_set.trade_manager.strategy.trade_controllers)
-            controller_info = self.trade_set.trade_manager.strategy.trade_controllers[min(self.trd_idx - 1, total_controllers - 1)]
-            controller_id = self.con_seq
-            self.con_seq += 1
-            controller = get_controller(repr(self.trd_idx) + "_" + repr(controller_id), self.trd_idx, self.spot_entry_price,
-                                        self.spot_stop_loss_rolling, self.calculate_delta(), controller_info)
-            controller.activation_forward_channels.append(self.receive_communication)
-            self.controller_list.append(controller)
+
 
     def slide_leg_group(self, prior_lg_id, lg_index):
         """
@@ -160,43 +168,9 @@ class Trade:
         self.process_entry_orders()
         self.finish_trade_setup_after_entry_order()
 
-
-    def get_entry_orders_ooooooo(self):
-        entry_orders = {}
-        entry_orders['trade_seq'] = self.trd_idx
-        entry_orders['leg_groups'] = []
-        for leg_group in self.leg_groups.values():
-            #print(leg_group.get_entry_orders())
-            orders = leg_group.get_entry_orders()
-            for order in orders['legs']:
-                order['trade_seq'] = self.trd_idx
-            entry_orders['leg_groups'].append(orders)
-        self.trigger_time = self.leg_groups[list(self.leg_groups.keys())[0]].trigger_time
-        self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
-
-        spot_high_target_levels = self.trade_set.trade_manager.spot_high_target_levels
-        spot_high_stop_loss_levels = self.trade_set.trade_manager.spot_high_stop_loss_levels
-        spot_low_target_levels = self.trade_set.trade_manager.spot_low_target_levels
-        spot_low_stop_loss_levels = self.trade_set.trade_manager.spot_low_stop_loss_levels
-
-        spot_high_target_level = spot_high_target_levels[min(self.trd_idx - 1, len(spot_high_target_levels) - 1)] if spot_low_target_levels else float('inf')
-        spot_high_stop_loss_level = spot_high_stop_loss_levels[min(self.trd_idx - 1, len(spot_high_stop_loss_levels) - 1)] if spot_high_stop_loss_levels else float('inf')
-        spot_low_target_level = spot_low_target_levels[min(self.trd_idx - 1, len(spot_low_target_levels) - 1)] if spot_low_target_levels else float('-inf')
-        spot_low_stop_loss_level = spot_low_stop_loss_levels[min(self.trd_idx - 1, len(spot_low_stop_loss_levels) - 1)] if spot_low_stop_loss_levels else float('-inf')
-
-        self.spot_high_target = round(min(self.spot_high_target, spot_high_target_level/self.spot_entry_price-1), 4) #if isinstance(self.spot_high_target, (int, float)) else self.calculate_target(self.spot_high_target)
-        self.spot_high_stop_loss = round(min(self.spot_high_stop_loss, spot_high_stop_loss_level / self.spot_entry_price - 1), 4) #if isinstance(self.spot_high_stop_loss, (int, float)) else self.calculate_target(self.spot_high_stop_loss)
-        self.spot_low_target = round(min(self.spot_low_target, spot_low_target_level / self.spot_entry_price - 1), 4) #if isinstance(self.spot_low_target, (int, float)) else self.calculate_target(self.spot_low_target)
-        self.spot_low_stop_loss = round(min(self.spot_low_stop_loss, spot_low_stop_loss_level / self.spot_entry_price - 1), 4) #if isinstance(self.spot_low_stop_loss, (int, float)) else self.calculate_target(self.spot_low_stop_loss)
-        delta = self.calculate_delta()
-        self.spot_stop_loss_rolling = self.spot_low_stop_loss if delta > 0 else self.spot_high_stop_loss
-        self.set_controllers()
-
-        return entry_orders
-
-    def calculate_target(self, target_level):
+    def calculate_target(self, target_level, default=None):
         print('calculate_target+++++++++++++++++++++++++', target_level)
-        rs = None
+        rs = default
         if isinstance(target_level, (int, float)):
             rs = target_level
         else:
@@ -205,8 +179,10 @@ class Trade:
             if target_level['category'] == 'signal_queue':
                 queue = self.trade_set.trade_manager.strategy.entry_signal_pipeline.get_neuron_by_id(target_level['mapped_object'])
                 # print('queue.'+ mapped_fn + "()")
+
                 rs = eval('queue.' + mapped_fn)(**kwargs)
                 print('inside target fn +++++++++', rs)
+                rs = default if rs is None else rs
             elif target_level['category'] == 'global':
                 obj = target_level['mapped_object']
                 fn_string = 'self.' + (obj + '.' if obj else '') + mapped_fn  # + '()'

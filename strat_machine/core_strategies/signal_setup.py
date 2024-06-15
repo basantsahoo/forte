@@ -52,7 +52,6 @@ default_strategy_params = {
     "exit_criteria_list": [],  # Used for signals to be evaluated to exit a trade
     "signal_filters": [],  # Signals that should be filtered out before sending to queue
     "register_signal_category": None,
-    "trade_controllers": [],
     "entry_switch": {},
     "risk_limits": [],
     "trade_cut_off_time": 60,

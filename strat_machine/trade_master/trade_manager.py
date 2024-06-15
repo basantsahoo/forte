@@ -24,6 +24,15 @@ class TradeManager:
     def to_dict(self, encode_json=False):
         return _asdict(self, encode_json=encode_json)
 
+    def from_store(self, carry_trades, params_repo):
+        for sig_key, trade_set_info in carry_trades.items():
+            #print(list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'])
+            if list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'] < self.get_last_tick(self.asset)['timestamp']:
+                self.tradable_signals[sig_key] = TradeSet.from_store(self, sig_key, trade_set_info)
+                for trade in self.tradable_signals[sig_key].trades.values():
+                    self.strategy.params_repo[(sig_key, trade.trd_idx)] = params_repo[(sig_key, trade.trd_idx)]
+
+
     def __init__(self,
                  market_book=None,
                  strategy=None,
@@ -85,12 +94,6 @@ class TradeManager:
         self.signal_count += 1
         self.tradable_signals[sig_key] = TradeSet.from_config(self, sig_key)
         return sig_key
-
-    def trigger_entry_2(self, sig_key):
-        print('TradeManager trigger_entry +++++++++++++++++')
-        trade_set = self.tradable_signals[sig_key]
-        all_orders = trade_set.get_entry_orders()
-        self.strategy.trigger_entry(sig_key, all_orders)
 
     def trigger_entry(self, sig_key):
         print('TradeManager trigger_entry +++++++++++++++++')

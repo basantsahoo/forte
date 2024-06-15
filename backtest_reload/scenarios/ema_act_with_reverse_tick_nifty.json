@@ -14,7 +14,7 @@
           [300]
         ],
         "exit_at":null,
-        "carry_forward_days":[],
+        "carry_forward_days":[1, 2, 3 ,4],
         "triggers_per_signal": 1,
         "trade_targets":[],
         "trade_stop_losses":[],
@@ -23,17 +23,17 @@
         "spot_high_targets":[],
         "spot_low_targets":[],
         "leg_group_exits": {
-          "targets":[{"gp_a": 0.003}, {"gp_a": 0.04}, {"gp_a": 0.04}, {"gp_a": 0.05}],
-          "stop_losses":[{"gp_a": 0.002}, {"gp_a": 0.002}, {"gp_a": 0.002}, {"gp_a": 0.002}],
+          "targets":[{"gp_a": 0.3}, {"gp_a": 0.3}, {"gp_a": 0.3}, {"gp_a": 0.3}],
+          "stop_losses":[{"gp_a": 0.3}, {"gp_a": 0.3}, {"gp_a": 0.3}, {"gp_a": 0.3}],
           "spot_high_stop_losses":[],
           "spot_low_stop_losses":[],
           "spot_high_targets":[],
           "spot_low_targets":[],
-          "spot_slide_ups":[{"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}],
-          "spot_slide_downs":[{"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}, {"gp_a": 5}]
+          "spot_slide_ups":[{"gp_a": 5000}, {"gp_a": 5000}, {"gp_a": 5000}, {"gp_a": 5000}],
+          "spot_slide_downs":[{"gp_a": 5000}, {"gp_a": 5000}, {"gp_a": 5000}, {"gp_a": 5000}]
         },
         "trade_info": {
-          "force_exit_ts": null,
+          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
           "leg_groups": [
             {
               "lg_class": "gp_a",
@@ -51,7 +51,15 @@
               }
             }
           ]
-        }
+        },
+        "trade_controllers": [
+          {
+            "type": "DownController",
+            "signal_type": ["NIFTY", "PRICE_SIGNAL", "CANDLE_5", "1min"],
+            "roll_factor": 0.5,
+            "pnl_multiplier":5
+          }
+        ]
       },
       "entry_signal_queues": [
         {
@@ -139,14 +147,6 @@
           "apply_pre_filter": false
         }
       ],
-      "trade_controllers": [
-      {
-        "type": "DownController",
-        "signal_type": ["NIFTY", "PRICE_SIGNAL", "CANDLE_5", "1min"],
-        "roll_factor": 0.0005,
-	    "pnl_multiplier":5
-      }
-      ],
       "entry_switch": {
           "id": 0,
           "type": "DistToSL",
@@ -160,9 +160,9 @@
     }
   ],
   "run_params": {
-    "test_days": ["2024-04-10"],
-    "for_past_days": 30,
-    "to_date": "2023-12-14",
+    "test_days": [],
+    "for_past_days": 1,
+    "to_date": "2024-04-10",
     "candle_sw" : 0,
     "week_days": [],
     "record_metric": true,

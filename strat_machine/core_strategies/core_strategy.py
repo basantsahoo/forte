@@ -34,7 +34,6 @@ class BaseStrategy:
                  exit_criteria_list = [],  #Used for signals to be evaluated to exit a trade
                  signal_filters=[],  #Signals that should be filtered out before sending to queue
                  register_signal_category=None,
-                 trade_controllers=[],
                  entry_switch={},
                  risk_limits=[],
                  trade_cut_off_time=60,
@@ -60,7 +59,6 @@ class BaseStrategy:
         self.last_match = None
         self.pending_signals = {}
         self.minimum_quantity = 1
-        self.trade_controllers = trade_controllers
         self.risk_limits = risk_limits
         self.trade_cut_off_time = trade_cut_off_time
         self.trade_manager_info = trade_manager_info
@@ -97,13 +95,7 @@ class BaseStrategy:
         print('carry_trades===', carry_trades)
 
         params_repo = self.strategy_cache.get('params_repo_' + self.id, {})
-        for sig_key, trade_set_info in carry_trades.items():
-            #print(list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'])
-            if list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'] < self.get_last_tick()['timestamp']:
-                self.trade_manager.tradable_signals[sig_key] = TradeSet.from_store(self.trade_manager, sig_key, trade_set_info)
-                for trade in self.trade_manager.tradable_signals[sig_key].trades.values():
-                    self.params_repo[(sig_key, trade.trd_idx)] = params_repo[(sig_key, trade.trd_idx)]
-                    trade.set_controllers()
+        self.trade_manager.from_store(carry_trades, params_repo)
         #self.strategy_cache.delete(self.id)
         #self.strategy_cache.delete('params_repo_' + self.id)
 

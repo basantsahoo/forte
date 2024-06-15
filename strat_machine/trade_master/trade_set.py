@@ -1,11 +1,3 @@
-from strat_machine.core_strategies.signal_setup import get_trade_manager_args
-from helper.utils import inst_is_option, get_market_view
-import itertools
-from helper.utils import get_option_strike
-from strat_machine.trade_master.controllers import get_controller
-import copy
-
-from strat_machine.trade_master.leg_group import LegGroup
 from strat_machine.trade_master.trade import Trade
 
 class TradeSet:
@@ -33,14 +25,8 @@ class TradeSet:
         trades = [Trade.from_store(obj, trade_info) for trade_info in trade_set_info]
         for trade in trades:
             obj.trades[trade.trd_idx] = trade
+            #trade.set_controllers()
         return obj
-
-    def get_entry_orders(self):
-        entry_orders = []
-        for trade_idx, trade in self.trades.items():
-            all_orders = trade.get_entry_orders()
-            entry_orders.append(all_orders)
-        return entry_orders
 
     def trigger_entry(self):
         print('TradeSet trigger_entry +++++++++++++++++')
