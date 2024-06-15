@@ -50,7 +50,7 @@ class LegGroup:
 
     @classmethod
     def from_store(cls, trade, leg_group_info):
-        obj = cls(trade, leg_group_info['lg_index'], leg_group_info)
+        obj = cls(trade, leg_group_info['lg_id'], leg_group_info['lg_index'], leg_group_info)
         for leg_id, leg_info in leg_group_info["legs"].items():
             obj.legs[leg_id] = Leg.from_store(obj, **leg_info)
         return obj
