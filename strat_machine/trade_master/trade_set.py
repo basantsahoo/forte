@@ -14,6 +14,7 @@ class TradeSet:
         self.trades = {}
         self.custom_features = {}
         self.exit_orders = []
+        self.entry_orders = []
         self.completed = False
         self.controller_list = []
 
@@ -40,6 +41,17 @@ class TradeSet:
             entry_orders.append(all_orders)
         return entry_orders
 
+    def trigger_entry(self):
+        print('TradeSet trigger_entry +++++++++++++++++')
+        for trade_id, trade in self.trades.items():
+            trade.trigger_entry()
+        self.process_entry_orders()
+
+    def process_entry_orders(self):
+        if self.entry_orders:
+            self.trade_manager.strategy.trigger_entry(self.id, self.entry_orders)
+            self.entry_orders = []
+
 
     def complete(self):
         trade_set_complete = True
@@ -58,6 +70,7 @@ class TradeSet:
             if not trade.complete():
                 trade.trigger_exit(exit_type)
         self.process_exit_orders(manage_risk)
+
 
     def monitor_existing_positions(self, manage_risk=True):
         for trade_id, trade in self.trades.items():
@@ -112,6 +125,7 @@ class Trade:
                 self.leg_group_exits[key] = []
         self.leg_groups = {}
         self.exit_orders = []
+        self.entry_orders = []
         self.trigger_time = None
         self.exit_time = None
         self.spot_stop_loss_rolling = None
@@ -158,6 +172,56 @@ class Trade:
             controller.activation_forward_channels.append(self.receive_communication)
             self.controller_list.append(controller)
 
+    def slide_leg_group(self, lg_id, lg_index):
+
+        print('slide_leg_group ++++++++++++++++++++++++++++')
+        lg_entries = [key for key in list(self.leg_groups.keys()) if lg_id in key]
+        self.leg_groups[lg_id + '_' + repr(len(lg_entries))] = self.leg_groups[lg_id] #shift the entry to another key
+        leg_groups = copy.deepcopy(self.trade_set.trade_manager.trade_info["leg_groups"])
+        self.leg_groups[lg_id] = LegGroup.from_config(self, lg_index, leg_groups[lg_index])
+        self.leg_groups[lg_id].trigger_entry()
+        self.process_entry_orders()
+        self.trade_set.process_entry_orders()
+        print('slide_leg_group complete++++++++++++++++++++++++++++')
+
+    def process_entry_orders(self):
+        if self.entry_orders:
+            entry_orders = dict()
+            entry_orders['trade_seq'] = self.trd_idx
+            entry_orders['leg_groups'] = self.entry_orders
+            for leg_group_orders in entry_orders['leg_groups']:
+                for order in leg_group_orders['legs']:
+                    order['trade_seq'] = self.trd_idx
+            self.trade_set.entry_orders.append(entry_orders)
+            self.entry_orders = []
+
+    def finish_trade_setup_after_entry_order(self):
+        self.trigger_time = self.leg_groups[list(self.leg_groups.keys())[0]].trigger_time
+        self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
+
+        spot_high_target_levels = self.trade_set.trade_manager.spot_high_target_levels
+        spot_high_stop_loss_levels = self.trade_set.trade_manager.spot_high_stop_loss_levels
+        spot_low_target_levels = self.trade_set.trade_manager.spot_low_target_levels
+        spot_low_stop_loss_levels = self.trade_set.trade_manager.spot_low_stop_loss_levels
+
+        spot_high_target_level = spot_high_target_levels[min(self.trd_idx - 1, len(spot_high_target_levels) - 1)] if spot_low_target_levels else float('inf')
+        spot_high_stop_loss_level = spot_high_stop_loss_levels[min(self.trd_idx - 1, len(spot_high_stop_loss_levels) - 1)] if spot_high_stop_loss_levels else float('inf')
+        spot_low_target_level = spot_low_target_levels[min(self.trd_idx - 1, len(spot_low_target_levels) - 1)] if spot_low_target_levels else float('-inf')
+        spot_low_stop_loss_level = spot_low_stop_loss_levels[min(self.trd_idx - 1, len(spot_low_stop_loss_levels) - 1)] if spot_low_stop_loss_levels else float('-inf')
+
+        self.spot_high_target = round(min(self.spot_high_target, spot_high_target_level / self.spot_entry_price - 1), 4)
+        self.spot_high_stop_loss = round(min(self.spot_high_stop_loss, spot_high_stop_loss_level / self.spot_entry_price - 1), 4)
+        self.spot_low_target = round(min(self.spot_low_target, spot_low_target_level / self.spot_entry_price - 1), 4)
+        self.spot_low_stop_loss = round(min(self.spot_low_stop_loss, spot_low_stop_loss_level / self.spot_entry_price - 1),4)
+        delta = self.calculate_delta()
+        self.spot_stop_loss_rolling = self.spot_low_stop_loss if delta > 0 else self.spot_high_stop_loss
+        self.set_controllers()
+
+    def trigger_entry(self):
+        for leg_group_id, leg_group in self.leg_groups.items():
+            leg_group.trigger_entry()
+        self.process_entry_orders()
+        self.finish_trade_setup_after_entry_order()
 
 
     def get_entry_orders(self):
@@ -252,6 +316,9 @@ class Trade:
                 leg_group.close_on_instr_tg_sl_tm()
             if not leg_group.complete():
                 leg_group.close_on_spot_tg_sl()
+        for leg_group_id, leg_group in self.leg_groups.copy().items():
+            if not leg_group.complete():
+                leg_group.check_slide_status()
         self.process_exit_orders()
 
     def calculate_pnl(self):

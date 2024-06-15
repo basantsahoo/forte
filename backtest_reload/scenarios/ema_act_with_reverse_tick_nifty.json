@@ -28,7 +28,9 @@
           "spot_high_stop_losses":[],
           "spot_low_stop_losses":[],
           "spot_high_targets":[],
-          "spot_low_targets":[]
+          "spot_low_targets":[],
+          "spot_slide_ups":[],
+          "spot_slide_downs":[]
         },
         "trade_info": {
           "force_exit_ts": null,
@@ -158,7 +160,7 @@
     }
   ],
   "run_params": {
-    "test_days": [],
+    "test_days": ["2024-04-10"],
     "for_past_days": 30,
     "to_date": "2023-12-14",
     "candle_sw" : 0,

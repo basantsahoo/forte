@@ -16,6 +16,8 @@ class LegGroup:
         self.spot_low_stop_loss = -1 * abs(self.trade.leg_group_exits['spot_low_stop_losses'][self.lg_id]) if self.trade.leg_group_exits['spot_low_stop_losses'] else float('-inf')
         self.spot_high_target = abs(self.trade.leg_group_exits['spot_high_targets'][self.lg_id]) if self.trade.leg_group_exits['spot_high_targets'] else float('inf')
         self.spot_low_target = -1 * abs(self.trade.leg_group_exits['spot_low_targets'][self.lg_id]) if self.trade.leg_group_exits['spot_low_targets'] else float('-inf')
+        self.spot_slide_up = abs(self.trade.leg_group_exits['spot_slide_ups'][self.lg_id]) if self.trade.leg_group_exits['spot_slide_ups'] else float('inf')
+        self.spot_slide_down = -1 * abs(self.trade.leg_group_exits['spot_slide_downs'][self.lg_id]) if self.trade.leg_group_exits['spot_slide_downs'] else float('-inf')
         self.carry_forward_days = self.trade.carry_forward_days
         self.legs = {}
         self.trigger_time = leg_group_info.get('trigger_time', None)
@@ -59,7 +61,7 @@ class LegGroup:
 
 
 
-    def get_entry_orders(self):
+    def trigger_entry(self):
         entry_orders = {}
         entry_orders['lg_id'] = self.lg_id
         entry_orders['legs'] = []
@@ -70,7 +72,7 @@ class LegGroup:
         entry_orders['legs'] = sorted(entry_orders['legs'], key=lambda d: d['order_type'])
         self.trigger_time = self.legs[list(self.legs.keys())[0]].trigger_time
         self.spot_entry_price = self.legs[list(self.legs.keys())[0]].spot_entry_price
-        return entry_orders
+        self.trade.entry_orders.append(entry_orders)
 
     def trigger_exit(self, exit_type=None):
         exit_orders = {}
@@ -161,3 +163,17 @@ class LegGroup:
                 # print(last_candle, trigger_details['target'])
             elif self.spot_high_stop_loss and last_spot_candle['close'] > self.spot_entry_price * (1 + self.spot_high_stop_loss):
                 self.trigger_exit(exit_type='SS')
+
+    def check_slide_status(self):
+        print('check_slide_status++++++++++++++++++++++++++++')
+        last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
+        if last_spot_candle['close'] >= self.spot_entry_price + self.spot_slide_up:
+            print('here 1 ++++++++++++++++++++++++++++')
+            self.trigger_exit(exit_type='SLDUP')
+            self.trade.slide_leg_group(self.lg_id, self.lg_index)
+        elif last_spot_candle['close'] <= self.spot_entry_price + self.spot_slide_down:
+            print('here 2 ++++++++++++++++++++++++++++')
+            self.trigger_exit(exit_type='SLDDOWN')
+            print('trigger exit complete +++++++++')
+            self.trade.slide_leg_group(self.lg_id, self.lg_index)
+

@@ -94,6 +94,11 @@ class AlgoPortfolioManager:
             for leg_group in trade['leg_groups']:
                 #print('leg_group =====', leg_group)
                 leg_group_id = leg_group['lg_id']
+                if (strategy_id, signal_id, trade_seq, leg_group_id) in self.position_book.keys():
+                    lg_entries = [key for key in list(self.position_book.keys()) if leg_group_id in key[3]]
+                    new_leg_group_id = leg_group_id + '_' + repr(len(lg_entries))
+                    self.position_book[(strategy_id, signal_id, trade_seq, new_leg_group_id)] = self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]
+
                 if (strategy_id, signal_id, trade_seq, leg_group_id) not in self.position_book.keys():
                     self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)] = {}
                     self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'] = []

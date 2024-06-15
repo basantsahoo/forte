@@ -86,11 +86,16 @@ class TradeManager:
         self.tradable_signals[sig_key] = TradeSet.from_config(self, sig_key)
         return sig_key
 
-    def trigger_entry(self, sig_key):
+    def trigger_entry_2(self, sig_key):
         print('TradeManager trigger_entry +++++++++++++++++')
         trade_set = self.tradable_signals[sig_key]
         all_orders = trade_set.get_entry_orders()
         self.strategy.trigger_entry(sig_key, all_orders)
+
+    def trigger_entry(self, sig_key):
+        print('TradeManager trigger_entry +++++++++++++++++')
+        trade_set = self.tradable_signals[sig_key]
+        trade_set.trigger_entry()
 
     def monitor_existing_positions(self):
         for trade_set_id, trade_set in self.tradable_signals.items():
