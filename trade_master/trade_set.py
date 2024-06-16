@@ -65,6 +65,16 @@ class TradeSet:
                 trade.monitor_existing_positions()
         self.process_exit_orders(manage_risk)
 
+    def calculate_pnl(self):
+        capital_list = []
+        pnl_list = []
+        for trade_id, trade in self.trades.items():
+            capital, pnl, pnl_pct = trade.calculate_pnl()
+            capital_list.append(capital)
+            pnl_list.append(pnl)
+        pnl_ratio = sum(pnl_list)/sum(capital_list)
+        return sum(capital_list), sum(pnl_list), pnl_ratio
+
     def process_exit_orders(self, manage_risk=True):
         if self.exit_orders:
             self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)

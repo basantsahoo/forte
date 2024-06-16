@@ -56,12 +56,20 @@ class StartegyBackTester:
                     strategy_manager.add_strategy(strategy_class, deployed_strategy)
                     end = datetime.now()
                     print('strategy init took', (end - start).total_seconds())
+
                 for deployed_tm in self.strat_config['trade_manager_info'].values():
                     start = datetime.now()
                     #print('deployed_strategy=====', deployed_strategy)
                     trade_pool.add(deployed_tm)
                     end = datetime.now()
                     print('strategy init took', (end - start).total_seconds())
+                strategy_manager.clean_up_strategies()
+
+                for deployed_combinator in self.strat_config['combinator_info'].values():
+                    strategy_manager.add_combinator(deployed_combinator)
+                    end = datetime.now()
+                    print('Combinator init took', (end - start).total_seconds())
+                strategy_manager.clean_up_combinators()
 
                 market_book.strategy_manager = strategy_manager
                 data_loader = MultiDayOptionDataLoader(asset=subscribed_assets[0], trade_days=[t_day], spot_only=False)

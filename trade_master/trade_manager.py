@@ -138,6 +138,16 @@ class TradeManager:
             if not trade_set.complete():
                 trade_set.close_on_exit_signal()
 
+    def calculate_pnl(self):
+        capital_list = []
+        pnl_list = []
+        for trade_set_id, trade_set in self.tradable_signals.items():
+            capital, pnl, pnl_pct = trade_set.calculate_pnl()
+            capital_list.append(capital)
+            pnl_list.append(pnl)
+        pnl_ratio = sum(pnl_list)/sum(capital_list)
+        return sum(capital_list), sum(pnl_list), pnl_ratio
+
     def get_last_tick(self, asset, instr='SPOT'):
         asset_book = self.market_book.get_asset_book(asset)
         if inst_is_option(instr):
