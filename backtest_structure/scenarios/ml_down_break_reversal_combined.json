@@ -1,10 +1,10 @@
 {
   "strategies":[
     {
-      "id":"UP_BREAK_REVERSAL_1",
+      "id":"DOWN_BREAK_REVERSAL_1",
       "class":"OptionBuy",
       "max_signal": 10,
-      "register_signal_category": ["NIFTY","COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
+      "register_signal_category": ["NIFTY","COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "trade_manager_info": {
         "asset": "NIFTY",
@@ -32,7 +32,6 @@
           "spot_low_targets":[],
           "spot_slide_ups":[],
           "spot_slide_downs":[]
-
         },
         "trade_info": {
           "force_exit_ts": null,
@@ -46,7 +45,7 @@
                   "instr_to_trade": {
                     "money_ness": "ITM",
                     "level": 1,
-                    "kind": "PE",
+                    "kind": "CE",
                     "expiry": "near"
                   },
                   "order_type": "BUY",
@@ -67,7 +66,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["NIFTY", "COMPOUND", "UP_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
+            "signal_type": ["NIFTY", "COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_1_1MIN", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -87,20 +86,18 @@
       ],
       "exit_criteria_list": [
       ],
-      "trade_controllers": [
-      ],
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location > -2" }
+        {"op": "or", "logical_test": "price_location < 60" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     },
     {
-      "id":"UP_BREAK_REVERSAL_2",
+      "id":"DOWN_BREAK_REVERSAL_2",
       "class":"OptionBuy",
       "max_signal": 10,
-      "register_signal_category": ["NIFTY","COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
+      "register_signal_category": ["NIFTY","COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "trade_manager_info": {
         "asset": "NIFTY",
@@ -142,7 +139,7 @@
                   "instr_to_trade": {
                     "money_ness": "ITM",
                     "level": 1,
-                    "kind": "PE",
+                    "kind": "CE",
                     "expiry": "near"
                   },
                   "order_type": "BUY",
@@ -163,7 +160,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["NIFTY", "COMPOUND", "UP_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
+            "signal_type": ["NIFTY", "COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_2_1MIN", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -183,20 +180,18 @@
       ],
       "exit_criteria_list": [
       ],
-      "trade_controllers": [
-      ],
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location > -2" }
+        {"op": "or", "logical_test": "price_location < 60" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     },
     {
-      "id":"UP_BREAK_REVERSAL_3",
+      "id":"DOWN_BREAK_REVERSAL_3",
       "class":"OptionBuy",
       "max_signal": 10,
-      "register_signal_category": ["NIFTY","COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
+      "register_signal_category": ["NIFTY","COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
       "trade_cut_off_time": 25,
       "trade_manager_info": {
         "asset": "NIFTY",
@@ -238,7 +233,7 @@
                   "instr_to_trade": {
                     "money_ness": "ITM",
                     "level": 1,
-                    "kind": "PE",
+                    "kind": "CE",
                     "expiry": "near"
                   },
                   "order_type": "BUY",
@@ -259,7 +254,7 @@
               "unique_only": true,
               "validity_period": 2
             },
-            "signal_type": ["NIFTY", "COMPOUND", "UP_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
+            "signal_type": ["NIFTY", "COMPOUND", "DOWN_BREAK_REVERSAL_TYPE_3_1MIN", "1min"],
             "trade_eval": [],
             "min_activation_strength": 1,
             "max_activation_strength": 1,
@@ -282,14 +277,14 @@
       "entry_switch": {
         },
       "signal_filters" : [
-        {"op": "or", "logical_test": "price_location > -2" }
+        {"op": "or", "logical_test": "price_location < 60" }
       ],
       "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
     }
   ],
   "run_params": {
-    "test_days": ["2024-04-01"],
-    "for_past_days": 20,
+    "test_days": [],
+    "for_past_days": 180,
     "to_date": "2024-04-10",
     "candle_sw": 0,
     "week_days": [],

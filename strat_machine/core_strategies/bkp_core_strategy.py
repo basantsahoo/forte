@@ -4,12 +4,11 @@ from strat_machine.queues.neuron_network import QNetwork
 from strat_machine.queues.trade import Trade
 from entities.trading_day import TradeDateTime
 import functools
-from helper.utils import get_option_strike
 
 from servers.server_settings import cache_dir
 from diskcache import Cache
-from helper.utils import inst_is_option, get_market_view
-from strat_machine.trade_master.trade_manager import TradeManager
+from helper.utils import inst_is_option
+from trade_master.trade_manager import TradeManager
 
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',

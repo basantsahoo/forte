@@ -14,7 +14,7 @@ from arc.data_interface_for_backtest import AlgorithmBacktestIterface
 from arc.option_market_book import OptionMarketBook
 from db.market_data import (get_all_days)
 import helper.utils as helper_utils
-from arc.strategy_manager import StrategyManager
+from strat_machine.strategy_manager import StrategyManager
 from entities.trading_day import TradeDateTime, NearExpiryWeek
 from dynamics.option_market.option_matrix import MultiDayOptionDataLoader
 from dynamics.option_market.exclude_trade_days import exclude_trade_days

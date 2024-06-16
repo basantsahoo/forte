@@ -1,0 +1,104 @@
+{
+  "strategies":[
+    {
+      "id":"dt_sell",
+      "class":"DoubleTopStrategy",
+      "max_signal": 50,
+      "register_signal_category": ["NIFTY", "PRICE_ACTION_INTRA", "INDICATOR_DT", "1min"],
+      "trade_manager_info": {
+        "asset": "NIFTY",
+        "durations":[
+          [30],
+          [45]
+        ],
+        "exit_at":null,
+        "carry_forward_days":[],
+        "triggers_per_signal": 2,
+        "trade_targets":[],
+        "trade_stop_losses":[],
+        "spot_high_stop_losses":[{"category":"signal_queue","mapped_object": 0,"mapped_fn":"get_signal_high", "kwargs":{}}],
+        "spot_low_stop_losses":[],
+        "spot_high_targets":[],
+        "spot_low_targets":[],
+        "leg_group_exits": {
+          "targets":[{"gp_a": 0.1}, {"gp_a": 0.2}, {"gp_a": 0.2}, {"gp_a": 0.4}],
+          "stop_losses":[{"gp_a": 0.5}, {"gp_a": 0.5}, {"gp_a": 0.5}, {"gp_a": 0.5}],
+          "spot_high_stop_losses":[],
+          "spot_low_stop_losses":[],
+          "spot_high_targets":[],
+          "spot_low_targets":[]
+        },
+        "trade_info": {
+          "force_exit_ts": null,
+          "leg_groups": [
+            {
+              "lg_id": "gp_a",
+              "asset": "NIFTY",
+              "force_exit_ts": null,
+              "legs" : {
+                "A": {
+                  "instr_to_trade": {
+                    "kind": "SPOT",
+                    "money_ness": ""
+                  },
+                  "order_type": "SELL",
+                  "quantity": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 10
+            },
+            "signal_type": ["NIFTY", "PRICE_ACTION_INTRA", "INDICATOR_DT", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 4,
+            "max_activation_strength": 8,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": true
+          },
+          "apply_pre_filter": false
+        }
+      ],
+      "trade_controllers": [
+      {
+        "type": "DownController",
+        "signal_type": ["NIFTY", "PRICE_SIGNAL", "CANDLE_5", "1min"],
+        "roll_factor": 0.0005,
+	    "pnl_multiplier":5
+      }
+      ],
+      "entry_switch": {
+      },
+      "signal_filters" : [],
+      "risk_limits": ["max_movement > 80", "total_losses < -35"]
+    }
+  ],
+  "run_params": {
+    "test_days": [],
+    "for_past_days": 30,
+    "to_date": "2023-12-14",
+    "candle_sw" : 0,
+    "week_days": [],
+    "record_metric": true,
+    "send_to_oms": false,
+    "insight_log": false
+  }
+}

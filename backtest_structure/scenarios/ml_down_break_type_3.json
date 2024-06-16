@@ -1,0 +1,109 @@
+{
+  "strategies":[
+    {
+      "id":"DOWN_BREAK_TYPE_3_1MIN",
+      "class":"OptionBuy",
+      "max_signal": 3,
+      "register_signal_category": ["NIFTY","COMPOUND", "DOWN_BREAK_TYPE_3_1MIN", "1min"],
+      "trade_cut_off_time": 25,
+      "weekdays_allowed": ["Monday", "Tuesday", "Wednesday"],
+      "trade_manager_info": {
+        "asset": "NIFTY",
+        "durations":[
+          [45],
+          [45],
+          [45],
+          [45]
+        ],
+        "exit_at":null,
+        "carry_forward_days":[],
+        "triggers_per_signal": 4,
+        "trade_targets":[],
+        "trade_stop_losses":[],
+        "spot_high_stop_losses":[],
+        "spot_low_stop_losses":[],
+        "spot_high_targets":[],
+        "spot_low_targets":[],
+        "leg_group_exits": {
+          "targets":[{"gp_a": 0.2}, {"gp_a": 0.25}, {"gp_a": 0.3}, {"gp_a": 0.2}],
+          "stop_losses":[{"gp_a": 0.1}, {"gp_a": 0.15}, {"gp_a": 0.18}, {"gp_a": 0.2}],
+          "spot_high_stop_losses":[],
+          "spot_low_stop_losses":[],
+          "spot_high_targets":[],
+          "spot_low_targets":[],
+          "spot_slide_ups":[],
+          "spot_slide_downs":[]
+
+        },
+        "trade_info": {
+          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
+          "leg_groups": [
+            {
+              "lg_class": "gp_a",
+              "asset": "NIFTY",
+              "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
+              "legs" : {
+                "A": {
+                  "instr_to_trade": {
+                    "money_ness": "ITM",
+                    "level": 1,
+                    "kind": "PE",
+                    "expiry": "near"
+                  },
+                  "order_type": "BUY",
+                  "quantity": 1
+                }
+              }
+            }
+          ]
+        }
+      },
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 2
+            },
+            "signal_type": ["NIFTY", "COMPOUND", "DOWN_BREAK_TYPE_3_1MIN", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": "always",
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": true
+        }
+      ],
+      "exit_criteria_list": [
+      ],
+      "entry_switch": {
+        },
+      "signal_filters" : [
+        {"op": "or", "logical_test": "price_location < 30" }
+      ],
+      "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
+    }
+  ],
+  "run_params": {
+    "test_days": [],
+    "for_past_days": 180,
+    "to_date": "2024-04-09",
+    "candle_sw": 0,
+    "week_days": [],
+    "record_metric": true,
+    "insight_log": false,
+    "send_to_oms": false
+  }
+}

@@ -55,7 +55,6 @@ default_strategy_params = {
     "entry_switch": {},
     "risk_limits": [],
     "trade_cut_off_time": 60,
-    "trade_manager_info": {}
 }
 
 
@@ -81,6 +80,7 @@ def get_startegy_args(**kwargs):
 
 
 default_trade_manager_params = {
+    "strategy_id": None,
     "asset": None,
     "durations": [10],
     "exit_at":None,

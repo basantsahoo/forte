@@ -1,16 +1,12 @@
 from datetime import datetime
-from helper.utils import get_broker_order_type
 from strat_machine.queues.neuron_network import QNetwork
-from strat_machine.queues.trade import Trade
 from entities.trading_day import TradeDateTime
 import functools
-from helper.utils import get_option_strike
 
 from servers.server_settings import cache_dir
 from diskcache import Cache
-from helper.utils import inst_is_option, get_market_view
-from strat_machine.trade_master.trade_manager import TradeManager
-from strat_machine.trade_master.trade_set import TradeSet
+from helper.utils import inst_is_option
+from trade_master.trade_manager import TradeManager
 
 known_spot_instruments = ['SPOT']
 market_view_dict = {'SPOT_BUY': 'LONG',
@@ -37,7 +33,6 @@ class BaseStrategy:
                  entry_switch={},
                  risk_limits=[],
                  trade_cut_off_time=60,
-                 trade_manager_info = {}
                  ):
         #print('core strategy 3333333333333333333333333')
         #print('entry_signal_queues====',entry_signal_queues)
@@ -61,17 +56,15 @@ class BaseStrategy:
         self.minimum_quantity = 1
         self.risk_limits = risk_limits
         self.trade_cut_off_time = trade_cut_off_time
-        self.trade_manager_info = trade_manager_info
-        if (len(trade_manager_info['spot_high_targets']) < self.triggers_per_signal) and (len(trade_manager_info['spot_low_targets']) < self.triggers_per_signal) and (len(trade_manager_info['trade_targets']) < self.triggers_per_signal) and len(trade_manager_info['leg_group_exits']['targets']) < self.triggers_per_signal:
-            raise Exception("Triggers and targets of unequal size")
         #print('Add entry queue')
         self.entry_signal_pipeline = QNetwork(self, entry_signal_queues, entry_switch)
         #print('Add exit queue', exit_criteria_list)
+        self.market_book = market_book
+        self.asset_book = None
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
-        self.asset_book = market_book.get_asset_book(self.trade_manager_info['asset']) if market_book is not None else None
         self.restore_variables = {}
-        self.trade_manager = TradeManager.from_config(market_book, self, **trade_manager_info)
-        self.asset = self.asset_book.asset
+        self.trade_manager = None #TradeManager.from_config(market_book, self, **trade_manager_info)
+        #self.asset = self.asset_book.asset
         self.execute_trades = False
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
         #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
@@ -84,6 +77,9 @@ class BaseStrategy:
         #self.prepare_targets()
         self.strategy_cache = Cache(cache_dir + 'strategy_cache')
 
+    def add_trade_manager(self, trade_manager):
+        self.trade_manager = trade_manager
+        self.asset_book = self.market_book.get_asset_book(self.trade_manager.asset) if self.market_book is not None else None
 
 
     def set_up(self):
@@ -91,6 +87,8 @@ class BaseStrategy:
         activation_criterion = week_day_criterion
         if not activation_criterion:
             self.deactivate()
+        self.trade_manager.load_from_cache()
+        """
         carry_trades = self.strategy_cache.get(self.id, {})
         print('carry_trades===', carry_trades)
 
@@ -98,10 +96,12 @@ class BaseStrategy:
         self.trade_manager.from_store(carry_trades, params_repo)
         self.strategy_cache.delete(self.id)
         self.strategy_cache.delete('params_repo_' + self.id)
-
+        """
 
     def market_close_for_day(self):
         print('stragey market_close_for_day #################################')
+        self.trade_manager.market_close_for_day()
+        """
         carry_trade_sets = {}
         params_repo = {}
         for (sig_key, trade_set) in self.trade_manager.tradable_signals.items():
@@ -113,7 +113,7 @@ class BaseStrategy:
                         params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
         self.strategy_cache.set(self.id, carry_trade_sets)
         self.strategy_cache.set('params_repo_' + self.id, params_repo)
-
+        """
 
     def initiate_signal_trades(self):
         print('strategy initiate_signal_trades+++++++++++++++++')
@@ -162,7 +162,7 @@ class BaseStrategy:
                 mkt_parms = self.asset_book.spot_book.spot_processor.get_market_params()
                 if self.signal_params:
                     mkt_parms = {**mkt_parms, **self.signal_params}
-                self.params_repo[(sig_key, trigger['trade_seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
+                self.trade_manager.params_repo[(sig_key, trigger['trade_seq'])] = mkt_parms  # We are interested in signal features, trade features being stored separately
         self.signal_params = {}
         signal_info = {'strategy_id': self.id, 'signal_id': sig_key, 'trade_set': triggers}
         print('placing entry order at================', datetime.fromtimestamp(self.asset_book.spot_book.spot_processor.last_tick['timestamp']))

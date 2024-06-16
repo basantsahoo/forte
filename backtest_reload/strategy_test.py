@@ -8,17 +8,18 @@ import json
 import traceback
 import math
 
-from backtest.settings import reports_dir
+from backtest_reload.settings import reports_dir
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
 from arc.option_market_book import OptionMarketBook
 from db.market_data import (get_all_days)
 import helper.utils as helper_utils
-from arc.strategy_manager import StrategyManager
+from strat_machine.strategy_manager import StrategyManager
 from entities.trading_day import TradeDateTime
 from dynamics.option_market.data_loader import MultiDayOptionDataLoader
 from dynamics.option_market.exclude_trade_days import exclude_trade_days
 from backtest_reload.bt_strategies import *
+
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 

@@ -16,7 +16,7 @@ from arc.data_interface_for_backtest import AlgorithmBacktestIterface
 from arc_old_keep.market_book import MarketBook
 from db.market_data import (get_all_days, get_daily_tick_data, get_daily_option_data_2)
 import helper.utils as helper_utils
-from arc.strategy_manager import StrategyManager
+from strat_machine.strategy_manager import StrategyManager
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']
 
