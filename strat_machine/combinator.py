@@ -64,8 +64,8 @@ class StrategyCombinator:
             self.trigger_exit()
         elif trade_manager.tradable_signals:
             capital, pnl, pnl_pct = self.calculate_pnl()
-            trade_set = trade_manager.tradable_signals.values()[0]
-            trade = trade_set.trades.values()[0]
+            trade_set = list(trade_manager.tradable_signals.values())[0]
+            trade = list(trade_set.trades.values())[0]
             max_run_time = trade.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
                 trade.trigger_time + self.trade_duration * 60, self.force_exit_time + 60)
             if last_spot_candle['timestamp'] >= max_run_time:

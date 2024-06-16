@@ -2,10 +2,10 @@
    "strategy_id": "BANK_NIFTY_ATM_SHORT",
    "asset": "NIFTY",
     "durations":[
-      [450000],
-      [450000],
-      [450000],
-      [450000]
+      [450000, 450000],
+      [450000, 450000],
+      [450000, 450000],
+      [450000, 450000]
     ],
     "exit_at":null,
     "carry_forward_days":[1, 1, 1 ,1],
@@ -31,7 +31,6 @@
       "leg_groups": [
         {
           "lg_class": "gp_a",
-          "market_view": "SHORT",
           "asset": "NIFTY",
           "force_exit_ts": null,
           "legs" : {
@@ -49,7 +48,6 @@
         },
         {
           "lg_class": "gp_b",
-          "market_view": "SHORT",
           "asset": "NIFTY",
           "force_exit_ts": null,
           "legs" : {

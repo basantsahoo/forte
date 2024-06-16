@@ -29,7 +29,7 @@ class Trade:
             if val:
                 self.leg_group_exits[key] = val[trd_idx-1]
             else:
-                self.leg_group_exits[key] = []
+                self.leg_group_exits[key] = {}
         self.leg_groups = {}
         self.exit_orders = []
         self.entry_orders = []
@@ -101,7 +101,7 @@ class Trade:
     def other_init(self):
         self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
         self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
-        print('trade  other_init duration===', self.trade_duration)
+        #print('trade  other_init duration===', self.trade_duration)
 
 
     def slide_leg_group(self, prior_lg_id, lg_index):
@@ -165,7 +165,7 @@ class Trade:
         self.finish_trade_setup_after_entry_order()
 
     def calculate_target(self, target_level, default=None):
-        print('calculate_target+++++++++++++++++++++++++', target_level)
+        #print('calculate_target+++++++++++++++++++++++++', target_level)
         rs = default
         if isinstance(target_level, (int, float)):
             rs = target_level

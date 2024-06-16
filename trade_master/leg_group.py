@@ -13,8 +13,8 @@ class LegGroup:
         self.trade = trade
         self.completed = False
         #self.leg_group_info = leg_group_info
-        self.target = abs(self.trade.leg_group_exits['targets'][self.lg_class])
-        self.stop_loss = -1 * abs(self.trade.leg_group_exits['stop_losses'][self.lg_class])
+        self.target = abs(self.trade.leg_group_exits['targets'].get(self.lg_class, float('inf')))
+        self.stop_loss = -1 * abs(self.trade.leg_group_exits['stop_losses'].get(self.lg_class, float('inf')))
         self.spot_high_stop_loss = abs(self.trade.leg_group_exits['spot_high_stop_losses'][self.lg_class]) if self.trade.leg_group_exits['spot_high_stop_losses'] else float('inf')
         self.spot_low_stop_loss = -1 * abs(self.trade.leg_group_exits['spot_low_stop_losses'][self.lg_class]) if self.trade.leg_group_exits['spot_low_stop_losses'] else float('-inf')
         self.spot_high_target = abs(self.trade.leg_group_exits['spot_high_targets'][self.lg_class]) if self.trade.leg_group_exits['spot_high_targets'] else float('inf')
@@ -34,14 +34,14 @@ class LegGroup:
         self.delta = leg_group_info.get('delta', 0)  # >0 means we are long <0 means we are sort
         self.market_view = leg_group_info.get('market_view', None)
         self.duration = leg_group_info.get('duration', None)
-        print('LegGroup duration===', self.duration)
+        #print('LegGroup duration===', self.duration)
         if self.duration is None:
             self.duration = min(self.trade.durations[lg_index], self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 2) if not self.carry_forward_days else self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days
 
 
-        print('self.trade.durations[lg_index]===', self.trade.durations[lg_index])
-        print('self.carry_forward_days===', self.carry_forward_days)
-        print('self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days===', self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days)
+        #print('self.trade.durations[lg_index]===', self.trade.durations[lg_index])
+        #print('self.carry_forward_days===', self.carry_forward_days)
+        #print('self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days===', self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days)
 
     @classmethod
     def from_config(cls, trade, lg_id, lg_index, leg_group_info):
@@ -144,7 +144,7 @@ class LegGroup:
     def close_on_instr_tg_sl_tm(self):
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
         max_run_time = self.trigger_time + self.duration * 60 if self.force_exit_time is None else min(self.trigger_time + self.duration * 60, self.force_exit_time + 60)
-        print("leggroup max_run_time =", max_run_time)
+        #print("leggroup max_run_time =", max_run_time)
         capital, pnl, pnl_pct = self.calculate_pnl()
         if last_spot_candle['timestamp'] >= max_run_time:
             self.trigger_exit(exit_type='TC')
@@ -176,15 +176,15 @@ class LegGroup:
                 self.trigger_exit(exit_type='SS')
 
     def check_slide_status(self):
-        print('check_slide_status++++++++++++++++++++++++++++')
+        #print('check_slide_status++++++++++++++++++++++++++++')
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
         if last_spot_candle['close'] >= self.spot_entry_price + self.spot_slide_up:
-            print('here 1 ++++++++++++++++++++++++++++')
+            #print('here 1 ++++++++++++++++++++++++++++')
             self.trigger_exit(exit_type='SLDUP')
             self.trade.slide_leg_group(self.lg_id, self.lg_index)
         elif last_spot_candle['close'] <= self.spot_entry_price + self.spot_slide_down:
-            print('spot slide to lower end')
+            #print('spot slide to lower end')
             self.trigger_exit(exit_type='SLDDOWN')
-            print('trigger exit complete +++++++++')
+            #print('trigger exit complete +++++++++')
             self.trade.slide_leg_group(self.lg_id, self.lg_index)
 

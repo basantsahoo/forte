@@ -2,10 +2,10 @@
    "strategy_id": "NIFTY_ATM_LONG",
    "asset": "NIFTY",
     "durations":[
-      [450000],
-      [450000],
-      [450000],
-      [450000]
+      [450000, 450000],
+      [450000, 450000],
+      [450000, 450000],
+      [450000, 450000]
     ],
     "exit_at":null,
     "carry_forward_days":[1, 1, 1 ,1],
@@ -37,13 +37,13 @@
           "legs" : {
             "A": {
               "instr_to_trade": {
-                "money_ness": "OTM",
+                "money_ness": "ATM",
                 "level": 1,
                 "kind": "CE",
                 "expiry": "near"
               },
-              "order_type": "SELL",
-              "quantity": 1
+              "order_type": "BUY",
+              "quantity": 2
             }
           }
         },
@@ -55,13 +55,13 @@
           "legs" : {
             "A": {
               "instr_to_trade": {
-                "money_ness": "OTM",
+                "money_ness": "ATM",
                 "level": 1,
                 "kind": "PE",
                 "expiry": "near"
               },
-              "order_type": "SELL",
-              "quantity": 1
+              "order_type": "BUY",
+              "quantity": 2
             }
           }
         }

@@ -28,7 +28,7 @@ class Leg:
         self.trigger_time = trigger_time
         self.exit_type = None
         self.exit_time = None
-        print('self.leg_group.force_exit_ts++++++++++++++++++', self.leg_group.force_exit_time)
+        #print('self.leg_group.force_exit_ts++++++++++++++++++', self.leg_group.force_exit_time)
     @classmethod
     def from_store(cls, leg_group, **kwargs):
         kwargs['instrument'] = Instrument.from_store(leg_group.trade.trade_set.trade_manager.market_book, kwargs['instrument'])
