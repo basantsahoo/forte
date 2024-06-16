@@ -39,7 +39,7 @@ class StartegyBackTester:
             print('insight book init took', (end-start).total_seconds())
             for instr in range(len(self.strat_config['instruments'])):
                 story_book.add_instrument(instr)
-            for comb in range(len(self.strat_config['combinations'])):
+            for comb in range(len(self.strat_config['combinators'])):
                 story_book.add_combinations(comb)
 
             start = datetime.now()

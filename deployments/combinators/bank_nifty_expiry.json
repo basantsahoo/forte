@@ -1,0 +1,5 @@
+
+  {
+    "id":"BANK_NIFTY_EXPIRY_HEDGE_NIFTY",
+    "combinations": ["BANK_NIFTY_ATM_SHORT", "NIFTY_ATM_LONG"]
+  }

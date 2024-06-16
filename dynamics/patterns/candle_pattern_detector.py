@@ -1,12 +1,11 @@
 import numpy as np
 import pandas as pd
-from statistics import mean
 import talib
 pattern_names = talib.get_function_groups()['Pattern Recognition'] #['CDLHANGINGMAN']
 from arc.candle_processor import CandleProcessor
 from entities.base import Signal
 from candlestick import candlestick
-from arc.signal_settings import config
+from configurations.signal_settings import config
 
 s_patterns = ['hanging_man', 'bearish_harami', 'bullish_harami',
               'gravestone_doji', 'dark_cloud_cover', 'doji', 'doji_star', 'dragonfly_doji',
