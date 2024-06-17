@@ -19,7 +19,7 @@ import helper.utils as helper_utils
 from strat_machine.strategy_manager import StrategyManager
 from trade_master.strategy_trade_manager_pool import StrategyTradeManagerPool
 from entities.trading_day import TradeDateTime
-from arc.data_loader_ip import MultiDayOptionDataLoader
+from arc.data_loader_ip import MultiDayOptionDataLoader, MultiDaySpotDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 from backtest_structure.bt_strategies import *
 
@@ -37,7 +37,7 @@ class StartegyBackTester:
             try:
                 in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
                 t_day = in_day.date_string
-                market_book = OptionMarketBook(in_day.date_string, assets=subscribed_assets, record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False)
+                market_book = OptionMarketBook(in_day.date_string, assets=subscribed_assets, record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False, spot_only=self.strat_config['run_params'].get('spot_only', False))
                 place_live = False
                 interface = None
                 if self.strat_config['run_params'].get("send_to_oms", False):
@@ -73,7 +73,10 @@ class StartegyBackTester:
                 strategy_manager.clean_up_combinators()
 
                 market_book.strategy_manager = strategy_manager
-                data_loader = MultiDayOptionDataLoader(assets=subscribed_assets, trade_days=[t_day], spot_only=False)
+                if self.strat_config['run_params'].get('spot_only', False):
+                    data_loader = MultiDaySpotDataLoader(assets=subscribed_assets, trade_days=[t_day])
+                else:
+                    data_loader = MultiDayOptionDataLoader(assets=subscribed_assets, trade_days=[t_day], spot_only=self.strat_config['run_params'].get('spot_only', False))
 
                 while data_loader.data_present:
                     feed_list_ = data_loader.generate_next_feed()

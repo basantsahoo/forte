@@ -107,6 +107,43 @@ class MultiDayOptionDataLoader:
             self.data_present = False
             return []
 
+class MultiDaySpotDataLoader:
+    def __init__(self, assets=["NIFTY"], trade_days=[]):
+        self.assets = assets
+        self.spot_ions = OrderedDict()
+        self.last_ts = None
+        start = datetime.now()
+        for day in trade_days:
+            sb = SpotIonBuilder(assets, day)
+            self.spot_ions[day] = sb.ion_data
+        end = datetime.now()
+        print('option data loading took===', (end-start).total_seconds())
+        self.data_present = True
+        self.market_close_for_day = False
+
+    def generate_next_feed(self):
+        if self.market_close_for_day:
+            self.market_close_for_day = False
+            yield {'feed_type': 'market_close', 'asset': self.assets[0], 'data': []}
+
+        if list(self.spot_ions.keys()):
+            day_key = list(self.spot_ions.keys())[0]
+            print(day_key)
+            ts_keys = list(self.spot_ions[day_key].keys())
+            ts_keys.sort()
+            ts_key = ts_keys[0]
+            next_spot_feed_list = self.spot_ions[day_key].get(ts_key, []).copy()
+            del self.spot_ions[day_key][ts_key]
+            if not self.spot_ions[day_key]:
+                del self.spot_ions[day_key]
+                self.market_close_for_day = True
+
+            for next_spot_feed in next_spot_feed_list:
+                yield {'feed_type': 'spot', 'asset': next_spot_feed['asset'], 'data': [next_spot_feed]}
+        else:
+            self.data_present = False
+            yield {}
+
 
 class DayHistTickDataLoader:
     def __init__(self, asset="NIFTY"):

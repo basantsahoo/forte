@@ -1,0 +1,15 @@
+{
+  "strategies":["PriceBreakEMADownward"],
+  "combinators": [],
+  "run_params": {
+    "test_days": [],
+    "for_past_days": 2,
+    "to_date": "2022-12-27",
+    "candle_sw" : 0,
+    "week_days": [],
+    "spot_only": true,
+    "record_metric": true,
+    "send_to_oms": false,
+    "insight_log": false
+  }
+}

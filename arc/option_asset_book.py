@@ -54,29 +54,33 @@ class OptionAssetBook:
 
     def day_change_notification(self, trade_day):
         # """ comment for spot only start
-        near_expiry_week = NearExpiryWeek(TradeDateTime(trade_day), self.asset)
-        self.expiry_date = near_expiry_week.end_date.date_string
-        if near_expiry_week.start_date.date_string != trade_day:
-            closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
-            closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
-            #print(closing_oi_df.to_dict('records'))
-            self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
-            self.option_matrix_5_min.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
-        else:
-            self.option_matrix.process_closing_oi(trade_day, [])
-            self.option_matrix_5_min.process_closing_oi(trade_day, [])
-        
-        avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
-        self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)
-        self.option_matrix_5_min.process_avg_volume(trade_day, avg_volume_recs)
+        if not self.market_book.spot_only:
+            near_expiry_week = NearExpiryWeek(TradeDateTime(trade_day), self.asset)
+            self.expiry_date = near_expiry_week.end_date.date_string
+            if near_expiry_week.start_date.date_string != trade_day:
+                closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
+                closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
+                #print(closing_oi_df.to_dict('records'))
+                self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
+                self.option_matrix_5_min.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
+            else:
+                self.option_matrix.process_closing_oi(trade_day, [])
+                self.option_matrix_5_min.process_closing_oi(trade_day, [])
+
+            avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
+            self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)
+            self.option_matrix_5_min.process_avg_volume(trade_day, avg_volume_recs)
         #""" comment for spot only ends
         self.spot_book.day_change_notification(trade_day)
         #self.spot_book.set_transition_matrix()
 
     def get_expiry_day_time(self, t_string):
-        start_str = self.expiry_date + " " + t_string + " +0530"
-        ts = int(time.mktime(time.strptime(start_str, "%Y-%m-%d %H:%M:%S %z")))  # - 5.5 * 3600
-        return ts
+        if self.expiry_date is None:
+            return None
+        else:
+            start_str = self.expiry_date + " " + t_string + " +0530"
+            ts = int(time.mktime(time.strptime(start_str, "%Y-%m-%d %H:%M:%S %z")))  # - 5.5 * 3600
+            return ts
 
     def spot_feed_stream_1(self, feed_list):
         feed_list = [convert_to_spot_ion(feed) for feed in feed_list]

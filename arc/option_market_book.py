@@ -12,9 +12,11 @@ class OptionMarketBook:
                  record_metric=True,
                  insight_log=False,
                  live_mode=False,
+                 spot_only=False,
                  volume_delta_mode=False,
                  print_cross_stats=False):
         self.live_mode = live_mode
+        self.spot_only = spot_only
         self.volume_delta_mode = volume_delta_mode
         self.print_cross_stats = print_cross_stats
         self.day_setup_done = False
