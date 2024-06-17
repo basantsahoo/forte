@@ -128,7 +128,6 @@ class MultiDaySpotDataLoader:
 
         if list(self.spot_ions.keys()):
             day_key = list(self.spot_ions.keys())[0]
-            print(day_key)
             ts_keys = list(self.spot_ions[day_key].keys())
             ts_keys.sort()
             ts_key = ts_keys[0]

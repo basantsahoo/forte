@@ -23,7 +23,7 @@ class TradeManager:
                         params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
         self.carry_over_trade_cache.set(self.strategy_id, carry_trade_sets)
         self.carry_over_trade_cache.set('params_repo_' + self.strategy_id, params_repo)
-        print('EOD ===== carry_trades for', self.strategy_id, "=========", self.carry_over_trade_cache.get(self.strategy_id, {}))
+        #print('EOD ===== carry_trades for', self.strategy_id, "=========", self.carry_over_trade_cache.get(self.strategy_id, {}))
 
     def load_from_cache(self):
         carry_trades = self.carry_over_trade_cache.get(self.strategy_id, {})

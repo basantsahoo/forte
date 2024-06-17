@@ -54,7 +54,7 @@ class Neuron(SenderNeuron, ReceiverNeuron, ProcessLoggerMixin):
 
     # Check if all the dependent neurons are active
     def dependency_satisfied(self):
-        print('queue receive_signal', 'check dependency_satisfied', self.activation_dependency.values())
+        #print('queue receive_signal', 'check dependency_satisfied', self.activation_dependency.values())
         status = True
         for st in self.activation_dependency.values():
             status = status and st
