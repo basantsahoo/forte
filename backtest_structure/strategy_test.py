@@ -19,7 +19,7 @@ import helper.utils as helper_utils
 from strat_machine.strategy_manager import StrategyManager
 from trade_master.strategy_trade_manager_pool import StrategyTradeManagerPool
 from entities.trading_day import TradeDateTime
-from dynamics.option_market.data_loader import MultiDayOptionDataLoader
+from dynamics.option_market.data_loader_ip import MultiDayOptionDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 from backtest_structure.bt_strategies import *
 
@@ -29,6 +29,7 @@ class StartegyBackTester:
         self.strat_config['strategy_info'] = {}
         self.strat_config['trade_manager_info'] = {}
         self.strat_config['combinator_info'] = {}
+
     def back_test(self, subscribed_assets):
         results = []
         start_time = datetime.now()
@@ -72,7 +73,8 @@ class StartegyBackTester:
                 strategy_manager.clean_up_combinators()
 
                 market_book.strategy_manager = strategy_manager
-                data_loader = MultiDayOptionDataLoader(asset=subscribed_assets[0], trade_days=[t_day], spot_only=False)
+                data_loader = MultiDayOptionDataLoader(assets=subscribed_assets, trade_days=[t_day], spot_only=False)
+
                 while data_loader.data_present:
                     feed_ = data_loader.generate_next_feed()
                     #print(feed_)

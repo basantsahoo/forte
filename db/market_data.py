@@ -412,13 +412,16 @@ def get_daily_option_data(asset, trade_day, data='close', kind=None):
     conn.close()
     return df
 
-def get_daily_option_ion_data(asset, trade_day):
-    asset = helper_utils.get_nse_index_symbol(asset)
-    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, CONCAT(close, '|', volume, '|', oi) as ion  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(asset, trade_day)
-    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, open, high, low, close,  volume, oi FROM option_data where oi > 0 and underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(
-        asset, trade_day)
+def get_daily_option_ion_data(assets, trade_day):
+    assets = [helper_utils.get_nse_index_symbol(asset) for asset in assets]
+    assets = str(tuple(assets)).replace(",)", ")")
+    print(assets)
+    stmt_1 = "select timestamp, CONCAT(strike,'_', kind) AS instrument, CONCAT(close, '|', volume, '|', oi) as ion  FROM option_data where underlying = '{0}' and date = '{1}' order by timestamp asc, strike desc".format(assets, trade_day)
+    stmt_1 = "select timestamp, underlying as asset, CONCAT(strike,'_', kind) AS instrument, open, high, low, close,  volume, oi FROM option_data where oi > 0 and underlying IN {0} and date = '{1}' order by timestamp asc, strike desc".format(
+        assets, trade_day)
     conn = engine.connect()
     df = pd.read_sql_query(stmt_1, conn)
+    df['asset'] = df['asset'].apply(lambda x: helper_utils.root_symbol(x))
     conn.close()
     return df
 
@@ -455,12 +458,15 @@ def get_prev_day_avg_volume(asset, trade_day):
     return df
 
 
-def get_daily_spot_ion_data(asset, trade_day):
-    asset = helper_utils.get_nse_index_symbol(asset)
+def get_daily_spot_ion_data(assets, trade_day):
+    assets = [helper_utils.get_nse_index_symbol(asset) for asset in assets]
+    assets = str(tuple(assets)).replace(",)", ")")
+
     #stmt_1 = "select timestamp, CONCAT(open, '|', high, '|', low, '|', close) as ion  from minute_data where symbol = '{0}' and date = date('{1}') order by timestamp asc"
-    stmt_1 = "select timestamp, open, high, low, close  from minute_data where symbol = '{0}' and date = date('{1}') order by timestamp asc"
+    stmt_1 = "select timestamp,symbol as asset, open, high, low, close  from minute_data where symbol IN {0} and date = date('{1}') order by timestamp asc"
     conn = engine.connect()
-    df = pd.read_sql_query(stmt_1.format(asset, trade_day), conn)
+    df = pd.read_sql_query(stmt_1.format(assets, trade_day), conn)
+    df['asset'] = df['asset'].apply(lambda x: helper_utils.root_symbol(x))
     conn.close()
     return df
 

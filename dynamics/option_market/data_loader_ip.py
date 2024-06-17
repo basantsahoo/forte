@@ -5,15 +5,15 @@ from collections import OrderedDict
 
 
 class OptionIonBuilder:
-    def __init__(self, asset, trade_day):
-        ion_data_df = get_daily_option_ion_data(asset, trade_day)
+    def __init__(self, assets, trade_day):
+        ion_data_df = get_daily_option_ion_data(assets, trade_day)
         ion_data_df['trade_date'] = trade_day
         self.ion_data = ion_data_df.to_dict("records")
         #print('total option records====', len(self.ion_data))
 
 class SpotIonBuilder:
-    def __init__(self, asset, trade_day):
-        ion_data_df = get_daily_spot_ion_data(asset, trade_day)
+    def __init__(self, assets, trade_day):
+        ion_data_df = get_daily_spot_ion_data(assets, trade_day)
         ion_data_df['trade_date'] = trade_day
         ion_data_df['instrument'] = 'spot'
         recs = ion_data_df.to_dict("records")
@@ -30,11 +30,10 @@ class MultiDayOptionDataLoader:
         self.spot_only = spot_only
         start = datetime.now()
         for day in trade_days:
-            for asset in assets:
-                ob = OptionIonBuilder(asset, day)
-                sb = SpotIonBuilder(asset, day)
-                self.option_ions[day] = ob.ion_data
-                self.spot_ions[day] = sb.ion_data
+            ob = OptionIonBuilder(assets, day)
+            sb = SpotIonBuilder(assets, day)
+            self.option_ions[day] = ob.ion_data
+            self.spot_ions[day] = sb.ion_data
         end = datetime.now()
         print('option data loading took===', (end-start).total_seconds())
         self.data_present = True
@@ -49,9 +48,10 @@ class MultiDayOptionDataLoader:
     def generate_next_feed_spot_options(self):
         if self.market_close_for_day:
             self.market_close_for_day = False
-            return {'feed_type': 'market_close', 'asset': self.asset, 'data': []}
+            return {'feed_type': 'market_close', 'asset': self.assets[0], 'data': []}
 
         if list(self.option_ions.keys()):
+
             day_key = list(self.option_ions.keys())[0]
             #print(day_key)
             next_option_feed = self.option_ions[day_key][0]
@@ -65,20 +65,18 @@ class MultiDayOptionDataLoader:
                     #next_spot_feed = self.spot_ions[day_key].get(curr_ts, {'instrument': 'spot', 'timestamp': self.last_ts, 'trade_date': day_key, 'ion': '0|0|0|0'})
                     next_spot_feed = self.spot_ions[day_key].get(curr_ts, None)
                     if next_spot_feed:
-                        next_spot_feed['asset'] = self.asset
                         self.last_ts = curr_ts
-                        return {'feed_type': 'spot', 'asset': self.asset, 'data': [next_spot_feed]}
+                        return {'feed_type': 'spot', 'asset': next_spot_feed['asset'], 'data': [next_spot_feed]}
                 except:
                     pass
             next_feed = self.option_ions[day_key].pop(0)
-            next_feed['asset'] = self.asset
             self.last_ts = curr_ts
 
             if not self.option_ions[day_key]:
                 del self.option_ions[day_key]
                 del self.spot_ions[day_key]
                 self.market_close_for_day = True
-            return {'feed_type': 'option', 'asset': self.asset, 'data': [next_feed]}
+            return {'feed_type': 'option', 'asset': next_feed['asset'], 'data': [next_feed]}
 
         else:
             self.data_present = False
