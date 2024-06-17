@@ -75,7 +75,7 @@ class BaseStrategy:
         self.instr_stop_loss = [-0.1, -0.2, -0.3, -0.4]
         """
         #self.prepare_targets()
-        self.strategy_cache = Cache(cache_dir + 'strategy_cache')
+        #self.strategy_cache = Cache(cache_dir + 'strategy_cache')
 
     def add_trade_manager(self, trade_manager):
         self.trade_manager = trade_manager
@@ -99,7 +99,7 @@ class BaseStrategy:
         """
 
     def market_close_for_day(self):
-        print('stragey market_close_for_day #################################')
+        print('strategy market_close_for_day #################################')
         self.trade_manager.market_close_for_day()
         """
         carry_trade_sets = {}

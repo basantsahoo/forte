@@ -76,14 +76,16 @@ class StartegyBackTester:
                 data_loader = MultiDayOptionDataLoader(assets=subscribed_assets, trade_days=[t_day], spot_only=False)
 
                 while data_loader.data_present:
-                    feed_ = data_loader.generate_next_feed()
-                    #print(feed_)
-                    if feed_:
-                        if feed_['feed_type'] == 'market_close':
-                            market_book.market_close_for_day()
-                        else:
-                            market_book.feed_stream(feed_)
-                            pm.feed_stream(feed_)
+                    feed_list_ = data_loader.generate_next_feed()
+                    feed_list_ = list(feed_list_)
+                    #print(feed_list_)
+                    for feed_ in feed_list_:
+                        if feed_:
+                            if feed_['feed_type'] == 'market_close':
+                                market_book.market_close_for_day()
+                            else:
+                                market_book.feed_stream(feed_)
+                                pm.feed_stream(feed_)
                             #time.sleep(0.005)
                 #print(pm.position_book.items())
                 try:
@@ -162,9 +164,9 @@ class StartegyBackTester:
                 if combinator_info['id'] in self.strat_config['combinators']:
                     self.strat_config['combinator_info'][combinator_info['id']] = combinator_info
 
-        print(self.strat_config['combinator_info'])
+        #print(self.strat_config['combinator_info'])
         combination_strategies = [x for combinator in self.strat_config['combinator_info'].values() for x in combinator['combinations']]
-        print(combination_strategies)
+        #print(combination_strategies)
         strategies_path = str(Path(__file__).resolve().parent.parent) + "/deployments/combinators/strategies/"
         strategyfiles = [f for f in listdir(strategies_path) if isfile(join(strategies_path, f))]
         for fl in strategyfiles:
@@ -183,7 +185,7 @@ class StartegyBackTester:
 
 
         subscribed_assets = list(set([tm['asset'] for tm in self.strat_config['trade_manager_info'].values()]))
-        print(subscribed_assets)
+        #print(subscribed_assets)
         final_result = []
         for symbol in subscribed_assets:
             if len(self.strat_config['run_params']['test_days']) == 0:

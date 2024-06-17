@@ -18,7 +18,9 @@ class SpotIonBuilder:
         ion_data_df['instrument'] = 'spot'
         recs = ion_data_df.to_dict("records")
         #self.ion_data = ion_data_df.to_dict("records")
-        self.ion_data = {rec['timestamp']: rec for rec in recs}
+        self.ion_data = {}
+        for rec in recs:
+            self.ion_data[rec['timestamp']] = [rec] if rec['timestamp'] not in self.ion_data.keys() else self.ion_data[rec['timestamp']] + [rec]
         #print('total spot records====', len(self.ion_data))
 
 class MultiDayOptionDataLoader:
@@ -48,7 +50,7 @@ class MultiDayOptionDataLoader:
     def generate_next_feed_spot_options(self):
         if self.market_close_for_day:
             self.market_close_for_day = False
-            return {'feed_type': 'market_close', 'asset': self.assets[0], 'data': []}
+            yield {'feed_type': 'market_close', 'asset': self.assets[0], 'data': []}
 
         if list(self.option_ions.keys()):
 
@@ -63,24 +65,26 @@ class MultiDayOptionDataLoader:
 
                 try:
                     #next_spot_feed = self.spot_ions[day_key].get(curr_ts, {'instrument': 'spot', 'timestamp': self.last_ts, 'trade_date': day_key, 'ion': '0|0|0|0'})
-                    next_spot_feed = self.spot_ions[day_key].get(curr_ts, None)
-                    if next_spot_feed:
-                        self.last_ts = curr_ts
-                        return {'feed_type': 'spot', 'asset': next_spot_feed['asset'], 'data': [next_spot_feed]}
+                    next_spot_feed_list = self.spot_ions[day_key].get(curr_ts, [])
+                    #print(next_spot_feed_list)
+                    for next_spot_feed in next_spot_feed_list:
+                        yield {'feed_type': 'spot', 'asset': next_spot_feed['asset'], 'data': [next_spot_feed]}
+                    self.last_ts = curr_ts
                 except:
                     pass
             next_feed = self.option_ions[day_key].pop(0)
+            #print(next_feed)
             self.last_ts = curr_ts
 
             if not self.option_ions[day_key]:
                 del self.option_ions[day_key]
                 del self.spot_ions[day_key]
                 self.market_close_for_day = True
-            return {'feed_type': 'option', 'asset': next_feed['asset'], 'data': [next_feed]}
+            yield {'feed_type': 'option', 'asset': next_feed['asset'], 'data': [next_feed]}
 
         else:
             self.data_present = False
-            return []
+            yield {}
 
     def generate_next_feed_spot_only(self):
         if self.market_close_for_day:
