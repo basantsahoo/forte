@@ -3,6 +3,7 @@ import time
 from dynamics.profile import utils as profile_utils
 from arc.option_asset_book import OptionAssetBook
 from arc.time_book import TimeBook
+from arc.clock import Clock
 
 class OptionMarketBook:
     def __init__(self,
@@ -19,6 +20,7 @@ class OptionMarketBook:
         self.day_setup_done = False
         self.trade_day = trade_day
         self.pm = None
+        self.clock = None
         self.record_metric = record_metric
         self.log_enabled = insight_log
         self.run_aggregator=False
@@ -48,6 +50,7 @@ class OptionMarketBook:
             print('trade date change')
             self.do_day_set_up(feed['data'][-1]['trade_date'])
         if feed['feed_type'] == 'spot':
+            self.clock.check_frame_change(feed['data'][-1]['timestamp'])
             self.set_curr_tpo(feed['data'][-1]['timestamp'])
             self.asset_books[feed['asset']].spot_feed_stream_1(feed['data'])
 
@@ -71,9 +74,23 @@ class OptionMarketBook:
         self.market_start_ts = start_ts
         self.market_close_ts = end_ts
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
+        if self.clock is None:
+            self.clock = Clock()
+            self.clock.initialize_from_trade_day(trade_day)
+            self.clock.subscribe_to_frame_change(self.frame_change_action)
+        else:
+            self.clock.on_day_change(trade_day)
+
         for asset_book in self.asset_books.values():
             asset_book.day_change_notification(trade_day)
         self.day_setup_done = True
+
+    def frame_change_action(self, current_frame, next_frame):
+        for asset_book in self.asset_books.values():
+            asset_book.frame_change_action_1(current_frame, next_frame)
+        for asset_book in self.asset_books.values():
+            asset_book.frame_change_action_2(current_frame, next_frame)
+
 
     def market_close_for_day(self):
         print('market close for day ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')

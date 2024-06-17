@@ -31,8 +31,8 @@ class TradeManager:
 
         params_repo = self.carry_over_trade_cache.get('params_repo_' + self.strategy_id, {})
         self.load_carry_trades(carry_trades, params_repo)
-        #self.carry_over_trade_cache.delete(self.strategy_id)
-        #self.carry_over_trade_cache.delete('params_repo_' + self.strategy_id)
+        self.carry_over_trade_cache.delete(self.strategy_id)
+        self.carry_over_trade_cache.delete('params_repo_' + self.strategy_id)
 
 
     @classmethod

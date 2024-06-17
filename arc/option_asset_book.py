@@ -4,7 +4,6 @@ from db.market_data import get_prev_day_avg_volume
 from dynamics.option_market.utils import get_average_volume_for_day
 from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion
 from entities.base import Signal
-from arc.clock import Clock
 from arc.compound_signal_builder import CompoundSignalBuilder
 from entities.trading_day import NearExpiryWeek, TradeDateTime
 from config import get_expiry_date
@@ -16,7 +15,6 @@ class OptionAssetBook:
         self.market_book = market_book
         self.asset = asset
         self.spot_book = SpotBook(self, asset)
-        self.clock = None
         self.option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1, live_mode=market_book.live_mode, volume_delta_mode=market_book.volume_delta_mode, print_cross_stats=market_book.print_cross_stats)
         self.option_matrix_5_min = OptionMatrix(asset, feed_speed=1, throttle_speed=5, live_mode=market_book.live_mode, volume_delta_mode=market_book.volume_delta_mode, print_cross_stats=market_book.print_cross_stats, period="5min")
         self.option_matrix.signal_generator.signal_dispatcher = self.pattern_signal
@@ -55,12 +53,6 @@ class OptionAssetBook:
         return highest_candle
 
     def day_change_notification(self, trade_day):
-        if self.clock is None:
-            self.clock = Clock()
-            self.clock.initialize_from_trade_day(trade_day)
-            self.clock.subscribe_to_frame_change(self.frame_change_action)
-        else:
-            self.clock.on_day_change(trade_day)
         # """ comment for spot only start
         near_expiry_week = NearExpiryWeek(TradeDateTime(trade_day), self.asset)
         self.expiry_date = near_expiry_week.end_date.date_string
@@ -90,17 +82,11 @@ class OptionAssetBook:
         feed_list = [convert_to_spot_ion(feed) for feed in feed_list]
         #Looping to accomodate hist data from websocket. Yet to test
         for feed in feed_list:
-            self.clock.check_frame_change(feed['timestamp'])
             self.option_matrix.process_spot_feed([feed])
             self.option_matrix_5_min.process_spot_feed([feed])
             self.spot_book.feed_stream_1([feed])
 
     #def spot_feed_stream_2(self, feed_list):
-        if self.last_periodic_update is None:
-            self.last_periodic_update = self.clock.current_frame
-        if self.clock.current_frame - self.last_periodic_update > self.periodic_update_sec:
-            self.last_periodic_update = self.clock.current_frame
-            self.spot_book.update_periodic()
 
     def option_feed_stream(self, feed_list):
         feed_list = [convert_to_option_ion(feed) for feed in feed_list]
@@ -132,15 +118,23 @@ class OptionAssetBook:
         last_tick = self.spot_book.spot_processor.last_tick
         self.compound_signal_generator.add_signal(last_tick['timestamp'], signal)
 
-    def frame_change_action(self, current_frame, next_frame):
+    def frame_change_action_1(self, current_frame, next_frame):
         #print('frame_change_action++++++++++++++++++ 111')
         self.option_matrix.frame_change_action(current_frame, next_frame)
         self.option_matrix_5_min.frame_change_action(current_frame, next_frame)
         #print('frame_change_action++++++++++++++++++ 222')
         self.spot_book.frame_change_action(current_frame, next_frame)
+
+    def frame_change_action_2(self, current_frame, next_frame):
         self.compound_signal_generator.frame_change_action()
         self.market_book.strategy_manager.on_minute_data_pre(self.asset)
         self.market_book.strategy_manager.on_minute_data_post(self.asset)
+        if self.last_periodic_update is None:
+            self.last_periodic_update = current_frame
+        if current_frame - self.last_periodic_update > self.periodic_update_sec:
+            self.last_periodic_update = current_frame
+            self.spot_book.update_periodic()
+
 
     def get_last_tick(self, instr='SPOT'):
         if inst_is_option(instr):

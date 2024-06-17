@@ -3,7 +3,6 @@
     "id":"NIFTY_ATM_LONG",
     "class":"OptionBuy",
     "max_signal": 1,
-    "asset": "BANKNIFTY",
     "register_signal_category": ["GLOBAL", "TIME_SIGNAL", "TUESDAY_15_01", "1min"],
     "trade_cut_off_time": 25,
     "entry_signal_queues": [

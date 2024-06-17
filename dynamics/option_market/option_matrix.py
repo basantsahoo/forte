@@ -60,9 +60,9 @@ class OptionMatrix:
 
 
     def frame_change_action(self, current_frame, next_frame):
-        print('----------------frame_change_action', TradeDateTime(current_frame).date_time_string)
+        #print('----------------frame_change_action', TradeDateTime(current_frame).date_time_string)
         self.last_time_stamp = int(int(current_frame/(self.aggregation_factor * 60)) * self.aggregation_factor * 60)
-        print('option matrix, frame_change_action++++', next_frame)
+        #print('option matrix, frame_change_action++++', next_frame)
         self.spot_throttler.check_time_to_push(next_frame)
         self.option_data_throttler.check_time_to_push(next_frame)
         self.data_throttler.check_time_to_push(next_frame)
@@ -252,12 +252,15 @@ class OptionMatrix:
 
 
     def get_last_tick(self, inst):
+        """
         print("self.current_date======", self.current_date, "inst====", inst)
         print('self.asset=====', self.asset)
         print('self.period========', self.period)
         print('self.capsule====', self.capsule.trading_data)
+        """
         day_capsule = self.get_day_capsule(self.current_date)
-        instrument_capsule = day_capsule.trading_data.get(inst)
+        trading_data = getattr(day_capsule, 'trading_data', {})
+        instrument_capsule = trading_data.get(inst)
         if instrument_capsule:
             last_tick = instrument_capsule.last_tick
             candle = last_tick.ion.to_candle()
