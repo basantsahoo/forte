@@ -35,7 +35,7 @@ print("month end==", expiry_week.moth_end_expiry)
 """
 
 from dynamics.option_market.option_matrix import  OptionMatrix, OptionSignalGenerator
-from dynamics.option_market.data_loader import MultiDayOptionDataLoader
+from arc.data_loader import MultiDayOptionDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 
 days = get_all_trade_dates_between_two_dates(asset, expiry_week.start_date.date_string, expiry_week.end_date.date_string)

@@ -9,7 +9,7 @@ from entities.trading_day import TradeDateTime, NearExpiryWeek
 from helper.data_feed_utils import convert_hist_option_feed, convert_hist_spot_feed
 sio = socketio.Client(reconnection_delay=5)
 from arc.data_interface_option_matrix import AlgorithmIterface
-from dynamics.option_market.data_loader import MultiDayOptionDataLoader, DayHistTickDataLoader
+from arc.data_loader import MultiDayOptionDataLoader, DayHistTickDataLoader
 
 
 class OptionMatrixClient(socketio.ClientNamespace):

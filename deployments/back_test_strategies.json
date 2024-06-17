@@ -3,7 +3,7 @@
   "combinators": ["BANK_NIFTY_EXPIRY_HEDGE_NIFTY"],
   "run_params": {
     "test_days": [],
-    "for_past_days": 2,
+    "for_past_days": 50,
     "to_date": "2024-04-10",
     "candle_sw" : 0,
     "week_days": [],

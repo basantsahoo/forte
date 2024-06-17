@@ -19,7 +19,7 @@ import helper.utils as helper_utils
 from strat_machine.strategy_manager import StrategyManager
 from trade_master.strategy_trade_manager_pool import StrategyTradeManagerPool
 from entities.trading_day import TradeDateTime
-from dynamics.option_market.data_loader_ip import MultiDayOptionDataLoader
+from arc.data_loader_ip import MultiDayOptionDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 from backtest_structure.bt_strategies import *
 
@@ -208,7 +208,15 @@ class StartegyBackTester:
 
 
 if __name__ == '__main__':
-    strat_config_file = 'back_test_strategies.json'
+    argv = sys.argv[1:]
+    kwargs = {kw[0]: kw[1] for kw in [ar.split('=') for ar in argv if ar.find('=') > 0]}
+    args = [arg for arg in argv if arg.find('=') < 0]
+    if 'strat_config' in kwargs:
+        strat_config_file = kwargs['strat_config']
+    elif args:
+        strat_config_file = args[0]
+    else:
+        strat_config_file = 'back_test_strategies.json'
     strat_config_path = str(Path(__file__).resolve().parent.parent) + "/deployments/" + strat_config_file
     with open(strat_config_path, 'r') as bt_config:
         strat_config = json.load(bt_config)

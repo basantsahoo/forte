@@ -4,7 +4,7 @@ project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 import numpy as np
 from dynamics.option_market.option_matrix import  OptionMatrix
-from dynamics.option_market.data_loader import MultiDayOptionDataLoader
+from arc.data_loader import MultiDayOptionDataLoader
 from db.market_data import get_prev_day_avg_volume
 from dynamics.option_market.utils import get_average_volume_for_day
 from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion

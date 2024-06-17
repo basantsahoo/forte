@@ -16,7 +16,7 @@ from db.market_data import (get_all_days)
 import helper.utils as helper_utils
 from strat_machine.strategy_manager import StrategyManager
 from entities.trading_day import TradeDateTime, NearExpiryWeek
-from dynamics.option_market.option_matrix import MultiDayOptionDataLoader
+from arc.data_loader import MultiDayOptionDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 
 default_symbols =  ['NIFTY', 'BANKNIFTY']

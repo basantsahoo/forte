@@ -6,7 +6,8 @@ project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 asset = "NIFTY"
 from entities.trading_day import NearExpiryWeek
-from dynamics.option_market.option_matrix import MultiDayOptionDataLoader, OptionMatrix
+from dynamics.option_market.option_matrix import  OptionMatrix
+from arc.data_loader import MultiDayOptionDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 
 
