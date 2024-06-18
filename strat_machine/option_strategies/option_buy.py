@@ -5,7 +5,7 @@ from helper.utils import get_option_strike
 
 class OptionBuy(BaseStrategy):
     def __init__(self, market_book, **kwargs):
-        print('OptionBuy+++++++++++++ init')
+        #print('OptionBuy+++++++++++++ init')
         args = get_startegy_args(**kwargs)
         #print(args)
         BaseStrategy.__init__(self, market_book=market_book, **args)

@@ -42,7 +42,7 @@ class Trade:
         print('trade force_exit_time======', self.force_exit_time)
         self.trade_duration = None
         self.spot_entry_price = None
-
+        self.delta = None
         self.controller_list = []
         self.con_seq = 0
 
@@ -82,6 +82,7 @@ class Trade:
         obj.spot_low_stop_loss = trade_info.get('spot_low_stop_loss', None)
         obj.spot_stop_loss_rolling = trade_info.get('spot_stop_loss_rolling', None)
         obj.con_seq = trade_info['con_seq']
+        obj.delta = trade_info['delta']
         obj.controller_list = [get_controller_from_store(stored_controller_info) for stored_controller_info in trade_info['controller_list']]
         print('from store controller list====', obj.controller_list)
         for controller in obj.controller_list:
@@ -91,11 +92,19 @@ class Trade:
 
     def to_dict(self):
         dct = {}
-        for field in ['trd_idx', 'trigger_time', 'spot_stop_loss_rolling', 'spot_high_target', 'spot_high_stop_loss', 'spot_low_target', 'spot_low_stop_loss', 'con_seq']:
+        for field in ['trd_idx', 'trigger_time', 'spot_stop_loss_rolling', 'spot_high_target', 'spot_high_stop_loss', 'spot_low_target', 'spot_low_stop_loss', 'delta', 'con_seq']:
             dct[field] = getattr(self, field)
         dct['leg_groups'] = [leg_group.to_dict() for leg_group in self.leg_groups.values()]
         dct['controller_list'] = [controller.to_dict() for controller in self.controller_list]
 
+        return dct
+
+    def to_partial_dict(self):
+        dct = {}
+        for field in ['trade_duration']:
+            dct[field] = getattr(self, field)
+        for field in ['trigger_time', 'exit_time', 'delta']:
+            dct['trade_' + field] = getattr(self, field)
         return dct
 
     def other_init(self):
@@ -154,8 +163,9 @@ class Trade:
         self.spot_high_stop_loss = round(min(self.spot_high_stop_loss, spot_high_stop_loss_level / self.spot_entry_price - 1), 4)
         self.spot_low_target = round(min(self.spot_low_target, spot_low_target_level / self.spot_entry_price - 1), 4)
         self.spot_low_stop_loss = round(min(self.spot_low_stop_loss, spot_low_stop_loss_level / self.spot_entry_price - 1), 4)
-        delta = self.calculate_delta()
-        self.spot_stop_loss_rolling = self.spot_low_stop_loss if delta > 0 else self.spot_high_stop_loss
+        self.delta = self.calculate_delta()
+        self.spot_stop_loss_rolling = self.spot_low_stop_loss if self.delta >= 0 else self.spot_high_stop_loss #if self.delta < 0 else None
+        #print('self.spot_stop_loss_rolling+++++++++', self.spot_stop_loss_rolling)
         self.set_controllers()
 
     def trigger_entry(self):
@@ -236,7 +246,8 @@ class Trade:
     def calculate_delta(self):
         trade_delta = []
         for leg_group_id, leg_group in self.leg_groups.items():
-            delta = leg_group.delta
+            if leg_group.prior_lg_id is None:
+                delta = leg_group.delta
             trade_delta.append(delta)
         return sum(trade_delta)
 
@@ -268,12 +279,14 @@ class Trade:
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         delta = self.calculate_delta()
         #print('self.spot_stop_loss_rolling=====', self.spot_stop_loss_rolling)
-        if delta > 0:
+        if delta >= 0:
             if self.spot_high_target and last_spot_candle['close'] >= self.spot_entry_price * (1 + self.spot_high_target):
                 self.trigger_exit(exit_type='TRD_ST')
             elif self.spot_low_stop_loss and last_spot_candle['close'] < self.spot_entry_price * (1 + self.spot_low_stop_loss):
                 self.trigger_exit(exit_type='TRD_SS')
+
             elif self.spot_stop_loss_rolling and last_spot_candle['close'] < self.spot_entry_price * (1 + self.spot_stop_loss_rolling):
+                #print('This loop+++++++++++++++')
                 self.trigger_exit(exit_type='TRD_SRS')
 
         elif delta < 0:

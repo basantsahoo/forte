@@ -112,9 +112,9 @@ class LegGroup:
 
     def to_partial_dict(self):
         dct = {}
-        for field in ['lg_id', 'prior_lg_id', 'lg_class', 'duration', 'delta']:
+        for field in ['lg_id', 'prior_lg_id', 'lg_class']:
             dct[field] = getattr(self, field)
-        for field in ['exit_time']:
+        for field in ['duration', 'delta', 'trigger_time', 'exit_time']:
             dct['lg_' + field] = getattr(self, field)
         return dct
 

@@ -43,7 +43,7 @@ class Leg:
 
     def to_partial_dict(self):
         dct = {}
-        for field in ['order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time', 'exit_type']:
+        for field in ['order_type', 'quantity', 'spot_entry_price', 'spot_exit_price', 'exit_type']:
             dct[field] = getattr(self, field)
         dct['instrument'] = self.instrument.instr_code
         dct['asset'] = self.instrument.asset

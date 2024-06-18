@@ -56,14 +56,14 @@ class StartegyBackTester:
                     strategy_class = eval(deployed_strategy['class'])
                     strategy_manager.add_strategy(strategy_class, deployed_strategy)
                     end = datetime.now()
-                    print('strategy init took', (end - start).total_seconds())
+                    #print('strategy init took', (end - start).total_seconds())
 
                 for deployed_tm in self.strat_config['trade_manager_info'].values():
                     start = datetime.now()
                     #print('deployed_strategy=====', deployed_strategy)
                     trade_pool.add(deployed_tm)
                     end = datetime.now()
-                    print('strategy init took', (end - start).total_seconds())
+                    #print('strategy init took', (end - start).total_seconds())
                 strategy_manager.clean_up_strategies()
 
                 for deployed_combinator in self.strat_config['combinator_info'].values():
@@ -104,13 +104,13 @@ class StartegyBackTester:
                         for leg_id, leg_info in position.items():
                             try:
                                 t_symbol = leg_info['symbol']
-                                _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg_group': leg_group_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+                                _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'signal_id': signal_id, 'trade_id': trade_id}
                                 _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
-
-                                #trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id]
+                                _tmp_2 = {'leg': leg_id, 'side': leg_info['side'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+                                trade_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].to_partial_dict()
                                 leg_group_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].to_partial_dict()
-                                trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id].to_partial_dict()
-                                _tmp = {**_tmp, **leg_group_details, **trigger_details}
+                                leg_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id].to_partial_dict()
+                                _tmp = {**_tmp, **trade_details, **leg_group_details, **_tmp_2, **leg_details}
                                 signal_custom_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].custom_features
                                 signal_params = ['pattern_height']
                                 for signal_param in signal_params:
@@ -232,16 +232,40 @@ if __name__ == '__main__':
     back_tester = StartegyBackTester(strat_config)
     results = back_tester.run()
     results = pd.DataFrame(results)
-    print('results=====',results)
+
     part_results = results  # [['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
-    print('total P&L', part_results['realized_pnl'].sum())
-    print('Accuracy', len([x for x in part_results['realized_pnl'].to_list() if x>0])/len(part_results['realized_pnl'].to_list()))
-    print('No of Days', len(part_results['day'].unique()))
-    part_results['entry_time_read'] = part_results['entry_time'].apply(lambda x: datetime.fromtimestamp(x))
-    part_results['exit_time_read'] = part_results['exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)
     search_days = results['day'].to_list()
     file_name = strat_config_file.split('.')[0]
     file_path = reports_dir + file_name + '.csv'
 
+
+
+    # Columns to group by
+    groupby_columns = ['strategy', 'symbol', 'signal_id', 'trade_id', 'lg_id', 'leg']
+    exclude_columns = [col for col in part_results.columns if col not in groupby_columns]
+
+
+    def keep_non_blank_exit_price(group):
+        # Check if there's any non-blank exit_price in the group
+        non_blank_rows = group.dropna(subset=['exit_price'])
+        if not non_blank_rows.empty:
+            # If there are non-blank rows, keep the first one (assuming only one such row per group)
+            return non_blank_rows
+        else:
+            # Otherwise, keep the original group (which contains the NaN exit_price row)
+            return group
+
+
+    result_df = part_results.groupby(groupby_columns, as_index=False).apply(keep_non_blank_exit_price).reset_index(drop=True)
+    # Reset index to flatten the multi-index resulting from groupby
+    result_df = result_df.drop_duplicates(subset=groupby_columns, keep='first').reset_index(drop=True)
+    print('results=====', result_df)
+    print('total P&L', result_df['realized_pnl'].sum())
+    print('Accuracy', len([x for x in result_df['realized_pnl'].to_list() if x>0])/len(result_df['realized_pnl'].to_list()))
+    print('No of Days', len(result_df['day'].unique()))
+    result_df['trade_entry_time_read'] = result_df['trade_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
+    result_df['trade_exit_time_read'] = result_df['trade_exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)
+
     print('saving result to file', file_path)
-    part_results.to_csv(file_path, index=False)
+
+    result_df.to_csv(file_path, index=False)
