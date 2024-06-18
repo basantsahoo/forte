@@ -12,6 +12,7 @@ class AlgoPortfolioManager:
         self.ltps = {}
         self.last_times = {}
         self.position_book = self.cache.get('algo_pm', {})
+        self.cache.set('algo_pm', {})
         self.broker = None
         self.strategy_order_map = {}
         self.broker = None

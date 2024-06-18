@@ -1,6 +1,6 @@
 {
   "strategies":["NIFTY_UP_BREAK_REVERSAL_1", "NIFTY_UP_BREAK_REVERSAL_2", "NIFTY_UP_BREAK_REVERSAL_3", "NIFTY_DOWN_BREAK_REVERSAL_1", "NIFTY_DOWN_BREAK_REVERSAL_2", "NIFTY_DOWN_BREAK_REVERSAL_3", "NIFTY_DOWN_BREAK_TYPE_3_1MIN"],
-  "combinators": ["BANK_NIFTY_EXPIRY_HEDGE_NIFTY"],
+  "combinators": [],
   "run_params": {
     "test_days": [],
     "for_past_days": 180,

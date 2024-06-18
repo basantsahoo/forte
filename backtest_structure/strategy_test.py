@@ -93,31 +93,36 @@ class StartegyBackTester:
                 #print(pm.position_book.items())
                 try:
                     for strategy_tuple, trade_details in pm.position_book.items():
-                        #print(strategy)
+                        print(strategy_tuple)
                         position = trade_details['position']
+
                         strategy_id = strategy_tuple[0]
                         signal_id = strategy_tuple[1]
                         trade_id = strategy_tuple[2]
                         leg_group_id = strategy_tuple[3]
                         strategy_signal_generator = strategy_manager.get_deployed_strategy_from_id(strategy_id)
                         for leg_id, leg_info in position.items():
-                            t_symbol = leg_info['symbol']
-                            _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg_group': leg_group_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
-                            _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
-                            #trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id]
-                            leg_group_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].to_partial_dict()
-                            trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id].to_partial_dict()
-                            _tmp = {**_tmp, **leg_group_details, **trigger_details}
-                            signal_custom_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].custom_features
-                            signal_params = ['pattern_height']
-                            for signal_param in signal_params:
-                                if signal_param in signal_custom_details:
-                                    _tmp[signal_param] = signal_custom_details[signal_param]
-                            if market_book.record_metric:
-                                params = strategy_signal_generator.params_repo.get((signal_id, trade_id), {})
-                                #print('params====', params)
-                                _tmp = {**_tmp, **params}
-                            results.append(_tmp)
+                            try:
+                                t_symbol = leg_info['symbol']
+                                _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'trade_id': trade_id, 'leg_group': leg_group_id, 'leg': leg_id, 'side': leg_info['side'], 'entry_time': leg_info['entry_time'], 'exit_time': leg_info['exit_time'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+                                _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
+
+                                #trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id]
+                                leg_group_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].to_partial_dict()
+                                trigger_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id].to_partial_dict()
+                                _tmp = {**_tmp, **leg_group_details, **trigger_details}
+                                signal_custom_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].custom_features
+                                signal_params = ['pattern_height']
+                                for signal_param in signal_params:
+                                    if signal_param in signal_custom_details:
+                                        _tmp[signal_param] = signal_custom_details[signal_param]
+                                if market_book.record_metric:
+                                    params = strategy_signal_generator.params_repo.get((signal_id, trade_id), {})
+                                    #print('params====', params)
+                                    _tmp = {**_tmp, **params}
+                                results.append(_tmp)
+                            except Exception as e:
+                                print(traceback.format_exc())
                 except Exception as e:
 
                     print('error on', day)

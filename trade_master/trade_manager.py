@@ -120,7 +120,8 @@ class TradeManager:
 
     def initiate_signal_trades(self):
         print('TradeManager initiate_signal_trades+++++++++++++++++')
-        sig_key = self.market_book.trade_day + "_" + str(self.signal_count + 1)
+        #sig_key = self.market_book.trade_day + "_" + str(self.signal_count + 1)
+        sig_key = self.strategy_id + "_" + self.market_book.trade_day + "_" + str(self.signal_count + 1)
         self.signal_count += 1
         self.tradable_signals[sig_key] = TradeSet.from_config(self, sig_key)
         return sig_key
