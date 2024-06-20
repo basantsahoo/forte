@@ -34,6 +34,7 @@ from dynamics.option_market.signal_generator import OptionSignalGenerator
 from dynamics.option_market.building_blocks import OptionCell, OptionIon
 from entities.trading_day import TradeDateTime
 
+volume_multiplier_dict = {'1min': 1, '5min': 5, '15min': 15}
 
 class OptionMatrix:
 
@@ -57,9 +58,11 @@ class OptionMatrix:
         self.print_cross_stats = print_cross_stats
         self.period = period
         self.aggregation_factor = throttle_speed / feed_speed
+        self.volume_multiplier = volume_multiplier_dict[self.period]
 
 
     def frame_change_action(self, current_frame, next_frame):
+        #print('----------------frame_change_action', self.period)
         #print('----------------frame_change_action', TradeDateTime(current_frame).date_time_string)
         self.last_time_stamp = int(int(current_frame/(self.aggregation_factor * 60)) * self.aggregation_factor * 60)
         #print('option matrix, frame_change_action++++', next_frame)
@@ -70,7 +73,7 @@ class OptionMatrix:
     def process_avg_volume(self, trade_date, inst_vol_list):
         self.avg_volumes[trade_date] = {}
         for inst_vol in inst_vol_list:
-            self.avg_volumes[trade_date][inst_vol['kind']] = inst_vol['avg_volume']
+            self.avg_volumes[trade_date][inst_vol['kind']] = inst_vol['avg_volume'] * self.volume_multiplier
 
     def process_closing_oi(self, trade_date, inst_oi_list):
         self.closing_oi[trade_date] = {}

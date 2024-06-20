@@ -113,6 +113,8 @@ class OptionMarketBook:
         return self.asset_books[symbol]
 
     def pattern_signal(self, asset, signal):
+        if signal.period in ["15min"]:
+            print(signal.category, signal.indicator, signal.period)
         """
         if signal.category in ['TIME_SIGNAL']:
             print(signal.category, signal.indicator)

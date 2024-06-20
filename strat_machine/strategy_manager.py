@@ -20,13 +20,17 @@ class StrategyManager:
             raise Exception('Duplicate Strategy id found')
 
     def clean_up_strategies(self):
-        for strategy_id, strategy in self.strategies.items():
+        for strategy_id in list(self.strategies.keys()):
+            strategy = self.strategies[strategy_id]
             if strategy.trade_manager is None:
                 del self.strategies[strategy_id]
 
     def clean_up_combinators(self):
-        for combinator_id, combinator in self.combinators.items():
+        for combinator_id in list(self.combinators.keys()):
+            combinator = self.combinators[combinator_id]
             if len(combinator.combinations) != len(list(combinator.strategies.keys())):
+                for strategy in combinator.strategies.values():
+                    strategy.trade_manager = None
                 del self.combinators[combinator_id]
 
     def add_combinator(self, combinator_kwars={}):

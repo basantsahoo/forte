@@ -64,13 +64,14 @@ class StartegyBackTester:
                     trade_pool.add(deployed_tm)
                     end = datetime.now()
                     #print('strategy init took', (end - start).total_seconds())
-                strategy_manager.clean_up_strategies()
+
 
                 for deployed_combinator in self.strat_config['combinator_info'].values():
                     strategy_manager.add_combinator(deployed_combinator)
                     end = datetime.now()
                     print('Combinator init took', (end - start).total_seconds())
                 strategy_manager.clean_up_combinators()
+                strategy_manager.clean_up_strategies()
 
                 market_book.strategy_manager = strategy_manager
                 if self.strat_config['run_params'].get('spot_only', False):

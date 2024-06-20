@@ -17,8 +17,10 @@ class OptionAssetBook:
         self.spot_book = SpotBook(self, asset)
         self.option_matrix = OptionMatrix(asset, feed_speed=1, throttle_speed=1, live_mode=market_book.live_mode, volume_delta_mode=market_book.volume_delta_mode, print_cross_stats=market_book.print_cross_stats)
         self.option_matrix_5_min = OptionMatrix(asset, feed_speed=1, throttle_speed=5, live_mode=market_book.live_mode, volume_delta_mode=market_book.volume_delta_mode, print_cross_stats=market_book.print_cross_stats, period="5min")
+        self.option_matrix_15_min = OptionMatrix(asset, feed_speed=1, throttle_speed=15, live_mode=market_book.live_mode, volume_delta_mode=market_book.volume_delta_mode, print_cross_stats=market_book.print_cross_stats, period="15min")
         self.option_matrix.signal_generator.signal_dispatcher = self.pattern_signal
         self.option_matrix_5_min.signal_generator.signal_dispatcher = self.pattern_signal
+        self.option_matrix_15_min.signal_generator.signal_dispatcher = self.pattern_signal
         self.last_periodic_update = None
         self.periodic_update_sec = 60
         self.compound_signal_generator = CompoundSignalBuilder(self)
@@ -63,13 +65,16 @@ class OptionAssetBook:
                 #print(closing_oi_df.to_dict('records'))
                 self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
                 self.option_matrix_5_min.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
+                self.option_matrix_15_min.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
             else:
                 self.option_matrix.process_closing_oi(trade_day, [])
                 self.option_matrix_5_min.process_closing_oi(trade_day, [])
+                self.option_matrix_15_min.process_closing_oi(trade_day, [])
 
             avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
             self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)
             self.option_matrix_5_min.process_avg_volume(trade_day, avg_volume_recs)
+            self.option_matrix_15_min.process_avg_volume(trade_day, avg_volume_recs)
         #""" comment for spot only ends
         self.spot_book.day_change_notification(trade_day)
         #self.spot_book.set_transition_matrix()
@@ -88,6 +93,7 @@ class OptionAssetBook:
         for feed in feed_list:
             self.option_matrix.process_spot_feed([feed])
             self.option_matrix_5_min.process_spot_feed([feed])
+            self.option_matrix_15_min.process_spot_feed([feed])
             self.spot_book.feed_stream_1([feed])
 
     #def spot_feed_stream_2(self, feed_list):
@@ -102,10 +108,12 @@ class OptionAssetBook:
         """
         self.option_matrix.process_option_feed(feed_list)
         self.option_matrix_5_min.process_option_feed(feed_list)
+        self.option_matrix_15_min.process_option_feed(feed_list)
 
     def set_volume_delta_mode(self, volume_delta_mode):
         self.option_matrix.volume_delta_mode = volume_delta_mode
         self.option_matrix_5_min.volume_delta_mode = volume_delta_mode
+        self.option_matrix_15_min.volume_delta_mode = volume_delta_mode
 
 
     def clean(self):
@@ -126,6 +134,7 @@ class OptionAssetBook:
         #print('frame_change_action++++++++++++++++++ 111')
         self.option_matrix.frame_change_action(current_frame, next_frame)
         self.option_matrix_5_min.frame_change_action(current_frame, next_frame)
+        self.option_matrix_15_min.frame_change_action(current_frame, next_frame)
         #print('frame_change_action++++++++++++++++++ 222')
         self.spot_book.frame_change_action(current_frame, next_frame)
 

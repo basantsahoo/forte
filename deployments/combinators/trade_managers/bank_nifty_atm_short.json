@@ -1,6 +1,6 @@
  {
    "strategy_id": "BANK_NIFTY_ATM_SHORT",
-   "asset": "BANKNIFTY",
+   "asset": "NIFTY",
     "durations":[
       [450000, 450000],
       [450000, 450000],
@@ -31,7 +31,7 @@
       "leg_groups": [
         {
           "lg_class": "gp_a",
-          "asset": "BANKNIFTY",
+          "asset": "NIFTY",
           "force_exit_ts": null,
           "legs" : {
             "A": {
@@ -48,7 +48,7 @@
         },
         {
           "lg_class": "gp_b",
-          "asset": "BANKNIFTY",
+          "asset": "NIFTY",
           "force_exit_ts": null,
           "legs" : {
             "A": {
