@@ -1,9 +1,11 @@
 import numpy as np
 from itertools import compress
 import json
-from config import price_range, tick_steps
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
+
+price_range = [50, 100, 1000, 2500, 20000, 50000, 9999999999]
+tick_steps = [0.05, 0.1, 0.25, 0.5,  5, 10, 25]
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -214,8 +216,8 @@ def get_profile_dist(print_matrix, price_bins, min_co_ext):
                 possible_high_extremes] if extreme_high else [],
             'sin_print_val': np.array(price_bins)[occured_price_bins][single_print_vals] if single_print else [],
             'p_shape': p_shape,
-            'p_bin_len' : print_matrix_t.shape[0],
-            'p_bins': occured_price_bins
+            #'p_bin_len' : print_matrix_t.shape[0],
+            #'p_bins': occured_price_bins
         }
     return result
 
@@ -363,5 +365,6 @@ def get_distribution(history, extremes):
 def get_tick_size(price):
     idx = get_next_highest_index(price_range, price)
     tick_size = tick_steps[idx]
+    print('tick_size=========', tick_size)
     return tick_size
 

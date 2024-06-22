@@ -22,6 +22,7 @@ from entities.trading_day import TradeDateTime
 
 from arc.spot_processor import SpotFactorCalculator
 from arc.spot_signal_generator import SpotSignalGenerator
+from arc.volume_profile import VolumeProfileService
 
 class SpotBook:
     def __init__(self, asset_book, asset):
@@ -42,6 +43,8 @@ class SpotBook:
         self.mc = MarkovChainSecondLevel()
         self.last_periodic_update = None
         self.periodic_update_sec = 60
+        self.volume_profile = VolumeProfileService()
+        self.volume_profile.spot_book = self
 
     def update_periodic(self):
         self.spot_processor.update_periodic()
@@ -50,9 +53,12 @@ class SpotBook:
         for feed in feed_list:
             #print(feed)
             self.spot_processor.process_minute_data(feed)
+            #self.market_profile.process_input_data(feed)
 
 
     def frame_change_action(self, current_frame, next_frame):
+        self.spot_processor.frame_change_action(current_frame, next_frame)
+        self.volume_profile.frame_change_action(current_frame, next_frame)
         self.signal_generator.generate_signals()
 
     def subscribe_to_clock(self, clock):

@@ -364,3 +364,6 @@ option_market_imapct_spot_at_high_analysis_latest.scenarios()
 
 
 pip install candlestick-patterns-subodh101
+
+
+https://medium.com/@nataraj_malavade/market-profile-intraday-strategy-719c38427eca

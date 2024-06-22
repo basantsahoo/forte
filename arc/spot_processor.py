@@ -59,6 +59,14 @@ class SpotFactorCalculator:
         self.supports_to_watch = [x for x in existing_supports if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
         self.resistances_to_watch = [x for x in existing_resistances if (x >= range_to_watch[0]) and (x <= range_to_watch[1])]
 
+    def frame_change_action(self, current_frame, next_frame):
+            inst = self.spot_ts[current_frame]
+            option_matrix = self.spot_book.asset_book.option_matrix
+            put_volume, call_volume = option_matrix.get_ts_volume(self.spot_book.asset_book.market_book.trade_day, current_frame)
+            total_volume = sum([put_volume, call_volume])/100000
+            inst['volume'] = total_volume
+            inst['asset'] = self.spot_book.asset_book.asset
+
     def process_minute_data(self, minute_data, notify=True):
         #print('spot process_minute_data+++++', datetime.fromtimestamp(minute_data['timestamp']))
         key_list = ['timestamp', 'open', 'high', "low", "close"]

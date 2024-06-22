@@ -6,8 +6,6 @@ min_co_ext = 2 #no of tpos for considering extremes
 price_range = [50, 100, 1000, 2500, 10000, 20000, 9999999999]
 tick_steps = [0.05, 0.1, 0.25, 0.5, 1, 5, 10]
 """
-price_range = [50, 100, 1000, 2500, 20000, 9999999999]
-tick_steps = [0.05, 0.1, 0.25, 0.5,  5, 10]
 
 exclued_days = ['2021-11-04', '2020-11-14', '2019-10-27', '2021-02-24']
 trading_halt_day = [ '2021-02-24']
