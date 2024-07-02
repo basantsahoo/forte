@@ -282,7 +282,7 @@ class OptionMatrix:
         return str(desired_strike) + "_" + inst[-2::]
 
     def get_ts_volume(self,trade_day,ts):
-        print('++++++++++++++++++++++++++++++here 1 ++++++++++++++++')
+        #print('++++++++++++++++++++++++++++++here 1 ++++++++++++++++')
         call_volume = self.capsule.trading_data[trade_day].cross_analyser.call_volume[ts]
         put_volume = self.capsule.trading_data[trade_day].cross_analyser.put_volume[ts]
         return put_volume, call_volume

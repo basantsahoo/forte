@@ -22,7 +22,9 @@ class Signal:
                                    "PRICE_SIGNAL",
                                    "OPTION_MARKET",
                                    "TIME_SIGNAL",
-                                   "COMPOUND"],
+                                   "COMPOUND",
+                                   "PATH"
+                 ],
                  indicator: str,
                  instrument: Optional[Literal['SPOT', "OPTION"]],
                  signal_time: Optional[int],

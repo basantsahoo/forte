@@ -1,0 +1,11 @@
+{
+  "id": "path1",
+  "signal": {
+    "category": "PATH",
+    "indicator": "UPWARD_STRETCH",
+    "instrument": "SPOT"
+  },
+  "time_criteria": ["tpo > 12"],
+  "market_criteria_groups": [[]],
+  "paths": ["third_tpo_high_extn", "volume_profile_above_poc > volume_profile_below_poc", "close < volume_profile_vah"]
+}
