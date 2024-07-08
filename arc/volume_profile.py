@@ -266,7 +266,7 @@ class VolumeProfileService(MarketProfileService):
 
             self.price_data[self.trade_day][inst['asset']]['close'] = inst['close']
             self.price_data[self.trade_day][inst['asset']]['volume'] = self.price_data[self.trade_day][inst['asset']]['volume'] + inst['volume']
-        print('close==============', inst['close'])
+        #print('close==============', inst['close'])
     def calculateProfile(self):
         if not self.waiting_for_data:
             for ticker, sym in self.price_data[self.trade_day].items():

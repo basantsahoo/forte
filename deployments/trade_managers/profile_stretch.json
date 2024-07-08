@@ -33,7 +33,7 @@
           "lg_class": "gp_a",
           "market_view": "SHORT",
           "asset": "NIFTY",
-          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:15:30"],
+          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:20:30"],
           "legs" : {
             "A": {
               "instr_to_trade": {

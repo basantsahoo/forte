@@ -31,6 +31,7 @@ class LegGroup:
         self.force_exit_time = leg_group_info.get('force_exit_time', None)
         if self.force_exit_time is None:
             self.force_exit_time = self.trade.trade_set.trade_manager.market_book.get_force_exit_ts(leg_group_info.get('force_exit_ts', None))
+            print('self.force_exit_time=======', self.force_exit_time)
         self.delta = leg_group_info.get('delta', 0)  # >0 means we are long <0 means we are sort
         self.market_view = leg_group_info.get('market_view', None)
         self.duration = leg_group_info.get('duration', None)

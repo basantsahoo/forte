@@ -7,5 +7,5 @@
   },
   "time_criteria": ["tpo > 12"],
   "market_criteria_groups": [[]],
-  "paths": ["volume_profile_above_poc > volume_profile_below_poc"]
+  "paths": ["sin_print == True"]
 }
