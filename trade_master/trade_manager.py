@@ -12,6 +12,8 @@ class TradeManager:
             raise Exception("Triggers and targets of unequal size")
     """
     def market_close_for_day(self):
+        print('trade manager market close for day')
+        print(self.params_repo)
         carry_trade_sets = {}
         params_repo = {}
         for (sig_key, trade_set) in self.tradable_signals.items():
@@ -56,7 +58,7 @@ class TradeManager:
             if list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'] < self.market_book.last_tick_timestamp:
                 self.tradable_signals[sig_key] = TradeSet.from_store(self, sig_key, trade_set_info)
                 for trade in self.tradable_signals[sig_key].trades.values():
-                    self.strategy.params_repo[(sig_key, trade.trd_idx)] = params_repo[(sig_key, trade.trd_idx)]
+                    self.params_repo[(sig_key, trade.trd_idx)] = params_repo[(sig_key, trade.trd_idx)]
 
 
     def __init__(self,

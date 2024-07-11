@@ -201,8 +201,8 @@ def get_profile_dist(print_matrix, price_bins, min_co_ext):
             elif high_infl[0] < max(df2.index) * 0.4:
                 p_shape = 'b'
         else:
-            low_bet_high = [x for x in low_infl if x > min(high_infl) and x < max(high_infl)]
-            if not low_bet_high:
+            low_between_high = [x for x in low_infl if x > min(high_infl) and x < max(high_infl)]
+            if not low_between_high:
                 p_shape = 'D'
             else:
                 p_shape = 'B'

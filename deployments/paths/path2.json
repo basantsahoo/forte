@@ -7,5 +7,5 @@
   },
   "time_criteria": ["tpo > 12"],
   "market_criteria_groups": [[]],
-  "paths": ["sin_print == True"]
+  "paths": ["ext_high == True"]
 }

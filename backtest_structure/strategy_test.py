@@ -105,10 +105,13 @@ class StartegyBackTester:
                         for leg_id, leg_info in position.items():
                             try:
                                 t_symbol = leg_info['symbol']
-                                _tmp = {'day': day, 'symbol': t_symbol, 'strategy': strategy_id, 'signal_id': signal_id, 'trade_id': trade_id}
-                                _tmp['week_day'] = datetime.strptime(day, '%Y-%m-%d').strftime('%A') if type(day) == str else day.strftime('%A')
-                                _tmp_2 = {'leg': leg_id, 'side': leg_info['side'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
                                 trade_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].to_partial_dict()
+                                trade_trigger_time = trade_details['trade_trigger_time']
+                                t_day = datetime.fromtimestamp(trade_trigger_time)
+                                _tmp = {'day': t_day.strftime('%d-%m-%Y'), 'symbol': t_symbol, 'strategy': strategy_id, 'signal_id': signal_id, 'trade_id': trade_id}
+                                _tmp['week_day'] = datetime.strptime(t_day, '%Y-%m-%d').strftime('%A') if type(t_day) == str else t_day.strftime('%A')
+                                _tmp_2 = {'leg': leg_id, 'side': leg_info['side'], 'entry_price': leg_info['entry_price'], 'exit_price': leg_info['exit_price'] , 'realized_pnl': round(leg_info['realized_pnl'], 2), 'un_realized_pnl': round(leg_info['un_realized_pnl'], 2)}
+
                                 leg_group_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].to_partial_dict()
                                 leg_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id].to_partial_dict()
                                 _tmp = {**_tmp, **trade_details, **leg_group_details, **_tmp_2, **leg_details}
@@ -118,7 +121,7 @@ class StartegyBackTester:
                                     if signal_param in signal_custom_details:
                                         _tmp[signal_param] = signal_custom_details[signal_param]
                                 if market_book.record_metric:
-                                    params = strategy_signal_generator.params_repo.get((signal_id, trade_id), {})
+                                    params = strategy_signal_generator.trade_manager.params_repo.get((signal_id, trade_id), {})
                                     #print('params====', params)
                                     _tmp = {**_tmp, **params}
                                 results.append(_tmp)

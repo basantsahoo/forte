@@ -49,7 +49,7 @@ class BaseStrategy:
         self.weekdays_allowed = weekdays_allowed
         self.activated = True
         self.is_aggregator = False
-        self.params_repo = {}
+        #self.params_repo = {}
         self.signal_params = {} #self.strategy_params = {}
         self.last_match = None
         self.pending_signals = {}

@@ -2,16 +2,16 @@
    "strategy_id": "PROFILE_STRETCH",
    "asset": "NIFTY",
     "durations":[
-      [4500],
-      [4500],
-      [4500],
-      [4500]
+      [9000],
+      [9000],
+      [9000],
+      [9000]
     ],
     "exit_at":null,
-    "carry_forward_days":[1, 2, 3 ,4],
-    "triggers_per_signal": 1,
-    "trade_targets":[0.5, 0.5, 0.01, 0.01],
-    "trade_stop_losses":[0.5, 0.5, 0.01, 0.01],
+    "carry_forward_days":[4, 4, 4 ,4],
+    "triggers_per_signal": 4,
+    "trade_targets":[0.5, 0.4, 0.2, 0.2],
+    "trade_stop_losses":[0.4, 0.3, 0.1, 0.1],
     "spot_high_stop_losses":[0.1],
     "spot_low_stop_losses":[0.1],
     "spot_high_targets":[0.1],
@@ -38,7 +38,7 @@
             "A": {
               "instr_to_trade": {
                 "money_ness": "ITM",
-                "level": 1,
+                "level": 2,
                 "kind": "CE",
                 "expiry": "near"
               },
