@@ -1,15 +1,15 @@
 from datetime import datetime
 from db.market_data import get_prev_week_minute_data_by_start_day, get_curr_week_minute_data_by_start_day
-from dynamics.profile.weekly_profile import WeeklyMarketProfileService
+from arc.weekly_profile import WeeklyMarketProfileService
 from helper.utils import determine_day_open, determine_level_reach
 from config import get_expiry_date
 import time
 
 
 class WeeklyProcessor:
-    def __init__(self, insight_book, ticker):
-        self.insight_book = insight_book
-        self.ticker = ticker
+    def __init__(self, asset_book, time_period):
+        self.asset_book = asset_book
+        self.ticker = asset_book.asset
         self.trade_day = None
         self.last_tick = {}
         self.first_tick_of_week = {}

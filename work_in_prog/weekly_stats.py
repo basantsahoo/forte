@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+project_path = str(Path(__file__).resolve().parent.parent)
+sys.path.insert(1, project_path)
+
 from db.market_data import get_prev_week_minute_data_by_start_day
 from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 from datetime import datetime, date
@@ -7,7 +12,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import matplotlib.dates as mdates
-from settings import reports_dir
+from servers.server_settings import reports_dir
 import pandas as pd
 import datetime as dt
 import calendar
@@ -192,9 +197,9 @@ def generate_historical_weekly_profile_chart(ticker, filtered_days, week_start_d
     file_name = ticker + "_" + 'weekly_profile_chart_26_08'
     merger.write(reports_dir + file_name + '.pdf')
 
-
+from config import default_symbols
 def generate(tickers=['NIFTY'], days_past=7):
-    dateToday = date.today()
+    dateToday = datetime.strptime('2024-04-10', '%Y-%m-%d')#date.today()
     curr_ordinal = dateToday.toordinal()
     print(curr_ordinal)
     last_ordinal = curr_ordinal-days_past
@@ -208,4 +213,4 @@ def generate(tickers=['NIFTY'], days_past=7):
     for ticker in tickers:
         generate_historical_weekly_profile_chart(ticker, trade_days, week_start_day="Friday", start_time="9:15:00")
 
-generate()
+generate(days_past=270)

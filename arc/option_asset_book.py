@@ -25,6 +25,7 @@ class OptionAssetBook:
         self.periodic_update_sec = 60
         self.compound_signal_generator = CompoundSignalBuilder(self)
         self.expiry_date = None
+        print("OptionAssetBook book init===========")
 
     def get_lowest_candle(self, instr, after_ts=None, is_option=False):
         lowest_candle = None

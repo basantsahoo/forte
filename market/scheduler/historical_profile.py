@@ -396,6 +396,6 @@ def run():
 	email(tickers, last_day[0]['date'])
 
 
-#generate(ticker)
+#generate(["NIFTY"], filter={'year': '2024'})
 #generate(ticker, filter={'day': 'Friday'}) ##this changed by me
 

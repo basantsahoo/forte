@@ -8,7 +8,6 @@ from dynamics.profile import utils as profile_utils
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
-from dynamics.patterns.trend_detector import TrendDetector
 from dynamics.patterns.candle_pattern_detector import CandlePatternDetector
 from servers.server_settings import cache_dir
 # Transitions
@@ -23,10 +22,12 @@ from entities.trading_day import TradeDateTime
 from arc.spot_processor import SpotFactorCalculator
 from arc.spot_signal_generator import SpotSignalGenerator
 from arc.volume_profile import VolumeProfileService
+from arc.weekly_processor import WeeklyProcessor
 from arc.path_evaluator import MarketStateManager
 
 class SpotBook:
     def __init__(self, asset_book, asset):
+        print("spot book init===========")
         self.asset_book = asset_book
         self.asset = asset
         self.spot_processor = SpotFactorCalculator(self, asset)
@@ -38,7 +39,6 @@ class SpotBook:
         self.trend = {}
         #self.activity_log = AssetActivityLog(self)
         self.inflex_detector = PriceInflexDetectorForTrend(asset, fpth=0.001, spth = 0.001,  callback=None)
-        self.trend_detector = TrendDetector(self, period=1)
         self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
         self.mc = MarkovChainSecondLevel()
@@ -47,6 +47,7 @@ class SpotBook:
         self.volume_profile = VolumeProfileService(time_period=5)
         self.volume_profile.spot_book = self
         self.market_state_manager = MarketStateManager(self)
+        #self.weekly_processor = WeeklyProcessor(self, asset_book, time_period=5)
 
     def update_periodic(self):
         self.spot_processor.update_periodic()
@@ -144,8 +145,6 @@ class SpotBook:
             detector.insight_book = None
         self.price_action_pattern_detectors = []
         self.candle_pattern_detectors = []
-        self.trend_detector.insight_book = None
-        self.trend_detector = None
         self.intraday_trend.insight_book = None
         self.intraday_trend = None
         self.market_data = None

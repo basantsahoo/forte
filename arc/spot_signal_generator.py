@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from talipp.indicators import EMA, SMA, Stoch
 from datetime import datetime
-from dynamics.trend.intraday_trend import IntradayTrendCalculator
 from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
 from dynamics.patterns.candle_pattern_detector import CandlePatternDetector
 # Transitions
@@ -28,9 +27,6 @@ class SpotSignalGenerator:
         self.last_candle_5_count = 0
         self.last_candle_1_count = 0
         self.day_range = {'low': float('inf'), 'high': float('-inf')}
-
-        self.intraday_trend = IntradayTrendCalculator(self)
-
         self.last_periodic_update = None
         self.periodic_update_sec = 60
 
@@ -42,7 +38,6 @@ class SpotSignalGenerator:
         self.price_action_pattern_detectors = [PriceActionPatternDetector(self.spot_book, period=1)]
         self.candle_pattern_detectors = [CandlePatternDetector(self.spot_book, period=1), CandlePatternDetector(self.spot_book, period=2), CandlePatternDetector(self.spot_book, period=5)]
         self.candle_pattern_detectors = [CandlePatternDetector(self.spot_book, period=1)]
-        self.intraday_trend = IntradayTrendCalculator(self)
         self.day_setup_done = False
         self.mc = MarkovChainSecondLevel()
 

@@ -14,8 +14,8 @@ import traceback
 from config import default_symbols
 from helper.utils import determine_day_open, determine_level_reach, get_overlap, get_percentile, candle_reversal_score
 from dynamics.profile.utils import get_next_lowest_index, get_next_highest_index
-from helper.time_utils import epoch_to_ordinal
-
+#from helper.time_utils import epoch_to_ordinal
+from entities.trading_day import TradeDateTime
 
 def extract_metrices(processed_data):
     metrices = {
@@ -90,7 +90,7 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
     lk_keys = ['open', 'high', 'low', 'close', 'poc_price', 'va_l_p', 'va_l_poc_mid', 'va_l_low_mid', 'va_h_poc_mid', 'va_h_high_mid', 'va_h_p', 'balance_target']
     # Current week
     df_curr_week = get_curr_week_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
-    df_curr_week['ordinal_date'] = df_curr_week['timestamp'].apply(lambda x:epoch_to_ordinal(x))
+    df_curr_week['ordinal_date'] = df_curr_week['timestamp'].apply(lambda x: TradeDateTime(x).ordinal)
     curr_week_dates = df_curr_week['ordinal_date'].unique()
     curr_week_dates.sort()
 
@@ -235,6 +235,6 @@ def generate(tickers=[], days_past=7):
 def run():
     print(default_symbols)
     tickers = default_symbols[0:1]
-    generate(tickers=tickers, days_past=365*3)
+    generate(tickers=tickers, days_past=7)
 
 run()

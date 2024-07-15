@@ -217,7 +217,6 @@ class VolumeProfileService(MarketProfileService):
                 """
                 self.process_input_data(current_frame)
                 self.calculateProfile()
-                self.generate_signal()
 
     def process_input_data(self, current_frame):
         #print('process_input_data+++++++++', current_frame)
@@ -369,6 +368,3 @@ class VolumeProfileService(MarketProfileService):
         profile_dist = utils.get_distribution(self.spot_book.spot_processor.spot_ts, profile_dist)
         res['profile_dist'] = profile_dist
         return res
-
-    def generate_signal(self):
-        pass

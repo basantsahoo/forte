@@ -43,7 +43,7 @@ class OptionMarketBook:
         if trade_day is not None:
             self.do_day_set_up(trade_day)
             self.last_tick_timestamp = self.tpo_brackets[0]
-
+        print("Market book init===========")
     def feed_stream(self, feed):
         #print("new feed")
         #print(feed['data'][-1])
