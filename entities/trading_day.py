@@ -85,6 +85,7 @@ class TradeDateTime:
         self.epoc_time = int(time.mktime(time.strptime(self.date_time_string, "%Y-%m-%d %H:%M:%S")))
         self.epoc_minute = self.get_epoc_minute(self.epoc_time)
         day_start = self.date_string + " " + '00:00:00'
+        day_end = self.date_string + " " + '23:59:59'
         market_start_time = self.date_string + " " + '9:15:00'
         market_end_time = self.date_string + " " + '15:30:00'
         self.day_start_epoc = int(time.mktime(time.strptime(day_start, "%Y-%m-%d %H:%M:%S")))

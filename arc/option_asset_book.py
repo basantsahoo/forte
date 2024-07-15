@@ -6,7 +6,6 @@ from helper.data_feed_utils import convert_to_option_ion, convert_to_spot_ion
 from entities.base import Signal
 from arc.compound_signal_builder import CompoundSignalBuilder
 from entities.trading_day import NearExpiryWeek, TradeDateTime
-from config import get_expiry_date
 import time
 from helper.utils import inst_is_option
 

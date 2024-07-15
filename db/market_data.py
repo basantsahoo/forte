@@ -376,6 +376,96 @@ def get_curr_week_minute_data_by_start_day(symbol, trade_day, week_start_day=Non
     return df
 
 
+def get_curr_week_consolidated_minute_data_by_start_day(symbol, trade_day, week_start_day=None, start_time=None, full_week=True):
+    #print('get_curr_week_minute_data_by_start_day', symbol, trade_day, week_start_day, start_time)
+    df = None
+    try:
+        symbol = helper_utils.get_nse_index_symbol(symbol)
+        week_start_day = 'Monday' if week_start_day is None else week_start_day
+        start_time = '9:15:00' if start_time is None else start_time
+        week_start_day_as_int = time.strptime(week_start_day, "%A").tm_wday
+        week_end_day_as_int = (week_start_day_as_int + 6) % 7
+        t_day = datetime.strptime(trade_day, '%Y-%m-%d') if type(trade_day) == str else trade_day
+        t_day_weekday = t_day.weekday()
+        offset = (t_day_weekday - week_end_day_as_int) % 7
+        offset = 7 if offset == 0 else offset
+        t_day_ordinal = t_day.toordinal()
+        last_week_end = t_day_ordinal - offset
+        this_week_start = last_week_end + 1
+        this_week_end_plus_one = this_week_start + 7
+
+        this_week_start_str = datetime.strftime(datetime.fromordinal(this_week_start), '%Y-%m-%d')
+        this_week_end_plus_one_str = datetime.strftime(datetime.fromordinal(this_week_end_plus_one), '%Y-%m-%d')
+        this_week_start_str = this_week_start_str + " " + start_time
+        this_week_end_plus_one_str = this_week_end_plus_one_str + " " + start_time
+
+        start_ts = int(time.mktime(time.strptime(this_week_start_str, "%Y-%m-%d %H:%M:%S")))
+        end_ts = int(time.mktime(time.strptime(this_week_end_plus_one_str, "%Y-%m-%d %H:%M:%S")))
+        if full_week:
+            stmt_1 = """
+            select M.timestamp,M.open,M.high,M.low,M.close, O.volume from
+            (select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3}) M,
+            (select timestamp, sum(volume) as volume  from option_data od where underlying = '{0}' and timestamp >= {1} and timestamp < {2}  group by timestamp) O 
+            where M.timestamp = O.timestamp
+            order by timestamp asc
+            """.format(symbol, start_ts, end_ts, tuple(exclued_days))
+        else:
+            stmt_1 = """
+            select M.timestamp,M.open,M.high,M.low,M.close, O.volume from
+            (select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3} and date < '{4}') M,
+            (select timestamp, sum(volume) as volume  from option_data od where underlying = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3} and date < '{4}' group by timestamp) O 
+            where M.timestamp = O.timestamp
+            order by timestamp asc
+            """.format(symbol, start_ts, end_ts, tuple(exclued_days), trade_day)
+
+            #print(stmt_1.format(symbol, start_ts, end_ts, tuple(exclued_days)))
+        conn = engine.connect()
+        df = pd.read_sql_query(stmt_1, conn)
+        conn.close()
+    except Exception as e:
+        print(e)
+    return df
+
+def get_prev_week_consolidated_minute_data_by_start_day(symbol, trade_day, week_start_day=None, start_time=None):
+    res = {}
+    try:
+        symbol = helper_utils.get_nse_index_symbol(symbol)
+        week_start_day = 'Monday' if week_start_day is None else week_start_day
+        start_time = '9:15:00' if start_time is None else start_time
+        week_start_day_as_int = time.strptime(week_start_day, "%A").tm_wday
+        week_end_day_as_int = (week_start_day_as_int + 6) % 7
+        t_day = datetime.strptime(trade_day, '%Y-%m-%d') if type(trade_day) == str else trade_day
+        t_day_weekday = t_day.weekday()
+        offset = (t_day_weekday - week_end_day_as_int) % 7
+        offset = 7 if offset == 0 else offset
+        t_day_ordinal = t_day.toordinal()
+        last_week_end = t_day_ordinal - offset
+        last_week_start = last_week_end - 6
+        last_week_end_plus_one = last_week_start + 7
+
+        last_week_start_str = datetime.strftime(datetime.fromordinal(last_week_start), '%Y-%m-%d')
+        last_week_end_plus_one_str = datetime.strftime(datetime.fromordinal(last_week_end_plus_one), '%Y-%m-%d')
+        last_week_start_str = last_week_start_str + " " + start_time
+        last_week_end_plus_one_str = last_week_end_plus_one_str + " " + start_time
+
+        start_ts = int(time.mktime(time.strptime(last_week_start_str, "%Y-%m-%d %H:%M:%S")))
+        end_ts = int(time.mktime(time.strptime(last_week_end_plus_one_str, "%Y-%m-%d %H:%M:%S")))
+
+        stmt_1 = """
+        select M.timestamp,M.open,M.high,M.low,M.close, O.volume from
+        (select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3}) M,
+        (select timestamp, sum(volume) as volume  from option_data od where underlying = '{0}' and timestamp >= {1} and timestamp < {2}  group by timestamp) O 
+        where M.timestamp = O.timestamp
+        order by timestamp asc
+        """.format(symbol, start_ts, end_ts, tuple(exclued_days))
+        #print(stmt_1)
+        conn = engine.connect()
+        df = pd.read_sql_query(stmt_1.format(symbol, start_ts, end_ts, tuple(exclued_days)), conn)
+        conn.close()
+    except Exception as e:
+        print(e)
+    return df
+
 def get_daily_option_oi_data(symbol, trade_day, kind='CE'):
     symbol = helper_utils.get_nse_index_symbol(symbol)
     stmt_1 = "select timestamp, strike AS instrument, oi  FROM option_data where underlying = '{0}' and date = '{1}' and kind='{2}' order by timestamp asc, strike desc"

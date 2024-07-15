@@ -47,7 +47,7 @@ class SpotBook:
         self.volume_profile = VolumeProfileService(time_period=5)
         self.volume_profile.spot_book = self
         self.market_state_manager = MarketStateManager(self)
-        #self.weekly_processor = WeeklyProcessor(self, asset_book, time_period=5)
+        self.weekly_processor = WeeklyProcessor(self, time_period=30)
 
     def update_periodic(self):
         self.spot_processor.update_periodic()
@@ -62,6 +62,7 @@ class SpotBook:
     def frame_change_action(self, current_frame, next_frame):
         self.spot_processor.frame_change_action(current_frame, next_frame)
         self.volume_profile.frame_change_action(current_frame, next_frame)
+        self.weekly_processor.frame_change_action(current_frame, next_frame)
         self.signal_generator.generate_signals()
         self.market_state_manager.frame_change_action(current_frame, next_frame)
 
@@ -69,6 +70,8 @@ class SpotBook:
         clock.subscribe_to_frame_change(self.frame_change_action)
 
     def day_change_notification(self, trade_day):
+        self.volume_profile.day_change_notification(trade_day)
+        self.weekly_processor.day_change_notification(trade_day)
         self.spot_processor.day_change_notification(trade_day)
 
     def get_prior_wave(self, epoch_minute=None):

@@ -132,8 +132,8 @@ class NodeEvaluator:
             asset = self.manager.spot_book.asset_book.asset
             trade_day = self.manager.spot_book.asset_book.market_book.trade_day
             market_params = self.manager.spot_book.spot_processor.get_market_params()
-            volume_profile = self.manager.spot_book.volume_profile.price_data[trade_day][asset]['volume_profile']
-            market_profile = self.manager.spot_book.volume_profile.price_data[trade_day][asset]['market_profile']
+            volume_profile = self.manager.spot_book.volume_profile.volume_profile
+            market_profile = self.manager.spot_book.volume_profile.market_profile
             #print('volume_profile=============', volume_profile)
             #print('market_profile=============', market_profile)
             volume_poc = volume_profile.get('poc_price')
@@ -150,7 +150,7 @@ class NodeEvaluator:
             ext_high = market_profile['profile_dist']['ext_high']
             sin_print = market_profile['profile_dist']['sin_print']
             p_shape = market_profile['profile_dist'].get('p_shape', "")
-            close = self.manager.spot_book.volume_profile.price_data[trade_day][asset].get('close')
+            close = market_profile.get('close')
             #print('volume_profile_vah======', volume_profile_vah)
             #print('close======', close)
 
