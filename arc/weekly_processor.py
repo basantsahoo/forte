@@ -1,6 +1,6 @@
 from datetime import datetime
 from db.market_data import get_prev_week_consolidated_minute_data_by_start_day, get_curr_week_consolidated_minute_data_by_start_day
-from arc.weekly_profile import WeeklyMarketProfileService
+from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 from helper.utils import determine_day_open, determine_level_reach
 from entities.trading_day import TradeDateTime, NearExpiryWeek
 import time

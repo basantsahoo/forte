@@ -4,15 +4,14 @@ project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 
 from db.market_data import get_prev_week_consolidated_minute_data_by_start_day, get_curr_week_consolidated_minute_data_by_start_day
-from arc.weekly_profile import WeeklyMarketProfileService
+from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 from dynamics.profile.volume_profile import VolumeProfileService
-from datetime import datetime, date
+from datetime import datetime
 from servers.server_settings import reports_dir
 import pandas as pd
 import numpy as np
-import traceback
 from config import default_symbols
-from helper.utils import determine_day_open, determine_level_reach, get_overlap, get_percentile, candle_reversal_score
+from helper.utils import determine_day_open, determine_level_reach, get_percentile, candle_reversal_score
 from dynamics.profile.utils import get_next_lowest_index, get_next_highest_index
 #from helper.time_utils import epoch_to_ordinal
 from entities.trading_day import TradeDateTime

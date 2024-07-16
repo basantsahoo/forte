@@ -1,5 +1,5 @@
 from db.market_data import get_prev_week_consolidated_minute_data_by_start_day, get_curr_week_consolidated_minute_data_by_start_day
-from arc.weekly_profile import WeeklyMarketProfileService
+from dynamics.profile.weekly_profile import WeeklyMarketProfileService
 from datetime import datetime, date
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
@@ -202,8 +202,8 @@ def email(tickers):
 
 def run():
     tickers = default_symbols
-    generate(tickers=tickers, days_past=120)
+    generate(tickers=tickers, days_past=7)
     email(tickers)
 
-run()
+#run()
 #generate()

@@ -4,21 +4,13 @@ project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 
 from db.market_data import get_prev_week_consolidated_minute_data_by_start_day
-from arc.weekly_profile import WeeklyMarketProfileService
-from datetime import datetime, date
-import time
-import numpy as np
+from dynamics.profile.weekly_profile import WeeklyMarketProfileService
+from datetime import datetime
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib.dates as mdates
 from servers.server_settings import reports_dir
 import pandas as pd
 import datetime as dt
-import calendar
-from dateutil import tz
-import plotly.graph_objects as go
-import plotly
 from reporting.charts import plot_profile_chart
 import traceback
 from dynamics.profile.utils import get_next_highest_index, get_next_lowest_index
