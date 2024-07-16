@@ -3,8 +3,8 @@ from pathlib import Path
 project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 
-from db.market_data import get_prev_week_minute_data_by_start_day
-from dynamics.profile.weekly_profile import WeeklyMarketProfileService
+from db.market_data import get_prev_week_consolidated_minute_data_by_start_day
+from arc.weekly_profile import WeeklyMarketProfileService
 from datetime import datetime, date
 import time
 import numpy as np
@@ -26,38 +26,6 @@ import os
 import glob
 from PyPDF2 import PdfFileMerger, PdfFileReader
 
-"""
-df = get_prev_week_minute_data_by_start_day('NIFTY', '2022-08-01', week_start_day="Wednesday", start_time="9:15:00")
-df['symbol'] = 'NIFTY'
-df['ltp'] = df['close']
-all_data = df.to_dict('records')
-#print(all_data)
-profile = WeeklyMarketProfileService()
-profile.set_trade_date_from_time(all_data[0]['timestamp'], all_data[-1]['timestamp'])
-for tick in all_data:
-    profile.process_input_data([tick])
-profile.calculateMeasures()
-profile_data = profile.get_profile_data()
-
-print_matrix_t = np.transpose(profile_data[0]['print_matrix'])
-
-finals = []
-for itr in range(print_matrix_t.shape[0]):
-    tpo_array = print_matrix_t[itr].A1
-    # print(tpo_array)
-    price = format(round(profile_data[0]['price_bins'][itr], 2), "." + str(2) + "f")
-    # print(price)
-    total = int(sum(tpo_array))
-    # print(total)
-    tpos_occured = ['*' for x in tpo_array if x]
-    tpo_str = ",".join(tpos_occured)
-    finals.append([price, total, tpo_str])
-finals.reverse()
-
-for i in finals:
-    print(str(i[0]) + ' | ' + str(i[1]).rjust(2, ' ') + ' | ' + i[2])
-
-"""
 
 
 def plot_weekly_profile(symbol, day, week_start_day, start_time):
@@ -68,11 +36,11 @@ def plot_weekly_profile(symbol, day, week_start_day, start_time):
     prev_week_start_str = datetime.strftime(datetime.fromordinal(t_day_ordinal-7), '%Y-%m-%d')
     print(prev_week_start_str)
     profile_data_list = []
-    df = get_prev_week_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
+    df = get_prev_week_consolidated_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
     df['symbol'] = symbol
     df['ltp'] = df['close']
     profile_data_list.append(df.to_dict('records'))
-    df = get_prev_week_minute_data_by_start_day(symbol, prev_week_start_str, week_start_day=week_start_day, start_time=start_time)
+    df = get_prev_week_consolidated_minute_data_by_start_day(symbol, prev_week_start_str, week_start_day=week_start_day, start_time=start_time)
     df['symbol'] = symbol
     df['ltp'] = df['close']
     profile_data_list.append(df.to_dict('records'))
@@ -82,10 +50,9 @@ def plot_weekly_profile(symbol, day, week_start_day, start_time):
             for data in profile_data_list:
                 processor = WeeklyMarketProfileService()
                 processor.set_trade_date_from_time(data[0]['timestamp'], data[-1]['timestamp'])
-                processor.process_input_data(data)
-                processor.calculateMeasures()
-                processed_data = processor.get_profile_data()[0]
-                price_bins = processed_data['price_bins']
+                processor.process_hist_data(data)
+                processor.calculateProfile()
+                price_bins = processor.price_bins
                 y_s.extend(list(price_bins))
             y_s = list(set(y_s))
             y_s.sort()
@@ -100,13 +67,13 @@ def plot_weekly_profile(symbol, day, week_start_day, start_time):
                 chrt_idx += 1
                 processor = WeeklyMarketProfileService()
                 processor.set_trade_date_from_time(data[0]['timestamp'], data[-1]['timestamp'])
-                processor.process_input_data(data)
-                processor.calculateMeasures()
-                processed_data = processor.get_profile_data()[0]
+                processor.process_hist_data(data)
+                processor.calculateProfile()
+                processed_data = processor.market_profile
                 if dt_idx < len(profile_data_list)-1:
                     last_week_profile = processed_data
-                price_bins = processed_data['price_bins']
-                tick_size = processed_data['tick_size']
+                price_bins = processor.price_bins
+                tick_size = processor.tick_size
 
                 min_y_s = int(min(y_s))
                 max_y_s = int(max(y_s))
@@ -119,7 +86,7 @@ def plot_weekly_profile(symbol, day, week_start_day, start_time):
                 if max_y_s > max_price_bin:
                     bin_to_add = [i for i in range(max_price_bin + tick_size, max_y_s + tick_size, tick_size)]
                     excluded_bins.extend(bin_to_add)
-                print_matrix = processed_data['print_matrix']
+                print_matrix = processor.print_matrix
                 df = pd.DataFrame(print_matrix.T)
                 df.index = price_bins
                 # print(excluded_bins)
@@ -213,4 +180,4 @@ def generate(tickers=['NIFTY'], days_past=7):
     for ticker in tickers:
         generate_historical_weekly_profile_chart(ticker, trade_days, week_start_day="Friday", start_time="9:15:00")
 
-generate(days_past=270)
+generate(days_past=21)

@@ -134,7 +134,7 @@ class WeeklyMarketProfileService:
         #print(tpo_sum_arr)
         poc_idx = utils.mid_max_idx(tpo_sum_arr)
         poc_price = self.price_bins[poc_idx]
-
+        balance_target = utils.calculate_balanced_target(poc_price, self.price_data['high'], self.price_data['low'])
         #print(poc_price)
         #poc_len = tpo_sum_arr[poc_idx]
         #balance_target = utils.calculate_balanced_target(poc_price, sym['high'], sym['low'])
@@ -159,6 +159,7 @@ class WeeklyMarketProfileService:
         res['value_area_price'] = [self.price_bins[value_area[0]], self.price_bins[value_area[1]]]
         res['vah'] = max(res['value_area_price'])
         res['val'] = min(res['value_area_price'])
+        res['balance_target'] = balance_target
         res['below_poc'] = below_poc
         res['above_poc'] = above_poc
         res['below_poc_pct'] = below_poc_pct

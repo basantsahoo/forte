@@ -3,9 +3,9 @@ from pathlib import Path
 project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 
-from db.market_data import get_prev_week_minute_data_by_start_day, get_curr_week_minute_data_by_start_day
-from dynamics.profile.weekly_profile import WeeklyMarketProfileService
-from dynamics.profile.market_profile import HistMarketProfileService
+from db.market_data import get_prev_week_consolidated_minute_data_by_start_day, get_curr_week_consolidated_minute_data_by_start_day
+from arc.weekly_profile import WeeklyMarketProfileService
+from dynamics.profile.volume_profile import VolumeProfileService
 from datetime import datetime, date
 from servers.server_settings import reports_dir
 import pandas as pd
@@ -77,19 +77,21 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
     final_metrics = {}
 
     # Last week
-    df_last_week = get_prev_week_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
+    df_last_week = get_prev_week_consolidated_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
     df_last_week['symbol'] = symbol
     df_last_week['ltp'] = df_last_week['close']
     last_week_recs = df_last_week.to_dict('records')
+
     lw_processor = WeeklyMarketProfileService()
     lw_processor.set_trade_date_from_time(last_week_recs[0]['timestamp'], last_week_recs[-1]['timestamp'])
-    lw_processor.process_input_data(last_week_recs)
-    lw_processor.calculateMeasures()
-    lw_processed_data = lw_processor.get_profile_data()[0]
+    lw_processor.process_hist_data(last_week_recs)
+    lw_processor.calculateProfile()
+    lw_processed_data = lw_processor.market_profile
+
     last_week_metrices = extract_metrices(lw_processed_data)
     lk_keys = ['open', 'high', 'low', 'close', 'poc_price', 'va_l_p', 'va_l_poc_mid', 'va_l_low_mid', 'va_h_poc_mid', 'va_h_high_mid', 'va_h_p', 'balance_target']
     # Current week
-    df_curr_week = get_curr_week_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
+    df_curr_week = get_curr_week_consolidated_minute_data_by_start_day(symbol, recent_week_start_str, week_start_day=week_start_day, start_time=start_time)
     df_curr_week['ordinal_date'] = df_curr_week['timestamp'].apply(lambda x: TradeDateTime(x).ordinal)
     curr_week_dates = df_curr_week['ordinal_date'].unique()
     curr_week_dates.sort()
@@ -115,10 +117,12 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
     final_metrics['open_type'] = determine_day_open(first_candle, last_week_metrices)
 
     for day_idx in curr_week_daily_recs.keys():
-        processor = HistMarketProfileService()
-        processor.process_input_data(curr_week_daily_recs[day_idx])
-        processor.calculateMeasures()
-        daily_profile_data = processor.get_profile_data()[0]
+        start_epoch_tick_time = curr_week_daily_recs[day_idx][0]['timestamp']
+        processor = VolumeProfileService()
+        processor.process_hist_data(curr_week_daily_recs[day_idx])
+        processor.day_setup(start_epoch_tick_time)
+        processor.calculateProfile()
+        daily_profile_data = processor.market_profile
         daily_metrices = extract_metrices(daily_profile_data)
 
         t_metrices = {}
@@ -128,10 +132,12 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
             profile_pos = relative_profile_position(daily_metrices, last_week_metrices)
             t_metrices = {**t_metrices, **profile_pos}
         else:
-            prev_processor = HistMarketProfileService()
-            prev_processor.process_input_data(curr_week_daily_recs[day_idx-1])
-            prev_processor.calculateMeasures()
-            prev_daily_profile_data = prev_processor.get_profile_data()[0]
+            prev_start_epoch_tick_time = curr_week_daily_recs[day_idx-1][0]['timestamp']
+            prev_processor = VolumeProfileService()
+            prev_processor.process_hist_data(curr_week_daily_recs[day_idx-1])
+            prev_processor.day_setup(prev_start_epoch_tick_time)
+            prev_processor.calculateProfile()
+            prev_daily_profile_data = processor.market_profile
             prev_daily_metrices = extract_metrices(prev_daily_profile_data)
             prev_daily_metrices['return'] = final_metrics['day_' + str(day_idx-1) + "_return"]
 
@@ -141,9 +147,9 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
                 if idx < day_idx:
                     ongoing_weekly_recs.extend(curr_week_daily_recs[idx])
             ongoing_weekly_processor.set_trade_date_from_time(ongoing_weekly_recs[0]['timestamp'], ongoing_weekly_recs[-1]['timestamp'])
-            ongoing_weekly_processor.process_input_data(ongoing_weekly_recs)
-            ongoing_weekly_processor.calculateMeasures()
-            ongoing_weekly_profile_data = ongoing_weekly_processor.get_profile_data()[0]
+            ongoing_weekly_processor.process_hist_data(ongoing_weekly_recs)
+            ongoing_weekly_processor.calculateProfile()
+            ongoing_weekly_profile_data = ongoing_weekly_processor.market_profile
 
             ongoing_weekly_metrices = extract_metrices(ongoing_weekly_profile_data)
 
@@ -152,8 +158,8 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
             profile_pos = relative_profile_position(daily_metrices, ongoing_weekly_metrices)
             t_metrices = {**t_metrices, **profile_pos}
             t_metrices['reversal'] = candle_reversal_score(daily_metrices, prev_daily_metrices)
-        daily_print_matrix = daily_profile_data['print_matrix']
-        daily_price_bins = daily_profile_data['price_bins']
+        daily_print_matrix = processor.print_matrix
+        daily_price_bins = processor.price_bins
         daily_visits = daily_print_matrix.sum(axis=0).tolist()[0]
         tpo_day_metrices = check_level_reach_in_tpo(last_week_metrices, daily_price_bins, daily_visits)
         t_metrices = {**t_metrices, **tpo_day_metrices}
@@ -164,11 +170,11 @@ def calculate_weekly_metrices(symbol, day, week_start_day, start_time):
 
     processor = WeeklyMarketProfileService()
     processor.set_trade_date_from_time(curr_week_recs[0]['timestamp'], curr_week_recs[-1]['timestamp'])
-    processor.process_input_data(curr_week_recs)
-    processor.calculateMeasures()
-    processed_data = processor.get_profile_data()[0]
-    print_matrix = processed_data['print_matrix']
-    price_bins = processed_data['price_bins']
+    processor.process_hist_data(curr_week_recs)
+    processor.calculateProfile()
+    processed_data = processor.market_profile
+    print_matrix = processor.print_matrix
+    price_bins = processor.price_bins
     print(extract_metrices(processed_data))
 
 
@@ -218,7 +224,7 @@ def generate_historical_weekly_profile_chart(ticker, filtered_days, week_start_d
     df.to_csv(reports_dir + 'weekly_metrices_t.csv')
 
 def generate(tickers=[], days_past=7):
-    dateToday = datetime.strptime('2022-12-24', '%Y-%m-%d')#date.today()
+    dateToday = datetime.strptime('2023-07-28', '%Y-%m-%d')#date.today()
     curr_ordinal = dateToday.toordinal()
     last_ordinal = curr_ordinal-days_past
     trade_days = list(range(curr_ordinal, last_ordinal, -7))
