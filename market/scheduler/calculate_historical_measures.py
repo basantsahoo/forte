@@ -1,5 +1,5 @@
 import time
-from dynamics.profile.market_profile import HistMarketProfileService
+from arc.volume_profile import VolumeProfileService
 import numpy as np
 from itertools import compress
 from config import exclued_days
@@ -25,8 +25,8 @@ def get_last_calc_date(symbol):
     conn = engine.connect()
     qry = """select distinct date as pending from minute_data where symbol = '{0}'
             and date not in (
-            select date  from daily_profile where symbol = '{1}'
-            ) and YEAR(date) >=2022""".format(symbol,symbol)
+            select date  from daily_profile where symbol = '{0}'
+            ) and YEAR(date) >=2022""".format(symbol)
     df = pd.read_sql_query(qry, con=conn)
     pending_dates = df['pending'].to_list() if df['pending'].to_list() else []
     #print(pending_dates)
@@ -58,10 +58,12 @@ def process(trade_days=[], symbols=[], debug=False):
                     pass
 
                 try:
-                    processor = HistMarketProfileService()
-                    processor.process_input_data(hist_data)
-                    processor.calculateMeasures()
-                    data = processor.get_profile_data()[0]
+                    start_epoch_tick_time = hist_data[0]['timestamp']
+                    processor = VolumeProfileService()
+                    processor.process_hist_data(hist_data)
+                    processor.day_setup(start_epoch_tick_time)
+                    processor.calculateProfile()
+                    data = processor.market_profile
                     #print(data)
                     if debug: #Just display
                         """
@@ -94,7 +96,7 @@ def process(trade_days=[], symbols=[], debug=False):
                             'high': data['high'],
                             'low': data['low'],
                             'close': data['close'],
-                            'volume': data['volume'],
+                            'volume': data.get('volume', 0),
                             'poc_price': data['poc_price'],
                             'poc_idx': data['poc_idx'],
                             'poc_len': data['poc_len'],
@@ -121,17 +123,18 @@ def process(trade_days=[], symbols=[], debug=False):
                             'ht': data['ht'],
                             'lt': data['lt']
                         }
-                        #print(rec)
+                        print(rec)
                         df = pd.DataFrame([rec])
-                        df.to_sql('daily_profile', conn, if_exists="append", index=False)
+                        #df.to_sql('daily_profile', conn, if_exists="append", index=False)
                 except Exception as e:
                     print(trade_day, symbol)
                     print(e)
     conn.close()
 
 def run():
-    process()
+    process(trade_days=["2024-04-15"])
 
+run()
 
 
 

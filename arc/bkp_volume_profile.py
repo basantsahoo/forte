@@ -5,13 +5,12 @@ import time
 from itertools import compress
 from dynamics.profile import utils
 
-from config import va_pct, include_pre_market, min_co_ext
+from forte_config import va_pct, min_co_ext
 from helper.utils import get_pivot_points
 from entities.trading_day import TradeDateTime
 
-
 class VolumeProfileService:
-    def __init__(self, trade_day=None, market_cache=None, time_period=1):
+    def __init__(self, trade_day=None, time_period=1):
         self.trade_day = trade_day
         self.price_data = {}
         self.value_area_pct = va_pct
@@ -21,9 +20,7 @@ class VolumeProfileService:
         self.last_ts = None
         self.time_period = time_period * 60
         self.ib_periods = []
-        self.ib_data = []
         self.tpo_brackets = []
-        self.hist_data = {}
         self.reset_pb = True
         self.tick_size = 0
         self.price_bins = []
@@ -46,20 +43,6 @@ class VolumeProfileService:
         ib_end_ts = int(time.mktime(time.strptime(ib_end_str, "%Y-%m-%d %H:%M:%S")))
         self.ib_periods = [start_ts, ib_end_ts]
         self.tpo_brackets = np.arange(start_ts, end_ts, 1800)
-
-    def process_hist_data(self, lst):
-        for inst in lst:
-            epoch_tick_time = inst['timestamp']
-            epoch_minute = int(epoch_tick_time // 60 * 60)
-            minute_candle = {
-                'open': inst['open'],
-                'high': inst['high'],
-                'low': inst['low'],
-                'close': inst['close'],
-                'volume': inst['volume'],
-            }
-            self.hist_data[epoch_minute] = minute_candle
-        self.process_input_data(lst)
 
     def day_change_notification(self, trade_day):
         pass
@@ -111,58 +94,49 @@ class VolumeProfileService:
 
     def calculateProfile(self):
         if not self.waiting_for_data:
-            #print(sym)
-            #print(self.ib_periods)
             if self.reset_pb:
                 self.reset_pb = False
                 self.price_bins = np.arange(np.floor(self.tick_size * np.floor(self.price_data['low']/self.tick_size)), np.ceil(self.tick_size * np.ceil(self.price_data['high']/self.tick_size)) + self.tick_size, self.tick_size)
                 self.print_matrix = np.matrix(np.zeros((len(self.tpo_brackets), len(self.price_bins))))
                 self.volume_print_matrix = np.matrix(np.zeros((len(self.tpo_brackets), len(self.price_bins))))
-                self.last_intraday_ts = 0
-                for minute, minute_data in self.hist_data.items():
-                    ts_idx = utils.get_next_lowest_index(self.tpo_brackets, minute)
-                    pb_idx_low = utils.get_next_lowest_index(self.price_bins, minute_data['low'])
-                    pb_idx_high = utils.get_next_highest_index(self.price_bins, minute_data['high'])
-                    for idx in range(pb_idx_low, pb_idx_high+1):
-                        self.print_matrix[ts_idx, idx] = 1
-                        self.volume_print_matrix[ts_idx, idx] = self.volume_print_matrix[ts_idx, idx] + minute_data['volume']
-
             if self.spot_book is not None:
-                self.ib_data = []
+                ib_data = []
                 for minute, minute_data in self.spot_book.spot_processor.spot_ts.items():
                     if minute > self.last_intraday_ts:
                         self.last_intraday_ts = minute
                         if minute >= self.ib_periods[0] and minute <= self.ib_periods[1]:
-                            self.ib_data.append(minute_data['low'])
-                            self.ib_data.append(minute_data['high'])
+                            ib_data.append(minute_data['low'])
+                            ib_data.append(minute_data['high'])
+                        # print(self.tpo_brackets)
+                        # print(minute)
                         ts_idx = utils.get_next_lowest_index(self.tpo_brackets, minute)
                         pb_idx_low = utils.get_next_lowest_index(self.price_bins, minute_data['low'])
                         pb_idx_high = utils.get_next_highest_index(self.price_bins, minute_data['high'])
                         for idx in range(pb_idx_low, pb_idx_high+1):
                             self.print_matrix[ts_idx, idx] = 1
-                            self.volume_print_matrix[ts_idx, idx] = self.print_matrix[ts_idx, idx] + minute_data['volume']
+                            self.volume_print_matrix[ts_idx, idx] = self.volume_print_matrix[ts_idx, idx] + minute_data['volume']
 
-            res_p = self.calculateStatistics(self.print_matrix)
-            res_v = self.calculateStatistics(self.volume_print_matrix)
-            self.market_profile = res_p
-            self.volume_profile = res_v
-            """ calculate profile"""
+                res_p = self.calculateStatistics(self.print_matrix)
+                res_v = self.calculateStatistics(self.volume_print_matrix)
+                self.market_profile = res_p
+                self.volume_profile = res_v
+                #print(res_p)
+                #print(res_v)
+                """ calculate profile"""
 
     def calculateStatistics(self, print_matrix):
         tpo_sum_arr = np.sum(print_matrix, axis=0).A1
         #print(tpo_sum_arr)
         poc_idx = utils.mid_max_idx(tpo_sum_arr)
         poc_price = self.price_bins[poc_idx]
-        poc_len = tpo_sum_arr[poc_idx]
-        balance_target = utils.calculate_balanced_target(poc_price, self.price_data['high'], self.price_data['low'])
+        #poc_len = tpo_sum_arr[poc_idx]
+        #balance_target = utils.calculate_balanced_target(poc_price, sym['high'], sym['low'])
         value_area = utils.calculate_value_area(tpo_sum_arr, poc_idx, self.value_area_pct)
         total_val = np.sum(tpo_sum_arr)
-        below_poc = np.sum(tpo_sum_arr[0:poc_idx])
-        below_poc_pct = round(below_poc/total_val, 2)
+        below_poc = round(np.sum(tpo_sum_arr[0:poc_idx])/total_val, 2)
         #print('below_poc=====', below_poc)
         try:
-            above_poc = np.sum(tpo_sum_arr[poc_idx + 1::])
-            above_poc_pct = round(above_poc / total_val, 2)
+            above_poc = round(np.sum(tpo_sum_arr[poc_idx + 1::])/total_val,2)
         except:
             print(tpo_sum_arr)
             print(poc_idx)
@@ -189,36 +163,27 @@ class VolumeProfileService:
         #print('initial_balance')
         #print(initial_balance)
         res = {}
-        res['poc_idx'] = poc_idx
+        #res['poc_idx'] = poc_idx
         res['open'] = self.price_data['open']
         res['high'] = self.price_data['high']
         res['low'] = self.price_data['low']
         res['close'] = self.price_data['close']
         res['poc_price'] = poc_price
-        res['poc_len'] = poc_len
-        res['value_area'] = value_area
+        #sym['poc_len'] = poc_len
+        #res['value_area'] = value_area
         res['value_area_price'] = [self.price_bins[value_area[0]], self.price_bins[value_area[1]]]
         res['vah'] = max(res['value_area_price'])
         res['val'] = min(res['value_area_price'])
-        res['balance_target'] = balance_target
+        #sym['balance_target'] = balance_target
         res['below_poc'] = below_poc
         res['above_poc'] = above_poc
-        res['below_poc_pct'] = below_poc_pct
-        res['above_poc_pct'] = above_poc_pct
-
         res['initial_balance'] = initial_balance
         res['third_tpo_high_extn'] = False if not third_tpo_prices else True if max(third_tpo_prices) > max(initial_balance) else False
         res['third_tpo_low_extn'] = False if not third_tpo_prices else True if min(third_tpo_prices) < min(initial_balance) else False
-        res['initial_balance_acc'] = [min(initial_balance), max(initial_balance)]
-        res['initial_balance_idx'] = initial_balance_idx
-        res['ht'] = self.price_data['ht']
-        res['lt'] = self.price_data['lt']
+        #sym['initial_balance_acc'] = [min(ib_data), max(ib_data)]
+        #res['initial_balance_idx'] = initial_balance_idx
         res['h_a_l'] = self.price_data['ht'] > self.price_data['lt']
         profile_dist = utils.get_profile_dist(print_matrix, self.price_bins, self.min_co_ext)
-        if self.spot_book is not None:
-            profile_dist = utils.get_distribution(self.spot_book.spot_processor.spot_ts, profile_dist)
+        profile_dist = utils.get_distribution(self.spot_book.spot_processor.spot_ts, profile_dist)
         res['profile_dist'] = profile_dist
         return res
-
-
-

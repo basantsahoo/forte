@@ -35,7 +35,7 @@ class WeeklyMarketProfileService:
             if self.spot_book is not None:
                 lst = [minute_data for minute, minute_data in self.spot_book.spot_processor.spot_ts.items() if (self.last_ts is None or minute > self.last_ts)]
                 self.process_input_data(lst)
-                self.calculateMeasures()
+                self.calculateProfile()
             self.last_ts = current_frame
 
     def set_trade_date_from_time(self, s_epoch_tick_time, e_epoch_tick_time):
@@ -99,19 +99,21 @@ class WeeklyMarketProfileService:
                 self.price_data['volume'] = self.price_data['volume'] + minute_candle['volume']
 
 
-    def calculateMeasures(self):
+    def calculateProfile(self):
         if not self.waiting_for_data:
             if self.reset_pb:
                 self.reset_pb = False
                 self.price_bins = np.arange(np.floor(self.tick_size * np.floor(self.price_data['low']/self.tick_size)), np.ceil(self.tick_size * np.ceil(self.price_data['high']/self.tick_size)) + self.tick_size, self.tick_size)
                 self.print_matrix = np.matrix(np.zeros((len(self.tpo_brackets), len(self.price_bins))))
                 self.volume_print_matrix = np.matrix(np.zeros((len(self.tpo_brackets), len(self.price_bins))))
+                self.last_intraday_ts = 0
                 for minute, minute_data in self.hist_data.items():
                     ts_idx = utils.get_next_lowest_index(self.tpo_brackets, minute)
                     pb_idx_low = utils.get_next_lowest_index(self.price_bins, minute_data['low'])
                     pb_idx_high = utils.get_next_highest_index(self.price_bins, minute_data['high'])
                     for idx in range(pb_idx_low, pb_idx_high+1):
                         self.print_matrix[ts_idx, idx] = 1
+                        self.volume_print_matrix[ts_idx, idx] = self.volume_print_matrix[ts_idx, idx] + minute_data['volume']
             if self.spot_book is not None:
                 for minute, minute_data in self.spot_book.spot_processor.spot_ts.items():
                     if minute > self.last_intraday_ts:
@@ -138,10 +140,12 @@ class WeeklyMarketProfileService:
         #balance_target = utils.calculate_balanced_target(poc_price, sym['high'], sym['low'])
         value_area = utils.calculate_value_area(tpo_sum_arr, poc_idx, self.value_area_pct)
         total_val = np.sum(tpo_sum_arr)
-        below_poc = round(np.sum(tpo_sum_arr[0:poc_idx])/total_val, 2)
+        below_poc = np.sum(tpo_sum_arr[0:poc_idx])
+        below_poc_pct = round(below_poc/total_val, 2)
         #print('below_poc=====', below_poc)
         try:
-            above_poc = round(np.sum(tpo_sum_arr[poc_idx + 1::])/total_val,2)
+            above_poc = np.sum(tpo_sum_arr[poc_idx + 1::])
+            above_poc_pct = round(above_poc / total_val, 2)
         except:
             print(tpo_sum_arr)
             print(poc_idx)
@@ -157,6 +161,8 @@ class WeeklyMarketProfileService:
         res['val'] = min(res['value_area_price'])
         res['below_poc'] = below_poc
         res['above_poc'] = above_poc
+        res['below_poc_pct'] = below_poc_pct
+        res['above_poc_pct'] = above_poc_pct
         res['h_a_l'] = self.price_data['ht'] > self.price_data['lt']
         profile_dist = utils.get_profile_dist(print_matrix, self.price_bins, self.min_co_ext)
         res['profile_dist'] = profile_dist

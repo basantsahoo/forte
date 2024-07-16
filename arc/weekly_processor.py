@@ -48,7 +48,7 @@ class WeeklyProcessor:
         lw_processor = WeeklyMarketProfileService()
         lw_processor.set_trade_date_from_time(last_week_recs[0]['timestamp'], last_week_recs[-1]['timestamp'])
         lw_processor.process_hist_data(last_week_recs)
-        lw_processor.calculateMeasures()
+        lw_processor.calculateProfile()
         processed_data = lw_processor.market_profile
         self.last_week_metric = {
             'open': processed_data['open'],

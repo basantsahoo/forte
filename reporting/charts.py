@@ -139,6 +139,22 @@ def day_open_statistics(open_candle, first_15_mins, yday_profile):
         else:
             txt += "\nprev low breached"
 
+    elif open_high < yday_profile['low']:
+        txt += "open below prev low"
+        type = 5
+        if first_15_mins['high'] <= yday_profile['low']:
+            txt += "\ngap down sustained"
+        elif first_15_mins['high'] <= yday_profile['va_l_p']:
+            txt += "\nvalue area sustained"
+        elif first_15_mins['high'] <= yday_profile['poc_price']:
+            txt += "\nPOC  sustained"
+        elif first_15_mins['low'] >= yday_profile['va_l_p']:
+            txt += "\nSupport at prev value area "
+        elif first_15_mins['high'] <= yday_profile['high']:
+            txt += "\nSupport at prev high"
+        else:
+            txt += "\nprev high breached"
+
     elif open_high < yday_profile['va_l_p']:
         txt += "open below prev value area"
         type = 4
@@ -154,22 +170,6 @@ def day_open_statistics(open_candle, first_15_mins, yday_profile):
             txt += "\nResistance at Value area "
         elif first_15_mins['high'] <= yday_profile['high']:
             txt += "\nResistance at prev high"
-        else:
-            txt += "\nprev high breached"
-
-    elif open_high < yday_profile['low']:
-        txt += "open below prev low"
-        type = 5
-        if first_15_mins['high'] <= yday_profile['low']:
-            txt += "\ngap down sustained"
-        elif first_15_mins['high'] <= yday_profile['va_l_p']:
-            txt += "\nvalue area sustained"
-        elif first_15_mins['high'] <= yday_profile['poc_price']:
-            txt += "\nPOC  sustained"
-        elif first_15_mins['low'] >= yday_profile['va_l_p']:
-            txt += "\nSupport at prev value area "
-        elif first_15_mins['high'] <= yday_profile['high']:
-            txt += "\nSupport at prev high"
         else:
             txt += "\nprev high breached"
 

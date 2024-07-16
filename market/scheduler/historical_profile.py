@@ -1,4 +1,6 @@
 import os
+import traceback
+
 import pandas as pd
 import numpy as np
 import string
@@ -30,7 +32,7 @@ from reporting.charts import day_open_statistics,plot_profile_chart
 from helper.utils import get_pivot_points, get_overlap
 from dynamics.profile.utils import get_next_highest_index, get_next_lowest_index
 from PyPDF2 import PdfFileMerger, PdfFileReader
-from dynamics.profile.market_profile import HistMarketProfileService
+from arc.volume_profile import VolumeProfileService
 import matplotlib
 ### only required in unix
 matplotlib.use('Agg')
@@ -176,15 +178,18 @@ def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
 	"""
 	profile chart
 	"""
+	print("profile_data_list=====")
+	#print(profile_data_list)
 	try:
 		with PdfPages(reports_dir + ticker + "/" + day + '_profile.pdf') as report:
 			y_s = []
 			for data in profile_data_list:
-				processor = HistMarketProfileService()
-				processor.process_input_data(data)
-				processor.calculateMeasures()
-				processed_data = processor.get_profile_data()[0]
-				price_bins = processed_data['price_bins']
+				start_epoch_tick_time = data[0]['timestamp']
+				processor = VolumeProfileService()
+				processor.process_hist_data(data)
+				processor.day_setup(start_epoch_tick_time)
+				processor.calculateProfile()
+				price_bins = processor.price_bins
 				y_s.extend(list(price_bins))
 			y_s = list(set(y_s))
 			y_s.sort()
@@ -198,14 +203,13 @@ def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
 			for dt_idx in range(len(profile_data_list)):
 				data = profile_data_list[dt_idx]
 				chrt_idx += 1
-
-				processor = HistMarketProfileService()
-				processor.process_input_data(data)
-				processor.calculateMeasures()
-				processed_data = processor.get_profile_data()[0]
-				#print(processed_data)
-				tick_size = processed_data['tick_size']
-				price_bins = processed_data['price_bins']
+				start_epoch_tick_time = data[0]['timestamp']
+				processor = VolumeProfileService()
+				processor.process_hist_data(data)
+				processor.day_setup(start_epoch_tick_time)
+				processor.calculateProfile()
+				tick_size = processor.tick_size
+				price_bins = processor.price_bins
 
 				min_y_s = int(min(y_s))
 				max_y_s = int(max(y_s))
@@ -213,12 +217,14 @@ def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
 				max_price_bin = int(max(price_bins))
 				excluded_bins = []
 				if min_y_s < min_price_bin:
-					bin_to_add = [i for i in range(min_y_s,min_price_bin,tick_size)]
+					bin_to_add = [i for i in range(min_y_s, min_price_bin, tick_size)]
 					excluded_bins.extend(bin_to_add)
 				if max_y_s > max_price_bin:
 					bin_to_add = [i for i in range(max_price_bin+tick_size,max_y_s+tick_size,tick_size)]
 					excluded_bins.extend(bin_to_add)
-				print_matrix = processed_data['print_matrix']
+				print_matrix = processor.print_matrix
+				market_profile = processor.market_profile
+				print(market_profile)
 				df = pd.DataFrame(print_matrix.T)
 				df.index = price_bins
 				#print(excluded_bins)
@@ -231,8 +237,8 @@ def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
 				df.columns = prints
 				first_minute = data[0]
 				#print(first_minute)
-				high_idx = get_next_highest_index(price_bins,first_minute['high'])
-				low_idx = get_next_lowest_index(price_bins,first_minute['low'])
+				high_idx = get_next_highest_index(price_bins, first_minute['high'])
+				low_idx = get_next_lowest_index(price_bins, first_minute['low'])
 				#print(high_idx, low_idx)
 				#print(price_bins[low_idx], price_bins[high_idx])
 				open_bins = [i for i in range(int(price_bins[low_idx]), int(price_bins[high_idx]+tick_size), tick_size)]
@@ -243,18 +249,18 @@ def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
 				#print(df)
 				c_date = dt.datetime.fromtimestamp(data[0]['timestamp']).strftime('%Y-%m-%d')
 				if dt_idx == len(profile_data_list)-1:
+					rev_ys = range(int(min(y_s)), int(max(y_s) + tick_size), tick_size)
 					df_tmp = df.iloc[:,:3]
 					ax = fig.add_subplot(1, layout_cols, chrt_idx)
 					text = day_open_statistics(first_minute, first_15_mins, yday_profile)
 					#text = str(yday_profile['above_poc']) + "/" + str(yday_profile['below_poc']) + '\n' + text
-					#print(processed_data)
 					text = "yesterday range " + str(round(yday_profile['high'] - yday_profile['low'])) + '\n' + text
 
-					overlap_va = get_overlap(processed_data['initial_balance'], [yday_profile['va_l_p'], yday_profile['va_h_p']])
-					overlap_va_pct = round(overlap_va/(processed_data['initial_balance'][1] - processed_data['initial_balance'][0]) * 100)
-					overlap_rng = get_overlap(processed_data['initial_balance'], [yday_profile['low'], yday_profile['high']])
-					overlap_rng_pct = round(overlap_rng/(processed_data['initial_balance'][1] - processed_data['initial_balance'][0]) * 100)
-					text = "today OB " + str(round(processed_data['initial_balance_acc'][1] - processed_data['initial_balance_acc'][0])) + " overlap " + str(overlap_va_pct)+"/" + str(overlap_rng_pct) + "/" +str(overlap_rng_pct-overlap_va_pct)+ '%\n' + text
+					overlap_va = get_overlap(market_profile['initial_balance'], [yday_profile['va_l_p'], yday_profile['va_h_p']])
+					overlap_va_pct = round(overlap_va/(market_profile['initial_balance'][1] - market_profile['initial_balance'][0]) * 100)
+					overlap_rng = get_overlap(market_profile['initial_balance'], [yday_profile['low'], yday_profile['high']])
+					overlap_rng_pct = round(overlap_rng/(market_profile['initial_balance'][1] - market_profile['initial_balance'][0]) * 100)
+					text = "today OB " + str(round(market_profile['initial_balance_acc'][1] - market_profile['initial_balance_acc'][0])) + " overlap " + str(overlap_va_pct)+"/" + str(overlap_rng_pct) + "/" +str(overlap_rng_pct-overlap_va_pct)+ '%\n' + text
 					plot_profile_chart(ax,df_tmp,c_date,True,True,text)
 					"""
 					print(y_s)
@@ -264,27 +270,26 @@ def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
 					print(y_s.index(yday_profile['poc_price']))
 					"""
 					chrt_idx += 1
-					ax.hlines(y=y_s.index(yday_profile['va_h_p']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='red')
-					ax.hlines(y=y_s.index(yday_profile['va_l_p']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='lightgreen')
-					ax.hlines(y=y_s.index(yday_profile['poc_price']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='blue')
-					ax.text(8.8, y_s.index(yday_profile['poc_price'])+0.3, str(int(yday_profile['above_poc'])) + "/" + str(int(yday_profile['below_poc'])), fontsize=5, style='italic', color="red")
-					op_idx_L = get_next_lowest_index(y_s, first_minute['open'])
-					op_idx_H = get_next_highest_index(y_s, first_minute['open'])
+					ax.hlines(y=rev_ys.index(yday_profile['va_h_p']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='red')
+					ax.hlines(y=rev_ys.index(yday_profile['va_l_p']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='lightgreen')
+					ax.hlines(y=rev_ys.index(yday_profile['poc_price']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='blue')
+					ax.text(8.8, rev_ys.index(yday_profile['poc_price'])+0.3, str(int(yday_profile['above_poc'])) + "/" + str(int(yday_profile['below_poc'])), fontsize=5, style='italic', color="red")
+					op_idx_L = get_next_lowest_index(list(rev_ys), first_minute['open'])
+					op_idx_H = get_next_highest_index(list(rev_ys), first_minute['open'])
 					op_idx = 0.5*(op_idx_L + op_idx_H)
 					ax.text(1, op_idx, '--', fontsize=10, style='italic', color='red')
-					ax.text(-2, y_s.index(yday_profile['va_l_p']) , str(yday_profile['va_l_p']), fontsize=4, style='italic')
-					ax.text(-2, y_s.index(yday_profile['va_h_p']) , str(yday_profile['va_h_p']), fontsize=4, style='italic')
-					ax.text(-2, y_s.index(yday_profile['poc_price']), str(yday_profile['poc_price']), fontsize=4, style='italic')
-					yday_L = get_next_lowest_index(y_s, yday_profile['low'])
+					ax.text(-2, rev_ys.index(yday_profile['va_l_p']) , str(yday_profile['va_l_p']), fontsize=4, style='italic')
+					ax.text(-2, rev_ys.index(yday_profile['va_h_p']) , str(yday_profile['va_h_p']), fontsize=4, style='italic')
+					ax.text(-2, rev_ys.index(yday_profile['poc_price']), str(yday_profile['poc_price']), fontsize=4, style='italic')
+					yday_L = get_next_lowest_index(list(rev_ys), yday_profile['low'])
 					#print(yday_L)
-					yday_H = get_next_highest_index(y_s, yday_profile['high'])
+					yday_H = get_next_highest_index(list(rev_ys), yday_profile['high'])
 					#print(yday_H)
 					ax.hlines(y=yday_L, linewidth=1, xmin=0, xmax=100, color='green')
 					ax.hlines(y=yday_H, linewidth=1, xmin=0, xmax=100, color='red')
 					ax.text(-2, yday_L , str(yday_profile['low']), fontsize=4, style='italic')
 					ax.text(-2, yday_H, str(yday_profile['high']), fontsize=4, style='italic')
 
-				# ax.text(-1, y_s.index(processed_data['value_area_price'][1] , str(processed_data['value_area_price'][1])), fontsize=4, style='italic')
 
 				#plt.axhline(y_s.index(yday_profile['va_h_p']), color="blue", linewidth=0.5)
 					#plt.axhline(y_s.index(yday_profile['va_l_p']), color="blue", linewidth=0.5)
@@ -298,20 +303,19 @@ def plot_intraday_chart(ticker, day, period, no_of_hist_days, show=False):
 					pass
 				else:
 					rev_ys = range(int(min(y_s)), int(max(y_s)+ tick_size), tick_size)
-					ax.hlines(y=rev_ys.index(processed_data['value_area_price'][0]), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='lightgreen')
-					ax.hlines(y=rev_ys.index(processed_data['value_area_price'][1]), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='red')
-					ax.hlines(y=rev_ys.index(processed_data['poc_price']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='blue')
-					ax.text(13.4, rev_ys.index(processed_data['poc_price'])+0.3, str(int(processed_data['above_poc'])) + "/" + str(int(processed_data['below_poc'])), fontsize=4, style='italic')
-					ax.text(-2, rev_ys.index(processed_data['value_area_price'][0]), str(processed_data['value_area_price'][0]), fontsize=4, style='italic')
-					ax.text(-2, rev_ys.index(processed_data['value_area_price'][1]), str(processed_data['value_area_price'][1]), fontsize=4, style='italic')
-					ax.text(-2, rev_ys.index(processed_data['poc_price']), str(processed_data['poc_price']), fontsize=4, style='italic')
-			#print(processed_data['value_area_price'])
+					ax.hlines(y=rev_ys.index(market_profile['value_area_price'][0]), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='lightgreen')
+					ax.hlines(y=rev_ys.index(market_profile['value_area_price'][1]), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='red')
+					ax.hlines(y=rev_ys.index(market_profile['poc_price']), linewidth=0.5, xmin=0, xmax=100, linestyles="dashed", color='blue')
+					ax.text(13.4, rev_ys.index(market_profile['poc_price'])+0.3, str(int(market_profile['above_poc'])) + "/" + str(int(market_profile['below_poc'])), fontsize=4, style='italic')
+					ax.text(-2, rev_ys.index(market_profile['value_area_price'][0]), str(market_profile['value_area_price'][0]), fontsize=4, style='italic')
+					ax.text(-2, rev_ys.index(market_profile['value_area_price'][1]), str(market_profile['value_area_price'][1]), fontsize=4, style='italic')
+					ax.text(-2, rev_ys.index(market_profile['poc_price']), str(market_profile['poc_price']), fontsize=4, style='italic')
 				#print(price_bins)
 			report.savefig()
 			plt.clf()
 	except Exception as e:
 		print(day)
-		print(e)
+		print(traceback.format_exc())
 
 def generate_historical_chart(ticker, filtered_days):
 	if not os.path.exists(reports_dir):
@@ -390,12 +394,12 @@ def email(tickers, last_day):
 
 
 def run():
-	tickers = default_symbols #[x.split(":")[1] for x in default_symbols]
+	tickers = default_symbols[0:1] #[x.split(":")[1] for x in default_symbols]
 	last_day = get_pending_profile_dates(default_symbols[0])
 	generate(tickers=tickers, trade_days = last_day)
 	email(tickers, last_day[0]['date'])
 
-
+#run()
 #generate(["NIFTY"], filter={'year': '2024'})
 #generate(ticker, filter={'day': 'Friday'}) ##this changed by me
 

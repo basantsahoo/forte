@@ -72,7 +72,7 @@ class CriteriaEvaluator:
 
         time_status = all([node.evaluate() for node in self.time_criteria_node]) if self.time_criteria_node else True
         market_criteria_status = all([group.evaluate() for group in self.market_criteria_group_nodes])
-        #print("CriteriaEvaluator =   =    evaluate", time_status and market_criteria_status)
+        print("CriteriaEvaluator =   =    evaluate", time_status and market_criteria_status)
         return time_status and market_criteria_status
 
 
@@ -113,8 +113,10 @@ class PathEvaluator:
                 if node.previous_node is None or node.previous_node.status:
                     node.evaluate()
                     self.status = node.status and self.status
+        for node in self.node_graph.values():
+            print(node.condition, "==", node.status)
         self.status = all([node.status for node in self.node_graph.values()])
-        #print("PathEvaluator =   =    evaluate", self.status)
+        print("PathEvaluator =   =    evaluate", self.status)
         return self.status
 
 
@@ -134,6 +136,9 @@ class NodeEvaluator:
             market_params = self.manager.spot_book.spot_processor.get_market_params()
             volume_profile = self.manager.spot_book.volume_profile.volume_profile
             market_profile = self.manager.spot_book.volume_profile.market_profile
+            #volume_profile = self.manager.spot_book.volume_profile.price_data[trade_day][asset]['volume_profile']
+            #market_profile = self.manager.spot_book.volume_profile.price_data[trade_day][asset]['market_profile']
+
             #print('volume_profile=============', volume_profile)
             #print('market_profile=============', market_profile)
             volume_poc = volume_profile.get('poc_price')
