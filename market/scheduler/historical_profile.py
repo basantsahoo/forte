@@ -2,18 +2,14 @@ import os
 import traceback
 
 import pandas as pd
-import numpy as np
 import string
 
 #from matplotlib.finance import candlestick_ohlc
 #from mpl_finance import candlestick_ohlc
-from mplfinance.original_flavor import candlestick_ohlc
 from servers.server_settings import reports_dir
 from config import default_symbols
-import time
 import datetime as dt
 import calendar
-from dateutil import tz
 import plotly.graph_objects as go
 import plotly
 import glob
@@ -32,14 +28,12 @@ from reporting.charts import day_open_statistics,plot_profile_chart
 from helper.utils import get_pivot_points, get_overlap
 from dynamics.profile.utils import get_next_highest_index, get_next_lowest_index
 from PyPDF2 import PdfFileMerger, PdfFileReader
-from arc.volume_profile import VolumeProfileService
+from dynamics.profile.volume_profile import VolumeProfileService
 import matplotlib
 ### only required in unix
 matplotlib.use('Agg')
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import matplotlib.dates as mdates
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText

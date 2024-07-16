@@ -1,27 +1,18 @@
 import numpy as np
-import json
 from talib import stream
 
-from db.market_data import get_prev_week_candle, get_nth_day_profile_data, get_prev_day_key_levels
-from helper.utils import get_pivot_points, convert_to_candle
+from helper.utils import convert_to_candle
 from dynamics.profile import utils as profile_utils
 from dynamics.trend.tick_price_smoothing import PriceInflexDetectorForTrend
 from dynamics.trend.intraday_trend import IntradayTrendCalculator
-from dynamics.patterns.price_action_pattern_detector import PriceActionPatternDetector
-from dynamics.patterns.candle_pattern_detector import CandlePatternDetector
-from servers.server_settings import cache_dir
 # Transitions
-from dynamics.transition.intra_day_transition import DayFullStateGenerator
-from dynamics.transition.mc_pre_process import MCPreprocessor
 from dynamics.transition.second_level_mc import MarkovChainSecondLevel
-from dynamics.transition.empirical import EmpiricalDistribution
 from arc.candle_processor import CandleProcessor
 from entities.base import Signal
-from entities.trading_day import TradeDateTime
 
 from arc.spot_processor import SpotFactorCalculator
 from arc.spot_signal_generator import SpotSignalGenerator
-from arc.volume_profile import VolumeProfileService
+from dynamics.profile.volume_profile import VolumeProfileService
 from arc.weekly_processor import WeeklyProcessor
 from arc.path_evaluator import MarketStateManager
 

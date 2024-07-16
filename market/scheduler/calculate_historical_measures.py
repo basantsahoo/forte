@@ -1,13 +1,7 @@
-import time
-from arc.volume_profile import VolumeProfileService
+from dynamics.profile.volume_profile import VolumeProfileService
 import numpy as np
 from itertools import compress
-from config import exclued_days
 import pandas as pd
-import sqlite3
-import os
-import datetime
-from dateutil.relativedelta import relativedelta
 from db.market_data import get_daily_tick_data
 from db.db_engine import get_db_engine
 from config import default_symbols
@@ -123,18 +117,19 @@ def process(trade_days=[], symbols=[], debug=False):
                             'ht': data['ht'],
                             'lt': data['lt']
                         }
-                        print(rec)
+                        #print(rec)
                         df = pd.DataFrame([rec])
-                        #df.to_sql('daily_profile', conn, if_exists="append", index=False)
+                        df.to_sql('daily_profile', conn, if_exists="append", index=False)
                 except Exception as e:
                     print(trade_day, symbol)
                     print(e)
     conn.close()
 
 def run():
-    process(trade_days=["2024-04-15"])
+    #process(trade_days=["2024-04-15"])
+    process()
 
-run()
+#run()
 
 
 
