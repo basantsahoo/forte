@@ -3,7 +3,7 @@ import numpy as np
 import time
 from itertools import compress
 from dynamics.profile import utils
-from config import va_pct
+from forte_config import va_pct, min_co_ext
 
 
 class WeeklyMarketProfileService:
@@ -11,7 +11,7 @@ class WeeklyMarketProfileService:
         self.trade_day = trade_day
         self.price_data = {}
         self.value_area_pct = va_pct
-        self.min_co_ext = 2
+        self.min_co_ext = min_co_ext
         self.waiting_for_data = False
         self.spot_book = None
         self.last_ts = None

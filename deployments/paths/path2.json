@@ -5,7 +5,7 @@
     "indicator": "PROFILE_DIFF",
     "instrument": "SPOT"
   },
-  "time_criteria": ["tpo > 10"],
+  "time_criteria": ["tpo > 12"],
   "market_criteria_groups": [[]],
   "paths": ["ext_high == True"]
 }

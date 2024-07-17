@@ -73,8 +73,8 @@ class VolumeProfileService:
         self.day_setup(current_frame)
         if self.last_ts is None or current_frame - self.last_ts >= self.time_period:
             if self.spot_book is not None:
-                #lst = [minute_data for minute, minute_data in self.spot_book.spot_processor.spot_ts.items() if (self.last_ts is None or minute > self.last_ts)]
-                lst = [self.spot_book.spot_processor.spot_ts[current_frame]]
+                lst = [minute_data for minute, minute_data in self.spot_book.spot_processor.spot_ts.items() if (self.last_ts is None or minute > self.last_ts)]
+                #lst = [self.spot_book.spot_processor.spot_ts[current_frame]]
                 self.process_input_data(lst)
                 self.calculateProfile()
             self.last_ts = current_frame

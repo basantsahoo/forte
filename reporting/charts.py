@@ -190,7 +190,7 @@ def day_open_statistics(open_candle, first_15_mins, yday_profile):
             txt += "\nLow in range"
     return txt
 
-def plot_profile_chart(ax,df,c_date,remove_y_label=False, ini_bal=False,text=None):
+def plot_profile_chart(ax,df,c_date,remove_y_label=False, ini_bal=False,text=None, xlim=15):
     title = c_date + ("_ini bal" if ini_bal else "")
     if df.shape[0] > 100:
         fontsize = 3
@@ -207,7 +207,7 @@ def plot_profile_chart(ax,df,c_date,remove_y_label=False, ini_bal=False,text=Non
     if ini_bal:
         ax.set_xlim(0, 10)
     else:
-        ax.set_xlim(0, 15)
+        ax.set_xlim(0, xlim)
 
     ax.xaxis.set_tick_params(length=0, labelbottom=False)
     ax.yaxis.set_tick_params(length=0)  # removes dash

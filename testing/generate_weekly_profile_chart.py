@@ -53,7 +53,8 @@ def plot_weekly_profile(symbol, day, week_start_day, start_time):
             fig = plt.figure()
             plt.tight_layout()
 
-            layout_cols = len(profile_data_list) + 1
+            #layout_cols = len(profile_data_list) + 1
+            layout_cols = len(profile_data_list)
             for dt_idx in range(len(profile_data_list)):
                 data = profile_data_list[dt_idx]
                 chrt_idx += 1
@@ -94,7 +95,7 @@ def plot_weekly_profile(symbol, day, week_start_day, start_time):
                 c_date = dt.datetime.fromtimestamp(data[0]['timestamp']).strftime('%Y-%m-%d')
                 ax = fig.add_subplot(1, layout_cols, chrt_idx)
                 rem_y_label = True if dt_idx > 0 else False
-                plot_profile_chart(ax, df, c_date, rem_y_label)
+                plot_profile_chart(ax, df, c_date, rem_y_label, xlim=30)
                 if not rem_y_label:
                     # yday_profile['va_h_p']
                     pass
@@ -172,4 +173,4 @@ def generate(tickers=['NIFTY'], days_past=7):
     for ticker in tickers:
         generate_historical_weekly_profile_chart(ticker, trade_days, week_start_day="Friday", start_time="9:15:00")
 
-generate(days_past=21)
+generate(days_past=270)
