@@ -1,9 +1,0 @@
-{
-  "mechanism": "FIXED",
-  "instruments": [],
-  "combinations": [],
-  "test_days": [],
-  "for_past_days": 30,
-  "symbols": ["NIFTY"],
-  "to_date": "2023-01-24"
-}
