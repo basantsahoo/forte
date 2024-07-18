@@ -333,8 +333,8 @@ def get_curr_week_consolidated_minute_data_by_start_day(symbol, trade_day, week_
         end_ts = int(time.mktime(time.strptime(this_week_end_plus_one_str, "%Y-%m-%d %H:%M:%S")))
         if full_week:
             stmt_1 = """
-            select M.timestamp,M.open,M.high,M.low,M.close, IFNULL(O.volume, 0) as volume from
-            (select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3}) M 
+            select M.timestamp, M.date, M.open,M.high,M.low,M.close, IFNULL(O.volume, 0) as volume from
+            (select timestamp, DATE_FORMAT(date, '%%Y-%%m-%%d') as date, open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3}) M 
             LEFT JOIN
             (select timestamp, sum(volume) as volume  from option_data od where underlying = '{0}' and timestamp >= {1} and timestamp < {2}  group by timestamp) O 
             ON M.timestamp = O.timestamp
@@ -342,8 +342,8 @@ def get_curr_week_consolidated_minute_data_by_start_day(symbol, trade_day, week_
             """.format(symbol, start_ts, end_ts, tuple(exclued_days))
         else:
             stmt_1 = """
-            select M.timestamp,M.open,M.high,M.low,M.close, IFNULL(O.volume, 0) as volume from
-            (select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3} and date < '{4}') M 
+            select M.timestamp,M.date, M.open,M.high,M.low,M.close, IFNULL(O.volume, 0) as volume from
+            (select timestamp, DATE_FORMAT(date, '%%Y-%%m-%%d') as date, open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3} and date < '{4}') M 
             LEFT JOIN
             (select timestamp, sum(volume) as volume  from option_data od where underlying = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3} and date < '{4}' group by timestamp) O 
             ON M.timestamp = O.timestamp
@@ -384,8 +384,8 @@ def get_prev_week_consolidated_minute_data_by_start_day(symbol, trade_day, week_
         end_ts = int(time.mktime(time.strptime(last_week_end_plus_one_str, "%Y-%m-%d %H:%M:%S")))
 
         stmt_1 = """
-        select M.timestamp,M.open,M.high,M.low,M.close, IFNULL(O.volume, 0) as volume from
-        (select timestamp,open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3}) M 
+        select M.timestamp,M.date, M.open,M.high,M.low,M.close, IFNULL(O.volume, 0) as volume from
+        (select timestamp,DATE_FORMAT(date, '%%Y-%%m-%%d') as date, open,high,low,close,volume from minute_data where symbol = '{0}' and timestamp >= {1} and timestamp < {2} and date not in {3}) M 
         LEFT JOIN
         (select timestamp, sum(volume) as volume  from option_data od where underlying = '{0}' and timestamp >= {1} and timestamp < {2}  group by timestamp) O 
         ON M.timestamp = O.timestamp

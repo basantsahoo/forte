@@ -10,7 +10,7 @@ import json
 import traceback
 import math
 
-from backtest.settings import reports_dir
+from backtest_structure.settings import reports_dir
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
 from arc.option_market_book import OptionMarketBook
@@ -263,6 +263,8 @@ if __name__ == '__main__':
     result_df = part_results.groupby(groupby_columns, as_index=False).apply(keep_non_blank_exit_price).reset_index(drop=True)
     # Reset index to flatten the multi-index resulting from groupby
     result_df = result_df.drop_duplicates(subset=groupby_columns, keep='first').reset_index(drop=True)
+    result_df = result_df.sort_values(by=['trade_trigger_time', 'trade_id'], ascending=[True, True], na_position='first')
+
     print('results=====', result_df)
     print('total P&L', result_df['realized_pnl'].sum())
     print('Accuracy', len([x for x in result_df['realized_pnl'].to_list() if x>0])/len(result_df['realized_pnl'].to_list()))

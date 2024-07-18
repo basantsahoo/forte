@@ -1,5 +1,5 @@
 {
-  "strategies":["FRIDAY_LONG_ABOVE_VA", "FRIDAY_SHORT_BELOW_VA"],
+  "strategies":["PROFILE_STRETCH"],
   "combinators": [],
   "run_params": {
     "test_days": [],

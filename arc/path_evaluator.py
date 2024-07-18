@@ -4,7 +4,7 @@ from os import listdir
 from os.path import isfile, join
 import json
 from entities.base import Signal
-
+from datetime import datetime
 
 class MarketStateManager:
     def __init__(self, spot_book):
@@ -18,8 +18,9 @@ class MarketStateManager:
         for fl in state_files:
             with open(state_config_dir + fl, 'r') as state_config:
                 state_info = json.load(state_config)
-                print(state_info)
-                self.state_config[state_info['id']] = StateEvaluator.load_from_config(self, state_info)
+                if state_info.get('active', False):
+                    print(state_info)
+                    self.state_config[state_info['id']] = StateEvaluator.load_from_config(self, state_info)
 
     def frame_change_action(self, current_frame, next_frame):
         if self.last_ts is None or current_frame - self.last_ts >= self.time_period:
@@ -73,24 +74,25 @@ class CriteriaEvaluator:
         time_status = all([node.evaluate() for node in self.time_criteria_node]) if self.time_criteria_node else True
         market_criteria_status = all([group.evaluate() for group in self.market_criteria_group_nodes])
         print("CriteriaEvaluator =   =    evaluate", time_status and market_criteria_status)
+        print('time_status', time_status)
+        print('market_criteria_status', market_criteria_status)
         return time_status and market_criteria_status
 
 
 class GroupEvaluator:
     def __init__(self, manager,  criteria_groups):
         self.manager = manager
-        self.group_nodes = [NodeEvaluator(criteria) for criteria in criteria_groups]
-        self.node_graph = {}
+        self.group_nodes = [NodeEvaluator(manager, idx, criteria) for idx, criteria in enumerate(criteria_groups)]
         self.status = not len(self.group_nodes)
 
     def evaluate(self):
         if not self.status:
-            for idx, node in self.node_graph:
+            for idx, node in enumerate(self.group_nodes):
                 if not node.status:
                     if node.previous_node is None or node.previous_node.status:
                         node.evaluate()
             self.status = any([node.status for node in self.group_nodes])
-            #print("GroupEvaluator =   =    evaluate", self.status)
+            print("GroupEvaluator =   =    evaluate", self.status)
         return self.status
 
 
@@ -129,15 +131,24 @@ class NodeEvaluator:
         self.status = False
 
     def evaluate(self):
-
+        print("NodeEvaluator condition===", self.condition)
         if not self.status:
             asset = self.manager.spot_book.asset_book.asset
             trade_day = self.manager.spot_book.asset_book.market_book.trade_day
             market_params = self.manager.spot_book.spot_processor.get_market_params()
             volume_profile = self.manager.spot_book.volume_profile.volume_profile
             market_profile = self.manager.spot_book.volume_profile.market_profile
+            last_week_metric = self.manager.spot_book.weekly_processor.last_week_metric
+            curr_week_profile = self.manager.spot_book.weekly_processor.get_curr_week_metric()
+
+
+
             #volume_profile = self.manager.spot_book.volume_profile.price_data[trade_day][asset]['volume_profile']
             #market_profile = self.manager.spot_book.volume_profile.price_data[trade_day][asset]['market_profile']
+            price_location =  market_params.get('price_location', 50)
+            week_day = datetime.strptime(self.manager.spot_book.asset_book.market_book.trade_day, '%Y-%m-%d').strftime('%A')
+            open_type = market_params['open_type']
+            tpo = market_params['tpo']
 
             #print('volume_profile=============', volume_profile)
             #print('market_profile=============', market_profile)
@@ -155,7 +166,44 @@ class NodeEvaluator:
             ext_high = market_profile['profile_dist']['ext_high']
             sin_print = market_profile['profile_dist']['sin_print']
             p_shape = market_profile['profile_dist'].get('p_shape', "")
-            close = market_profile.get('close')
+
+            market_profile_vah = market_profile.get('vah')
+            market_profile_val = market_profile.get('val')
+
+            day_close = market_profile.get('close')
+            day_open = market_profile.get('open')
+            day_low = market_profile.get('low')
+            day_high = market_profile.get('high')
+
+            # Comparison with last week profile
+            last_week_range = (last_week_metric['high'] - last_week_metric['low'])/((last_week_metric['high'] + last_week_metric['low'])/2)
+            print('day_open === ', day_open)
+            print('last_week_POC === ', last_week_metric['poc_price'])
+            open_above_lw_poc = day_open > last_week_metric['poc_price']
+            open_above_lw_va = day_open > last_week_metric['va_h_p']
+            open_below_lw_va = day_open < last_week_metric['va_l_p']
+            open_above_lw_high = day_open > last_week_metric['high']
+            open_below_lw_low = day_open < last_week_metric['low']
+
+            close_above_lw_poc = day_close > last_week_metric['poc_price']
+            close_above_lw_va = day_close > last_week_metric['va_h_p']
+            close_below_lw_va = day_close < last_week_metric['va_l_p']
+            close_above_lw_high = day_close > last_week_metric['high']
+            close_below_lw_low = day_close < last_week_metric['low']
+
+            breach_lw_low = day_low < last_week_metric['low']
+            breach_lw_high = day_high > last_week_metric['high']
+
+            sustains_lw_low = market_poc < last_week_metric['low']
+            sustains_lw_high = market_poc > last_week_metric['high']
+
+            trade_in_upper_lw_va = market_profile_val > last_week_metric['poc_price']
+            trade_in_lower_lw_va = market_profile_vah < last_week_metric['poc_price']
+
+            trade_above_lw_va = market_profile_val > last_week_metric['va_h_p']
+            trade_below_lw_va = market_profile_vah < last_week_metric['va_l_p']
+
+            trade_in_lw_va = market_profile_vah > last_week_metric['va_l_p'] and market_profile_val < last_week_metric['va_h_p']
             #print('volume_profile_vah======', volume_profile_vah)
             #print('close======', close)
 

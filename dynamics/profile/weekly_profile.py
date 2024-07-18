@@ -4,7 +4,8 @@ import time
 from itertools import compress
 from dynamics.profile import utils
 from forte_config import va_pct, min_co_ext
-
+from entities.trading_day import TradeDateTime
+from dynamics.profile.volume_profile import VolumeProfileService
 
 class WeeklyMarketProfileService:
     def __init__(self, trade_day=None, time_period=1):
@@ -12,7 +13,7 @@ class WeeklyMarketProfileService:
         self.price_data = {}
         self.value_area_pct = va_pct
         self.min_co_ext = min_co_ext
-        self.waiting_for_data = False
+        self.waiting_for_data = True
         self.spot_book = None
         self.last_ts = None
         self.time_period = time_period * 60
@@ -28,7 +29,8 @@ class WeeklyMarketProfileService:
         self.last_intraday_ts = 0
         self.market_profile = {}
         self.volume_profile = {}
-
+        self.hist_day_market_profile_stats = {}
+        self.hist_day_volume_profile_stats = {}
 
     def frame_change_action(self, current_frame, next_frame):
         if self.last_ts is None or current_frame - self.last_ts >= self.time_period:
@@ -68,12 +70,29 @@ class WeeklyMarketProfileService:
             self.hist_data[epoch_minute] = minute_candle
         self.process_input_data(lst)
 
+    def calculate_hist_daily_profile(self, date_recs):
+        #print(date_recs)
+        if list(date_recs.values())[0]:
+            all_dates = [TradeDateTime(key) for key in date_recs.keys()]
+            all_dates.sort()
+            for idx, dt in enumerate(all_dates):
+                day_data = date_recs[dt.date_string]
+                start_epoch_tick_time = day_data[0]['timestamp']
+                processor = VolumeProfileService()
+                processor.process_hist_data(day_data)
+                processor.day_setup(start_epoch_tick_time)
+                processor.calculateProfile()
+                self.hist_day_market_profile_stats[idx] = processor.market_profile
+                self.hist_day_volume_profile_stats[idx] = processor.volume_profile
+
+
     def process_input_data(self, lst):
         for inst in lst:
             first = False
             if not self.price_data:
                 self.tick_size = utils.get_tick_size(inst['high']) * 5
                 first = True
+                self.waiting_for_data = False
             minute_candle = {
                 'open': inst['open'],
                 'high': inst['high'],

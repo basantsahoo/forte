@@ -83,28 +83,40 @@ class WeeklyProcessor:
 
         last_tick_of_week = t_day.market_end_epoc
         self.current_week_processor.set_trade_date_from_time(first_tick_of_week, last_tick_of_week)
+        #print(curr_week_recs)
+        self.current_week_processor.process_hist_data(curr_week_recs)
+        self.current_week_processor.calculateProfile()
+        date_recs = df.groupby('date').apply(lambda x: x.to_dict(orient='records')).to_dict()
+
+        self.current_week_processor.calculate_hist_daily_profile(date_recs)
         self.current_week_processor.spot_book = self.spot_book
         print('start day ====', datetime.fromtimestamp(first_tick_of_week))
 
     def generate_signal(self):
         print('WeeklyProcessor==== generate_signal')
 
-    def process_minute_data(self, minute_data, notify=True):
-        if not self.first_tick_of_week:
-            self.first_tick_of_week = minute_data
+    def get_curr_week_metric(self):
+        processed_data = self.current_week_processor.market_profile
+        self.curr_week_metric = {
+            'open': processed_data['open'],
+            'high': processed_data['high'],
+            'low': processed_data['low'],
+            'close': processed_data['close'],
+            'poc_price': processed_data['poc_price'],
+            'va_l_p': processed_data['value_area_price'][0],
+            'va_h_p': processed_data['value_area_price'][1],
+            'va_l_poc_mid': 0.5 * (processed_data['value_area_price'][0] + processed_data['poc_price']),
+            'va_l_low_mid': 0.5 * (processed_data['value_area_price'][0] + processed_data['low']),
+            'va_h_poc_mid': 0.5 * (processed_data['value_area_price'][1] + processed_data['poc_price']),
+            'va_h_high_mid': 0.5 * (processed_data['value_area_price'][1] + processed_data['high']),
+            'h_a_l': processed_data['h_a_l'],
+            'ext_low': processed_data['profile_dist']['ext_low'],
+            'ext_high': processed_data['profile_dist']['ext_high'],
+            'low_ext_val': processed_data['profile_dist']['low_ext_val'],
+            'high_ext_val': processed_data['profile_dist']['high_ext_val'],
+        }
+        return self.curr_week_metric
 
-        if self.week_open_type is None:
-            self.set_week_open()
-        lk_keys = ['open', 'high', 'low', 'close', 'poc_price', 'va_l_p', 'va_l_poc_mid', 'va_l_low_mid', 'va_h_poc_mid', 'va_h_high_mid', 'va_h_p', 'balance_target']
-        for l_key in lk_keys:
-            level = self.last_week_metric[l_key]
-            level_reach = determine_level_reach(level, minute_data)
-            if level_reach:
-                self.curr_week_metric[l_key] += 1
-                pat = {'category': 'WEEKLY_LEVEL_REACH', 'indicator': l_key, 'strength': 1,
-                       'signal_time': minute_data['timestamp'], 'notice_time': minute_data['timestamp'],
-                       'info': minute_data}
-                self.spot_book.asset_book.pattern_signal(pat)
 
     def set_week_open(self):
         self.week_open_type = determine_day_open(self.first_tick_of_week, self.last_week_metrices)

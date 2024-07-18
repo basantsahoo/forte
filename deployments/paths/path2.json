@@ -1,11 +1,12 @@
 {
   "id": "path2",
+  "active": false,
   "signal": {
     "category": "PATH",
     "indicator": "PROFILE_DIFF",
     "instrument": "SPOT"
   },
-  "time_criteria": ["tpo > 12"],
+  "time_criteria": ["tpo > 120"],
   "market_criteria_groups": [[]],
   "paths": ["ext_high == True"]
 }

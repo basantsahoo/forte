@@ -1,0 +1,12 @@
+{
+  "id": "path4",
+  "active": true,
+  "signal": {
+    "category": "PATH",
+    "indicator": "FRIDAY_CLOSE_BELOW_VA",
+    "instrument": "SPOT"
+  },
+  "time_criteria": ["tpo > 12"],
+  "market_criteria_groups": [["week_day == 'Friday'"]],
+  "paths": ["trade_in_lower_lw_va or trade_in_lw_va", "close_below_lw_va"]
+}
