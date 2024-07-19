@@ -95,6 +95,8 @@ default_trade_manager_params = {
     "spot_high_stop_loss_levels": [],
     "spot_low_target_levels": [],
     "spot_low_stop_loss_levels": [],
+    "predicted_high_level": None,
+    "predicted_low_level": None,
     "trade_targets": [],  # [0.002,0.003, 0.004, 0.005],
     "trade_stop_losses": [],  # [-0.001,-0.002, -0.002,-0.002]
     "leg_group_exits": {},

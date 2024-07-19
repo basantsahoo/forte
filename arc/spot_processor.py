@@ -73,7 +73,7 @@ class SpotFactorCalculator:
         feed_small = {key: minute_data[key] for key in key_list}
         epoch_minute = TradeDateTime.get_epoc_minute(minute_data['timestamp'])
         self.spot_ts[epoch_minute] = feed_small
-        print("total spot items======", len(list(self.spot_ts.keys())))
+        #print("total spot items======", len(list(self.spot_ts.keys())))
         self.last_tick = feed_small
         self.day_range['low'] = min(self.day_range['low'], feed_small['low'])
         self.day_range['high'] = max(self.day_range['high'], feed_small['high'])

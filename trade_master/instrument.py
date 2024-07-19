@@ -49,11 +49,12 @@ class Instrument:
         kind = config['kind']
         expiry = config.get('expiry', '')
         money_ness = config.get('money_ness', '')
+        near_to_price = config.get('near_to_price', None)
         level = config.get('level', 0)
         if kind.upper() != 'SPOT':
             asset_book = market_book.get_asset_book(asset)
             last_tick = asset_book.get_last_tick('SPOT')
-            ltp = last_tick['close']
+            ltp = last_tick['close'] if near_to_price is None else near_to_price
             strike = get_option_strike(ltp, money_ness, level, kind)
             instr_code = str(strike) + "_" + kind
             last_candle = asset_book.get_last_tick(instr_code)

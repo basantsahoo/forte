@@ -1,0 +1,13 @@
+{
+  "id": "path7",
+  "active": true,
+  "signal": {
+    "category": "PATH",
+    "indicator": "MID_WEEK_CLOSE_BELOW_VA",
+    "instrument": "SPOT"
+  },
+  "key_level_fields": [],
+  "time_criteria": ["tpo > 12"],
+  "market_criteria_groups": [],
+  "paths": ["not first_day_of_week","not hist_close_below_lw_va","close_below_lw_va"]
+}

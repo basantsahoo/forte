@@ -3,6 +3,10 @@ class Leg:
     @classmethod
     def from_config(cls, leg_group, leg_id, leg_info):
         leg_info['instr_to_trade']['asset'] = leg_group.asset
+        use_predicted_high_level = leg_info['instr_to_trade'].get('use_predicted_high_level', False)
+        use_predicted_low_level = leg_info['instr_to_trade'].get('use_predicted_low_level', False)
+        near_to_price = leg_group.trade.trade_set.trade_manager.predicted_high_level if use_predicted_high_level else leg_group.trade.trade_set.trade_manager.predicted_low_level if use_predicted_low_level else None
+        leg_info['instr_to_trade']['near_to_price'] = near_to_price
         instr = Instrument.from_config(leg_group.trade.trade_set.trade_manager.market_book, leg_info['instr_to_trade'])
         last_candle = instr.get_last_tick()
         last_spot_candle = leg_group.trade.trade_set.trade_manager.get_last_tick(instr.asset, 'SPOT')

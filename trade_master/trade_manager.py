@@ -78,6 +78,8 @@ class TradeManager:
                  spot_high_stop_loss_levels=[],
                  spot_low_target_levels=[],
                  spot_low_stop_loss_levels=[],
+                 predicted_high_level=None,
+                 predicted_low_level=None,
                  trade_targets=[],  # [0.002,0.003, 0.004, 0.005],
                  trade_stop_losses=[],  # [-0.001,-0.002, -0.002,-0.002]
                  leg_group_exits={},
@@ -102,6 +104,8 @@ class TradeManager:
         self.spot_high_stop_loss_levels = spot_high_stop_loss_levels
         self.spot_low_target_levels = spot_low_target_levels
         self.spot_low_stop_loss_levels = spot_low_stop_loss_levels
+        self.predicted_high_level = predicted_high_level
+        self.predicted_low_level = predicted_low_level
         self.carry_forward_days = carry_forward_days
         side = 1  # get_broker_order_type(self.order_type)
         self.trade_targets = [side * abs(x) for x in trade_targets]
