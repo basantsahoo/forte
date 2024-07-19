@@ -454,11 +454,11 @@ def get_prev_day_avg_volume(asset, trade_day):
 
     stmt_1 = """
     WITH 
-        B AS (select max(date) as m_date, max(timestamp) as m_time_stamp 
+        B AS (select max(date) as m_date 
         from option_data where underlying = '{0}' and date < '{1}' and date > date('{1}') - INTERVAL 7 day
     )
     
-    select C.instrument , C.avg_volume, D.closing_oi from 
+    select C.instrument , C.avg_volume, D.closing_oi, D.ltp from 
     (select  CONCAT(strike,'_', kind) AS instrument,  round(AVG(volume)) as avg_volume  
     FROM option_data AS A JOIN B
     ON  A.date = B.m_date
@@ -466,9 +466,9 @@ def get_prev_day_avg_volume(asset, trade_day):
     group by instrument) AS C
     JOIN
     
-    (SELECT CONCAT(strike,'_', kind) AS instrument,  oi as closing_oi
+    (SELECT CONCAT(strike,'_', kind) AS instrument,  oi as closing_oi, close as ltp
     FROM option_data p1
-    INNER JOIN (select CONCAT(strike,'_', kind) AS instrument, max(date) as m_date, max(timestamp) as m_time_stamp 
+    INNER JOIN (select CONCAT(strike,'_', kind) AS instrument, max(timestamp) as m_time_stamp 
         from option_data where underlying = '{0}' and date = (select max(date) as m_date from option_data where underlying = '{0}' and date < '{1}' and date > date('{1}') - INTERVAL 7 day)
         group by instrument) p2
     ON (CONCAT(p1.strike,'_', p1.kind) = p2.instrument and p1.timestamp = p2.m_time_stamp)) AS D

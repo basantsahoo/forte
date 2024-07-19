@@ -139,8 +139,8 @@ class NodeEvaluator:
             volume_profile = self.manager.spot_book.volume_profile.volume_profile
             market_profile = self.manager.spot_book.volume_profile.market_profile
             last_week_metric = self.manager.spot_book.weekly_processor.last_week_metric
-            curr_week_metric = self.manager.spot_book.weekly_processor.get_curr_week_metric()
-            hist_day_market_profile_stats = self.manager.spot_book.weekly_processor.current_week_processor.hist_day_market_profile_stats
+            curr_week_profile = self.manager.spot_book.weekly_processor.get_curr_week_metric()
+
 
 
             #volume_profile = self.manager.spot_book.volume_profile.price_data[trade_day][asset]['volume_profile']
@@ -176,6 +176,7 @@ class NodeEvaluator:
             day_high = market_profile.get('high')
 
             # Comparison with last week profile
+            last_week_range = (last_week_metric['high'] - last_week_metric['low'])/((last_week_metric['high'] + last_week_metric['low'])/2)
             print('day_open === ', day_open)
             print('last_week_POC === ', last_week_metric['poc_price'])
             open_above_lw_poc = day_open > last_week_metric['poc_price']
@@ -203,13 +204,6 @@ class NodeEvaluator:
             trade_below_lw_va = market_profile_vah < last_week_metric['va_l_p']
 
             trade_in_lw_va = market_profile_vah > last_week_metric['va_l_p'] and market_profile_val < last_week_metric['va_h_p']
-
-            first_day_of_week = not hist_day_market_profile_stats
-            last_week_range_pct = (last_week_metric['high'] - last_week_metric['low'])/((last_week_metric['high'] + last_week_metric['low'])/2)
-            last_week_range = [last_week_metric['low'], last_week_metric['high']]
-            curr_week_range = [curr_week_metric['low'], curr_week_metric['high']]
-            curr_week_range_in_last_week_range = (max(curr_week_range) <= max(last_week_range)) and (min(curr_week_range) >= min(last_week_range))
-
             #print('volume_profile_vah======', volume_profile_vah)
             #print('close======', close)
 

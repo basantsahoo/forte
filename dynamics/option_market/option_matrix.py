@@ -51,6 +51,7 @@ class OptionMatrix:
         self.spot_throttler = SpotFeedThrottler(self, feed_speed, throttle_speed)
         self.avg_volumes = {}
         self.closing_oi = {}
+        self.hist_ltp = {}
         self.live_mode = live_mode
         self.counter = 0
         self.last_time_stamp = None
@@ -80,6 +81,12 @@ class OptionMatrix:
         for inst_vol in inst_oi_list:
             self.closing_oi[trade_date][inst_vol['instrument']] = inst_vol['closing_oi']
         #print(self.closing_oi)
+
+    def process_hist_ltp(self, trade_date, inst_ltp_list):
+        self.hist_ltp[trade_date] = {}
+        for inst in inst_ltp_list:
+            #print(inst)
+            self.hist_ltp[trade_date][inst['instrument']] = inst['ltp']
 
     def check_adjust_closing_oi(self, trade_date):
         """
@@ -270,7 +277,10 @@ class OptionMatrix:
             candle['timestamp'] = last_tick.timestamp
             return candle
         else:
-            return None
+            hist_ltp = self.hist_ltp[self.current_date][inst]
+            hist_tick = {'close': hist_ltp}
+            return hist_tick
+            #return None
 
     def get_closest_instrument(self, inst):
         #print('get_closest_instrument+++++++', inst)

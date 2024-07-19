@@ -1,0 +1,12 @@
+{
+  "id": "path4",
+  "active": true,
+  "signal": {
+    "category": "PATH",
+    "indicator": "CURR_WEEK_RANGE_IN_LAST_WEEK_RANGE",
+    "instrument": "SPOT"
+  },
+  "time_criteria": ["tpo > 12"],
+  "market_criteria_groups": [["week_day == 'Wednesday'"]],
+  "paths": ["curr_week_range_in_last_week_range"]
+}

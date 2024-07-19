@@ -61,15 +61,24 @@ class OptionAssetBook:
             self.expiry_date = near_expiry_week.end_date.date_string
             if near_expiry_week.start_date.date_string != trade_day:
                 closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
-                closing_oi_df = closing_oi_df[['instrument', 'closing_oi']]
+                closing_oi_recs = closing_oi_df.to_dict("record")
                 #print(closing_oi_df.to_dict('records'))
-                self.option_matrix.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
-                self.option_matrix_5_min.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
-                self.option_matrix_15_min.process_closing_oi(trade_day, closing_oi_df.to_dict("record"))
+                self.option_matrix.process_closing_oi(trade_day, closing_oi_recs)
+                self.option_matrix_5_min.process_closing_oi(trade_day, closing_oi_recs)
+                self.option_matrix_15_min.process_closing_oi(trade_day, closing_oi_recs)
+
+                self.option_matrix.process_hist_ltp(trade_day, closing_oi_recs)
+                self.option_matrix_5_min.process_hist_ltp(trade_day, closing_oi_recs)
+                self.option_matrix_15_min.process_hist_ltp(trade_day, closing_oi_recs)
+
             else:
                 self.option_matrix.process_closing_oi(trade_day, [])
                 self.option_matrix_5_min.process_closing_oi(trade_day, [])
                 self.option_matrix_15_min.process_closing_oi(trade_day, [])
+
+                self.option_matrix.process_hist_ltp(trade_day, [])
+                self.option_matrix_5_min.process_hist_ltp(trade_day, [])
+                self.option_matrix_15_min.process_hist_ltp(trade_day, [])
 
             avg_volume_recs = get_average_volume_for_day(self.asset, trade_day)
             self.option_matrix.process_avg_volume(trade_day, avg_volume_recs)
