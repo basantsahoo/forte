@@ -126,7 +126,8 @@ class AlgoPortfolioManager:
 
     def strategy_exit_signal(self, signal_info, exit_at=None, option_signal=False):
         print('##########################################algo port strategy_exit_signal')
-        print(signal_info)
+        #print("exiting ")
+
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
         trade_set = signal_info['trade_set']
@@ -141,12 +142,13 @@ class AlgoPortfolioManager:
         final_orders = grouped_order_df.to_dict('records')
 
         #print('algo port strategy_entry_signal')
+        #print(self.position_book)
         for trade in trade_set:
             #print('trade =====', trade)
             trade_seq = trade['trade_seq']
             for leg_group in trade['leg_groups']:
-                #print('leg_group =====', leg_group)
                 leg_group_id = leg_group['lg_id']
+                print('trade_seq leg_group =====', trade_seq, leg_group_id)
                 for leg in leg_group['legs']:
 
                     symbol = leg['instrument']['full_code']
@@ -173,7 +175,7 @@ class AlgoPortfolioManager:
                                 l_time = highest_candle['timestamp']
                                 l_price = highest_candle['close']
 
-                        print('order_info=====', order_info)
+                        #print('order_info=====', order_info)
                         qty = order_info['qty'] if qty == 0 else qty
                         order_id = order_info['order_id']
                         exit_order_type = get_exit_order_type(order_info['side'])
@@ -209,10 +211,9 @@ class AlgoPortfolioManager:
         for (strategy_id, signal_id, trade_seq, leg_group_id), sig_details in self.position_book.items():
             tot_qty = 0
             for leg_id in sig_details['position'].keys():
-                tot_qty += sig_details['position'][leg_id]['curr_qty']
+                tot_qty += abs(sig_details['position'][leg_id]['curr_qty'])
             if tot_qty:
                 position_book[(strategy_id, signal_id, trade_seq, leg_group_id)] = sig_details
-
         self.cache.set('algo_pm', position_book)
 
 

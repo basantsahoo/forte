@@ -19,7 +19,7 @@ class Leg:
         order_type = leg_info['order_type']
         return cls(leg_group, leg_id, instr, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time)
 
-    def __init__(self, leg_group, leg_id, instrument, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time):
+    def __init__(self, leg_group, leg_id, instrument, order_type, quantity, entry_price, exit_price, spot_entry_price, spot_exit_price, trigger_time, exit_type=None, exit_time=None):
         self.leg_group = leg_group
         self.leg_id = leg_id
         self.instrument = instrument
@@ -30,8 +30,8 @@ class Leg:
         self.spot_entry_price = spot_entry_price
         self.spot_exit_price = spot_exit_price
         self.trigger_time = trigger_time
-        self.exit_type = None
-        self.exit_time = None
+        self.exit_type = exit_type
+        self.exit_time = exit_time
         #print('self.leg_group.force_exit_ts++++++++++++++++++', self.leg_group.force_exit_time)
     @classmethod
     def from_store(cls, leg_group, **kwargs):
@@ -40,7 +40,7 @@ class Leg:
 
     def to_dict(self):
         dct = {}
-        for field in ['leg_id', 'order_type', 'quantity', 'entry_price', 'exit_price', 'spot_entry_price', 'spot_exit_price', 'trigger_time']:
+        for field in ['leg_id', 'order_type', 'quantity', 'entry_price', 'exit_price', 'exit_type', 'spot_entry_price', 'spot_exit_price', 'trigger_time', 'exit_time']:
             dct[field] = getattr(self, field)
         dct['instrument'] = self.instrument.to_dict()
         return dct

@@ -13,7 +13,7 @@ class TradeManager:
     """
     def market_close_for_day(self):
         print('trade manager market close for day')
-        print(self.params_repo)
+
         carry_trade_sets = {}
         params_repo = {}
         for (sig_key, trade_set) in self.tradable_signals.items():
@@ -23,13 +23,14 @@ class TradeManager:
                     if not trade.complete():
                         carry_trade_sets[trade_set.id].append(trade.to_dict())
                         params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
+        #print(carry_trade_sets)
         self.carry_over_trade_cache.set(self.strategy_id, carry_trade_sets)
         self.carry_over_trade_cache.set('params_repo_' + self.strategy_id, params_repo)
         #print('EOD ===== carry_trades for', self.strategy_id, "=========", self.carry_over_trade_cache.get(self.strategy_id, {}))
 
     def load_from_cache(self):
         carry_trades = self.carry_over_trade_cache.get(self.strategy_id, {})
-        print('carry_trades===', carry_trades)
+        #print('carry_trades===', carry_trades)
 
         params_repo = self.carry_over_trade_cache.get('params_repo_' + self.strategy_id, {})
         self.load_carry_trades(carry_trades, params_repo)

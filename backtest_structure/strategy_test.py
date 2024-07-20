@@ -94,7 +94,7 @@ class StartegyBackTester:
                 #print(pm.position_book.items())
                 try:
                     for strategy_tuple, trade_details in pm.position_book.items():
-                        print(strategy_tuple)
+                        #print(strategy_tuple)
                         position = trade_details['position']
 
                         strategy_id = strategy_tuple[0]
@@ -139,8 +139,8 @@ class StartegyBackTester:
                 print(traceback.format_exc())
 
         end_time = datetime.now()
-        print((end_time - start_time).total_seconds())
-        print(results[0])
+        print((end_time - start_time).total_seconds(), "seconds run time")
+        #print(results[0])
         """
         if results:
             results_df = pd.DataFrame(results)
@@ -263,14 +263,14 @@ if __name__ == '__main__':
     result_df = part_results.groupby(groupby_columns, as_index=False).apply(keep_non_blank_exit_price).reset_index(drop=True)
     # Reset index to flatten the multi-index resulting from groupby
     result_df = result_df.drop_duplicates(subset=groupby_columns, keep='first').reset_index(drop=True)
-    result_df = result_df.sort_values(by=['trade_trigger_time', 'trade_id'], ascending=[True, True], na_position='first')
+    result_df = result_df.sort_values(by=['trade_trigger_time', 'strategy', 'trade_id'], ascending=[True,True, True], na_position='first')
 
     print('results=====', result_df)
     print('total P&L', result_df['realized_pnl'].sum())
     print('Accuracy', len([x for x in result_df['realized_pnl'].to_list() if x>0])/len(result_df['realized_pnl'].to_list()))
     print('No of Days', len(result_df['day'].unique()))
     result_df['trade_entry_time_read'] = result_df['trade_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
-    result_df['trade_exit_time_read'] = result_df['trade_exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)
+    result_df['lg_exit_time_read'] = result_df['lg_exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)
 
     print('saving result to file', file_path)
 

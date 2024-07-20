@@ -20,7 +20,7 @@ class MarketStateManager:
             with open(state_config_dir + fl, 'r') as state_config:
                 state_info = json.load(state_config)
                 if state_info.get('active', False):
-                    print(state_info)
+                    #print(state_info)
                     self.state_config[state_info['id']] = StateEvaluator.load_from_config(self, state_info)
 
     def frame_change_action(self, current_frame, next_frame):
@@ -123,10 +123,12 @@ class PathEvaluator:
                 if node.previous_node is None or node.previous_node.status:
                     node.evaluate()
                     self.status = node.status and self.status
+        """
         for node in self.node_graph.values():
             print(node.condition, "==", node.status)
+        """
         self.status = all([node.status for node in self.node_graph.values()])
-        print("PathEvaluator =   =    evaluate", self.status)
+        #print("PathEvaluator =   =    evaluate", self.status)
         return self.status
 
 
