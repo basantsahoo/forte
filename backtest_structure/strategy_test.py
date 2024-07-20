@@ -264,10 +264,14 @@ if __name__ == '__main__':
     # Reset index to flatten the multi-index resulting from groupby
     result_df = result_df.drop_duplicates(subset=groupby_columns, keep='first').reset_index(drop=True)
     result_df = result_df.sort_values(by=['trade_trigger_time', 'strategy', 'trade_id'], ascending=[True,True, True], na_position='first')
-
-    print('results=====', result_df)
+    trade_group_by_columns = ['strategy', 'signal_id', 'trade_id']
+    trade_level_df = part_results.groupby(trade_group_by_columns, as_index=False).agg({'realized_pnl': ['sum']}).reset_index(drop=True)
+    trade_level_df.columns = trade_group_by_columns + ['realized_pnl']
+    print(trade_level_df)
+    #print('results=====', result_df)
     print('total P&L', result_df['realized_pnl'].sum())
     print('Accuracy', len([x for x in result_df['realized_pnl'].to_list() if x>0])/len(result_df['realized_pnl'].to_list()))
+    print('Trade Accuracy', len([x for x in trade_level_df['realized_pnl'].to_list() if x > 0]) / len(trade_level_df['realized_pnl'].to_list()))
     print('No of Days', len(result_df['day'].unique()))
     result_df['trade_entry_time_read'] = result_df['trade_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
     result_df['lg_exit_time_read'] = result_df['lg_exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)

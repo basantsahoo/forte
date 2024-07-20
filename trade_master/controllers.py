@@ -1,19 +1,74 @@
 
 def get_controller_from_config(controller_id, trd_idx, entry_price, spot_stop_loss_rolling, delta, controller_info={}):
-    watcher_type = controller_info['type']
-    if watcher_type in ['DownController']:
+    controller_type = controller_info['type']
+    if controller_type in ['DownController']:
         return DownController.from_config(controller_id=controller_id, trd_idx=trd_idx, entry_price=entry_price, spot_stop_loss_rolling=spot_stop_loss_rolling,delta=delta, controller_info=controller_info)
+    if controller_type in ['TradeSlideController']:
+        return TradeSlideController.from_config(controller_id=controller_id, trd_idx=trd_idx,  controller_info=controller_info)
+
     else:
         raise Exception("Controller is not defined")
 
 def get_controller_from_store(stored_controller_info):
     print("get_controller_from_store==========================", stored_controller_info)
 
-    watcher_type = stored_controller_info['controller_info']['type']
-    if watcher_type in ['DownController']:
+    controller_type = stored_controller_info['controller_info']['type']
+    if controller_type in ['DownController']:
         return DownController.from_store(**stored_controller_info)
+    if controller_type in ['TradeSlideController']:
+        return TradeSlideController.from_store(**stored_controller_info)
     else:
         raise Exception("Controller is not defined")
+
+class TradeSlideController:
+    def __init__(self, controller_id, trd_idx, controller_info):
+        self.id = controller_id
+        self.trd_idx = trd_idx
+        self.signal_type = controller_info['signal_type']
+        self.activation_forward_channels = []
+        self.signals = []
+        self.code = 'trade_slide'
+        #print('controller created for ', trd_idx)
+
+    @classmethod
+    def from_config(cls, **kwargs):
+        return cls(**kwargs)
+
+    @classmethod
+    def from_store(cls, **kwargs):
+        return cls(**kwargs)
+
+    def to_dict(self):
+        dct = {}
+        for field in ['trd_idx']:
+            dct[field] = getattr(self, field)
+        dct['controller_info'] = {}
+        dct['controller_id'] = self.id
+
+        for field in ['signal_type']:
+            dct['controller_info'][field] = getattr(self, field)
+        dct['controller_info']['type'] = 'TradeSlideController'
+        return dct
+
+    def receive_signal(self, signal):
+        self.pre_log()
+        self.signals.append(signal.signal_info)
+        self.check_activation()
+
+    def check_activation(self):
+        if self.signals:
+            self.forward_activation()
+
+    def forward_activation(self):
+        info = {'code': self.code, 'n_id': self.id, 'target_trade': self.trd_idx}
+        for channel in self.activation_forward_channels:
+            channel(info)
+
+    def pre_log(self):
+        #last_tick_time = self.neuron.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
+        pass
+        print('Controller id==',  repr(self.id), "for trade===", self.trd_idx, "PRE  LOG", "Controller class==", self.__class__.__name__, "signal type==", self.signal_type, 'current count ==', len(self.signals))
+
 
 
 class DownController:

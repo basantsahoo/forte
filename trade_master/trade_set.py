@@ -90,6 +90,7 @@ class TradeSet:
 
     # This is for trade controllers
     def register_signal(self, signal):
+        #print('trade set register_signal =    =    =      =       =        =        =')
         for trade_id, trade in self.trades.items():
             trade.register_signal(signal)
 

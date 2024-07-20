@@ -23,8 +23,8 @@
       "spot_low_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
       "spot_high_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
       "spot_low_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
-      "spot_slide_ups":[],
-      "spot_slide_downs":[]
+      "spot_slide_ups":[{"gp_a": 300}, {"gp_a": 300}, {"gp_a": 300}, {"gp_a": 300}],
+      "spot_slide_downs":[{"gp_b": 300}, {"gp_b": 300}, {"gp_b": 300}, {"gp_b": 300}]
     },
     "trade_info": {
       "force_exit_ts": null,
@@ -86,5 +86,13 @@
           }
         }
       ]
+    },
+    "trade_controllers": [
+    {
+      "type": "TradeSlideController",
+      "signal_type": ["GLOBAL","TIME_SIGNAL", "DAY_15_20", "1min"],
+      "roll_factor": 0.5,
+      "pnl_multiplier":5
     }
-  }
+  ]
+}

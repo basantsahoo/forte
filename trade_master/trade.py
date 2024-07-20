@@ -230,9 +230,6 @@ class Trade:
         #for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_spot_tg_sl()
-        for leg_group_id, leg_group in self.leg_groups.copy().items():
-            if not leg_group.complete():
-                leg_group.check_slide_status()
         self.process_exit_orders()
 
     def monitor_existing_positions_target(self):
@@ -329,6 +326,12 @@ class Trade:
             if self.trd_idx == info['target_trade']:
                 self.spot_stop_loss_rolling = info['new_threshold']
                 print("Trade set", self.trade_set.id, "new stop loss for trade ", info['target_trade'], 'is ', self.spot_stop_loss_rolling)
+        if info['code'] == 'trade_slide':
+            if self.trd_idx == info['target_trade']:
+                for leg_group_id, leg_group in self.leg_groups.copy().items():
+                    if not leg_group.complete():
+                        leg_group.check_slide_status()
+                print("Trade set", self.trade_set.id, "Checking trade slides==============")
 
     def communication_log(self, info):
         #last_tick_time = self.manager.strategy.insight_book.spot_processor.last_tick['timestamp']
