@@ -1,10 +1,12 @@
 {
-  "strategies":["FRIDAY_LONG_ABOVE_VA", "FRIDAY_SHORT_BELOW_VA", "MID_WEEK_CLOSE_ABOVE_VA", "MID_WEEK_CLOSE_BELOW_VA", "WEDNESDAY_RANGE_BOUND"],
+  "strategies":[
+    "IRON_CONDOR_ADJUST"
+  ],
   "combinators": [],
   "run_params": {
     "test_days": [],
-    "for_past_days": 173,
-    "to_date": "2024-04-10",
+    "for_past_days": 2,
+    "to_date": "2024-04-04",
     "candle_sw" : 0,
     "week_days": [],
     "record_metric": true,

@@ -214,6 +214,8 @@ class NodeEvaluator:
                 past_days_in_week = len(hist_day_market_profile_stats.keys())
                 last_week_range_pct = (last_week_metric['high'] - last_week_metric['low']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 last_week_range = [last_week_metric['low'], last_week_metric['high']]
+                curr_week_high_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
+                curr_week_low_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 curr_week_range = [curr_week_metric['low'], curr_week_metric['high']]
                 curr_week_range_in_last_week_range = (max(curr_week_range) <= max(last_week_range)) and (min(curr_week_range) >= min(last_week_range))
 
@@ -279,6 +281,8 @@ class NodeEvaluator:
                     'past_days_in_week': past_days_in_week,
                     'last_week_range_pct': last_week_range_pct,
                     'last_week_range': last_week_range,
+                    'curr_week_high_pct': curr_week_high_pct,
+                    'curr_week_low_pct': curr_week_low_pct,
                     'curr_week_range': curr_week_range,
                     'curr_week_range_in_last_week_range': curr_week_range_in_last_week_range,
                     'predicted_high_level': max(curr_week_range),

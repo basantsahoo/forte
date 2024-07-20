@@ -115,10 +115,10 @@ class OptionMarketBook:
     def pattern_signal(self, asset, signal):
         if signal.period in ["15min"]:
             print(signal.category, signal.indicator, signal.period)
-        """
+
         if signal.category in ['TIME_SIGNAL']:
-            print(signal.category, signal.indicator)
-        """
+            print(signal.asset, signal.category, signal.indicator, signal.period)
+
         #print(signal.category, signal.indicator)
         self.strategy_manager.register_signal(signal)
 

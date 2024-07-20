@@ -1,0 +1,13 @@
+{
+  "id": "path8",
+  "active": true,
+  "signal": {
+    "category": "PATH",
+    "indicator": "IRON_CONDOR_SHORT",
+    "instrument": "SPOT"
+  },
+  "key_level_fields": [],
+  "time_criteria": [],
+  "market_criteria_groups": [],
+  "paths": ["past_days_in_week < 3","curr_week_high_pct > 0.015"]
+}
