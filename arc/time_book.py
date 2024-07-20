@@ -22,10 +22,16 @@ class TimeBook:
             if frame > self.current_frame:
                 d_t = TradeDateTime(self.current_frame).weekday_name + "_" + TradeDateTime(self.current_frame).time_string[:-3]
                 d_t = d_t.upper().replace(":", "_")
-
+                d_t_2 = 'DAY' + "_" + TradeDateTime(self.current_frame).time_string[:-3]
+                d_t_2 = d_t_2.upper().replace(":", "_")
                 signal = Signal(asset='GLOBAL', category='TIME_SIGNAL', instrument=None,
                                 indicator=d_t, strength=1, signal_time=self.current_frame,
                                 notice_time=self.current_frame, signal_info={}, period="1min")
+                signal_2 = Signal(asset='GLOBAL', category='TIME_SIGNAL', instrument=None,
+                                indicator=d_t_2, strength=1, signal_time=self.current_frame,
+                                notice_time=self.current_frame, signal_info={}, period="1min")
+
                 #print('time_signal=====', signal.__dict__)
                 self.market_book.pattern_signal('GLOBAL', signal)
+                self.market_book.pattern_signal('GLOBAL', signal_2)
                 self.set_frame(input_time_stamp)

@@ -59,10 +59,16 @@ class TradeSet:
         self.process_exit_orders(manage_risk)
 
 
-    def monitor_existing_positions(self, manage_risk=True):
+    def monitor_existing_positions_close(self, manage_risk=True):
         for trade_id, trade in self.trades.items():
             if not trade.complete():
-                trade.monitor_existing_positions()
+                trade.monitor_existing_positions_close()
+        self.process_exit_orders(manage_risk)
+
+    def monitor_existing_positions_target(self, manage_risk=True):
+        for trade_id, trade in self.trades.items():
+            if not trade.complete():
+                trade.monitor_existing_positions_target()
         self.process_exit_orders(manage_risk)
 
     def calculate_pnl(self):

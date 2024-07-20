@@ -142,7 +142,7 @@ class LegGroup:
             lg_delta.append(total_delta)
         return sum(lg_delta)
 
-    def close_on_instr_tg_sl_tm(self):
+    def close_on_instr_sl_tm(self):
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
         max_run_time = self.trigger_time + self.duration * 60 if self.force_exit_time is None else min(self.trigger_time + self.duration * 60, self.force_exit_time + 60)
         #print("leggroup max_run_time =", max_run_time)
@@ -151,10 +151,13 @@ class LegGroup:
             self.trigger_exit(exit_type='TC')
         elif self.force_exit_time and last_spot_candle['timestamp'] >= self.force_exit_time:
             self.trigger_exit(exit_type='TSFE')
-        elif self.target and pnl_pct > self.target:
-            self.trigger_exit(exit_type='IT')
         elif self.stop_loss and pnl_pct < self.stop_loss:
             self.trigger_exit(exit_type='IS')
+
+    def close_on_instr_tg(self):
+        capital, pnl, pnl_pct = self.calculate_pnl()
+        if self.target and pnl_pct > self.target:
+            self.trigger_exit(exit_type='IT')
 
     def close_on_spot_tg_sl(self):
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
@@ -177,7 +180,6 @@ class LegGroup:
                 self.trigger_exit(exit_type='SS')
 
     def check_slide_status(self):
-        #print('check_slide_status++++++++++++++++++++++++++++')
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
         if last_spot_candle['close'] >= self.spot_entry_price + self.spot_slide_up:
             #print('here 1 ++++++++++++++++++++++++++++')

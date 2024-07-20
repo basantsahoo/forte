@@ -219,18 +219,27 @@ class Trade:
                 leg_group.trigger_exit(exit_type)
         self.process_exit_orders()
 
-    def monitor_existing_positions(self):
-        self.close_on_trade_tg_sl_tm()
+    def monitor_existing_positions_close(self):
+        self.close_on_trade_tg()
+        self.close_on_trade_sl_tm()
         self.close_on_spot_tg_sl()
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
-                leg_group.close_on_instr_tg_sl_tm()
+                leg_group.close_on_instr_tg()
+                leg_group.close_on_instr_sl_tm()
         #for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_spot_tg_sl()
         for leg_group_id, leg_group in self.leg_groups.copy().items():
             if not leg_group.complete():
                 leg_group.check_slide_status()
+        self.process_exit_orders()
+
+    def monitor_existing_positions_target(self):
+        self.close_on_trade_tg()
+        for leg_group_id, leg_group in self.leg_groups.items():
+            if not leg_group.complete():
+                leg_group.close_on_instr_tg()
         self.process_exit_orders()
 
     def calculate_pnl(self):
@@ -251,7 +260,7 @@ class Trade:
             trade_delta.append(delta)
         return sum(trade_delta)
 
-    def close_on_trade_tg_sl_tm(self):
+    def close_on_trade_sl_tm(self):
         capital, pnl, pnl_pct = self.calculate_pnl()
         #print('trade p&l==========', capital, pnl, pnl_pct)
         #print('self.stop_loss=====', self.stop_loss)
@@ -269,10 +278,13 @@ class Trade:
             self.trigger_exit(exit_type='TRD_TC')
         elif self.force_exit_time and last_spot_candle['timestamp'] >= self.force_exit_time:
             self.trigger_exit(exit_type='TRD_TCFE')
-        elif self.target and pnl_pct > self.target:
-            self.trigger_exit(exit_type='TRD_TT')
         elif self.stop_loss and pnl_pct < self.stop_loss:
             self.trigger_exit(exit_type='TRD_TS')
+
+    def close_on_trade_tg(self):
+        capital, pnl, pnl_pct = self.calculate_pnl()
+        if self.target and pnl_pct > self.target:
+            self.trigger_exit(exit_type='TRD_TT')
 
     def close_on_spot_tg_sl(self):
         asset = list(self.leg_groups.values())[0].asset

@@ -261,7 +261,8 @@ class BaseStrategy:
     @while_active
     def on_minute_data_pre(self):
         #print('on_minute_data_pre+++++++++++++++++++++++++')
-        self.on_tick_data()
+        #self.on_tick_data()
+        self.monitor_existing_positions_close()
         self.check_neuron_validity()
 
     @while_active
@@ -271,15 +272,17 @@ class BaseStrategy:
 
     @while_active
     def on_tick_data(self):
-        self.monitor_existing_positions()
+        self.monitor_existing_positions_target()
 
-    def monitor_existing_positions(self):
+    def monitor_existing_positions_close(self):
         exit_criteria_met = self.evaluate_exit_signals()
         #print('close_on_exit_signal++++++++++++++++++++', exit_criteria_met)
         if exit_criteria_met:
             self.trade_manager.close_on_exit_signal()
-        self.trade_manager.monitor_existing_positions()
+        self.trade_manager.monitor_existing_positions_close()
 
+    def monitor_existing_positions_target(self):
+        self.trade_manager.monitor_existing_positions_target()
 
     def pre_signal_filter(self, signal):
         satisfied = not self.signal_filters

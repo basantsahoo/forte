@@ -138,9 +138,13 @@ class TradeManager:
         trade_set = self.tradable_signals[sig_key]
         trade_set.trigger_entry()
 
-    def monitor_existing_positions(self):
+    def monitor_existing_positions_close(self):
         for trade_set_id, trade_set in self.tradable_signals.items():
-            trade_set.monitor_existing_positions()
+            trade_set.monitor_existing_positions_close()
+
+    def monitor_existing_positions_target(self):
+        for trade_set_id, trade_set in self.tradable_signals.items():
+            trade_set.monitor_existing_positions_target()
 
     def close_on_exit_signal(self):
         for trade_set_id, trade_set in self.tradable_signals.items():
