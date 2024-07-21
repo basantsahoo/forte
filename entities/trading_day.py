@@ -92,17 +92,23 @@ class TradeDateTime:
         self.market_start_epoc = int(time.mktime(time.strptime(market_start_time, "%Y-%m-%d %H:%M:%S")))
         self.market_end_epoc = int(time.mktime(time.strptime(market_end_time, "%Y-%m-%d %H:%M:%S")))
 
-    def __eq__(self, other):
-        if self.ordinal == other.ordinal:
-            return True
-        else:
-            return False
-
     def __hash__(self):
         return hash(self.ordinal)
 
+    def __eq__(self, other):
+        return self.ordinal == other.ordinal
+
     def __lt__(self, other):
         return self.ordinal < other.ordinal
+
+    def __gt__(self, other):
+        return self.ordinal > other.ordinal
+
+    def __ge__(self, other):
+        return self.ordinal >= other.ordinal
+
+    def __le__(self, other):
+        return self.ordinal <= other.ordinal
 
 
 class NearExpiryWeek:

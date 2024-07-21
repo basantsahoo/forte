@@ -17,7 +17,9 @@ with open(strat_config_path, 'r') as bt_config:
 #from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 
 class AlgorithmIterface:
-    def __init__(self, socket=None):
+    def __init__(self, socket=None, process_id=1000):
+        self.process_id = process_id
+        #market_cache = Cache(cache_dir + "/P_" + str(self.process_id) + "/" + 'oms_cache')
         self.trade_day = None
         self.socket = socket
         self.market_book = None

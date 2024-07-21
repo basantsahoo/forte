@@ -18,13 +18,13 @@
     "spot_low_targets":[0.1],
     "leg_group_exits": {
       "targets":[{"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}],
-      "stop_losses":[{"gp_a": 2, "gp_b": 0.1}, {"gp_a": 2, "gp_b": 0.1}, {"gp_a": 2, "gp_b": 0.2}, {"gp_a": 3, "gp_b": 0.3}],
+      "stop_losses":[{"gp_a": 2, "gp_b": 2}, {"gp_a": 2, "gp_b": 2}, {"gp_a": 2, "gp_b": 2}, {"gp_a": 3, "gp_b": 3}],
       "spot_high_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
       "spot_low_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
       "spot_high_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
       "spot_low_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
-      "spot_slide_ups":[{"gp_a": 300}, {"gp_a": 300}, {"gp_a": 300}, {"gp_a": 300}],
-      "spot_slide_downs":[{"gp_b": 300}, {"gp_b": 300}, {"gp_b": 300}, {"gp_b": 300}]
+      "spot_slide_ups":[{"gp_a": 200}, {"gp_a": 200}, {"gp_a": 200}, {"gp_a": 200}],
+      "spot_slide_downs":[{"gp_b": 200}, {"gp_b": 200}, {"gp_b": 200}, {"gp_b": 200}]
     },
     "trade_info": {
       "force_exit_ts": null,
@@ -38,7 +38,7 @@
             "A": {
               "instr_to_trade": {
                 "money_ness": "OTM",
-                "level": 4,
+                "level": 3,
                 "kind": "PE",
                 "expiry": "near"
               },
@@ -66,7 +66,7 @@
             "A": {
               "instr_to_trade": {
                 "money_ness": "OTM",
-                "level": 4,
+                "level": 3,
                 "kind": "CE",
                 "expiry": "near"
               },

@@ -7,12 +7,9 @@ import pandas as pd
 from helper.utils import inst_is_option, get_market_view
 
 class AlgoPortfolioManager:
-    def __init__(self, place_live_orders=False, data_interface=None):
-        self.cache = Cache(cache_dir + 'algo_pm_cache')
+    def __init__(self, place_live_orders=False, data_interface=None, process_id=1000):
         self.ltps = {}
         self.last_times = {}
-        self.position_book = self.cache.get('algo_pm', {})
-        self.cache.set('algo_pm', {})
         self.broker = None
         self.strategy_order_map = {}
         self.broker = None
@@ -22,6 +19,12 @@ class AlgoPortfolioManager:
         self.pending_order_seq = 0
         self.executed_orders = 0
         self.market_book = None
+        self.process_id = process_id
+        #self.cache = Cache(cache_dir + 'algo_pm_cache')
+        self.cache = Cache(cache_dir + "/P_" + str(self.process_id) + "/" + 'algo_pm_cache')
+        self.position_book = self.cache.get('algo_pm', {})
+        self.cache.set('algo_pm', {})
+
         if place_live_orders:
             self.set_live()
 

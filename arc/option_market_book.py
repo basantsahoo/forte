@@ -14,7 +14,8 @@ class OptionMarketBook:
                  live_mode=False,
                  spot_only=False,
                  volume_delta_mode=False,
-                 print_cross_stats=False):
+                 print_cross_stats=False,
+                 process_id=1000):
         self.live_mode = live_mode
         self.spot_only = spot_only
         self.volume_delta_mode = volume_delta_mode
@@ -37,6 +38,7 @@ class OptionMarketBook:
         self.strategy_manager = None
         self.strategy_setup_done = False
         self.last_tick_timestamp = None
+        self.process_id = process_id
         for asset in assets:
             self.asset_books[asset] = OptionAssetBook(self, asset)
         self.time_book = TimeBook(self)

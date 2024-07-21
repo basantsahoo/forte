@@ -5,11 +5,13 @@ from pathlib import Path
 project_path = str(Path(__file__).resolve().parent.parent)
 sys.path.insert(1, project_path)
 import pandas as pd
+import numpy as np
 from datetime import datetime
 import json
 import traceback
 import math
-
+import itertools
+from entities.trading_day import TradeDateTime, NearExpiryWeek
 from backtest_structure.settings import reports_dir
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.data_interface_for_backtest import AlgorithmBacktestIterface
@@ -18,10 +20,12 @@ from db.market_data import (get_all_days)
 import helper.utils as helper_utils
 from strat_machine.strategy_manager import StrategyManager
 from trade_master.strategy_trade_manager_pool import StrategyTradeManagerPool
-from entities.trading_day import TradeDateTime
 from arc.data_loader_ip import MultiDayOptionDataLoader, MultiDaySpotDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 from backtest_structure.bt_strategies import *
+from multiprocessing import Pool
+MAX_JOBS = 3
+
 
 class StartegyBackTester:
     def __init__(self, strat_config):
@@ -31,20 +35,62 @@ class StartegyBackTester:
         self.strat_config['combinator_info'] = {}
         self.processing_error_days = []
 
-    def back_test(self, subscribed_assets):
-        results = []
+    def back_test_helper(self, subscribed_assets):
         start_time = datetime.now()
-        for day in self.strat_config['run_params']['test_days']:
+        weeks = list(set([NearExpiryWeek(TradeDateTime(day)) for day in self.strat_config['run_params']['test_days']]))
+        weeks.sort()
+        maxjobs = min(len(weeks), MAX_JOBS)
+        week_schedule = [1 for i in range(maxjobs)]
+        if len(weeks) > maxjobs:
+            unalocated_weeks = len(weeks) - maxjobs
+            for idx in range(unalocated_weeks):
+                week_schedule[np.mod(idx, maxjobs)] += 1
+        job_params = []
+        begin = 0
+        for week_counts in week_schedule:
+            job_params.append(list(range(begin, begin + week_counts)))
+            begin += week_counts
+        print(job_params)
+
+        job_day_params = []
+        for idx, week_indices in enumerate(job_params):
+            job_weeks = [weeks[idx] for idx in week_indices]
+            test_days_to_trading_days = [TradeDateTime(day) for day in self.strat_config['run_params']['test_days']]
+            job_days_by_week = [
+                [day.date_string for day in test_days_to_trading_days if (day >= week.start_date) and (day <= week.end_date)]
+                for week in job_weeks
+            ]
+            all_job_days = [day for week_days in job_days_by_week for day in week_days]
+
+            job_day_params.append((all_job_days, subscribed_assets, idx))
+        print(job_day_params)
+
+        # job_params = [([1] , 0) for i in range(maxjobs)]
+        p = Pool(maxjobs)
+        res = p.map(self.back_test, job_day_params)
+        results = list(itertools.chain.from_iterable(res))
+        # print(self.section_pdf_list)
+        p.close()
+        p.join()
+        end_time = datetime.now()
+        print((end_time - start_time).total_seconds(), "seconds run time")
+        return results
+
+    def back_test(self, day_list_and_assets):
+        day_list, subscribed_assets, process_id = day_list_and_assets
+        print(day_list, subscribed_assets)
+        results = []
+        for day in day_list:
             try:
                 in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
                 t_day = in_day.date_string
-                market_book = OptionMarketBook(in_day.date_string, assets=subscribed_assets, record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False, spot_only=self.strat_config['run_params'].get('spot_only', False))
+                market_book = OptionMarketBook(in_day.date_string, assets=subscribed_assets, record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False, spot_only=self.strat_config['run_params'].get('spot_only', False), process_id=process_id)
                 place_live = False
                 interface = None
                 if self.strat_config['run_params'].get("send_to_oms", False):
-                    interface = AlgorithmBacktestIterface()
+                    interface = AlgorithmBacktestIterface(process_id=process_id)
                     place_live = True
-                pm = AlgoPortfolioManager(place_live, interface)
+                pm = AlgoPortfolioManager(place_live, interface, process_id=process_id)
                 pm.market_book = market_book
                 market_book.pm = pm
                 record_metric = self.strat_config['run_params'].get("record_metric", False)
@@ -129,26 +175,17 @@ class StartegyBackTester:
                             except Exception as e:
                                 print(traceback.format_exc())
                 except Exception as e:
-                    self.processing_error_days.append(day)
+                    #self.processing_error_days.append(day)
                     print('error on', day)
                     print(e)
                     print(traceback.format_exc())
                 # print(results)
             except Exception as e:
-                self.processing_error_days.append(day)
+                #self.processing_error_days.append(day)
                 print('error on', day)
                 print(e)
                 print(traceback.format_exc())
 
-        end_time = datetime.now()
-        print((end_time - start_time).total_seconds(), "seconds run time")
-        #print(results[0])
-        """
-        if results:
-            results_df = pd.DataFrame(results)
-            for deployed_strategy in self.strat_config['strategies']:
-                save_strategy_run_params()
-        """
         return results
 
 
@@ -216,7 +253,7 @@ class StartegyBackTester:
                 days = [x for x in days if x.strftime('%Y-%m-%d') not in exclude_trade_days['BANKNIFTY']]
                 #print(days)
                 self.strat_config['run_params']['test_days'] = self.strat_config['run_params']['test_days'] + days
-        result = self.back_test(subscribed_assets)
+        result = self.back_test_helper(subscribed_assets)
         final_result.extend(result)
         return final_result
 
@@ -242,7 +279,7 @@ if __name__ == '__main__':
     part_results = results  # [['day',	'symbol',	'strategy',	'signal_id',	'trigger',	'entry_time',	'exit_time',	'entry_price',	'exit_price',	'realized_pnl',	'un_realized_pnl',	'week_day',	'seq',	'target',	'stop_loss',	'duration',	'quantity',	'exit_type', 'neck_point',	'pattern_height',	'pattern_time', 'pattern_price', 'pattern_location']]
     search_days = results['day'].to_list()
     file_name = strat_config_file.split('.')[0]
-    file_path = reports_dir + file_name + '.csv'
+    file_path = reports_dir + file_name + '_mp.csv'
 
 
 

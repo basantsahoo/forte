@@ -37,8 +37,8 @@
           "legs" : {
             "A": {
               "instr_to_trade": {
-                "money_ness": "ITM",
-                "level": 4,
+                "money_ness": "OTM",
+                "level": 3,
                 "kind": "PE",
                 "expiry": "near"
               },

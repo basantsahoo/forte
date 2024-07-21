@@ -4,9 +4,12 @@ from arc.oms_manager import OMSManager
 
 
 class AlgorithmBacktestIterface:
-    def __init__(self):
+    def __init__(self, process_id=1000):
+        self.process_id = process_id
+        #self.market_cache = Cache(cache_dir + "/P_" + str(self.process_id) + "/" + 'oms_cache')
         self.market_cache = Cache(cache_dir + 'oms_cache')
         self.oms_manager = OMSManager(place_live_orders=True, market_cache=self.market_cache)
+
 
     def notify_pattern_signal(self, ticker, pattern, pattern_match_idx=None):
         pass

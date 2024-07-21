@@ -122,7 +122,8 @@ class TradeManager:
         self.registered_signal = None
         self.trade_info = trade_info
         self.signal_count = 0
-        self.carry_over_trade_cache = Cache(cache_dir + 'carry_over_trade_cache')
+        #self.carry_over_trade_cache = Cache(cache_dir + 'carry_over_trade_cache')
+        self.carry_over_trade_cache = Cache(cache_dir + "/P_" + str(self.market_book.process_id) + "/" + 'carry_over_trade_cache')
         self.params_repo = {}
 
     def initiate_signal_trades(self):
