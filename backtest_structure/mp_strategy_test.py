@@ -24,7 +24,7 @@ from arc.data_loader_ip import MultiDayOptionDataLoader, MultiDaySpotDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 from backtest_structure.bt_strategies import *
 from multiprocessing import Pool
-MAX_JOBS = 3
+MAX_JOBS = 4
 
 
 class StartegyBackTester:
@@ -50,7 +50,7 @@ class StartegyBackTester:
         for week_counts in week_schedule:
             job_params.append(list(range(begin, begin + week_counts)))
             begin += week_counts
-        print(job_params)
+        #print(job_params)
 
         job_day_params = []
         for idx, week_indices in enumerate(job_params):
@@ -63,7 +63,7 @@ class StartegyBackTester:
             all_job_days = [day for week_days in job_days_by_week for day in week_days]
 
             job_day_params.append((all_job_days, subscribed_assets, idx))
-        print(job_day_params)
+        #print(job_day_params)
 
         # job_params = [([1] , 0) for i in range(maxjobs)]
         p = Pool(maxjobs)
@@ -78,7 +78,7 @@ class StartegyBackTester:
 
     def back_test(self, day_list_and_assets):
         day_list, subscribed_assets, process_id = day_list_and_assets
-        print(day_list, subscribed_assets)
+        #print(day_list, subscribed_assets)
         results = []
         for day in day_list:
             try:

@@ -31,20 +31,20 @@ class StartegyBackTester:
         self.strat_config['combinator_info'] = {}
         self.processing_error_days = []
 
-    def back_test(self, subscribed_assets):
+    def back_test(self, subscribed_assets, process_id=1000):
         results = []
         start_time = datetime.now()
         for day in self.strat_config['run_params']['test_days']:
             try:
                 in_day = TradeDateTime(day) #if type(day) == str else day.strftime('%Y-%m-%d')
                 t_day = in_day.date_string
-                market_book = OptionMarketBook(in_day.date_string, assets=subscribed_assets, record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False, spot_only=self.strat_config['run_params'].get('spot_only', False))
+                market_book = OptionMarketBook(in_day.date_string, assets=subscribed_assets, record_metric=self.strat_config['run_params']['record_metric'], insight_log=self.strat_config['run_params'].get('insight_log', False), live_mode=False, spot_only=self.strat_config['run_params'].get('spot_only', False), process_id=process_id)
                 place_live = False
                 interface = None
                 if self.strat_config['run_params'].get("send_to_oms", False):
-                    interface = AlgorithmBacktestIterface()
+                    interface = AlgorithmBacktestIterface(process_id=process_id)
                     place_live = True
-                pm = AlgoPortfolioManager(place_live, interface)
+                pm = AlgoPortfolioManager(place_live, interface, process_id=process_id)
                 pm.market_book = market_book
                 market_book.pm = pm
                 record_metric = self.strat_config['run_params'].get("record_metric", False)

@@ -134,7 +134,7 @@ class OptionAssetBook:
         if signal.category in ['PRICE_ACTION_INTRA_0', 'TECHNICAL_0', 'CANDLE_1', 'CANDLE_2', 'CANDLE_5', 'TIME_SIGNAL']:
             print(signal.category, signal.indicator)
         signal.spot_market_info = self.spot_book.spot_processor.get_market_params()
-        #signal.option_market_info = self.option_matrix.signal_generator.get_info()
+        signal.option_market_info = self.option_matrix.signal_generator.get_info()
         self.market_book.pattern_signal(self.asset, signal)
         last_tick = self.spot_book.spot_processor.last_tick
         self.compound_signal_generator.add_signal(last_tick['timestamp'], signal)

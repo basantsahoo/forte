@@ -219,8 +219,7 @@ class NodeEvaluator:
                 curr_week_high_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 curr_week_low_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 curr_week_range = [curr_week_metric['low'], curr_week_metric['high']]
-                curr_week_range_in_last_week_range = (max(curr_week_range) <= max(last_week_range)) and (min(curr_week_range) >= min(last_week_range))
-
+                curr_week_range_in_last_week_range = (max(curr_week_range) <= max(last_week_range) * 1.001) and (min(curr_week_range) >= min(last_week_range) * 0.999)
                 d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure', 0)
                 price_location = market_params.get('price_location', 50)
                 five_min_trend = market_params.get('five_min_trend', 0)

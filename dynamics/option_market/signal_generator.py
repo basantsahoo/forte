@@ -114,7 +114,15 @@ class OptionSignalGenerator:
                  'far_vol_pcr': aggregate_stats['far_vol_pcr'],
                  'r_total_vol_pcr': aggregate_stats['r_total_vol_pcr'],
                  }
-
+        r_info = {
+                'near_put_oi_share': aggregate_stats['near_put_oi_share'],
+                'far_put_oi_share': aggregate_stats['far_put_oi_share'],
+                'near_call_oi_share': aggregate_stats['near_call_oi_share'],
+                'far_call_oi_share': aggregate_stats['far_call_oi_share'],
+                'near_vol_pcr': aggregate_stats['near_vol_pcr'],
+                'far_vol_pcr': aggregate_stats['far_vol_pcr'],
+                'r_total_vol_pcr': aggregate_stats['r_total_vol_pcr'],
+                }
         return info
 
 
