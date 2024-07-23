@@ -120,10 +120,16 @@ class OptionMarketBook:
         if signal.period in ["15min"]:
             print(signal.category, signal.indicator, signal.period)
         """
-        """
+
         if signal.category in ['TIME_SIGNAL']:
-            print(signal.asset, signal.category, signal.indicator, signal.period)
-        """
+            try:
+                asset_book = self.get_asset_book('NIFTY')
+                signal.spot_market_info = asset_book.spot_book.spot_processor.get_market_params()
+                signal.option_market_info = asset_book.option_matrix.signal_generator.get_info()
+            except:
+                pass
+            #print(signal.asset, signal.category, signal.indicator, signal.period)
+
         #print(signal.category, signal.indicator)
         self.strategy_manager.register_signal(signal)
 

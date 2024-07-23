@@ -12,15 +12,12 @@
     "NIFTY_DOWN_BREAK_TYPE_3_1MIN",
     "NIFTY_DOWN_BREAK_REVERSAL_1",
     "NIFTY_DOWN_BREAK_REVERSAL_2",
-    "NIFTY_DOWN_BREAK_REVERSAL_3",
-    "NIFTY_UP_BREAK_REVERSAL_1",
-    "NIFTY_UP_BREAK_REVERSAL_2",
-    "NIFTY_UP_BREAK_REVERSAL_3"
+    "NIFTY_DOWN_BREAK_REVERSAL_3"
   ],
   "combinators": [],
   "run_params": {
     "test_days": [],
-    "for_past_days": 173,
+    "for_past_days": 180,
     "to_date": "2024-04-10",
     "candle_sw" : 0,
     "week_days": [],
