@@ -1,0 +1,70 @@
+ {
+   "strategy_id": "NIFTY_ATM_LONG",
+   "asset": "NIFTY",
+    "durations":[
+      [450000, 450000],
+      [450000, 450000],
+      [450000, 450000],
+      [450000, 450000]
+    ],
+    "exit_at":null,
+    "carry_forward_days":[1, 1, 1 ,1],
+    "triggers_per_signal": 1,
+    "trade_targets":[],
+    "trade_stop_losses":[],
+    "spot_high_stop_losses":[0.1],
+    "spot_low_stop_losses":[0.1],
+    "spot_high_targets":[0.1],
+    "spot_low_targets":[0.1],
+    "leg_group_exits": {
+      "targets":[],
+      "stop_losses":[],
+      "spot_high_stop_losses":[],
+      "spot_low_stop_losses":[],
+      "spot_high_targets":[],
+      "spot_low_targets":[],
+      "spot_slide_ups":[],
+      "spot_slide_downs":[]
+    },
+    "trade_info": {
+      "force_exit_ts": null,
+      "leg_groups": [
+        {
+          "lg_class": "gp_a",
+          "market_view": "LONG",
+          "asset": "NIFTY",
+          "force_exit_ts": null,
+          "legs" : {
+            "A": {
+              "instr_to_trade": {
+                "money_ness": "ATM",
+                "level": 1,
+                "kind": "CE",
+                "expiry": "near"
+              },
+              "order_type": "BUY",
+              "quantity": 2
+            }
+          }
+        },
+        {
+          "lg_class": "gp_b",
+          "market_view": "LONG",
+          "asset": "NIFTY",
+          "force_exit_ts": null,
+          "legs" : {
+            "A": {
+              "instr_to_trade": {
+                "money_ness": "ATM",
+                "level": 1,
+                "kind": "PE",
+                "expiry": "near"
+              },
+              "order_type": "BUY",
+              "quantity": 2
+            }
+          }
+        }
+      ]
+    }
+  }

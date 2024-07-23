@@ -1,0 +1,12 @@
+{
+  "id": "PATH_WEDNESDAY_EOD_SHORT",
+  "active": true,
+  "signal": {
+    "category": "PATH",
+    "indicator": "WEDNESDAY_EOD_SHORT",
+    "instrument": "SPOT"
+  },
+  "time_criteria": ["tpo > 12"],
+  "market_criteria_groups": [["week_day == 'Wednesday'"]],
+  "paths": ["not hist_close_above_lw_va"]
+}

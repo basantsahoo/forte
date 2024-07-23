@@ -1,0 +1,98 @@
+ {
+   "strategy_id": "IRON_CONDOR_ADJUST",
+   "asset": "NIFTY",
+    "durations":[
+      [900000],
+      [900000],
+      [900000],
+      [900000]
+    ],
+    "exit_at":null,
+    "carry_forward_days":[4, 4, 4 ,4],
+    "triggers_per_signal": 4,
+    "trade_targets":[0.7, 0.7, 0.5, 0.4],
+    "trade_stop_losses":[0.4, 0.4, 0.4, 0.4],
+    "spot_high_stop_losses":[0.1],
+    "spot_low_stop_losses":[0.1],
+    "spot_high_targets":[0.1],
+    "spot_low_targets":[0.1],
+    "leg_group_exits": {
+      "targets":[{"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}],
+      "stop_losses":[{"gp_a": 2, "gp_b": 2}, {"gp_a": 2, "gp_b": 2}, {"gp_a": 2, "gp_b": 2}, {"gp_a": 3, "gp_b": 3}],
+      "spot_high_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
+      "spot_low_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
+      "spot_high_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
+      "spot_low_targets":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
+      "spot_slide_ups":[{"gp_a": 200}, {"gp_a": 200}, {"gp_a": 200}, {"gp_a": 200}],
+      "spot_slide_downs":[{"gp_b": 200}, {"gp_b": 200}, {"gp_b": 200}, {"gp_b": 200}]
+    },
+    "trade_info": {
+      "force_exit_ts": null,
+      "leg_groups": [
+        {
+          "lg_class": "gp_a",
+          "market_view": "LONG",
+          "asset": "NIFTY",
+          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:20:30"],
+          "legs" : {
+            "A": {
+              "instr_to_trade": {
+                "money_ness": "OTM",
+                "level": 3,
+                "kind": "PE",
+                "expiry": "near"
+              },
+              "order_type": "SELL",
+              "quantity": 1
+            },
+            "B": {
+              "instr_to_trade": {
+                "money_ness": "OTM",
+                "level": 6,
+                "kind": "PE",
+                "expiry": "near"
+              },
+              "order_type": "BUY",
+              "quantity": 1
+            }
+          }
+        },
+        {
+          "lg_class": "gp_b",
+          "market_view": "SHORT",
+          "asset": "NIFTY",
+          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:20:30"],
+          "legs" : {
+            "A": {
+              "instr_to_trade": {
+                "money_ness": "OTM",
+                "level": 3,
+                "kind": "CE",
+                "expiry": "near"
+              },
+              "order_type": "SELL",
+              "quantity": 1
+            },
+            "B": {
+              "instr_to_trade": {
+                "money_ness": "OTM",
+                "level": 6,
+                "kind": "CE",
+                "expiry": "near"
+              },
+              "order_type": "BUY",
+              "quantity": 1
+            }
+          }
+        }
+      ]
+    },
+    "trade_controllers": [
+    {
+      "type": "TradeSlideController",
+      "signal_type": ["GLOBAL","TIME_SIGNAL", "DAY_15_20", "1min"],
+      "roll_factor": 0.5,
+      "pnl_multiplier":5
+    }
+  ]
+}

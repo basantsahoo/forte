@@ -1,0 +1,52 @@
+{
+  "strategy_id":"NIFTY_DOWN_BREAK_REVERSAL_3",
+  "asset": "NIFTY",
+  "durations":[
+    [45],
+    [45],
+    [45],
+    [45]
+  ],
+  "exit_at":null,
+  "carry_forward_days":[],
+  "triggers_per_signal": 4,
+  "trade_targets":[],
+  "trade_stop_losses":[],
+  "spot_high_stop_losses":[],
+  "spot_low_stop_losses":[],
+  "spot_high_targets":[],
+  "spot_low_targets":[],
+  "leg_group_exits": {
+    "targets":[{"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.15}, {"gp_a": 0.1}],
+    "stop_losses":[{"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}, {"gp_a": 0.1}],
+    "spot_high_stop_losses":[],
+    "spot_low_stop_losses":[],
+    "spot_high_targets":[],
+    "spot_low_targets":[],
+    "spot_slide_ups":[],
+    "spot_slide_downs":[]
+
+  },
+  "trade_info": {
+    "force_exit_ts": null,
+    "leg_groups": [
+      {
+        "lg_class": "gp_a",
+        "asset": "NIFTY",
+        "force_exit_ts": null,
+        "legs" : {
+          "A": {
+            "instr_to_trade": {
+              "money_ness": "ITM",
+              "level": 1,
+              "kind": "CE",
+              "expiry": "near"
+            },
+            "order_type": "BUY",
+            "quantity": 1
+          }
+        }
+      }
+    ]
+  }
+}

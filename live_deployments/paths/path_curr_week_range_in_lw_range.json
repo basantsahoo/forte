@@ -1,0 +1,13 @@
+{
+  "id": "PATH_CURR_WEEK_RANGE_IN_LAST_WEEK_RANGE",
+  "active": true,
+  "signal": {
+    "category": "PATH",
+    "indicator": "CURR_WEEK_RANGE_IN_LAST_WEEK_RANGE",
+    "instrument": "SPOT"
+  },
+  "key_level_fields": ["predicted_high_level", "predicted_low_level"],
+  "time_criteria": ["tpo > 12"],
+  "market_criteria_groups": [["week_day == 'Wednesday'"]],
+  "paths": ["curr_week_range_in_last_week_range"]
+}

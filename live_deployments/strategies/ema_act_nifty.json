@@ -1,0 +1,102 @@
+{
+      "id":"PriceBreakEMADownward",
+      "class":"PriceBreakEMADownward",
+      "max_signal": 2,
+      "register_signal_category": ["NIFTY", "TECHNICAL", "PRICE_BELOW_EMA_5", "1min"],
+      "entry_signal_queues": [
+        {
+          "neuron_info": {
+            "id": 0,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1000,
+              "unique_only": true,
+              "validity_period": 40
+            },
+            "signal_type": ["NIFTY", "TECHNICAL", "PRICE_ABOVE_EMA_5", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 4,
+            "max_activation_strength": 8,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": false
+        },
+        {
+          "neuron_info": {
+            "id": 1,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 375
+            },
+            "signal_type": ["NIFTY", "TECHNICAL", "CDL_5_ABOVE_EMA_5", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": true,
+            "activation_subscriptions": [0],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {
+              "type": "HighBreach",
+              "signal_type": ["NIFTY", "PRICE_SIGNAL", "TICK_PRICE", "1min"],
+              "min_activation_strength": 1,
+              "life_span": 30,
+              "watcher_log": false
+            },
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": false
+        },
+        {
+          "neuron_info": {
+            "id": 2,
+            "signal_queue_info": {
+              "q_type": "stream",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 375
+            },
+            "signal_type": ["NIFTY", "TECHNICAL", "PRICE_BELOW_EMA_5", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": true,
+            "activation_subscriptions": [1],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [1],
+            "register_instr": true,
+            "reset_watcher_info": {},
+            "update_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": false
+        }
+      ],
+      "entry_switch": {
+          "id": 0,
+          "type": "DistToSL",
+          "switch_eval": "(high - close)/close < 0.002",
+          "que_subscriptions": [[1 ,"high","set_threshold"],[2, "close","set_threshold"]],
+          "dispatch_signal": true,
+          "switch_log": true
+        },
+      "signal_filters" : [],
+      "risk_limits": ["max_movement > 80", "total_losses < -35"]
+    }

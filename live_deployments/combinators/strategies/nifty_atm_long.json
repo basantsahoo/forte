@@ -1,0 +1,70 @@
+
+  {
+    "id":"NIFTY_ATM_LONG",
+    "class":"OptionBuy",
+    "max_signal": 1,
+    "register_signal_category": ["GLOBAL", "TIME_SIGNAL", "TUESDAY_15_01", "1min"],
+    "trade_cut_off_time": 25,
+    "entry_signal_queues": [
+      {
+        "neuron_info": {
+          "id": 1,
+          "signal_queue_info": {
+            "q_type": "fixed",
+            "size": 1,
+            "unique_only": true,
+            "validity_period": 2
+          },
+          "signal_type": ["GLOBAL", "TIME_SIGNAL", "TUESDAY_15_01", "1min"],
+          "trade_eval": [],
+          "min_activation_strength": 1,
+          "max_activation_strength": 1,
+          "flush_hist": false,
+          "activation_subscriptions": [],
+          "signal_subscriptions": [],
+          "high_threshold_subscriptions": [],
+          "low_threshold_subscriptions": [],
+          "reversal_subscriptions": [],
+          "register_instr": "always",
+          "update_watcher_info": {},
+          "reset_watcher_info": {},
+          "neuron_log": false
+        },
+        "apply_pre_filter": true
+      }
+
+    ],
+    "exit_criteria_list": [
+      {
+        "neuron_info": {
+          "id": 2,
+          "signal_queue_info": {
+            "q_type": "fixed",
+            "size": 1,
+            "unique_only": true,
+            "validity_period": 1
+          },
+          "signal_type": ["GLOBAL", "TIME_SIGNAL", "WEDNESDAY_15_20", "1min"],
+          "trade_eval": [],
+          "min_activation_strength": 1,
+          "max_activation_strength": 1,
+          "flush_hist": false,
+          "activation_subscriptions": [],
+          "signal_subscriptions": [],
+          "high_threshold_subscriptions": [],
+          "low_threshold_subscriptions": [],
+          "reversal_subscriptions": [],
+          "register_instr": false,
+          "update_watcher_info": {},
+          "reset_watcher_info": {},
+          "neuron_log": false
+        },
+        "apply_pre_filter": true
+      }
+    ],
+    "entry_switch": {
+      },
+    "signal_filters" : [
+    ],
+    "risk_limits": ["max_movement > 800000", "total_losses < -3500000"]
+  }

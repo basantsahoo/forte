@@ -4,12 +4,17 @@ from arc.algo_portfolio import AlgoPortfolioManager
 from arc.oms_manager import OMSManager
 from arc.option_market_book import OptionMarketBook
 from strat_machine.strategy_manager import StrategyManager
+from trade_master.strategy_trade_manager_pool import StrategyTradeManagerPool
 from pathlib import Path
 from entities.trading_day import TradeDateTime
 from servers.server_settings import cache_dir
 from diskcache import Cache
+from os import listdir
+from os.path import isfile, join
+from backtest_structure.bt_strategies import *
 
-strat_config_path = str(Path(__file__).resolve().parent.parent) + "/live_algo/" + 'deployed_strategies.json'
+strat_config_path = str(Path(__file__).resolve().parent.parent) + "/live_deployments/" + 'live_strategies.json'
+
 with open(strat_config_path, 'r') as bt_config:
     strat_config = json.load(bt_config)
 
@@ -29,6 +34,11 @@ class AlgorithmIterface:
         self.setup_in_progress = False
         market_cache = Cache(cache_dir + 'oms_cache')
         self.oms_manager = OMSManager(place_live_orders=True, market_cache=market_cache)
+        self.strat_config = strat_config
+        self.strat_config['strategy_info'] = {}
+        self.strat_config['trade_manager_info'] = {}
+        self.strat_config['combinator_info'] = {}
+
         print('new data interface created++++++')
 
     def clean(self):
@@ -41,21 +51,7 @@ class AlgorithmIterface:
     def set_trade_date(self, trade_day):
         print('set_trade_date+++++++')
         start_time = datetime.now()
-        assets = list(set([strategy['symbol'] for strategy in strat_config['strategies']]))
-        self.portfolio_manager = AlgoPortfolioManager(place_live_orders=False, data_interface=self)
-        market_book = OptionMarketBook(trade_day, assets=assets, record_metric=False, live_mode=True, volume_delta_mode=True, process_id=self.process_id)
-        self.market_book = market_book
-        market_book.pm = self.portfolio_manager
-        strategy_manager = StrategyManager(market_book=market_book, record_metric=False)
-
-        for symbol in assets:
-            self.last_epoc_minute_data[symbol] = {'timestamp': None}
-            self.last_epoc_minute_data[symbol+"_O"] = {'timestamp': None}
-            for deployed_strategy in strat_config['strategies']:
-                strategy_class = eval(deployed_strategy['class'])
-                strategy_manager.add_strategy(strategy_class, deployed_strategy)
-            market_book.strategy_manager = strategy_manager
-            print('all strategy added+++++')
+        self.set_up_strategy_manager(trade_day, volume_delta_mode=False)
         self.trade_day = trade_day
         self.setup_in_progress = False
         end_time = datetime.now()
@@ -65,21 +61,7 @@ class AlgorithmIterface:
         print('===================Algo interface load system====', process_signal_switch)
         start_time = datetime.now()
         if not self.systems_loaded:
-            assets = list(set([strategy['symbol'] for strategy in strat_config['strategies']]))
-            self.portfolio_manager = AlgoPortfolioManager(place_live_orders=False, data_interface=self)
-            market_book = OptionMarketBook(trade_day=trade_day, assets=assets, record_metric=False, live_mode=True, volume_delta_mode=volume_delta_mode)
-            self.market_book = market_book
-            market_book.pm = self.portfolio_manager
-            strategy_manager = StrategyManager(market_book=market_book, record_metric=False)
-
-            for symbol in assets:
-                self.last_epoc_minute_data[symbol] = {'timestamp': None}
-                self.last_epoc_minute_data[symbol+"_O"] = {'timestamp': None}
-                for deployed_strategy in strat_config['strategies']:
-                    strategy_class = eval(deployed_strategy['class'])
-                    strategy_manager.add_strategy(strategy_class, deployed_strategy)
-                market_book.strategy_manager = strategy_manager
-                print('all strategy added 2+++++')
+            self.set_up_strategy_manager(trade_day, volume_delta_mode)
             self.systems_loaded = True
         self.market_book.strategy_manager.process_signal_switch = process_signal_switch
         self.market_book.set_volume_delta_mode(volume_delta_mode)
@@ -90,6 +72,83 @@ class AlgorithmIterface:
         end_time = datetime.now()
         print('setup time', (end_time - start_time).total_seconds())
 
+    def set_up_strategy_manager(self, trade_day, volume_delta_mode=False):
+        # Strategies
+        strategies_path = str(Path(__file__).resolve().parent.parent) + "/live_deployments/strategies/"
+        strategyfiles = [f for f in listdir(strategies_path) if isfile(join(strategies_path, f))]
+        for fl in strategyfiles:
+            with open(strategies_path + fl, 'r') as bt_config:
+                strategy_info = json.load(bt_config)
+                if strategy_info['id'] in self.strat_config['strategies']:
+                    self.strat_config['strategy_info'][strategy_info['id']] = strategy_info
+        trade_manager_path = str(Path(__file__).resolve().parent.parent) + "/live_deployments/trade_managers/"
+        trade_manager_files = [f for f in listdir(trade_manager_path) if isfile(join(trade_manager_path, f))]
+        for fl in trade_manager_files:
+            with open(trade_manager_path + fl, 'r') as bt_config:
+                tm_info = json.load(bt_config)
+                if tm_info['strategy_id'] in self.strat_config['strategies']:
+                    self.strat_config['trade_manager_info'][tm_info['strategy_id']] = tm_info
+
+        # Combinators
+        combinators_path = str(Path(__file__).resolve().parent.parent) + "/live_deployments/combinators/"
+        combinator_files = [f for f in listdir(combinators_path) if isfile(join(combinators_path, f))]
+        for fl in combinator_files:
+            with open(combinators_path + fl, 'r') as bt_config:
+                combinator_info = json.load(bt_config)
+                if combinator_info['id'] in self.strat_config['combinators']:
+                    self.strat_config['combinator_info'][combinator_info['id']] = combinator_info
+
+        #print(self.strat_config['combinator_info'])
+        combination_strategies = [x for combinator in self.strat_config['combinator_info'].values() for x in combinator['combinations']]
+        #print(combination_strategies)
+        strategies_path = str(Path(__file__).resolve().parent.parent) + "/live_deployments/combinators/strategies/"
+        strategyfiles = [f for f in listdir(strategies_path) if isfile(join(strategies_path, f))]
+        for fl in strategyfiles:
+            with open(strategies_path + fl, 'r') as bt_config:
+                strategy_info = json.load(bt_config)
+                if strategy_info['id'] in combination_strategies:
+                    self.strat_config['strategy_info'][strategy_info['id']] = strategy_info
+
+        trade_manager_path = str(Path(__file__).resolve().parent.parent) + "/live_deployments/combinators/trade_managers/"
+        trade_manager_files = [f for f in listdir(trade_manager_path) if isfile(join(trade_manager_path, f))]
+        for fl in trade_manager_files:
+            with open(trade_manager_path + fl, 'r') as bt_config:
+                tm_info = json.load(bt_config)
+                if tm_info['strategy_id'] in combination_strategies:
+                    self.strat_config['trade_manager_info'][tm_info['strategy_id']] = tm_info
+        subscribed_assets = list(set([tm['asset'] for tm in self.strat_config['trade_manager_info'].values()]))
+
+        self.portfolio_manager = AlgoPortfolioManager(place_live_orders=False, data_interface=self)
+        market_book = OptionMarketBook(trade_day=trade_day, assets=subscribed_assets, record_metric=False, live_mode=True,
+                                       volume_delta_mode=volume_delta_mode)
+        self.market_book = market_book
+        market_book.pm = self.portfolio_manager
+        strategy_manager = StrategyManager(market_book=market_book, record_metric=False)
+        trade_pool = StrategyTradeManagerPool(market_book=market_book, strategy_manager=strategy_manager)
+        market_book.strategy_manager = strategy_manager
+
+        for deployed_strategy in self.strat_config['strategy_info'].values():
+            start = datetime.now()
+            strategy_class = eval(deployed_strategy['class'])
+            strategy_manager.add_strategy(strategy_class, deployed_strategy)
+
+        for deployed_tm in self.strat_config['trade_manager_info'].values():
+            start = datetime.now()
+            # print('deployed_strategy=====', deployed_strategy)
+            trade_pool.add(deployed_tm)
+            end = datetime.now()
+            # print('strategy init took', (end - start).total_seconds())
+
+        for deployed_combinator in self.strat_config['combinator_info'].values():
+            strategy_manager.add_combinator(deployed_combinator)
+            end = datetime.now()
+            print('Combinator init took', (end - start).total_seconds())
+        strategy_manager.clean_up_combinators()
+        strategy_manager.clean_up_strategies()
+
+        for symbol in subscribed_assets:
+            self.last_epoc_minute_data[symbol] = {'timestamp': None}
+            self.last_epoc_minute_data[symbol + "_O"] = {'timestamp': None}
 
     def on_hist_spot_data(self, hist_feed):
         #print('on_hist_spot_data', hist_feed)
