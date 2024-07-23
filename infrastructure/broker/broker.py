@@ -123,6 +123,12 @@ class BrokerLive:
         # https://myapi.fyers.in/docs/#tag/Order-Placement/paths/~1OthePlacement/get
         return order_details
 
+    def place_basket_order(self, order_list):
+        response = self.fyers_feed.fyers.place_basket_orders(order_list)
+        # TODO : implementation pending
+        return 'res'
+
+
     def place_intraday_market_order(self,order_info):
         print(order_info)
         response = self.fyers_feed.fyers.place_order(order_info)
@@ -132,17 +138,15 @@ class BrokerLive:
         res['traded_price'] = self.get_order_status(response['id']).get('tradedPrice', -9999)
         return res
 
-    def convert_to_valid_entry_order(self, order_details,category):
-
-        is_month_end = is_month_end_expiry(order_details['expiry'])
-        #print('is_month_end', is_month_end)
-        exp = dt.strptime(order_details['expiry'], '%y%m%d').strftime('%y%-m%d') if not is_month_end else dt.strptime(order_details['expiry'], '%y%m%d').strftime('%y%b').upper()
-        sym = "NSE:" + order_details['underlying'] + exp + str(order_details['strike']) + order_details['type']
+    def convert_to_valid_entry_order(self, order_details):
+        #print(order_details)
+        category = order_details['order_type']
+        print(order_details)
         data = {
-            "symbol": sym, #'NSE:BANKNIFTY2260936000CE',
+            "symbol": order_details['symbol'], #'NSE:BANKNIFTY2260936000CE',
             "qty": order_details['qty'],
             "type": 1 if category == 'LIMIT' else 2 if category == 'MARKET' else 0,
-            "side": get_broker_order_type(order_details['side']),
+            "side": get_broker_order_type(order_details['order_side']),
             "productType": "MARGIN",
             "limitPrice": order_details['price'] if category == 'LIMIT' else 0 if category == 'MARKET' else 0,
             "stopPrice": 0,
@@ -158,7 +162,7 @@ class BrokerLive:
         # https://myapi.fyers.in/docs/#tag/Order-Placement/paths/~1OthePlacement/get
         return data
 
-    def convert_to_valid_exit_order(self, order_details,category):
+    def convert_to_valid_exit_order(self, order_details, category):
         data = {
             "symbol": order_details['symbol'], #'NSE:BANKNIFTY2260936000CE',
             "qty": order_details['qty'],
@@ -179,10 +183,10 @@ class BrokerLive:
         # https://myapi.fyers.in/docs/#tag/Order-Placement/paths/~1OthePlacement/get
         return data
 
-    def place_entry_order(self, order_info, category):
+    def place_entry_order(self, order_info):
         print('broker place_entry order')
-        if category == 'MARKET':
-            order_details = self.convert_to_valid_entry_order(order_info,category)
+        if order_info['order_type'] == 'MARKET':
+            order_details = self.convert_to_valid_entry_order(order_info)
             res = self.place_intraday_market_order(order_details)
             return res
             #return {'success': True}

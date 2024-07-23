@@ -123,7 +123,10 @@ class NearExpiryWeek:
         self.end_date = TradeDateTime.from_ordinal(expiry_week_end_day)
         next_expiry = min([x.ordinal for x in fut_exp_dates if x.ordinal > expiry_week_end_day])
         self.next_expiry_end = TradeDateTime.from_ordinal(next_expiry)
+        next_to_next_expiry = min([x.ordinal for x in fut_exp_dates if x.ordinal > self.next_expiry_end.ordinal])
+        self.next_to_next_expiry_end = TradeDateTime.from_ordinal(next_to_next_expiry)
         self.moth_end_expiry = self.next_expiry_end.month != self.end_date.month
+        self.next_expiry_moth_end_expiry = self.next_to_next_expiry_end.month != self.next_expiry_end.month
         last_expiry_week_end_day = expiry_week_start_day - 1
         last_expiry_week_start_day = max([x.ordinal for x in fut_exp_dates if x.ordinal < expiry_week_end_day]) + 1
         self.last_expiry_end = TradeDateTime.from_ordinal(last_expiry_week_end_day)

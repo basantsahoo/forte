@@ -5,7 +5,6 @@ from servers.server_settings import cache_dir
 from diskcache import Cache
 import pandas as pd
 from helper.utils import inst_is_option, get_market_view
-from datetime import datetime as dt
 
 class AlgoPortfolioManager:
     def __init__(self, place_live_orders=False, data_interface=None, process_id=1000):
@@ -59,38 +58,41 @@ class AlgoPortfolioManager:
     def monitor_position(self):
         pass
 
-    def place_oms_entry_order(self, order_info, order_type):
+    def place_oms_entry_order(self, order_info):
         #print('going to place place_oms_entry_order', strategy_id, symbol, order_side,order_id,qty)
         if self.data_interface is not None:
-            self.data_interface.place_entry_order(order_info, order_type)
+            self.data_interface.place_entry_order(order_info)
 
-    def place_oms_exit_order(self, order_info, order_type):
+    def place_oms_exit_order(self, strategy_id, symbol, order_side, order_id, qty, option_signal):
         #print('going to place place_oms_exit_order', strategy_id, symbol, order_side, order_id,qty)
+        qty = abs(qty)
         if self.data_interface is not None:
-            self.data_interface.place_exit_order(order_info, order_type)
+            self.data_interface.place_exit_order(symbol, order_side, qty, strategy_id, order_id, 'MARKET', option_signal)
 
-    def add_trade_symbol(self, instrument):
-        asset_book = self.market_book.get_asset_book(instrument['asset'])
-        expiry_date = asset_book.expiry_dates[instrument['expiry']]
-        is_month_end = asset_book.expiry_month_ends[instrument['expiry']]
-        exp = dt.strptime(expiry_date, '%Y-%m-%d').strftime('%y%-m%d') if not is_month_end else dt.strptime(expiry_date, '%Y-%m-%d').strftime('%y%b').upper()
-        sym = "NSE:" + instrument['asset'] + exp + str(instrument['strike']) + instrument['kind']
-        instrument['symbol'] = sym
-        return instrument
 
     def strategy_entry_signal(self, signal_info):
         print('########################################## algo port strategy_entry_signal')
-
+        print(signal_info)
         #print("algo port signal info===", signal_info)
-        #print(final_orders)
-        trade_set = signal_info['trade_set']
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
-        for trade in trade_set:
-            for leg_group in trade['leg_groups']:
-                for leg in leg_group['legs']:
-                    leg['instrument'] = self.add_trade_symbol(leg['instrument'])
-        print(signal_info)
+        trade_set = signal_info['trade_set']
+
+        all_orders = [leg for trade in trade_set for leg_group in trade['leg_groups'] for leg in leg_group['legs']]
+        flattened_orders = [{'instrument': order['instrument']['full_code'], 'order_side': order['order_type'],
+                             'asset': order['instrument']['asset'], 'kind':order['instrument']['kind'], 'strike': order['instrument'].get('strike', 0),
+                             'quantity': abs(order['quantity'])} for order in all_orders]
+        order_df = pd.DataFrame(flattened_orders)
+        grouped_order_df = order_df.groupby(['instrument', 'order_side', 'asset', 'strike', 'kind']).agg({'quantity': ['sum']})
+        grouped_order_df = grouped_order_df.reset_index()
+        grouped_order_df.columns = ['instrument', 'order_side', 'asset', 'strike', 'kind', 'quantity']
+        final_orders = grouped_order_df.to_dict('records')
+        for order in final_orders:
+            order['order_side'] = get_broker_order_type(order['order_side'])
+            order['option_signal'] = order['kind'] in ['CE', 'PE']
+            order['strategy_id'] = strategy_id
+            order['order_type'] = 'MARKET'
+        #print(final_orders)
         """
         for order_info in final_orders:
             self.executed_orders += 1
@@ -98,11 +100,12 @@ class AlgoPortfolioManager:
             order_info['order_id'] = order_id
             self.place_oms_entry_order(order_info)
         """
-        self.place_oms_entry_order(signal_info, order_type='MARKET')
 
         #self.place_oms_entry_order(strategy_id, symbol, side, order_id, total_quantity, option_signal, cover)
 
         #print('algo port strategy_entry_signal')
+        self.executed_orders += 1
+        order_id = 'AL' + str(self.executed_orders)
 
         for trade in trade_set:
             #print('trade =====', trade)
@@ -121,22 +124,22 @@ class AlgoPortfolioManager:
                     self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'] = []
                     self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['position'] = {}
                     for leg in leg_group['legs']:
-                        full_code = leg['instrument']['full_code']
+                        symbol = leg['instrument']['full_code']
                         order_type = leg['order_type']
                         leg_id = leg['leg_id']
                         #print('leg_id adding 0', leg_id)
                         qty = abs(leg['quantity'])
                         side = get_broker_order_type(order_type)
 
-                        order_time = datetime.fromtimestamp(self.last_times[full_code]).strftime("%Y-%m-%d %H:%M:%S")
-                        trade_date = datetime.fromtimestamp(self.last_times[full_code]).strftime("%Y-%m-%d")
-                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['position'][leg_id] = {'full_code': full_code, 'symbol': leg['instrument']['symbol'], 'qty': qty, 'side': side, 'entry_time':self.last_times[full_code], 'entry_price': self.ltps[full_code], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0}
+                        order_time = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d %H:%M:%S")
+                        trade_date = datetime.fromtimestamp(self.last_times[symbol]).strftime("%Y-%m-%d")
+                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['position'][leg_id] = {'symbol': symbol, 'qty': qty, 'side': side, 'entry_time':self.last_times[symbol], 'entry_price': self.ltps[symbol], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0, 'order_id':order_id}
                         #print('leg_id adding', leg_id)
                         #print('adding +++++++++++')
                         #print({'symbol': symbol, 'qty': qty, 'side': side, 'entry_time':self.last_times[symbol], 'entry_price': self.ltps[symbol], 'exit_time':None, 'exit_price': None, 'curr_qty': get_broker_order_type(order_type) * qty, 'un_realized_pnl': 0, 'realized_pnl': 0, 'order_id':order_id})
-                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'].append([self.last_times[full_code], trade_seq, leg_group_id, full_code, leg_id, order_type, qty, self.ltps[full_code]])
+                        self.position_book[(strategy_id, signal_id, trade_seq, leg_group_id)]['order_book'].append([self.last_times[symbol], trade_seq, leg_group_id, symbol, leg_id, order_type, qty, self.ltps[symbol]])
                         if self.dummy_broker is not None:
-                            self.dummy_broker.place_order(strategy_id, signal_id, trade_seq, full_code, side, self.ltps[full_code], qty, trade_date, order_time)
+                            self.dummy_broker.place_order(strategy_id, signal_id, trade_seq, symbol, side, self.ltps[symbol], qty, trade_date, order_time)
         #print("algo port position book===", self.position_book)
 
     def strategy_exit_signal(self, signal_info, exit_at=None, option_signal=False):
@@ -146,8 +149,6 @@ class AlgoPortfolioManager:
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
         trade_set = signal_info['trade_set']
-
-        self.place_oms_exit_order(signal_info, order_type='MARKET')
 
         all_orders = [leg for trade in trade_set for leg_group in trade['leg_groups'] for leg in leg_group['legs']]
         flattened_orders = [{'instrument': order['instrument']['full_code'], 'order_type': order['order_type'],
@@ -194,7 +195,7 @@ class AlgoPortfolioManager:
 
                         #print('order_info=====', order_info)
                         qty = order_info['qty'] if qty == 0 else qty
-                        #order_id = order_info['order_id']
+                        order_id = order_info['order_id']
                         exit_order_type = get_exit_order_type(order_info['side'])
                         order_time = datetime.fromtimestamp(l_time).strftime("%Y-%m-%d %H:%M:%S")
                         trade_date = datetime.fromtimestamp(l_time).strftime("%Y-%m-%d")

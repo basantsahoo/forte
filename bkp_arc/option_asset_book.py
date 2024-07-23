@@ -23,8 +23,7 @@ class OptionAssetBook:
         self.last_periodic_update = None
         self.periodic_update_sec = 60
         self.compound_signal_generator = CompoundSignalBuilder(self)
-        self.expiry_dates = {'near': None, 'next': None}
-        self.expiry_month_ends = {'near': False, 'next': False}
+        self.expiry_date = None
         print("OptionAssetBook book init===========")
 
     def get_lowest_candle(self, instr, after_ts=None, is_option=False):
@@ -59,10 +58,7 @@ class OptionAssetBook:
         # """ comment for spot only start
         if not self.market_book.spot_only:
             near_expiry_week = NearExpiryWeek(TradeDateTime(trade_day), self.asset)
-            self.expiry_dates['near'] = near_expiry_week.end_date.date_string
-            self.expiry_dates['next'] = near_expiry_week.next_expiry_end.date_string
-            self.expiry_month_ends['near'] = near_expiry_week.moth_end_expiry
-            self.expiry_month_ends['next'] = near_expiry_week.next_expiry_moth_end_expiry
+            self.expiry_date = near_expiry_week.end_date.date_string
             if near_expiry_week.start_date.date_string != trade_day:
                 closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
                 closing_oi_recs = closing_oi_df.to_dict("record")
@@ -93,10 +89,10 @@ class OptionAssetBook:
         #self.spot_book.set_transition_matrix()
 
     def get_expiry_day_time(self, t_string):
-        if self.expiry_dates['near'] is None:
+        if self.expiry_date is None:
             return None
         else:
-            start_str = self.expiry_dates['near'] + " " + t_string + " +0530"
+            start_str = self.expiry_date + " " + t_string + " +0530"
             ts = int(time.mktime(time.strptime(start_str, "%Y-%m-%d %H:%M:%S %z")))  # - 5.5 * 3600
             return ts
 

@@ -6,8 +6,7 @@ strategy_regulator_o={
 
 strategy_regulator={
     'IRON_CONDOR_ADJUST': {'BASANT_FYERS': {'scale': 1}},
-    'MID_WEEK_CLOSE_BELOW_VA': {'BASANT_FYERS': {'scale': 1}},
-    'WEDNESDAY_RANGE_BOUND': {'BASANT_FYERS': {'scale': 1}}
+    'MID_WEEK_CLOSE_BELOW_VA': {'BASANT_FYERS': {'scale': 1}}
 }
 
 

@@ -4,7 +4,7 @@
     "class":"OptionBuy",
     "max_signal": 1,
     "asset": "NIFTY",
-    "register_signal_category": ["GLOBAL","TIME_SIGNAL", "FRIDAY_14_40", "1min"],
+    "register_signal_category": ["GLOBAL","TIME_SIGNAL", "TUESDAY_12_01", "1min"],
     "trade_cut_off_time": 5,
     "entry_signal_queues": [
       {
@@ -16,7 +16,7 @@
             "unique_only": true,
             "validity_period": 2
           },
-          "signal_type": ["GLOBAL","TIME_SIGNAL", "FRIDAY_14_40", "1min"],
+          "signal_type": ["GLOBAL","TIME_SIGNAL", "TUESDAY_12_01", "1min"],
           "trade_eval": [],
           "min_activation_strength": 1,
           "max_activation_strength": 1,
@@ -36,6 +36,32 @@
 
     ],
     "exit_criteria_list": [
+      {
+          "neuron_info": {
+            "id": 3,
+            "signal_queue_info": {
+              "q_type": "fixed",
+              "size": 1,
+              "unique_only": true,
+              "validity_period": 1
+            },
+            "signal_type": ["GLOBAL","TIME_SIGNAL", "TUESDAY_14_55", "1min"],
+            "trade_eval": [],
+            "min_activation_strength": 1,
+            "max_activation_strength": 1,
+            "flush_hist": false,
+            "activation_subscriptions": [],
+            "signal_subscriptions": [],
+            "high_threshold_subscriptions": [],
+            "low_threshold_subscriptions": [],
+            "reversal_subscriptions": [],
+            "register_instr": false,
+            "update_watcher_info": {},
+            "reset_watcher_info": {},
+            "neuron_log": false
+          },
+          "apply_pre_filter": false
+        }
     ],
     "trade_controllers": [
     ],

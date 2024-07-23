@@ -1,6 +1,5 @@
 import time
 import numpy as np
-import pandas as pd
 from helper.utils import root_symbol, get_broker_order_type, get_exit_order_type
 from infrastructure.broker.broker import BrokerLive
 from arc.dummy_broker import DummyBroker
@@ -129,6 +128,8 @@ class OMSManager:
         lot_size = oms_config.get_lot_size(index)
         print('lot_size==============', lot_size)
         order_info['qty'] = order_info['quantity'] * lot_size * strategy_regulation['scale']
+        expiry = list(self.atm_options.values())[0]['expiry']
+        order_info['expiry'] = expiry
         print('get_optimal_entry_order_info++++', order_info)
         return order_info
 
@@ -158,41 +159,22 @@ class OMSManager:
     def monitor_position(self):
         pass
 
-    def place_entry_order(self, signal_info, order_type='MARKET'):
+    def place_entry_order(self, order_info):
         #print('place_entry_order inside oms', order_info)
-        strategy_id = signal_info['strategy_id']
-        signal_id = signal_info['signal_id']
-        trade_set = signal_info['trade_set']
-
-        all_orders = [leg for trade in trade_set for leg_group in trade['leg_groups'] for leg in leg_group['legs']]
-        flattened_orders = [{'full_code': order['instrument']['full_code'], 'symbol': order['instrument']['symbol'], 'order_side': order['order_type'],
-                             'asset': order['instrument']['asset'], 'kind':order['instrument']['kind'], 'strike': order['instrument'].get('strike', 0),
-                             'quantity': abs(order['quantity'])} for order in all_orders]
-        order_df = pd.DataFrame(flattened_orders)
-        grouped_order_df = order_df.groupby(['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind']).agg({'quantity': ['sum']})
-        grouped_order_df = grouped_order_df.reset_index()
-        grouped_order_df.columns = ['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind', 'quantity']
-        final_orders = grouped_order_df.to_dict('records')
-        response = []
-        strategy_regulation = oms_config.get_strategy_regulation(strategy_id)
-        for order in final_orders:
-            self.strategy_order_map[signal_id] = {}
-            order['order_side'] = get_broker_order_type(order['order_side'])
-            order['option_signal'] = order['kind'] in ['CE', 'PE']
-            order['strategy_id'] = strategy_id
-            order['order_type'] = order_type
-
-            allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
-            for broker in allowed_brokers:
-                optimal_order = self.get_optimal_entry_order_info(order, strategy_regulation[broker.id])
-                res = broker.place_entry_order(optimal_order)
-                response.append(res)
-                if res['success']:
-                    self.strategy_order_map[signal_id][order['instrument']] = res
-                    """
-                    self.dummy_broker.place_order(order_info['strategy_id'], order_info['order_id'], None, res['symbol'], res['side'], 0, res['qty'],
-                                                  trade_date, order_time)
-                    """
+        response = {'success': False}
+        strategy_regulation = oms_config.get_strategy_regulation(order_info['strategy_id'])
+        allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
+        for broker in allowed_brokers:
+            optimal_order = self.get_optimal_entry_order_info(order_info, strategy_regulation[broker.id])
+            res = broker.place_entry_order(optimal_order)
+            response = res
+            if res['success']:
+                t_key = order_info['order_id']
+                self.strategy_order_map[t_key] = res
+                """
+                self.dummy_broker.place_order(order_info['strategy_id'], order_info['order_id'], None, res['symbol'], res['side'], 0, res['qty'],
+                                              trade_date, order_time)
+                """
         return response
 
     def get_covered_entry_order_info(self, order_info, strategy_regulation):

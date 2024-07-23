@@ -38,7 +38,7 @@
             "A": {
               "instr_to_trade": {
                 "money_ness": "OTM",
-                "level": 3,
+                "level": 1,
                 "kind": "PE",
                 "expiry": "near"
               },
@@ -48,36 +48,8 @@
             "B": {
               "instr_to_trade": {
                 "money_ness": "OTM",
-                "level": 6,
+                "level": 2,
                 "kind": "PE",
-                "expiry": "near"
-              },
-              "order_type": "BUY",
-              "quantity": 1
-            }
-          }
-        },
-        {
-          "lg_class": "gp_b",
-          "market_view": "SHORT",
-          "asset": "NIFTY",
-          "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:20:30"],
-          "legs" : {
-            "A": {
-              "instr_to_trade": {
-                "money_ness": "OTM",
-                "level": 3,
-                "kind": "CE",
-                "expiry": "near"
-              },
-              "order_type": "SELL",
-              "quantity": 1
-            },
-            "B": {
-              "instr_to_trade": {
-                "money_ness": "OTM",
-                "level": 6,
-                "kind": "CE",
                 "expiry": "near"
               },
               "order_type": "BUY",

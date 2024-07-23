@@ -121,7 +121,6 @@ class AlgorithmIterface:
         self.portfolio_manager = AlgoPortfolioManager(place_live_orders=True, data_interface=self)
         market_book = OptionMarketBook(trade_day=trade_day, assets=subscribed_assets, record_metric=False, live_mode=True,
                                        volume_delta_mode=volume_delta_mode)
-        self.portfolio_manager.market_book = market_book
         self.market_book = market_book
         market_book.pm = self.portfolio_manager
         strategy_manager = StrategyManager(market_book=market_book, record_metric=False)
@@ -193,17 +192,17 @@ class AlgorithmIterface:
         self.market_book.feed_stream(feed)
         self.portfolio_manager.feed_stream(feed)
 
-    def place_entry_order(self, order_info, order_type):
+    def place_entry_order(self, order_info):
         #print('place_entry_order in data interface')
         if True: #self.socket.hist_loaded:
             #print('place_entry_order in data interface', order_info)
-            resp = self.oms_manager.place_entry_order(order_info, order_type)
+            resp = self.oms_manager.place_entry_order(order_info)
             print(resp)
             # Use following instead of oms_manager if oms server is running separately
             #self.socket.on_oms_entry_order(order_info)
 
 
-    def place_exit_order(self, order_info, order_type):
+    def place_exit_order(self, symbol, order_side, qty, strategy_id, order_id, order_type,option_flag ):
         if self.socket.hist_loaded:
             print('place_exit_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type)
             order_info = {'symbol': symbol,
@@ -214,7 +213,7 @@ class AlgorithmIterface:
                           'order_type': order_type,
                           'option_flag': option_flag
                           }
-            resp = self.oms_manager.place_exit_order(order_info, order_type)
+            resp = self.oms_manager.place_exit_order(order_info)
             print(resp)
 
             # Use following instead of oms_manager if oms server is running separately
