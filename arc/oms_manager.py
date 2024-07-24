@@ -1,3 +1,5 @@
+import copy
+import json
 import time
 import numpy as np
 import pandas as pd
@@ -159,7 +161,7 @@ class OMSManager:
         pass
 
     def place_entry_order(self, signal_info, order_type='MARKET'):
-        #print('place_entry_order inside oms', order_info)
+        print('place_entry_order inside oms', json.dumps(signal_info))
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
         trade_set = signal_info['trade_set']
@@ -175,6 +177,7 @@ class OMSManager:
         final_orders = grouped_order_df.to_dict('records')
         response = []
         strategy_regulation = oms_config.get_strategy_regulation(strategy_id)
+
         for order in final_orders:
             self.strategy_order_map[signal_id] = {}
             order['order_side'] = get_broker_order_type(order['order_side'])
@@ -187,88 +190,106 @@ class OMSManager:
                 optimal_order = self.get_optimal_entry_order_info(order, strategy_regulation[broker.id])
                 res = broker.place_entry_order(optimal_order)
                 response.append(res)
-                if res['success']:
-                    self.strategy_order_map[signal_id][order['instrument']] = res
+
+        if all([res['success'] for res in response]):
+            for trade in trade_set:
+                for leg_group in trade['leg_groups']:
+                    for leg in leg_group['legs']:
+                        self.strategy_order_map[(strategy_id, signal_id, trade['trade_seq'], leg_group['lg_id'], leg['leg_id'])] = {leg['instrument']['symbol']: leg['quantity']}
                     """
                     self.dummy_broker.place_order(order_info['strategy_id'], order_info['order_id'], None, res['symbol'], res['side'], 0, res['qty'],
                                                   trade_date, order_time)
                     """
         return response
 
-    def get_covered_entry_order_info(self, order_info, strategy_regulation):
-        print('get_covered_entry_order_info++++', order_info)
-        [ind, strike, kind] = order_info['symbol'].split("_")
-        index = root_symbol(order_info['symbol'])
-        lot_size = oms_config.get_lot_size(index)
-        side = get_broker_order_type(order_info['order_side'])
-        cover = order_info['cover'] if kind == 'CE' else -1*order_info['cover']
-        key = index + "_" + kind
-        instrument = self.atm_options[key].copy()
-        instrument['strike'] = int(strike)
-        instrument['underlying'] = index
-        instrument['type'] = kind
-        instrument['side'] = side
-        instrument['qty'] = order_info['qty'] * lot_size * strategy_regulation['scale']
+    def place_exit_order_2(self, signal_info, order_type='MARKET'):
+        #print('place_exit_order inside oms', json.dumps(signal_info))
+        strategy_id = signal_info['strategy_id']
+        signal_id = signal_info['signal_id']
+        trade_set = signal_info['trade_set']
+        oms_order_info = {'strategy_id': signal_info['strategy_id'], 'signal_id': signal_info['signal_id'], 'trade_set': []}
+        strategy_regulation = oms_config.get_strategy_regulation(strategy_id)
+        for trade in trade_set:
+            trade_seq = trade['trade_seq']
+            oms_trade_info = {'trade_seq': trade_seq, 'leg_groups': []}
+            for leg_group in trade['leg_groups']:
+                leg_group_id = leg_group['lg_id']
+                oms_leg_group_info = {'lg_id': leg_group_id, 'legs': []}
+                for leg in leg_group['legs']:
+                    leg_id = leg['leg_id']
+                    t_key = (strategy_id, signal_id, trade_seq, leg_group_id, leg_id)
+                    if t_key not in self.strategy_order_map or sum(list(self.strategy_order_map[t_key].values())) == 0:
+                        oms_leg_group_info['legs'].append(copy.deepcopy(leg))
+                    if t_key in self.strategy_order_map and sum(list(self.strategy_order_map[t_key].values())) != 0:
+                        oms_leg_group_info['legs'].append(copy.deepcopy(leg))
+                oms_trade_info['leg_groups'].append(oms_leg_group_info)
+            oms_order_info['trade_set'].append(oms_trade_info)
+        all_orders = [leg for trade in oms_order_info['trade_set'] for leg_group in trade['leg_groups'] for leg in leg_group['legs']]
+        flattened_orders = [{'full_code': order['instrument']['full_code'], 'symbol': order['instrument']['symbol'], 'order_side': order['order_type'],
+                             'asset': order['instrument']['asset'], 'kind':order['instrument']['kind'], 'strike': order['instrument'].get('strike', 0),
+                             'quantity': abs(order['quantity'])} for order in all_orders]
+        order_df = pd.DataFrame(flattened_orders)
 
-        instrument_2 = self.atm_options[key].copy()
-        instrument_2['strike'] = int(strike) + cover
-        instrument_2['underlying'] = index
-        instrument_2['type'] = kind
-        instrument_2['side'] = -1*side
-        instrument_2['qty'] = order_info['qty'] * lot_size * strategy_regulation['scale']
+        grouped_order_df = order_df.groupby(['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind']).agg({'quantity': ['sum']})
+        grouped_order_df = grouped_order_df.reset_index()
+        grouped_order_df.columns = ['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind', 'quantity']
+        final_orders = grouped_order_df.to_dict('records')
+        print('final_orders=======', final_orders)
+        response = []
+        for order in final_orders:
+            self.strategy_order_map[signal_id] = {}
+            order['order_side'] = get_broker_order_type(order['order_side'])
+            order['option_signal'] = order['kind'] in ['CE', 'PE']
+            order['strategy_id'] = strategy_id
+            order['order_type'] = order_type
 
-        print('instrument++++++', instrument)
-        print('instrument_2++++++', instrument_2)
-        return [instrument_2, instrument]
-
-
-    def place_covered_entry_order(self, order_info):
-        print('place_covered_entry_order inside oms', order_info)
-        response = {'success': False}
-        strategy = oms_config.get_strategy_name(order_info['strategy_id'])
-        strategy_regulation = oms_config.get_strategy_regulation(strategy)
-        allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
-        for broker in allowed_brokers:
-            optimal_order = self.get_covered_entry_order_info(order_info, strategy_regulation[broker.id])
-            cover_res = broker.place_entry_order(optimal_order[0], order_info['order_type'])
-            if cover_res['success']:
-                res = broker.place_entry_order(optimal_order[1], order_info['order_type'])
-                res['cover'] = order_info['cover']
-                response = res
-                if res['success']:
-                    t_key = order_info['order_id']
-                    self.strategy_order_map[t_key] = res
-        return response
-
-
-    def place_exit_order(self, order_info):
-        print('place_exit_order inside oms', order_info)
-        response = {'success': False}
-        strategy_regulation = oms_config.get_strategy_regulation(order_info['strategy_id'])
-        t_key = order_info['order_id']
-        if t_key in self.strategy_order_map and self.strategy_order_map[t_key]['qty'] != 0:
             allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
             for broker in allowed_brokers:
-                optimal_order = self.get_optimal_exit_order_info(order_info, strategy_regulation[broker.id])
-                print(optimal_order)
-                if optimal_order:
-                    res = broker.place_exit_order(optimal_order, order_info['order_type'])
-                    response = res
-                    print(response)
-                    if res['success']:
-                        self.strategy_order_map[t_key]['qty'] += res['qty'] * res['side']
+                optimal_order = self.get_optimal_entry_order_info(order, strategy_regulation[broker.id])
+                res = broker.place_exit_order(optimal_order)
+                response.append(res)
 
-                        if self.strategy_order_map[t_key]['cover'] > 0:
-                            [ind, strike, kind] = order_info['symbol'].split("_")
-                            cover_order = optimal_order.copy()
-                            cover = order_info['cover'] if kind == 'CE' else -1 * self.strategy_order_map[t_key]['cover']
-                            cover_order['strike'] = cover_order['strike'] + cover
-                            cover_order['side'] = get_exit_order_type(cover_order['side'])
-                            res = broker.place_exit_order(cover_order, order_info['order_type'])
-
-        #print(self.strategy_order_map)
+        if all([res['success'] for res in response]):
+            for trade in oms_order_info['trade_set']:
+                for leg_group in trade['leg_groups']:
+                    for leg in leg_group['legs']:
+                        print(leg)
+                        if leg['instrument']['symbol'] in self.strategy_order_map.get((strategy_id, signal_id, trade['trade_seq'], leg_group['lg_id'], leg['leg_id']), {}):
+                            self.strategy_order_map[(strategy_id, signal_id, trade['trade_seq'], leg_group['lg_id'], leg['leg_id'])][leg['instrument']['symbol']] += leg['quantity'] * leg['order_type']
+        print('final self.strategy_order_map =========', self.strategy_order_map)
         return response
 
+
+    def place_exit_order(self, signal_info, order_type='MARKET'):
+        #print('place_exit_order inside oms', json.dumps(signal_info))
+        strategy_id = signal_info['strategy_id']
+        signal_id = signal_info['signal_id']
+        strategy_regulation = oms_config.get_strategy_regulation(strategy_id)
+        all_orders = [leg for trade in signal_info['trade_set'] for leg_group in trade['leg_groups'] for leg in leg_group['legs']]
+        flattened_orders = [{'full_code': order['instrument']['full_code'], 'symbol': order['instrument']['symbol'], 'order_side': order['order_type'],
+                             'asset': order['instrument']['asset'], 'kind':order['instrument']['kind'], 'strike': order['instrument'].get('strike', 0),
+                             'quantity': abs(order['quantity'])} for order in all_orders]
+        order_df = pd.DataFrame(flattened_orders)
+
+        grouped_order_df = order_df.groupby(['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind']).agg({'quantity': ['sum']})
+        grouped_order_df = grouped_order_df.reset_index()
+        grouped_order_df.columns = ['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind', 'quantity']
+        final_orders = grouped_order_df.to_dict('records')
+        print('final_orders=======', final_orders)
+        response = []
+        for order in final_orders:
+            self.strategy_order_map[signal_id] = {}
+            order['order_side'] = get_broker_order_type(order['order_side'])
+            order['option_signal'] = order['kind'] in ['CE', 'PE']
+            order['strategy_id'] = strategy_id
+            order['order_type'] = order_type
+
+            allowed_brokers = self.get_allowed_brokers(list(strategy_regulation.keys()))
+            for broker in allowed_brokers:
+                optimal_order = self.get_optimal_entry_order_info(order, strategy_regulation[broker.id])
+                res = broker.place_exit_order(optimal_order)
+                response.append(res)
+        return response
 
     def reached_risk_limit(self, strat_id):
         return False

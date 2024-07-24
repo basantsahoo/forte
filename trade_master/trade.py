@@ -204,6 +204,7 @@ class Trade:
 
 
     def process_exit_orders(self):
+        print('trade process_exit_orders =========', self.trd_idx)
         if self.exit_orders:
             exit_orders = dict()
             exit_orders['trade_seq'] = self.trd_idx

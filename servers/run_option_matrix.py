@@ -17,7 +17,7 @@ full_week = False
 async def start():
     ns = OptionMatrixClient('/oms', full_week=full_week)
     sio.register_namespace(ns)
-    connect_to_oms()
+    #connect_to_oms()
     ns.connect_feed()
 
 

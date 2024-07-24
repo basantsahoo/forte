@@ -130,9 +130,8 @@ class BrokerLive:
 
 
     def place_intraday_market_order(self,order_info):
-        print(order_info)
         response = self.fyers_feed.fyers.place_order(order_info)
-        print(response)
+        print('fyer response====', response)
         res = {'success': response['code'] == success_code, 'order_id': response['id'], "position_id": order_info["symbol"] + "-" + order_info["productType"], 'qty': order_info["qty"], 'side': order_info['side']}
         res = {'success': response['code'] == success_code, 'order_id': response['id'], "symbol": order_info["symbol"], 'qty': order_info["qty"], 'side': order_info['side']}
         res['traded_price'] = self.get_order_status(response['id']).get('tradedPrice', -9999)
@@ -162,12 +161,13 @@ class BrokerLive:
         # https://myapi.fyers.in/docs/#tag/Order-Placement/paths/~1OthePlacement/get
         return data
 
-    def convert_to_valid_exit_order(self, order_details, category):
+    def convert_to_valid_exit_order(self, order_details):
+        category = order_details['order_type']
         data = {
             "symbol": order_details['symbol'], #'NSE:BANKNIFTY2260936000CE',
             "qty": order_details['qty'],
             "type": 1 if category == 'LIMIT' else 2 if category == 'MARKET' else 0,
-            "side": get_broker_order_type(order_details['side']),
+            "side": get_broker_order_type(order_details['order_side']),
             "productType": "MARGIN",
             "limitPrice": order_details['price'] if category == 'LIMIT' else 0 if category == 'MARKET' else 0,
             "stopPrice": 0,
@@ -191,13 +191,11 @@ class BrokerLive:
             return res
             #return {'success': True}
 
-    def place_exit_order(self, order_info, category):
-        print('broker place_ exit order')
-        if category == 'MARKET':
-            order_details = self.convert_to_valid_exit_order(order_info,category)
-            print(order_details)
+    def place_exit_order(self, order_info):
+        print('broker place_ exit order', order_info)
+        if order_info['order_type'] == 'MARKET':
+            order_details = self.convert_to_valid_exit_order(order_info)
             res = self.place_intraday_market_order(order_details)
-            print(res)
             return res
             #return {'success': True}
 

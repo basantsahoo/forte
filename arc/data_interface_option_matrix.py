@@ -204,16 +204,8 @@ class AlgorithmIterface:
 
 
     def place_exit_order(self, order_info, order_type):
-        if self.socket.hist_loaded:
-            print('place_exit_order in data interface', symbol, order_side, qty, strategy_id, order_id,order_type)
-            order_info = {'symbol': symbol,
-                          'order_side':order_side,
-                          'qty': qty,
-                          'strategy_id': strategy_id,
-                          'order_id': order_id,
-                          'order_type': order_type,
-                          'option_flag': option_flag
-                          }
+        if True: #self.socket.hist_loaded:
+            #print('place_exit_order in data interface')
             resp = self.oms_manager.place_exit_order(order_info, order_type)
             print(resp)
 

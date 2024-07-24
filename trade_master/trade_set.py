@@ -82,6 +82,7 @@ class TradeSet:
         return sum(capital_list), sum(pnl_list), pnl_ratio
 
     def process_exit_orders(self, manage_risk=True):
+        print('process_exit_orders    in trade set, ', self.id)
         if self.exit_orders:
             self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
             self.exit_orders = []
