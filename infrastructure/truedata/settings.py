@@ -9,4 +9,5 @@ historical_port = 8092
 #https://myapi.fyers.in/dashboard/
 #https://subscriptions.fyers.in/status/
 
-option_chain_length = {'NIFTY': 20, 'BANKNIFTY': 50}
+#option_chain_length = {'NIFTY': 20, 'BANKNIFTY': 50} changed from 01 May 2024
+option_chain_length = {'NIFTY': 24, 'BANKNIFTY': 60}

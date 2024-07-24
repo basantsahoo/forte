@@ -1,3 +1,4 @@
+import traceback
 from datetime import datetime
 from strat_machine.queues.neuron_network import QNetwork
 from entities.trading_day import TradeDateTime
@@ -118,8 +119,11 @@ class BaseStrategy:
     def initiate_signal_trades(self):
         print('strategy initiate_signal_trades+++++++++++++++++')
         if self.execute_trades:
-            curr_trade_set_id = self.trade_manager.initiate_signal_trades()
-            self.trade_manager.trigger_entry(curr_trade_set_id)
+            try:
+                curr_trade_set_id = self.trade_manager.initiate_signal_trades()
+                self.trade_manager.trigger_entry(curr_trade_set_id)
+            except Exception as e:
+                print(traceback.format_exc())
         self.entry_signal_pipeline.flush_queues()
         self.process_post_entry()
 

@@ -1,4 +1,5 @@
 import copy
+import json
 import time
 from datetime import datetime
 from helper.utils import get_broker_order_type, get_exit_order_type
@@ -82,7 +83,7 @@ class AlgoPortfolioManager:
         return instrument
 
     def strategy_entry_signal(self, signal_info):
-        print('########################################## algo port strategy_entry_signal')
+        print('########################################## algo port strategy_entry_signal', signal_info)
         #print("algo port signal info===", signal_info)
         trade_set = signal_info['trade_set']
         strategy_id = signal_info['strategy_id']
@@ -125,7 +126,8 @@ class AlgoPortfolioManager:
         #print("algo port position book===", self.position_book)
 
     def strategy_exit_signal(self, signal_info, exit_at=None):
-        print('########################################## algo port strategy_exit_signal')
+        print('########################################## algo port strategy_exit_signal', json.dumps(signal_info))
+
         #print("exiting ")
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']

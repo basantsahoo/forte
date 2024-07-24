@@ -17,8 +17,8 @@
   "combinators": [],
   "run_params": {
     "test_days": [],
-    "for_past_days": 68,
-    "to_date": "2024-07-22",
+    "for_past_days": 70,
+    "to_date": "2024-07-24",
     "candle_sw" : 0,
     "week_days": [],
     "record_metric": true,
