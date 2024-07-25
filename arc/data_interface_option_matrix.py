@@ -22,7 +22,7 @@ with open(strat_config_path, 'r') as bt_config:
 #from live_algo.friday_candle_first_30_mins import FridayCandleBuyFullDay, FridayCandleSellFullDay
 
 class AlgorithmIterface:
-    def __init__(self, socket=None, process_id=1000):
+    def __init__(self, socket=None, process_id=111):
         self.process_id = process_id
         #market_cache = Cache(cache_dir + "/P_" + str(self.process_id) + "/" + 'oms_cache')
         self.trade_day = None
@@ -38,6 +38,7 @@ class AlgorithmIterface:
         self.strat_config['strategy_info'] = {}
         self.strat_config['trade_manager_info'] = {}
         self.strat_config['combinator_info'] = {}
+
 
         print('new data interface created++++++')
 
@@ -118,9 +119,9 @@ class AlgorithmIterface:
                     self.strat_config['trade_manager_info'][tm_info['strategy_id']] = tm_info
         subscribed_assets = list(set([tm['asset'] for tm in self.strat_config['trade_manager_info'].values()]))
 
-        self.portfolio_manager = AlgoPortfolioManager(place_live_orders=True, data_interface=self)
+        self.portfolio_manager = AlgoPortfolioManager(place_live_orders=True, data_interface=self, process_id=self.process_id)
         market_book = OptionMarketBook(trade_day=trade_day, assets=subscribed_assets, record_metric=False, live_mode=True,
-                                       volume_delta_mode=volume_delta_mode)
+                                       volume_delta_mode=volume_delta_mode, process_id=self.process_id)
         self.portfolio_manager.market_book = market_book
         self.market_book = market_book
         market_book.pm = self.portfolio_manager
@@ -191,8 +192,9 @@ class AlgorithmIterface:
         #print('on_option_tick_data', feed)
         if self.setup_in_progress:
             return
-        self.market_book.feed_stream(feed)
         self.portfolio_manager.feed_stream(feed)
+        self.market_book.feed_stream(feed)
+
 
     def place_entry_order(self, order_info, order_type):
         #print('place_entry_order in data interface')

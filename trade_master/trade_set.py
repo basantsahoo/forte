@@ -85,8 +85,9 @@ class TradeSet:
 
     def process_exit_orders(self, manage_risk=True, entry_from=None):
         if self.exit_orders:
-            self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
+            exit_orders = [order for order in self.exit_orders]
             self.exit_orders = []
+            self.trade_manager.strategy.trigger_exit(self.id, exit_orders)
             if self.complete() and manage_risk:
                 self.trade_manager.strategy.manage_risk()
 

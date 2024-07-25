@@ -144,6 +144,7 @@ class TradeManager:
             trade_set.monitor_existing_positions_close()
 
     def monitor_existing_positions_target(self):
+        #print('trade manager, monitor_existing_positions_target =============')
         for trade_set_id, trade_set in self.tradable_signals.items():
             trade_set.monitor_existing_positions_target()
 

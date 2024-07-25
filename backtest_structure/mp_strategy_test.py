@@ -24,7 +24,7 @@ from arc.data_loader_ip import MultiDayOptionDataLoader, MultiDaySpotDataLoader
 from configurations.exclude_trade_days import exclude_trade_days
 from backtest_structure.bt_strategies import *
 from multiprocessing import Pool
-MAX_JOBS = 4
+MAX_JOBS = 5
 
 
 class StartegyBackTester:
@@ -78,7 +78,7 @@ class StartegyBackTester:
 
     def back_test(self, day_list_and_assets):
         day_list, subscribed_assets, process_id = day_list_and_assets
-        #print(day_list, subscribed_assets)
+        print(day_list, subscribed_assets)
         results = []
         for day in day_list:
             try:
@@ -135,8 +135,9 @@ class StartegyBackTester:
                             if feed_['feed_type'] == 'market_close':
                                 market_book.market_close_for_day()
                             else:
-                                market_book.feed_stream(feed_)
                                 pm.feed_stream(feed_)
+                                market_book.feed_stream(feed_)
+
                             #time.sleep(0.005)
                 #print(pm.position_book.items())
                 try:

@@ -89,8 +89,9 @@ class StartegyBackTester:
                             if feed_['feed_type'] == 'market_close':
                                 market_book.market_close_for_day()
                             else:
-                                market_book.feed_stream(feed_)
                                 pm.feed_stream(feed_)
+                                market_book.feed_stream(feed_)
+
                             #time.sleep(0.005)
                 #print(pm.position_book.items())
                 try:

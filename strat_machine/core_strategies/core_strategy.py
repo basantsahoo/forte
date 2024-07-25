@@ -68,6 +68,7 @@ class BaseStrategy:
         self.asset = None
         self.execute_trades = False
         self.tick_number = 0
+        self.last_tick_time = None
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
         #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
         """
@@ -269,6 +270,7 @@ class BaseStrategy:
         #self.on_tick_data()
         self.tick_number = 0
         self.monitor_existing_positions_close()
+        self.monitor_existing_positions_target()
         self.check_neuron_validity()
 
     @while_active
@@ -277,10 +279,13 @@ class BaseStrategy:
         self.look_for_trade()
 
     @while_active
-    def on_tick_data(self):
-        self.tick_number += 1
-        if self.tick_number % 9 == 0: #check every 9 minutes
-            self.monitor_existing_positions_target()
+    def on_tick_data(self, tick_time):
+        if self.last_tick_time is None or tick_time > self.last_tick_time:
+            self.last_tick_time = tick_time
+            self.tick_number += 1
+            if self.tick_number % 9 == 0: #check every 9 seconds
+                print('tick level reached =======')
+                self.monitor_existing_positions_target()
 
     def monitor_existing_positions_close(self):
         exit_criteria_met = self.evaluate_exit_signals()
@@ -289,6 +294,7 @@ class BaseStrategy:
         self.trade_manager.monitor_existing_positions_close()
 
     def monitor_existing_positions_target(self):
+        #print('core strategy monitor_existing_positions_target ==', self.id)
         self.trade_manager.monitor_existing_positions_target()
 
     def pre_signal_filter(self, signal):

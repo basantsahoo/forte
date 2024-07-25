@@ -108,9 +108,11 @@ class Trade:
         return dct
 
     def other_init(self):
+
         self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
         self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
-        #print('trade  other_init duration===', self.trade_duration)
+        print('trade  other_init duration===', self.trade_duration)
+        print([leg_group.duration for leg_group in self.leg_groups.values()])
 
 
     def slide_leg_group(self, prior_lg_id, lg_index):
@@ -235,7 +237,7 @@ class Trade:
         self.close_on_spot_tg_sl()
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
-                leg_group.close_on_instr_tg()
+                leg_group.close_on_instr_tg() #Is this redundant?
                 leg_group.close_on_instr_sl_tm()
         #for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
@@ -276,12 +278,12 @@ class Trade:
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
         max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
             self.trigger_time + self.trade_duration * 60, self.force_exit_time + 60)
-        """
-        print("trade trade_duration =", self.trade_duration)
-        print("trade self.trigger_time + self.trade_duration * 60 =", self.trigger_time + self.trade_duration*60)
-        print("trade self.force_exit_time + 60 =", self.force_exit_time + 60)
-        print("trade max_run_time =", max_run_time)
-        """
+
+        #print("trade trade_duration =", self.trade_duration)
+        #print("trade self.trigger_time + self.trade_duration * 60 =", self.trigger_time + self.trade_duration*60)
+        #print("trade self.force_exit_time + 60 =", self.force_exit_time + 60)
+        #print("trade max_run_time =", max_run_time)
+
         if last_spot_candle['timestamp'] >= max_run_time:
             self.trigger_exit(exit_type='TRD_TC')
         elif self.force_exit_time and last_spot_candle['timestamp'] >= self.force_exit_time:

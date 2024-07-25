@@ -183,6 +183,8 @@ class NodeEvaluator:
                 day_low = market_profile.get('low')
                 day_high = market_profile.get('high')
 
+                day_close_vs_lw_poc_pct = (day_close - last_week_metric['poc_price']) / last_week_metric['poc_price']
+
                 open_above_lw_poc = day_open > last_week_metric['poc_price']
                 open_above_lw_va = day_open > last_week_metric['va_h_p']
                 open_below_lw_va = day_open < last_week_metric['va_l_p']
@@ -216,8 +218,11 @@ class NodeEvaluator:
                 past_days_in_week = len(hist_day_market_profile_stats.keys())
                 last_week_range_pct = (last_week_metric['high'] - last_week_metric['low']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 last_week_range = [last_week_metric['low'], last_week_metric['high']]
-                curr_week_high_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
-                curr_week_low_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
+                #curr_week_high_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
+                #curr_week_low_pct = (curr_week_metric['low'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
+                curr_week_high_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / last_week_metric['poc_price']
+                curr_week_low_pct = (curr_week_metric['low'] - last_week_metric['poc_price']) / last_week_metric['poc_price']
+
                 curr_week_range = [curr_week_metric['low'], curr_week_metric['high']]
                 curr_week_range_in_last_week_range = (max(curr_week_range) <= max(last_week_range) * 1.001) and (min(curr_week_range) >= min(last_week_range) * 0.999)
                 d2_ad_resistance_pressure = market_params.get('d2_ad_resistance_pressure', 0)
@@ -257,6 +262,7 @@ class NodeEvaluator:
                     'day_open': day_open,
                     'day_low': day_low,
                     'day_high': day_high,
+                    'day_close_vs_lw_poc_pct': day_close_vs_lw_poc_pct,
                     'open_above_lw_poc': open_above_lw_poc,
                     'open_above_lw_va': open_above_lw_va,
                     'open_below_lw_va': open_below_lw_va,

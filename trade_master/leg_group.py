@@ -37,6 +37,7 @@ class LegGroup:
         self.duration = leg_group_info.get('duration', None)
         #print('LegGroup duration===', self.duration)
         if self.duration is None:
+            # On carry over day trade close market close 5 min before
             self.duration = min(self.trade.durations[lg_index], self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 2) if not self.carry_forward_days else self.trade.trade_set.trade_manager.market_book.get_time_to_close() - 13 + 1440 * self.carry_forward_days
 
 

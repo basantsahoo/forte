@@ -67,7 +67,7 @@ class OptionAssetBook:
                 print('setting volume oi 1')
                 closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
                 closing_oi_recs = closing_oi_df.to_dict("record")
-                print(closing_oi_df.to_dict('records'))
+                #print(closing_oi_df.to_dict('records'))
                 self.option_matrix.process_closing_oi(trade_day, closing_oi_recs)
                 self.option_matrix_5_min.process_closing_oi(trade_day, closing_oi_recs)
                 self.option_matrix_15_min.process_closing_oi(trade_day, closing_oi_recs)
@@ -114,6 +114,7 @@ class OptionAssetBook:
     #def spot_feed_stream_2(self, feed_list):
 
     def option_feed_stream(self, feed_list):
+        tick_time = feed_list[0]['timestamp']
         feed_list = [convert_to_option_ion(feed) for feed in feed_list]
         data_dct = {ion_d['instrument']: ion_d['oi'] for ion_d in feed_list}
         """
@@ -124,7 +125,7 @@ class OptionAssetBook:
         self.option_matrix.process_option_feed(feed_list)
         self.option_matrix_5_min.process_option_feed(feed_list)
         self.option_matrix_15_min.process_option_feed(feed_list)
-        self.market_book.strategy_manager.on_option_tick(self.asset)
+        self.market_book.strategy_manager.on_option_tick(self.asset, tick_time)
 
     def set_volume_delta_mode(self, volume_delta_mode):
         self.option_matrix.volume_delta_mode = volume_delta_mode

@@ -107,14 +107,14 @@ class StrategyManager:
                     #strategy.on_minute_data_pre()
                     strategy.on_minute_data_post()
 
-    def on_option_tick(self, asset):
+    def on_option_tick(self, asset, tick_time):
         if self.process_signal_switch:
             #print('strategy manager on_option_tick')
             #strategies = self.get_strategies_by_symbol(asset)
             for strategy in self.strategies.values():
                 if strategy.asset == asset:
                     #strategy.on_minute_data_pre()
-                    strategy.on_tick_data()
+                    strategy.on_tick_data(tick_time)
 
     def market_close_for_day(self):
         for strategy in self.strategies.values():
