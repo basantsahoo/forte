@@ -65,8 +65,9 @@ class BaseStrategy:
         self.exit_signal_pipeline = QNetwork(self, exit_criteria_list)
         self.restore_variables = {}
         self.trade_manager = None #TradeManager.from_config(market_book, self, **trade_manager_info)
-        #self.asset = self.asset_book.asset
+        self.asset = None
         self.execute_trades = False
+        self.tick_number = 0
         #print('self.entry_signal_queues+++++++++++', self.entry_signal_pipeline)
         #print('self.exit_signal_queues+++++++++++', self.exit_signal_pipeline)
         """
@@ -81,7 +82,7 @@ class BaseStrategy:
     def add_trade_manager(self, trade_manager):
         self.trade_manager = trade_manager
         self.asset_book = self.market_book.get_asset_book(self.trade_manager.asset) if self.market_book is not None else None
-
+        self.asset = self.asset_book.asset
 
     def set_up(self):
         week_day_criterion = (not self.weekdays_allowed) or TradeDateTime(self.asset_book.market_book.trade_day).weekday_name in self.weekdays_allowed
@@ -266,6 +267,7 @@ class BaseStrategy:
     def on_minute_data_pre(self):
         #print('on_minute_data_pre+++++++++++++++++++++++++')
         #self.on_tick_data()
+        self.tick_number = 0
         self.monitor_existing_positions_close()
         self.check_neuron_validity()
 
@@ -276,11 +278,12 @@ class BaseStrategy:
 
     @while_active
     def on_tick_data(self):
-        self.monitor_existing_positions_target()
+        self.tick_number += 1
+        if self.tick_number % 9 == 0: #check every 9 minutes
+            self.monitor_existing_positions_target()
 
     def monitor_existing_positions_close(self):
         exit_criteria_met = self.evaluate_exit_signals()
-        #print('close_on_exit_signal++++++++++++++++++++', exit_criteria_met)
         if exit_criteria_met:
             self.trade_manager.close_on_exit_signal()
         self.trade_manager.monitor_existing_positions_close()

@@ -27,9 +27,11 @@ class Clock:
         else:
             frame = int(input_time_stamp / self.interval) * self.interval
             if frame > self.current_frame:
-                for change_subscription in self.frame_change_subscriptions:
-                    change_subscription(self.current_frame, frame)
+                last_frame = self.current_frame
                 self.set_frame(input_time_stamp)
+                for change_subscription in self.frame_change_subscriptions:
+                    change_subscription(last_frame, frame)
+
 
     def on_day_change(self, trade_day):
         print('*******************************on_day_change***********************')

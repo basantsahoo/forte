@@ -10,14 +10,14 @@
     "exit_at":null,
     "carry_forward_days":[4, 4, 4 ,4],
     "triggers_per_signal": 4,
-    "trade_targets":[0.7, 0.7, 0.5, 0.4],
-    "trade_stop_losses":[0.4, 0.4, 0.4, 0.4],
+    "trade_targets":[1, 1, 1, 1],
+    "trade_stop_losses":[1, 1, 1, 1],
     "spot_high_stop_losses":[0.1],
     "spot_low_stop_losses":[0.1],
     "spot_high_targets":[0.1],
     "spot_low_targets":[0.1],
     "leg_group_exits": {
-      "targets":[{"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}, {"gp_a": 0.9, "gp_b": 0.8}],
+      "targets":[{"gp_a": 1, "gp_b": 1}, {"gp_a": 1, "gp_b": 1}, {"gp_a": 1, "gp_b": 1}, {"gp_a": 1, "gp_b": 1}],
       "stop_losses":[{"gp_a": 2, "gp_b": 2}, {"gp_a": 2, "gp_b": 2}, {"gp_a": 2, "gp_b": 2}, {"gp_a": 3, "gp_b": 3}],
       "spot_high_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
       "spot_low_stop_losses":[{"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.1, "gp_b": 0.1}, {"gp_a": 0.2, "gp_b": 0.2}, {"gp_a": 0.3, "gp_b": 0.3}],
@@ -39,7 +39,7 @@
               "instr_to_trade": {
                 "money_ness": "OTM",
                 "level": 1,
-                "kind": "PE",
+                "kind": "CE",
                 "expiry": "near"
               },
               "order_type": "SELL",
@@ -49,7 +49,7 @@
               "instr_to_trade": {
                 "money_ness": "OTM",
                 "level": 2,
-                "kind": "PE",
+                "kind": "CE",
                 "expiry": "near"
               },
               "order_type": "BUY",

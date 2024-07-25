@@ -29,7 +29,7 @@ class TradeSet:
         return obj
 
     def trigger_entry(self):
-        print('TradeSet trigger_entry +++++++++++++++++')
+        #print('TradeSet trigger_entry +++++++++++++++++')
         for trade_id, trade in self.trades.items():
             trade.trigger_entry()
         self.process_entry_orders()
@@ -48,6 +48,7 @@ class TradeSet:
         return trade_set_complete
 
     def close_on_exit_signal(self):
+        print("Trade set close_on_exit_signal =====", self.id)
         if not self.complete():
             self.trigger_exit(exit_type='EC')
             check_complete_test = self.complete()
@@ -55,21 +56,22 @@ class TradeSet:
     def trigger_exit(self, exit_type, manage_risk=True):
         for trade_id, trade in self.trades.items():
             if not trade.complete():
-                trade.trigger_exit(exit_type)
-        self.process_exit_orders(manage_risk)
+                trade.trigger_external_exit(exit_type)
+        self.process_exit_orders(manage_risk, entry_from="trigger_exit")
 
 
     def monitor_existing_positions_close(self, manage_risk=True):
         for trade_id, trade in self.trades.items():
             if not trade.complete():
                 trade.monitor_existing_positions_close()
-        self.process_exit_orders(manage_risk)
+        self.process_exit_orders(manage_risk, entry_from="monitor_existing_positions_close")
 
     def monitor_existing_positions_target(self, manage_risk=True):
+        print('trade set monitor_existing_positions_target ==', self.id)
         for trade_id, trade in self.trades.items():
             if not trade.complete():
                 trade.monitor_existing_positions_target()
-        self.process_exit_orders(manage_risk)
+        self.process_exit_orders(manage_risk, entry_from="monitor_existing_positions_target")
 
     def calculate_pnl(self):
         capital_list = []
@@ -81,8 +83,7 @@ class TradeSet:
         pnl_ratio = sum(pnl_list)/sum(capital_list)
         return sum(capital_list), sum(pnl_list), pnl_ratio
 
-    def process_exit_orders(self, manage_risk=True):
-        print('process_exit_orders    in trade set, ', self.id)
+    def process_exit_orders(self, manage_risk=True, entry_from=None):
         if self.exit_orders:
             self.trade_manager.strategy.trigger_exit(self.id, self.exit_orders)
             self.exit_orders = []

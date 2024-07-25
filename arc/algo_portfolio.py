@@ -191,8 +191,10 @@ class AlgoPortfolioManager:
                                                           l_price, qty, trade_date, order_time)
                 oms_trade_info['leg_groups'].append(oms_leg_group_info)
             oms_order_info['trade_set'].append(oms_trade_info)
+
         self.place_oms_exit_order(oms_order_info, order_type='MARKET')
-        time.sleep(0.1)
+        print("==============================================================")
+
 
     def get_order_info_from_signal_info(self, signal_info):
         symbol = signal_info['symbol']

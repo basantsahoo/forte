@@ -187,6 +187,7 @@ class AlgorithmIterface:
 
 
     def on_option_tick_data(self, feed):
+        #print('Data interface on_option_tick_data')
         #print('on_option_tick_data', feed)
         if self.setup_in_progress:
             return
@@ -195,7 +196,7 @@ class AlgorithmIterface:
 
     def place_entry_order(self, order_info, order_type):
         #print('place_entry_order in data interface')
-        if True: #self.socket.hist_loaded:
+        if self.socket.hist_loaded:
             #print('place_entry_order in data interface', order_info)
             resp = self.oms_manager.place_entry_order(order_info, order_type)
             print(resp)
@@ -204,7 +205,7 @@ class AlgorithmIterface:
 
 
     def place_exit_order(self, order_info, order_type):
-        if True: #self.socket.hist_loaded:
+        if self.socket.hist_loaded:
             #print('place_exit_order in data interface')
             resp = self.oms_manager.place_exit_order(order_info, order_type)
             print(resp)

@@ -204,7 +204,7 @@ class Trade:
 
 
     def process_exit_orders(self):
-        print('trade process_exit_orders =========', self.trd_idx)
+        #print('trade process_exit_orders =========', self.trd_idx)
         if self.exit_orders:
             exit_orders = dict()
             exit_orders['trade_seq'] = self.trd_idx
@@ -213,12 +213,21 @@ class Trade:
             self.trade_set.exit_orders.append(exit_orders)
             all_leg_group_exits = [lg.exit_time for lg in self.leg_groups.values()]
             self.exit_time = None if None in all_leg_group_exits else max(all_leg_group_exits)
+        #print('total orders in trade set===', len(self.trade_set.exit_orders))
 
-    def trigger_exit(self, exit_type):
+
+    def trigger_external_exit(self, exit_type):
+        print('trade trigger_external_exit===', self.trd_idx)
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.trigger_exit(exit_type)
         self.process_exit_orders()
+
+    def trigger_exit(self, exit_type):
+        print('trade trigger_exit===', self.trd_idx)
+        for leg_group_id, leg_group in self.leg_groups.items():
+            if not leg_group.complete():
+                leg_group.trigger_exit(exit_type)
 
     def monitor_existing_positions_close(self):
         self.close_on_trade_tg()
@@ -234,6 +243,7 @@ class Trade:
         self.process_exit_orders()
 
     def monitor_existing_positions_target(self):
+        print('trade monitor_existing_positions_target===', self.trd_idx)
         self.close_on_trade_tg()
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():

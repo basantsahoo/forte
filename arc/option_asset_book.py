@@ -124,6 +124,7 @@ class OptionAssetBook:
         self.option_matrix.process_option_feed(feed_list)
         self.option_matrix_5_min.process_option_feed(feed_list)
         self.option_matrix_15_min.process_option_feed(feed_list)
+        self.market_book.strategy_manager.on_option_tick(self.asset)
 
     def set_volume_delta_mode(self, volume_delta_mode):
         self.option_matrix.volume_delta_mode = volume_delta_mode

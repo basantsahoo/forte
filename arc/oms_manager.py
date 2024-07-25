@@ -129,9 +129,9 @@ class OMSManager:
 
         index = root_symbol(order_info['asset'])
         lot_size = oms_config.get_lot_size(index)
-        print('lot_size==============', lot_size)
+        #print('lot_size==============', lot_size)
         order_info['qty'] = order_info['quantity'] * lot_size * strategy_regulation['scale']
-        print('get_optimal_entry_order_info++++', order_info)
+        #print('get_optimal_entry_order_info++++', order_info)
         return order_info
 
     def get_optimal_exit_order_info(self, order_info, strategy_regulation):
@@ -161,7 +161,7 @@ class OMSManager:
         pass
 
     def place_entry_order(self, signal_info, order_type='MARKET'):
-        print('place_entry_order inside oms', json.dumps(signal_info))
+        #print('place_entry_order inside oms', json.dumps(signal_info))
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
         trade_set = signal_info['trade_set']
@@ -174,13 +174,15 @@ class OMSManager:
         grouped_order_df = order_df.groupby(['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind']).agg({'quantity': ['sum']})
         grouped_order_df = grouped_order_df.reset_index()
         grouped_order_df.columns = ['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind', 'quantity']
-        final_orders = grouped_order_df.to_dict('records')
+        grouped_order_df['order_side'] = grouped_order_df['order_side'].apply(lambda x: get_broker_order_type(x))
+        sorted_grouped_order_df = grouped_order_df.sort_values(by='order_side', ascending=False)
+
+        final_orders = sorted_grouped_order_df.to_dict('records')
         response = []
         strategy_regulation = oms_config.get_strategy_regulation(strategy_id)
 
         for order in final_orders:
             self.strategy_order_map[signal_id] = {}
-            order['order_side'] = get_broker_order_type(order['order_side'])
             order['option_signal'] = order['kind'] in ['CE', 'PE']
             order['strategy_id'] = strategy_id
             order['order_type'] = order_type
@@ -202,7 +204,7 @@ class OMSManager:
                     """
         return response
 
-    def place_exit_order_2(self, signal_info, order_type='MARKET'):
+    def place_exit_order(self, signal_info, order_type='MARKET'):
         #print('place_exit_order inside oms', json.dumps(signal_info))
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
@@ -233,7 +235,10 @@ class OMSManager:
         grouped_order_df = order_df.groupby(['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind']).agg({'quantity': ['sum']})
         grouped_order_df = grouped_order_df.reset_index()
         grouped_order_df.columns = ['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind', 'quantity']
-        final_orders = grouped_order_df.to_dict('records')
+        grouped_order_df['order_side'] = grouped_order_df['order_side'].apply(lambda x: get_broker_order_type(x))
+        sorted_grouped_order_df = grouped_order_df.sort_values(by='order_side', ascending=False)
+
+        final_orders = sorted_grouped_order_df.to_dict('records')
         print('final_orders=======', final_orders)
         response = []
         for order in final_orders:
@@ -260,7 +265,7 @@ class OMSManager:
         return response
 
 
-    def place_exit_order(self, signal_info, order_type='MARKET'):
+    def place_exit_order_0(self, signal_info, order_type='MARKET'):
         #print('place_exit_order inside oms', json.dumps(signal_info))
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
@@ -274,7 +279,9 @@ class OMSManager:
         grouped_order_df = order_df.groupby(['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind']).agg({'quantity': ['sum']})
         grouped_order_df = grouped_order_df.reset_index()
         grouped_order_df.columns = ['full_code', 'symbol', 'order_side', 'asset', 'strike', 'kind', 'quantity']
-        final_orders = grouped_order_df.to_dict('records')
+        grouped_order_df['order_side'] = grouped_order_df['order_side'].apply(lambda x: get_broker_order_type(x))
+        sorted_grouped_order_df = grouped_order_df.sort_values(by='order_side', ascending=False)
+        final_orders = sorted_grouped_order_df.to_dict('records')
         print('final_orders=======', final_orders)
         response = []
         for order in final_orders:

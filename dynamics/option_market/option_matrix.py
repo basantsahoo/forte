@@ -60,6 +60,7 @@ class OptionMatrix:
         self.period = period
         self.aggregation_factor = throttle_speed / feed_speed
         self.volume_multiplier = volume_multiplier_dict[self.period]
+        self.live_ltps = {}
 
 
     def frame_change_action(self, current_frame, next_frame):
@@ -105,6 +106,8 @@ class OptionMatrix:
         self.check_adjust_closing_oi(instrument_data_list[0]['trade_date'])
         self.current_date = instrument_data_list[0]['trade_date']
         self.option_data_throttler.throttle(instrument_data_list)
+        for instrument_data in instrument_data_list:
+            self.live_ltps[instrument_data['instrument']] = {'close': instrument_data['close'], 'timestamp':instrument_data['timestamp']}
 
     def process_spot_feed(self, instrument_data_list):
         #print('process_spot_feed+++++++++++++++++', instrument_data_list)
@@ -262,12 +265,17 @@ class OptionMatrix:
 
 
     def get_last_tick(self, inst):
+        #print('option market get last tick=======', inst)
         """
         print("self.current_date======", self.current_date, "inst====", inst)
         print('self.asset=====', self.asset)
         print('self.period========', self.period)
         print('self.capsule====', self.capsule.trading_data)
         """
+        if inst in self.live_ltps:
+            live_tick = self.live_ltps[inst]
+            return live_tick
+
         day_capsule = self.get_day_capsule(self.current_date)
         trading_data = getattr(day_capsule, 'trading_data', {})
         instrument_capsule = trading_data.get(inst)
