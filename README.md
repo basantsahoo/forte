@@ -367,3 +367,24 @@ pip install candlestick-patterns-subodh101
 
 
 https://medium.com/@nataraj_malavade/market-profile-intraday-strategy-719c38427eca
+
+
+```
+backtest:
+python backtest_structure/mp_strategy_test.py
+python backtest_structure/mp_strategy_test.py backtest_strategies.json
+
+run only algo:
+python servers/run_website_server.py
+python servers/run_test_and_live_fetcher.py
+python servers/run_option_matrix.py
+
+run website:
+python servers/run_website_server.py
+python servers/run_oms_server.py
+python servers/run_test_and_live_fetcher.py
+python market/manage.py runserver --norealod
+cd forte/market
+python manage.py runserver --noreload
+python servers/run_option_matrix.py
+```

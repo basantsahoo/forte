@@ -9,5 +9,5 @@
   "key_level_fields": [],
   "time_criteria": [],
   "market_criteria_groups": [],
-  "paths": ["past_days_in_week < 3", "day_close_vs_lw_poc_pct < -0.02", "tpo > 12" ]
+  "paths": ["past_days_in_week < 3", "day_close_vs_lw_poc_pct <= -0.025", "tpo > 12" ]
 }

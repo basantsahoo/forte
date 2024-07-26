@@ -218,6 +218,10 @@ class NodeEvaluator:
                 past_days_in_week = len(hist_day_market_profile_stats.keys())
                 last_week_range_pct = (last_week_metric['high'] - last_week_metric['low']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 last_week_range = [last_week_metric['low'], last_week_metric['high']]
+                print('last_week_range==================', last_week_range)
+                print('last_week_POC==================', last_week_metric['poc_price'])
+                print('last_week_VAH==================', last_week_metric['va_h_p'])
+                print('Day Close==================', day_close)
                 #curr_week_high_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 #curr_week_low_pct = (curr_week_metric['low'] - last_week_metric['poc_price']) / ((last_week_metric['high'] + last_week_metric['low']) / 2)
                 curr_week_high_pct = (curr_week_metric['high'] - last_week_metric['poc_price']) / last_week_metric['poc_price']
