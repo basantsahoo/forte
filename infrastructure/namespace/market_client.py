@@ -1,18 +1,16 @@
 import time
 import socketio
-from live_algo.algo_settings import algorithm_setup
 import asyncio
 
-enabled_symbols = list(algorithm_setup.keys())
 
 class MarketClient(socketio.ClientNamespace):
-    def __init__(self,namespace=None, subscribed_symbols=[]):
+    def __init__(self, namespace=None, subscribed_symbols=[]):
         socketio.ClientNamespace.__init__(self, namespace)
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         self.subscribed_symbols = subscribed_symbols
         if not subscribed_symbols:
-            self.subscribed_symbols = enabled_symbols
+            self.subscribed_symbols = ['NIFTY']
         """
         self.sio = socketio.Client(reconnection_delay=5)
         ns = socketio.ClientNamespace(feed)

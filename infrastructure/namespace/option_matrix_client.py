@@ -1,10 +1,8 @@
 import time
 import socketio
-from live_algo.algo_settings import algorithm_setup
 import json
 from infrastructure.namespace.market_client import OptionMatrixMarketClient
 from servers.server_settings import feed_socket_service
-enabled_symbols = list(algorithm_setup.keys())
 from entities.trading_day import TradeDateTime, NearExpiryWeek
 from helper.data_feed_utils import convert_hist_option_feed, convert_hist_spot_feed
 sio = socketio.Client(reconnection_delay=5)
@@ -133,11 +131,6 @@ class OptionMatrixClient(socketio.ClientNamespace):
 
     def on_connect(self):
         print('Algo runner  connected to oms')
-        """
-        for symbol in enabled_symbols:
-            self.emit('join_tick_feed', symbol)
-        self.emit('join_oms')
-        """
 
     def on_disconnect(self):
         pass

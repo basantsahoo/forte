@@ -41,6 +41,7 @@ class Trade:
             self.force_exit_time = self.trade_set.trade_manager.market_book.get_force_exit_ts(trade_set.trade_manager.trade_info.get('force_exit_ts', None))
         print('trade force_exit_time======', self.force_exit_time)
         self.trade_duration = None
+        self.max_life_timestamp = None
         self.spot_entry_price = None
         self.delta = None
         self.controller_list = []
@@ -111,6 +112,7 @@ class Trade:
 
         self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
         self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
+        self.max_life_timestamp = max([leg_group.max_life_timestamp for leg_group in self.leg_groups.values()])
         print('trade  other_init duration===', self.trade_duration)
         print([leg_group.duration for leg_group in self.leg_groups.values()])
 
@@ -276,15 +278,7 @@ class Trade:
         #print('self.stop_loss=====', self.stop_loss)
         asset = list(self.leg_groups.values())[0].asset
         last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
-        max_run_time = self.trigger_time + self.trade_duration * 60 if self.force_exit_time is None else min(
-            self.trigger_time + self.trade_duration * 60, self.force_exit_time + 60)
-
-        #print("trade trade_duration =", self.trade_duration)
-        #print("trade self.trigger_time + self.trade_duration * 60 =", self.trigger_time + self.trade_duration*60)
-        #print("trade self.force_exit_time + 60 =", self.force_exit_time + 60)
-        #print("trade max_run_time =", max_run_time)
-
-        if last_spot_candle['timestamp'] >= max_run_time:
+        if last_spot_candle['timestamp'] >= self.max_life_timestamp:
             self.trigger_exit(exit_type='TRD_TC')
         elif self.force_exit_time and last_spot_candle['timestamp'] >= self.force_exit_time:
             self.trigger_exit(exit_type='TRD_TCFE')

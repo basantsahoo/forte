@@ -9,7 +9,6 @@ class TradeSet:
         self.exit_orders = []
         self.entry_orders = []
         self.completed = False
-        self.controller_list = []
 
     @classmethod
     def from_config(cls, trade_manager, ts_id):
