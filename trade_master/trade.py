@@ -84,6 +84,7 @@ class Trade:
         obj.spot_stop_loss_rolling = trade_info.get('spot_stop_loss_rolling', None)
         obj.con_seq = trade_info['con_seq']
         obj.delta = trade_info['delta']
+        obj.max_life_timestamp = trade_info['max_life_timestamp']
         obj.controller_list = [get_controller_from_store(stored_controller_info) for stored_controller_info in trade_info['controller_list']]
         print('from store controller list====', obj.controller_list)
         for controller in obj.controller_list:
@@ -93,7 +94,7 @@ class Trade:
 
     def to_dict(self):
         dct = {}
-        for field in ['trd_idx', 'trigger_time', 'spot_stop_loss_rolling', 'spot_high_target', 'spot_high_stop_loss', 'spot_low_target', 'spot_low_stop_loss', 'delta', 'con_seq']:
+        for field in ['trd_idx', 'trigger_time', 'spot_stop_loss_rolling', 'spot_high_target', 'spot_high_stop_loss', 'spot_low_target', 'spot_low_stop_loss', 'delta', 'max_life_timestamp', 'con_seq']:
             dct[field] = getattr(self, field)
         dct['leg_groups'] = [leg_group.to_dict() for leg_group in self.leg_groups.values()]
         dct['controller_list'] = [controller.to_dict() for controller in self.controller_list]
@@ -112,8 +113,7 @@ class Trade:
 
         self.trade_duration = max([leg_group.duration for leg_group in self.leg_groups.values()])
         self.spot_entry_price = self.leg_groups[list(self.leg_groups.keys())[0]].spot_entry_price
-        self.max_life_timestamp = max([leg_group.max_life_timestamp for leg_group in self.leg_groups.values()])
-        print('trade  other_init duration===', self.trade_duration)
+        print('trade  other_init max_life_timestamp===', self.max_life_timestamp)
         print([leg_group.duration for leg_group in self.leg_groups.values()])
 
 
@@ -170,6 +170,7 @@ class Trade:
         self.delta = self.calculate_delta()
         self.spot_stop_loss_rolling = self.spot_low_stop_loss if self.delta >= 0 else self.spot_high_stop_loss #if self.delta < 0 else None
         #print('self.spot_stop_loss_rolling+++++++++', self.spot_stop_loss_rolling)
+        self.max_life_timestamp = max([leg_group.max_life_timestamp for leg_group in self.leg_groups.values()])
         self.set_controllers()
 
     def trigger_entry(self):
