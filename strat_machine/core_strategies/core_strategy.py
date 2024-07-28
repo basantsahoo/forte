@@ -91,32 +91,10 @@ class BaseStrategy:
         if not activation_criterion:
             self.deactivate()
         self.trade_manager.load_from_cache()
-        """
-        carry_trades = self.strategy_cache.get(self.id, {})
-        print('carry_trades===', carry_trades)
-
-        params_repo = self.strategy_cache.get('params_repo_' + self.id, {})
-        self.trade_manager.from_store(carry_trades, params_repo)
-        self.strategy_cache.delete(self.id)
-        self.strategy_cache.delete('params_repo_' + self.id)
-        """
 
     def market_close_for_day(self):
         print('strategy market_close_for_day #################################')
         self.trade_manager.market_close_for_day()
-        """
-        carry_trade_sets = {}
-        params_repo = {}
-        for (sig_key, trade_set) in self.trade_manager.tradable_signals.items():
-            if not trade_set.complete():
-                carry_trade_sets[trade_set.id] = []
-                for trade in trade_set.trades.values():
-                    if not trade.complete():
-                        carry_trade_sets[trade_set.id].append(trade.to_dict())
-                        params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
-        self.strategy_cache.set(self.id, carry_trade_sets)
-        self.strategy_cache.set('params_repo_' + self.id, params_repo)
-        """
 
     def initiate_signal_trades(self):
         print('strategy initiate_signal_trades+++++++++++++++++')
@@ -277,6 +255,7 @@ class BaseStrategy:
     def on_minute_data_post(self):
         #print('on_minute_data_post+++++++++++++++++++++++++')
         self.look_for_trade()
+        self.look_for_re_entry()
 
     @while_active
     def on_tick_data(self, tick_time):
@@ -296,6 +275,10 @@ class BaseStrategy:
     def monitor_existing_positions_target(self):
         #print('core strategy monitor_existing_positions_target ==', self.id)
         self.trade_manager.monitor_existing_positions_target()
+
+    def look_for_re_entry(self):
+        #print('core strategy monitor_existing_positions_target ==', self.id)
+        self.trade_manager.trigger_re_entry()
 
     def pre_signal_filter(self, signal):
         satisfied = not self.signal_filters

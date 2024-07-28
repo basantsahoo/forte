@@ -313,7 +313,8 @@ if __name__ == '__main__':
     print('Accuracy', len([x for x in result_df['realized_pnl'].to_list() if x>0])/len(result_df['realized_pnl'].to_list()))
     print('Trade Accuracy', len([x for x in trade_level_df['realized_pnl'].to_list() if x > 0]) / len(trade_level_df['realized_pnl'].to_list()))
     print('No of Days', len(result_df['day'].unique()))
-    result_df['trade_entry_time_read'] = result_df['trade_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
+    #result_df['trade_entry_time_read'] = result_df['trade_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
+    result_df['lg_trigger_time_read'] = result_df['lg_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
     result_df['lg_exit_time_read'] = result_df['lg_exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)
 
     print('saving result to file', file_path)

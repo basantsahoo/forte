@@ -38,13 +38,18 @@ class TradeSet:
             self.trade_manager.strategy.trigger_entry(self.id, self.entry_orders)
             self.entry_orders = []
 
-
     def complete(self):
         trade_set_complete = True
         for trade in self.trades.values():
             trade_set_complete = trade_set_complete and trade.complete()
         self.completed = trade_set_complete
         return trade_set_complete
+
+    def max_life_timestamp_not_reached(self):
+        return any([trade.max_life_timestamp_not_reached() for trade in self.trades.values()])
+
+    def to_carry_forward(self):
+        return any([trade.to_carry_forward() for trade in self.trades.values()])
 
     def close_on_exit_signal(self):
         print("Trade set close_on_exit_signal =====", self.id)
@@ -66,11 +71,16 @@ class TradeSet:
         self.process_exit_orders(manage_risk, entry_from="monitor_existing_positions_close")
 
     def monitor_existing_positions_target(self, manage_risk=True):
-        print('trade set monitor_existing_positions_target ==', self.id)
+        #print('trade set monitor_existing_positions_target ==', self.id)
         for trade_id, trade in self.trades.items():
             if not trade.complete():
                 trade.monitor_existing_positions_target()
         self.process_exit_orders(manage_risk, entry_from="monitor_existing_positions_target")
+
+    def trigger_re_entry(self):
+        for trade_id, trade in self.trades.items():
+            trade.check_re_entry()
+        self.process_entry_orders()
 
     def calculate_pnl(self):
         capital_list = []

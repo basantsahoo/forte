@@ -138,6 +138,22 @@ class Trade:
         self.trade_set.process_entry_orders()
         print('slide_leg_group complete++++++++++++++++++++++++++++')
 
+    def re_enter_leg_group(self, prior_lg_id, lg_index):
+        print('re_enter_leg_group==========', prior_lg_id, lg_index)
+        lg_id = len(self.leg_groups.keys()) + 1
+        leg_groups = copy.deepcopy(self.trade_set.trade_manager.trade_info["leg_groups"])
+        self.leg_groups[lg_id] = LegGroup.from_config(self, lg_id, lg_index, leg_groups[lg_index])
+        self.leg_groups[lg_id].prior_lg_id = prior_lg_id
+        self.leg_groups[lg_id].primary_leg = False
+        self.leg_groups[prior_lg_id].active = False
+        self.leg_groups[lg_id].re_entry_config = self.leg_groups[prior_lg_id].re_entry_config
+        self.leg_groups[lg_id].re_entry_count = self.leg_groups[prior_lg_id].re_entry_count
+        self.leg_groups[lg_id].trigger_entry()
+        self.leg_groups[lg_id].max_life_timestamp = self.leg_groups[prior_lg_id].max_life_timestamp
+        self.leg_groups[lg_id].spot_benchmark_price = self.leg_groups[prior_lg_id].spot_benchmark_price
+        self.process_entry_orders()
+
+
     def process_entry_orders(self):
         if self.entry_orders:
             entry_orders = dict()
@@ -179,6 +195,11 @@ class Trade:
         self.process_entry_orders()
         self.finish_trade_setup_after_entry_order()
 
+    def check_re_entry(self):
+        for leg_group_id, leg_group in self.leg_groups.copy().items():
+            leg_group.check_re_entry()
+        self.process_entry_orders()
+
     def calculate_target(self, target_level, default=None):
         #print('calculate_target+++++++++++++++++++++++++', target_level)
         rs = default
@@ -207,6 +228,15 @@ class Trade:
             all_leg_groups_complete = all_leg_groups_complete and leg_group.complete()
         return all_leg_groups_complete
 
+    def to_carry_forward(self):
+        trade_carry_ind = self.max_life_timestamp_not_reached()
+        leg_group_carry_ind = [leg_group.to_carry_forward() for leg_group in self.leg_groups.values()]
+        return trade_carry_ind and any(leg_group_carry_ind)
+
+    def max_life_timestamp_not_reached(self):
+        asset = list(self.leg_groups.values())[0].asset
+        last_spot_candle = self.trade_set.trade_manager.get_last_tick(asset, 'SPOT')
+        return last_spot_candle['timestamp'] < self.max_life_timestamp
 
     def process_exit_orders(self):
         #print('trade process_exit_orders =========', self.trd_idx)
@@ -248,24 +278,25 @@ class Trade:
         self.process_exit_orders()
 
     def monitor_existing_positions_target(self):
-        print('trade monitor_existing_positions_target===', self.trd_idx)
+        #print('trade monitor_existing_positions_target===', self.trd_idx)
         self.close_on_trade_tg()
         for leg_group_id, leg_group in self.leg_groups.items():
             if not leg_group.complete():
                 leg_group.close_on_instr_tg()
         self.process_exit_orders()
 
-    def calculate_pnl(self):
+    def calculate_pnl(self): #Do not consider  leg groups that have given reentry
         capital_list = []
         pnl_list = []
         for leg_group_id, leg_group in self.leg_groups.items():
-            capital, pnl, pnl_pct = leg_group.calculate_pnl()
-            capital_list.append(capital)
-            pnl_list.append(pnl)
+            if leg_group.active:
+                capital, pnl, pnl_pct = leg_group.calculate_pnl()
+                capital_list.append(capital)
+                pnl_list.append(pnl)
         pnl_ratio = sum(pnl_list)/sum(capital_list)
         return sum(capital_list), sum(pnl_list), pnl_ratio
 
-    def calculate_delta(self):
+    def calculate_delta(self): #Only consider the leg groups that are created initially during trigger
         trade_delta = []
         for leg_group_id, leg_group in self.leg_groups.items():
             if leg_group.prior_lg_id is None:

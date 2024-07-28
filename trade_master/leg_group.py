@@ -10,10 +10,11 @@ class LegGroup:
         self.lg_class = leg_group_info['lg_class']
         self.lg_index = lg_index
         self.lg_id = lg_id
-        self.prior_lg_id = None
+        self.prior_lg_id = leg_group_info.get('prior_lg_id', None)
+        self.primary_leg = leg_group_info.get('prior_lg_id', True)
+        self.active = leg_group_info.get('active', True)
         self.asset = leg_group_info['asset']
         self.trade = trade
-        self.completed = False
         #self.leg_group_info = leg_group_info
         self.target = abs(self.trade.leg_group_exits['targets'].get(self.lg_class, float('inf')))
         self.stop_loss = -1 * abs(self.trade.leg_group_exits['stop_losses'].get(self.lg_class, float('inf')))
@@ -25,13 +26,15 @@ class LegGroup:
         self.spot_slide_down = -1 * abs(self.trade.leg_group_exits['spot_slide_downs'].get(self.lg_class, float('inf'))) if self.trade.leg_group_exits['spot_slide_downs'] else float('-inf')
         self.carry_forward_days = self.trade.carry_forward_days
         self.legs = {}
-        self.entries = {}
         self.trigger_time = leg_group_info.get('trigger_time', None)
         self.exit_time = leg_group_info.get('exit_time', None)
         self.spot_entry_price = leg_group_info.get('spot_entry_price', None)
+        self.spot_benchmark_price = leg_group_info.get('spot_benchmark_price', None)
         self.spot_exit_price = leg_group_info.get('spot_exit_price', None)
 
         self.force_exit_time = leg_group_info.get('force_exit_time', None)
+        self.re_entry_config = leg_group_info.get('re_entry_config', {})
+        self.re_entry_count = leg_group_info.get('re_entry_count', 0)
         if self.force_exit_time is None:
             self.force_exit_time = self.trade.trade_set.trade_manager.market_book.get_force_exit_ts(leg_group_info.get('force_exit_ts', None))
             print('self.force_exit_time=======', self.force_exit_time)
@@ -70,6 +73,22 @@ class LegGroup:
             obj.legs[leg_id] = Leg.from_store(obj, **leg_info)
         return obj
 
+    def to_dict(self):
+        dct = {}
+        for field in ['lg_index', 'lg_id', 'prior_lg_id', 'primary_leg', 'active', 'lg_class', 'asset', 'trigger_time', 'duration', 'delta', 'exit_time',
+                      'spot_entry_price', 'spot_benchmark_price', 'spot_exit_price', 'force_exit_time', 'max_life_timestamp', 're_entry_config', 're_entry_count']:
+            dct[field] = getattr(self, field)
+        dct['legs'] = {k:v.to_dict() for k,v in self.legs.items()}
+        return dct
+
+    def to_partial_dict(self):
+        dct = {}
+        for field in ['lg_id', 'prior_lg_id', 'lg_class']:
+            dct[field] = getattr(self, field)
+        for field in ['duration', 'delta', 'trigger_time', 'exit_time']:
+            dct['lg_' + field] = getattr(self, field)
+        return dct
+
 
     def infer_market_view(self):
         if self.delta > 0:
@@ -92,7 +111,30 @@ class LegGroup:
         self.max_life_timestamp = self.trigger_time + self.duration * 60 if self.force_exit_time is None else min(
             self.trigger_time + self.duration * 60, self.force_exit_time + 60)
         self.spot_entry_price = self.legs[list(self.legs.keys())[0]].spot_entry_price
+        self.spot_benchmark_price = self.legs[list(self.legs.keys())[0]].spot_entry_price
         self.trade.entry_orders.append(entry_orders)
+
+
+    def check_re_entry(self):
+        re_entry_ind = self.re_entry_count < self.re_entry_config.get('max_allowed', 0)
+        if self.active and re_entry_ind and self.complete() and self.calculate_pnl()[1] > 0:
+            print('leg group check_re_entry',self.trade.trd_idx, self.lg_id, self.prior_lg_id, self.complete(), self.active)
+            print('self.re_entry_count====', self.re_entry_count)
+            print('self.max_allowed====', self.re_entry_config.get('max_allowed', 0))
+            last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
+            pull_back_level = self.spot_entry_price + self.re_entry_config.get('pull_back', 0) if self.re_entry_config.get('pull_back_type', '') == 'step' else self.spot_benchmark_price + self.re_entry_config.get('pull_back', 0)
+            if self.delta >= 0:
+                if last_spot_candle['close'] <= pull_back_level:
+                    print('trigger reentry===', 'self.primary_leg=', self.primary_leg, 're_entry_ind==', re_entry_ind,
+                          "complete===", self.complete())
+                    self.re_entry_count += 1
+                    self.trade.re_enter_leg_group(self.lg_id, self.lg_index)
+            if self.delta < 0:
+                if last_spot_candle['close'] >= pull_back_level:
+                    print('trigger reentry===', 'self.primary_leg=', self.primary_leg,'re_entry_ind==', re_entry_ind, "complete===", self.complete())
+                    self.re_entry_count += 1
+                    self.trade.re_enter_leg_group(self.lg_id, self.lg_index)
+
 
     def trigger_exit(self, exit_type=None):
         exit_orders = {}
@@ -112,23 +154,17 @@ class LegGroup:
     def complete(self):
         all_legs_complete = True
         for leg in self.legs.values():
+            #print("leg complete===", self.lg_id, leg.leg_id, leg.exit_type)
             all_legs_complete = all_legs_complete and leg.exit_type is not None
         return all_legs_complete
 
-    def to_dict(self):
-        dct = {}
-        for field in ['lg_index', 'lg_id', 'prior_lg_id', 'lg_class', 'asset', 'trigger_time', 'duration', 'delta', 'exit_time', 'spot_entry_price', 'spot_exit_price', 'force_exit_time', 'max_life_timestamp']:
-            dct[field] = getattr(self, field)
-        dct['legs'] = {k:v.to_dict() for k,v in self.legs.items()}
-        return dct
+    def to_carry_forward(self):
+        last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
+        time_ind = last_spot_candle['timestamp'] < self.max_life_timestamp
+        re_entry_ind = self.re_entry_count < self.re_entry_config.get('max_allowed', 0)
+        return (self.active and time_ind and re_entry_ind) or not self.complete()
 
-    def to_partial_dict(self):
-        dct = {}
-        for field in ['lg_id', 'prior_lg_id', 'lg_class']:
-            dct[field] = getattr(self, field)
-        for field in ['duration', 'delta', 'trigger_time', 'exit_time']:
-            dct['lg_' + field] = getattr(self, field)
-        return dct
+
 
     def calculate_pnl(self):
         lg_pnl = []
@@ -173,21 +209,15 @@ class LegGroup:
     def close_on_spot_tg_sl(self):
         last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
         if self.delta > 0:
-            if self.spot_high_target and last_spot_candle['close'] >= self.spot_entry_price * (1 + self.spot_high_target):
+            if self.spot_high_target and last_spot_candle['close'] >= self.spot_benchmark_price * (1 + self.spot_high_target):
                 self.trigger_exit(exit_type='ST')
-            elif self.spot_low_stop_loss and last_spot_candle['close'] < self.spot_entry_price * (1 + self.spot_low_stop_loss):
+            elif self.spot_low_stop_loss and last_spot_candle['close'] < self.spot_benchmark_price * (1 + self.spot_low_stop_loss):
                 self.trigger_exit(exit_type='SS')
         elif self.delta < 0:
-            """
-            print('in here +++++++++++++++')
-            print('last_spot_candle[close] +++++++++++++++', last_spot_candle['close'])
-            print('spot_low_target[close] +++++++++++++++', self.spot_entry_price * (1 + self.spot_low_target))
-            print('spot_low_target', self.spot_low_target)
-            """
-            if self.spot_low_target and last_spot_candle['close'] <= self.spot_entry_price * (1 + self.spot_low_target):
+            if self.spot_low_target and last_spot_candle['close'] <= self.spot_benchmark_price * (1 + self.spot_low_target):
                 self.trigger_exit(exit_type='ST')
                 # print(last_candle, trigger_details['target'])
-            elif self.spot_high_stop_loss and last_spot_candle['close'] > self.spot_entry_price * (1 + self.spot_high_stop_loss):
+            elif self.spot_high_stop_loss and last_spot_candle['close'] > self.spot_benchmark_price * (1 + self.spot_high_stop_loss):
                 self.trigger_exit(exit_type='SS')
 
     def check_slide_status(self):

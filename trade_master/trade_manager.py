@@ -12,15 +12,15 @@ class TradeManager:
             raise Exception("Triggers and targets of unequal size")
     """
     def market_close_for_day(self):
-        print('trade manager market close for day')
+        #print('trade manager market close for day')
 
         carry_trade_sets = {}
         params_repo = {}
         for (sig_key, trade_set) in self.tradable_signals.items():
-            if not trade_set.complete():
+            if trade_set.to_carry_forward():
                 carry_trade_sets[trade_set.id] = []
                 for trade in trade_set.trades.values():
-                    if not trade.complete():
+                    if trade.to_carry_forward():
                         carry_trade_sets[trade_set.id].append(trade.to_dict())
                         params_repo[(sig_key, trade.trd_idx)] = self.params_repo[(sig_key, trade.trd_idx)]
         #print(carry_trade_sets)
@@ -50,11 +50,9 @@ class TradeManager:
         """
         return cls(market_book=market_book, strategy=strategy, **args)
 
-    def to_dict(self, encode_json=False):
-        return {}
-
     def load_carry_trades(self, carry_trades, params_repo):
         for sig_key, trade_set_info in carry_trades.items():
+            #print(sig_key, trade_set_info)
             #print(list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'])
             if list(trade_set_info[0]['leg_groups'][0]['legs'].values())[0]['trigger_time'] < self.market_book.last_tick_timestamp:
                 self.tradable_signals[sig_key] = TradeSet.from_store(self, sig_key, trade_set_info)
@@ -147,6 +145,11 @@ class TradeManager:
         #print('trade manager, monitor_existing_positions_target =============')
         for trade_set_id, trade_set in self.tradable_signals.items():
             trade_set.monitor_existing_positions_target()
+
+    def trigger_re_entry(self):
+        #print('trade manager, monitor_existing_positions_target =============')
+        for trade_set_id, trade_set in self.tradable_signals.items():
+            trade_set.trigger_re_entry()
 
     def close_on_exit_signal(self):
         for trade_set_id, trade_set in self.tradable_signals.items():

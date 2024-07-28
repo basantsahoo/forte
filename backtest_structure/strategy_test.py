@@ -116,6 +116,8 @@ class StartegyBackTester:
 
                                 leg_group_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].to_partial_dict()
                                 leg_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].trades[trade_id].leg_groups[leg_group_id].legs[leg_id].to_partial_dict()
+                                print(leg_group_details)
+                                print(leg_details)
                                 _tmp = {**_tmp, **trade_details, **leg_group_details, **_tmp_2, **leg_details}
                                 signal_custom_details = strategy_signal_generator.trade_manager.tradable_signals[signal_id].custom_features
                                 signal_params = ['pattern_height']
@@ -276,7 +278,7 @@ if __name__ == '__main__':
     print('Accuracy', len([x for x in result_df['realized_pnl'].to_list() if x>0])/len(result_df['realized_pnl'].to_list()))
     print('Trade Accuracy', len([x for x in trade_level_df['realized_pnl'].to_list() if x > 0]) / len(trade_level_df['realized_pnl'].to_list()))
     print('No of Days', len(result_df['day'].unique()))
-    result_df['trade_entry_time_read'] = result_df['trade_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
+    result_df['lg_trigger_time_read'] = result_df['lg_trigger_time'].apply(lambda x: datetime.fromtimestamp(x))
     result_df['lg_exit_time_read'] = result_df['lg_exit_time'].apply(lambda x: datetime.fromtimestamp(x) if x is not None and not math.isnan(x)  else x)
 
     print('saving result to file', file_path)
