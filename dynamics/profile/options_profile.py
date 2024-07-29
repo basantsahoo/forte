@@ -177,13 +177,14 @@ class OptionProfileService:
 
     def get_hist_data(self, ticker):
         print('get_hist_data+++++++++++++++++++++++++++++++++++++++++++')
-        hist_data = self.option_data.get(ticker, {}).get('hist', None)
+        hist_data = self.option_data.get(ticker, {}).get('hist', {})
         root_symbol = helper_utils.root_symbol(ticker)
-        highest_strike, lowest_strike = self.strike_levels[root_symbol]['highest_strike'], self.strike_levels[root_symbol]['lowest_strike']
-        #highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(root_symbol, self.spot_data[root_symbol])
-        print(highest_strike, lowest_strike)
 
-        if hist_data is not None:
+        if hist_data:
+            highest_strike, lowest_strike = self.strike_levels[root_symbol]['highest_strike'], \
+                                            self.strike_levels[root_symbol]['lowest_strike']
+            # highest_strike, lowest_strike = helper_utils.get_strike_levels_from_spot(root_symbol, self.spot_data[root_symbol])
+            print(highest_strike, lowest_strike)
             tmp_data = []
             for ts, options_data in hist_data.items():
                 for inst_data in options_data:

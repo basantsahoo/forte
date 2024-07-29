@@ -205,6 +205,7 @@ class LegGroup:
 
     def close_on_instr_tg(self):
         capital, pnl, pnl_pct = self.calculate_pnl()
+        print('leg group pnl =====', self.lg_id, "pnl====", capital, pnl, pnl_pct)
         if self.target and pnl_pct > self.target:
             self.trigger_exit(exit_type='IT')
 

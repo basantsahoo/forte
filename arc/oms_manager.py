@@ -204,7 +204,7 @@ class OMSManager:
                     """
         return response
 
-    def place_exit_order(self, signal_info, order_type='MARKET'):
+    def place_exit_order_0(self, signal_info, order_type='MARKET'):
         #print('place_exit_order inside oms', json.dumps(signal_info))
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']
@@ -265,7 +265,7 @@ class OMSManager:
         return response
 
 
-    def place_exit_order_0(self, signal_info, order_type='MARKET'):
+    def place_exit_order(self, signal_info, order_type='MARKET'):
         #print('place_exit_order inside oms', json.dumps(signal_info))
         strategy_id = signal_info['strategy_id']
         signal_id = signal_info['signal_id']

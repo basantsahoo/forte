@@ -26,10 +26,13 @@ def convert_hist_option_feed(feed, trade_day):
             'asset': symbol
         }
         f_recs.append(fdd)
+    if f_recs:
+        b_df = pd.DataFrame(f_recs)
+        b_df.sort_values(by=['timestamp'])
+        hist_recs = b_df.to_dict("records")
+    else:
+        hist_recs = []
 
-    b_df = pd.DataFrame(f_recs)
-    b_df.sort_values(by=['timestamp'])
-    hist_recs = b_df.to_dict("records")
     return {'feed_type': 'option', 'asset': symbol, 'data': hist_recs}
 
 
@@ -50,8 +53,10 @@ def convert_hist_spot_feed(feed, trade_day):
             'asset': symbol
         }
         f_recs.append(fdd)
-
-    b_df = pd.DataFrame(f_recs)
-    b_df.sort_values(by=['timestamp'])
-    hist_recs = b_df.to_dict("records")
+    if f_recs:
+        b_df = pd.DataFrame(f_recs)
+        b_df.sort_values(by=['timestamp'])
+        hist_recs = b_df.to_dict("records")
+    else:
+        hist_recs = []
     return {'feed_type': 'spot', 'asset': symbol, 'data': hist_recs}
