@@ -31,12 +31,12 @@ def restart_process():
 def start():
 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(td_download_spot_data.run, 'cron', day_of_week='mon-sun', hour='2', minute='02')
-    scheduler.add_job(td_download_option_data.run2, 'cron', day_of_week='mon-sun', hour='2', minute='04')
-    scheduler.add_job(calculate_historical_measures.run, 'cron', day_of_week='mon-sun', hour='2', minute='31')
+    scheduler.add_job(td_download_spot_data.run, 'cron', day_of_week='mon-sun', hour='12', minute='20')
+    scheduler.add_job(td_download_option_data.run2, 'cron', day_of_week='mon-sun', hour='12', minute='21')
+    scheduler.add_job(calculate_historical_measures.run, 'cron', day_of_week='mon-sun', hour='12', minute='30')
     scheduler.add_job(calculate_support_resistance.run, 'cron', day_of_week='mon-sun', hour='8', minute='25')
-    scheduler.add_job(day_profile.run, 'cron', day_of_week='mon-sun', hour='2', minute='33')
-    scheduler.add_job(running_weekly_profile.run, 'cron', day_of_week='mon-sun', hour='2', minute='38')
+    scheduler.add_job(day_profile.run, 'cron', day_of_week='mon-sun', hour='12', minute='31')
+    scheduler.add_job(running_weekly_profile.run, 'cron', day_of_week='mon-sun', hour='12', minute='34')
     scheduler.add_job(restart_process, 'cron', day_of_week='mon-sun', hour='21', minute='45')
     scheduler.add_job(download_economic_calendar.run, 'cron', day_of_week='*', hour='8', minute='40')
     scheduler.add_job(download_earnings_calendar.run, 'cron', day_of_week='*', hour='8', minute='45')

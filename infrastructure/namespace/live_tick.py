@@ -126,19 +126,15 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
 
     async def on_get_hist_spot_data(self, sid, ticker):
         print("JOIN HIST SPOT FEED BY USER", ticker)
-        #spot_data = self.market_cache.get(helper_utils.root_symbol(ticker))
-        #ltp = spot_data['close'] #-----------------------------------------
+        spot_data = self.market_cache.get(helper_utils.root_symbol(ticker))
+        ltp = spot_data['close'] #-----------------------------------------
         hist_data = self.processor.get_hist_data(ticker)
         #print(hist_data)
-        if hist_data:
+        if hist_data is not None:
             hist_data['symbol'] = ticker
             await self.emit('hist', json.dumps(hist_data, cls=NpEncoder), room=sid)
         else:
-            hist_data = {}
-            hist_data['symbol'] = ticker
-            hist_data['hist'] = {}
-            await self.emit('hist', json.dumps(hist_data, cls=NpEncoder), room=sid)
-            #await self.emit('tick_data', {spot_data['timestamp']: spot_data}, room=sid)
+            await self.emit('tick_data', {spot_data['timestamp']: spot_data}, room=sid)
 
     async def on_get_last_feed(self, sid, ticker):
         await self.send_pivot_values(sid, ticker)
@@ -205,16 +201,15 @@ class LiveFeedNamespace(socketio.AsyncNamespace, AuthMixin):
         print("JOIN HIST OPTION FEED BY USER", helper_utils.root_symbol(ticker))
         start_time = datetime.now()
         hist_data = self.option_processor.get_hist_data(helper_utils.get_oc_symbol(ticker))
-        #t_df = pd.DataFrame(hist_data)
+        t_df = pd.DataFrame(hist_data)
         #t_df.to_csv('hist_option.csv')
         end_time = datetime.now()
         print('on_get_hist_option_data', (end_time - start_time).total_seconds())
 
-        if hist_data:
+        if hist_data is not None:
+
             imp_strikes = self.option_processor.important_strikes[ticker]
             await self.emit('imp_strikes', {'symbol': ticker, 'data': imp_strikes}, room=sid)
-            await self.emit('hist_option_data', {'symbol': ticker, 'data': hist_data}, room=sid)
-        else:
             await self.emit('hist_option_data', {'symbol': ticker, 'data': hist_data}, room=sid)
 
     async def on_get_last_option_tick(self, sid, ticker):
