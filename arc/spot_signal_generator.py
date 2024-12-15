@@ -62,7 +62,7 @@ class SpotSignalGenerator:
 
     def ema_5_signal(self):
         candle_count = self.spot_book.candle_5_processor.get_candle_count()
-        if candle_count != self.last_candle_5_count:
+        if candle_count > 2 and  candle_count != self.last_candle_5_count:
             self.last_candle_5_count = candle_count
             candle_5 = self.spot_book.candle_5_processor.get_last_n_candles(1)[0]
             #print('new candle start time===', datetime.fromtimestamp(candle_5['timestamp']))
@@ -73,7 +73,7 @@ class SpotSignalGenerator:
             if candle_count > 2 and candle_count<6:
                 self.ema_5 = EMA(period=candle_count, input_values=[candle['close'] for candle in self.spot_book.candle_5_processor.candles])
             else:
-                self.ema_5.add_input_value(candle_5['close'])
+                self.ema_5.add(candle_5['close'])
             if self.ema_5:
                 #print('ema_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), self.ema_5[-1])
                 #print('candle_5=======', datetime.fromtimestamp(self.last_tick['timestamp']), candle_5)

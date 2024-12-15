@@ -36,7 +36,7 @@
           "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:20:30"],
           "re_entry_config": {
             "max_allowed": 2,
-            "pull_back": 200
+            "pull_back": 150
           },
           "legs" : {
             "A": {

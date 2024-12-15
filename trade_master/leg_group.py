@@ -121,8 +121,10 @@ class LegGroup:
             print('leg group check_re_entry',self.trade.trd_idx, self.lg_id, self.prior_lg_id, self.complete(), self.active)
             print('self.re_entry_count====', self.re_entry_count)
             print('self.max_allowed====', self.re_entry_config.get('max_allowed', 0))
+            print(self.calculate_pnl())
             last_spot_candle = self.trade.trade_set.trade_manager.get_last_tick(self.asset, 'SPOT')
             pull_back_level = self.spot_entry_price + self.re_entry_config.get('pull_back', 0) if self.re_entry_config.get('pull_back_type', '') == 'step' else self.spot_benchmark_price + self.re_entry_config.get('pull_back', 0)
+            #pull_back_level = self.spot_exit_price - self.re_entry_config.get('pull_back', 0)
             if self.delta >= 0:
                 if last_spot_candle['close'] <= pull_back_level:
                     print('trigger reentry===', 'self.primary_leg=', self.primary_leg, 're_entry_ind==', re_entry_ind,
@@ -203,6 +205,7 @@ class LegGroup:
 
     def close_on_instr_tg(self):
         capital, pnl, pnl_pct = self.calculate_pnl()
+        print('leg group pnl =====', self.lg_id, "pnl====", capital, pnl, pnl_pct)
         if self.target and pnl_pct > self.target:
             self.trigger_exit(exit_type='IT')
 

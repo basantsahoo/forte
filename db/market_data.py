@@ -9,6 +9,7 @@ import numpy as np
 engine = get_db_engine()
 import helper.utils as helper_utils
 from config import exclued_days
+from sqlalchemy import text
 
 
 def get_pending_key_level_days(symbol):
@@ -252,16 +253,19 @@ def evaluate_candle_type(open, high, low,close):
         ct = 'Marubuzu'
     return ct
 
-def get_filtered_days(ticker, filter):
+def get_filtered_days(ticker, filter, days_past=None):
     ticker = helper_utils.get_nse_index_symbol(ticker)
     stmt = "select * from daily_profile where symbol = '{0}' order by date asc"
     conn = engine.connect()
     df = pd.read_sql_query(stmt.format(ticker), conn)
     conn.close()
     df = df[1:]
+    if days_past is not None:
+        df = df[-days_past::]
     df['date'] = df['date'].apply(lambda x: x.strftime('%Y-%m-%d'))
     df['day'] = df['date'].apply(lambda x:  calendar.day_name[datetime.strptime(x, '%Y-%m-%d').weekday()])
     df['year'] = df['date'].apply(lambda x: x[0:4])
+    df['month'] = df['date'].apply(lambda x: x[0:4])
     df['body'] = df['close'] - df['open']
     df['range'] = df['high'] - df['low']
     df['ht'] = df['high'] - df[['close', 'open']].max(axis=1)
@@ -278,7 +282,7 @@ def get_all_days(symbol):
     symbol = helper_utils.get_nse_index_symbol(symbol)
     conn = engine.connect()
     stmt_1 = "select distinct date from minute_data where symbol = '{0}' order by date desc"
-    rs = conn.execute(stmt_1.format(symbol))
+    rs = conn.execute(text(stmt_1.format(symbol)))
     days = list(rs)
     days = [x[0] for x in days]
     conn.close()

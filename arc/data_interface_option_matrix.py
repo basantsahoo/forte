@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, time
 from arc.algo_portfolio import AlgoPortfolioManager
 from arc.oms_manager import OMSManager
 from arc.option_market_book import OptionMarketBook
@@ -153,6 +153,7 @@ class AlgorithmIterface:
             self.last_epoc_minute_data[symbol + "_O"] = {'timestamp': None}
 
     def on_hist_spot_data(self, hist_feed):
+        epoch_minute = TradeDateTime.get_epoc_minute(hist_feed['data'][0]['timestamp'])
         #print('on_hist_spot_data', hist_feed)
         symbol = hist_feed['asset']
         hist = hist_feed['data']
@@ -160,6 +161,7 @@ class AlgorithmIterface:
         self.last_epoc_minute_data[symbol] = hist[-1]
         self.portfolio_manager.feed_stream(pm_feed)
         self.market_book.feed_stream(hist_feed)
+        self.check_market_close(epoch_minute)
 
     def on_hist_option_data(self, hist_feed):
         #print('on_hist_option_data', hist_feed)
@@ -171,6 +173,15 @@ class AlgorithmIterface:
         self.portfolio_manager.feed_stream(pm_feed)
         self.market_book.feed_stream(hist_feed)
 
+
+    def check_market_close(self, epoch_timestamp):
+        dt = datetime.fromtimestamp(epoch_timestamp)
+        # Define the time to compare (3:28 PM)
+        #print('check_market_close++++++++++++++++++++++++')
+        #print(dt.time())
+        target_time = time(15, 28)
+        if dt.time() == target_time:
+            self.market_book.market_close_for_day()
 
     def on_spot_tick_data(self, feed):
         epoch_minute = TradeDateTime.get_epoc_minute(feed['data'][0]['timestamp'])
@@ -185,8 +196,7 @@ class AlgorithmIterface:
             self.market_book.feed_stream(feed)
         self.last_epoc_minute_data[symbol] = feed['data'][0]
         self.portfolio_manager.feed_stream(feed)
-
-
+        self.check_market_close(epoch_minute)
     def on_option_tick_data(self, feed):
         #print('Data interface on_option_tick_data')
         #print('on_option_tick_data', feed)

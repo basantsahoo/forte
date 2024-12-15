@@ -35,8 +35,8 @@
           "asset": "NIFTY",
           "force_exit_ts": ["weekly_expiry_day", "NIFTY", "15:20:30"],
           "re_entry_config": {
-            "max_allowed": 1,
-            "pull_back": -300
+            "max_allowed": 2,
+            "pull_back": -250
           },
           "legs" : {
             "A": {

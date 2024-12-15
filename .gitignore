@@ -18,6 +18,7 @@ dist/
 *.class
 *.csv
 *.xlsx
+*.md
 
 # Compiled Python bytecode
 *.py[cod]

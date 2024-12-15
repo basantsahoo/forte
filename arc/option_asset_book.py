@@ -64,9 +64,9 @@ class OptionAssetBook:
             self.expiry_month_ends['near'] = near_expiry_week.moth_end_expiry
             self.expiry_month_ends['next'] = near_expiry_week.next_expiry_moth_end_expiry
             if near_expiry_week.start_date.date_string != trade_day:
-                print('setting volume oi 1')
+                #print('setting volume oi 1')
                 closing_oi_df = get_prev_day_avg_volume(self.asset, trade_day)
-                closing_oi_recs = closing_oi_df.to_dict("record")
+                closing_oi_recs = closing_oi_df.to_dict("records")
                 #print(closing_oi_df.to_dict('records'))
                 self.option_matrix.process_closing_oi(trade_day, closing_oi_recs)
                 self.option_matrix_5_min.process_closing_oi(trade_day, closing_oi_recs)
@@ -77,7 +77,7 @@ class OptionAssetBook:
                 self.option_matrix_15_min.process_hist_ltp(trade_day, closing_oi_recs)
 
             else:
-                print('setting volume oi 2')
+                #print('setting volume oi 2')
                 self.option_matrix.process_closing_oi(trade_day, [])
                 self.option_matrix_5_min.process_closing_oi(trade_day, [])
                 self.option_matrix_15_min.process_closing_oi(trade_day, [])

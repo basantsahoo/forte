@@ -388,3 +388,13 @@ cd forte/market
 python manage.py runserver --noreload
 python servers/run_option_matrix.py
 ```
+
+
+```
+
+```
+
+```
+pip install llama-index-embeddings-ollama
+
+```
